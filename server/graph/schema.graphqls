@@ -1,0 +1,62 @@
+scalar timestamptz 
+
+interface Person {
+  id: ID!
+  fn: String!
+  sn: String!
+  mail: String!
+  confirmed: Boolean!
+}
+
+type Student implements Person {
+  id: ID!
+  fn: String!
+  sn: String!
+  mail: String!
+  confirmed: Boolean!
+  answers: [String!]!
+  score: Int
+  accepted: Boolean
+}
+
+type Tutor implements Person {
+  id: ID!
+  fn: String!
+  sn: String!
+  mail: String!
+  confirmed: Boolean!
+}
+
+type Event {
+  id: ID!
+  tutor: Tutor!
+  title: String!
+  description: String
+  from: timestamptz!
+  to: timestamptz!
+}
+
+type Query {
+  students: [Student]
+  events: [Event]
+}
+
+input NewStudent {
+  fn: String!
+  sn: String!
+  mail: String!
+  answers: [String!]
+}
+
+input NewEvent {
+  tutorId: ID!
+  title: String!
+  description: String
+  from: timestamptz!
+  to: timestamptz!
+}
+
+type Mutation {
+  addRegistration(input: NewStudent!): String!
+  newEvent(input: NewEvent!): String!
+}
