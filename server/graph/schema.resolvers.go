@@ -60,20 +60,20 @@ func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
 	if err != nil {
 		return nil, err
 	}
-  var transformedEvents []*model.Event
-    for _, event := range events {
-      transformedEvent := &model.Event{
-        ID:          event.ID.String(),
-        Tutor:       nil, 
-        Title:       event.Title,
-        Description: &event.Description,
-        From:        event.From.Format(time.RFC3339),
-        To:          event.To.Format(time.RFC3339),
-      }
-    transformedEvents = append(transformedEvents, transformedEvent)
-  }
+	var transformedEvents []*model.Event
+	for _, event := range events {
+		transformedEvent := &model.Event{
+			ID:          event.ID.String(),
+			Tutor:       nil,
+			Title:       event.Title,
+			Description: &event.Description,
+			From:        event.From.Format(time.RFC3339),
+			To:          event.To.Format(time.RFC3339),
+		}
+		transformedEvents = append(transformedEvents, transformedEvent)
+	}
 
-  return transformedEvents, nil
+	return transformedEvents, nil
 }
 
 // Mutation returns MutationResolver implementation.

@@ -5,9 +5,9 @@ package graph
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 import (
-    "github.com/uptrace/bun"
+	"github.com/uptrace/bun"
 )
 
-type Resolver struct{
-    DB *bun.DB
+type Resolver struct {
+	DB *bun.DB
 }

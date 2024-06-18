@@ -18,32 +18,32 @@ import (
 const defaultPort = "8080"
 
 func main() {
-  ctx := context.Background()
+	ctx := context.Background()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
 
-  db, sqldb, err := utils.InitDB(ctx)
-  defer sqldb.Close()
-  defer db.Close()
-  if err != nil {
-    log.Fatal(err)
-  }
+	db, sqldb, err := utils.InitDB(ctx)
+	defer sqldb.Close()
+	defer db.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-  router := chi.NewRouter()
-  router.Use(cors.New(cors.Options{
-    AllowedHeaders: []string{"*"},
-    AllowCredentials: true,
-    Debug: false,
-  }).Handler)
+	router := chi.NewRouter()
+	router.Use(cors.New(cors.Options{
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		Debug:            false,
+	}).Handler)
 
-  router.Use(middleware.Logger)
+	router.Use(middleware.Logger)
 
-  gqlResolvers := graph.Resolver{DB: db}
+	gqlResolvers := graph.Resolver{DB: db}
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &gqlResolvers}))
-  router.Handle("/api", srv)
+	router.Handle("/api", srv)
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/api"))
 
