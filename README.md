@@ -2,6 +2,7 @@
 ## dev ([todos](https://github.com/FachschaftMathPhysInfo/pepp/issues/1))
 1. `docker compose build`
 2. `docker compose up -d && docker compose logs -f`
+
 The API is now reachable on `localhost:8080/api`.
 
 ### Example usage of GraphQL in the interactive playground:
@@ -10,7 +11,7 @@ The API is now reachable on `localhost:8080/api`.
 ```
 mutation {
   newEvent(input: {
-    tutorId: "123e4567-e89b-12d3-a456-426614174000"
+    tutorId: "123e4567-e89b-12d3-a456-426614174000" # dummy
     title: "Math Tutoring Session"
     description: "Learn advanced calculus"
     from: "2024-06-18T10:00:00Z"
