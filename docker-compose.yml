@@ -1,0 +1,22 @@
+---
+volumes:
+  data:
+
+services:
+  postgres:
+    image: postgres:15.6-alpine
+    restart: always
+    volumes:
+      - data:/var/lib/postgresql/data
+      - ./server/init.sql:/docker-entrypoint-initdb.d/init.sql
+    env_file: .env
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: always
+    env_file: .env
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres

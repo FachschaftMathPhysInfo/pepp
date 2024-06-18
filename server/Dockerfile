@@ -1,4 +1,4 @@
-FROM golang:1.21.3-bullseye AS build
+FROM golang:1.22.4-bullseye AS build
 
 WORKDIR /go/src
 
@@ -8,6 +8,7 @@ RUN go mod download
 COPY graph ./graph
 COPY server.go ./server.go
 COPY utils ./utils
+COPY models ./models
 
 RUN CGO_ENABLED=0 go build -a -o graphql-server server.go
 
