@@ -7,16 +7,45 @@ package graph
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/google/uuid"
 )
 
 // AddRegistration is the resolver for the addRegistration field.
 func (r *mutationResolver) AddRegistration(ctx context.Context, input model.NewStudent) (string, error) {
 	panic(fmt.Errorf("not implemented: AddRegistration - addRegistration"))
+}
+
+// AddTutor is the resolver for the addTutor field.
+func (r *mutationResolver) AddTutor(ctx context.Context, input model.NewTutor) (string, error) {
+	id := uuid.New()
+	createdAt, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+	tutor := &models.Tutor{
+		ID:        id,
+		Fn:        input.Fn,
+		Sn:        input.Sn,
+		Mail:      input.Mail,
+		Confirmed: false,
+		CreatedAt: createdAt,
+	}
+
+	_, err := r.DB.NewInsert().Model(tutor).Exec(ctx)
+	if err != nil {
+		return "ADD_TUTOR_FAILURE", err
+	}
+
+	if os.Getenv("SMTP_HOST") == "" {
+		fmt.Printf("Email Server not configured. Skipping verification for %s", input.Mail)
+	} else {
+		utils.SendEmail(input.Mail, "Please confirm your registration as potential Tutor", fmt.Sprintf("%s/confirm/%s", os.Getenv("API_URL"), id))
+	}
+
+	return "SUCCESS_TUTOR_ADD", nil
 }
 
 // NewEvent is the resolver for the newEvent field.
@@ -53,6 +82,52 @@ func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) 
 	panic(fmt.Errorf("not implemented: Students - students"))
 }
 
+// Tutors is the resolver for the tutors field.
+func (r *queryResolver) Tutors(ctx context.Context) ([]*model.Tutor, error) {
+	var tutors []*models.Tutor
+
+	err := r.DB.NewSelect().Model(&tutors).Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var transformedTutors []*model.Tutor
+	for _, tutor := range tutors {
+		transformedTutor := &model.Tutor{
+			ID:        tutor.ID.String(),
+			Fn:        tutor.Fn,
+			Sn:        tutor.Sn,
+			Mail:      tutor.Mail,
+			Confirmed: tutor.Confirmed,
+		}
+		transformedTutors = append(transformedTutors, transformedTutor)
+	}
+
+	return transformedTutors, nil
+}
+
+// Tutor is the resolver for the tutor field.
+func (r *queryResolver) Tutor(ctx context.Context, id string) (*model.Tutor, error) {
+	var tutors []*models.Tutor
+	err := r.DB.NewSelect().Model(&tutors).Where("id = ?", id).Scan(ctx)
+	if err != nil {
+		return nil, err
+	} else if len(tutors) == 0 {
+		return nil, fmt.Errorf("TUTOR_NOT_FOUND")
+	}
+
+	tutor := tutors[0]
+	transformedTutor := &model.Tutor{
+		ID:        id,
+		Fn:        tutor.Fn,
+		Sn:        tutor.Sn,
+		Mail:      tutor.Mail,
+		Confirmed: tutor.Confirmed,
+	}
+
+	return transformedTutor, nil
+}
+
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
 	var events []*models.Event
@@ -62,9 +137,14 @@ func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
 	}
 	var transformedEvents []*model.Event
 	for _, event := range events {
+		tutor, err := r.Tutor(ctx, event.TutorID.String())
+		if err != nil {
+			tutor = nil
+		}
+
 		transformedEvent := &model.Event{
 			ID:          event.ID.String(),
-			Tutor:       nil,
+			Tutor:       tutor,
 			Title:       event.Title,
 			Description: &event.Description,
 			From:        event.From.Format(time.RFC3339),

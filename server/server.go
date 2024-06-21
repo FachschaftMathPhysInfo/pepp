@@ -41,6 +41,10 @@ func main() {
 
 	router.Use(middleware.Logger)
 
+  router.Get("/confirm/{id}", func(w http.ResponseWriter, r *http.Request) {
+    utils.ConfirmEmail(ctx, w, r, db)
+  })
+
 	gqlResolvers := graph.Resolver{DB: db}
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &gqlResolvers}))
 	router.Handle("/api", srv)

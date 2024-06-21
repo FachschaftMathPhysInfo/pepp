@@ -11,13 +11,24 @@ type Person interface {
 	GetConfirmed() bool
 }
 
+type Building struct {
+	ID     string  `json:"id"`
+	Name   *string `json:"name,omitempty"`
+	Street string  `json:"street"`
+	Number int     `json:"number"`
+	City   string  `json:"city"`
+	Zip    string  `json:"zip"`
+}
+
 type Event struct {
-	ID          string  `json:"id"`
-	Tutor       *Tutor  `json:"tutor"`
-	Title       string  `json:"title"`
-	Description *string `json:"description,omitempty"`
-	From        string  `json:"from"`
-	To          string  `json:"to"`
+	ID          string    `json:"id"`
+	Tutor       *Tutor    `json:"tutor,omitempty"`
+	Title       string    `json:"title"`
+	Description *string   `json:"description,omitempty"`
+	Building    *Building `json:"building,omitempty"`
+	Room        *Room     `json:"room,omitempty"`
+	From        string    `json:"from"`
+	To          string    `json:"to"`
 }
 
 type Mutation struct {
@@ -38,7 +49,19 @@ type NewStudent struct {
 	Answers []string `json:"answers,omitempty"`
 }
 
+type NewTutor struct {
+	Fn   string `json:"fn"`
+	Sn   string `json:"sn"`
+	Mail string `json:"mail"`
+}
+
 type Query struct {
+}
+
+type Room struct {
+	ID       string    `json:"id"`
+	Building *Building `json:"building"`
+	Number   string    `json:"number"`
 }
 
 type Student struct {

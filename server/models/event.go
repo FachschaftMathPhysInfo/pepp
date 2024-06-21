@@ -12,8 +12,8 @@ type Event struct {
 
 	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4()"`
 	TutorID     uuid.UUID `bun:"type:uuid"`
-	Title       string
-	Description string
+  Title       string `bun:"title"`
+  Description string `bun:"description"`
 	From        time.Time `bun:"type:timestamptz"`
 	To          time.Time `bun:"type:timestamptz"`
 }

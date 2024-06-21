@@ -29,15 +29,34 @@ type Tutor implements Person {
 
 type Event {
   id: ID!
-  tutor: Tutor!
+  tutor: Tutor
   title: String!
   description: String
+  building: Building
+  room: Room
   from: timestamptz!
   to: timestamptz!
 }
 
+type Building {
+  id: ID!
+  name: String
+  street: String!
+  number: Int!
+  city: String!
+  zip: String!
+}
+
+type Room {
+  id: ID!
+  building: Building!
+  number: String!
+}
+
 type Query {
   students: [Student]
+  tutors: [Tutor]
+  tutor(id: ID!): Tutor
   events: [Event]
 }
 
@@ -46,6 +65,12 @@ input NewStudent {
   sn: String!
   mail: String!
   answers: [String!]
+}
+
+input NewTutor {
+  fn: String!
+  sn: String!
+  mail: String!
 }
 
 input NewEvent {
@@ -58,5 +83,6 @@ input NewEvent {
 
 type Mutation {
   addRegistration(input: NewStudent!): String!
+  addTutor(input: NewTutor!): String!
   newEvent(input: NewEvent!): String!
 }
