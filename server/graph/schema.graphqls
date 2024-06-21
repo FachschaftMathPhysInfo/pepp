@@ -77,6 +77,8 @@ input NewEvent {
   tutorId: ID!
   title: String!
   description: String
+  buildingId: ID
+  roomId: ID
   from: timestamptz!
   to: timestamptz!
 }

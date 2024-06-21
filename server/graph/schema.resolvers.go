@@ -42,7 +42,7 @@ func (r *mutationResolver) AddTutor(ctx context.Context, input model.NewTutor) (
 	if os.Getenv("SMTP_HOST") == "" {
 		fmt.Printf("Email Server not configured. Skipping verification for %s", input.Mail)
 	} else {
-		utils.SendEmail(input.Mail, "Please confirm your registration as potential Tutor", fmt.Sprintf("%s/confirm/%s", os.Getenv("API_URL"), id))
+    utils.SendConfirmationMail(input.Mail, input.Fn, id.String())
 	}
 
 	return "SUCCESS_TUTOR_ADD", nil

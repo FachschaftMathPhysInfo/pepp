@@ -11,11 +11,49 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/matcornic/hermes/v2"
 	"github.com/uptrace/bun"
 	"gopkg.in/gomail.v2"
 )
 
-func SendEmail(to string, subject string, body string) error {
+// Make nicer when needed
+func SendConfirmationMail(mail string, fn string, id string) error {
+  h := hermes.Hermes{
+    // Optional Theme
+    // Theme: new(Default) 
+    Product: hermes.Product{
+        // Appears in header & footer of e-mails
+        Name: "Pepp - Die Vorkursverwaltung",
+        Link: "https://mathphys.info/",
+        // Optional product logo
+        Logo: "https://mathphys.info/mathphysinfo-logo.png",
+				Copyright: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.",
+    },
+  }
+	email := hermes.Email{
+    Body: hermes.Body{
+      Name: fn,
+			Greeting: "Hey",
+			Signature: "Dein",
+			Intros: []string{
+				"danke für deine Registrierung als Vorkurstutor!",
+			},
+			Actions: []hermes.Action{
+				{
+				  Instructions: "Bitte klicke hier um deine E-Mail zu bestätigen:",
+					Button: hermes.Button{
+				    Color: "#990000",
+						Text: "E-Mail bestätigen",
+						Link: fmt.Sprintf("%s/confirm/%s",
+		          os.Getenv("API_URL"), id),
+					},
+				},
+			},
+			Outros: []string{
+				"Danke! Wir melden uns bei dir.",
+			},
+		},
+	}
 	from := os.Getenv("FROM_ADDRESS")
 	smtpHost := os.Getenv("SMTP_HOST")
 	smtpUser := os.Getenv("SMTP_USER")
@@ -25,11 +63,16 @@ func SendEmail(to string, subject string, body string) error {
 		return err
 	}
 
+	body, err := h.GenerateHTML(email)
+	if err != nil {
+    return fmt.Errorf("EMAIL_GENERATION_FAILED")
+	}
+
 	m := gomail.NewMessage()
 	m.SetHeader("From", from)
-	m.SetHeader("To", to)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/plain", body)
+	m.SetHeader("To", mail)
+	m.SetHeader("Subject", "Bitte bestätige deine E-Mail Adresse")
+	m.SetBody("text/html", body)
 
 	d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPW)
 	if err := d.DialAndSend(m); err != nil {
