@@ -19,13 +19,9 @@ import (
 // Make nicer when needed
 func SendConfirmationMail(mail string, fn string, id string) error {
   h := hermes.Hermes{
-    // Optional Theme
-    // Theme: new(Default) 
     Product: hermes.Product{
-        // Appears in header & footer of e-mails
         Name: "Pepp - Die Vorkursverwaltung",
         Link: "https://mathphys.info/",
-        // Optional product logo
         Logo: "https://mathphys.info/mathphysinfo-logo.png",
 				Copyright: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.",
     },
@@ -36,11 +32,11 @@ func SendConfirmationMail(mail string, fn string, id string) error {
 			Greeting: "Hey",
 			Signature: "Dein",
 			Intros: []string{
-				"danke für deine Registrierung als Vorkurstutor!",
+				"danke für deine Registrierung als Vorkurstutor/-in!",
 			},
 			Actions: []hermes.Action{
 				{
-				  Instructions: "Bitte klicke hier um deine E-Mail zu bestätigen:",
+				  Instructions: "Bitte klicke hier um deine E-Mail Adresse zu bestätigen:",
 					Button: hermes.Button{
 				    Color: "#990000",
 						Text: "E-Mail bestätigen",
@@ -69,7 +65,7 @@ func SendConfirmationMail(mail string, fn string, id string) error {
 	}
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", from)
+	m.SetHeader("From", fmt.Sprintf("Pepp - Die Vorkursverwaltung <%s>", from))
 	m.SetHeader("To", mail)
 	m.SetHeader("Subject", "Bitte bestätige deine E-Mail Adresse")
 	m.SetBody("text/html", body)
@@ -92,7 +88,7 @@ func ConfirmEmail(ctx context.Context, w http.ResponseWriter, r *http.Request, d
   }
 
   res, err := db.NewUpdate().
-    Model(&models.Tutor{}).
+    Model(&models.Person{}).
     Set("confirmed = true").
     Where("id = ?", userID).
     Exec(ctx)

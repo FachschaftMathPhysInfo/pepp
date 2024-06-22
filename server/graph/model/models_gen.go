@@ -38,6 +38,8 @@ type NewEvent struct {
 	TutorID     string  `json:"tutorId"`
 	Title       string  `json:"title"`
 	Description *string `json:"description,omitempty"`
+	BuildingID  *string `json:"buildingId,omitempty"`
+	RoomID      *string `json:"roomId,omitempty"`
 	From        string  `json:"from"`
 	To          string  `json:"to"`
 }

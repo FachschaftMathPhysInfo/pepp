@@ -6,9 +6,9 @@ import (
 )
 
 type Room struct {
-	bun.BaseModel `bun:"table:rooms,alias:r`
+	bun.BaseModel `bun:"table:rooms,alias:r"`
 
-	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4()"`
-  BuildingId  uuid.UUID `bun:"type:uuid"`
+	ID          uuid.UUID `bun:"id,pk,type:uuid"`
+  BuildingId  uuid.UUID `bun:"buildingId,notnull,type:uuid"`
   Number      string `bun:"number"`
 }

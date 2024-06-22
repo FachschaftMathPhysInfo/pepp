@@ -6,10 +6,10 @@ import (
 )
 
 type Building struct {
-	bun.BaseModel `bun:"table:buildings,alias:b`
+	bun.BaseModel `bun:"table:buildings,alias:b"`
 
-	ID          uuid.UUID `bun:"type:uuid,default:uuid_generate_v4()"`
-  Name        string `bun:"name"`
+	ID          uuid.UUID `bun:"id,pk,type:uuid"`
+  Name        string `bun:"name,notnull"`
   Street      string `bun:"street"`
   Number      int `bun:"number"`
   City        string `bun:"city"`

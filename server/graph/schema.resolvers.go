@@ -7,7 +7,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
@@ -23,26 +22,9 @@ func (r *mutationResolver) AddRegistration(ctx context.Context, input model.NewS
 
 // AddTutor is the resolver for the addTutor field.
 func (r *mutationResolver) AddTutor(ctx context.Context, input model.NewTutor) (string, error) {
-	id := uuid.New()
-	createdAt, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-	tutor := &models.Tutor{
-		ID:        id,
-		Fn:        input.Fn,
-		Sn:        input.Sn,
-		Mail:      input.Mail,
-		Confirmed: false,
-		CreatedAt: createdAt,
-	}
-
-	_, err := r.DB.NewInsert().Model(tutor).Exec(ctx)
+	err := utils.AddPerson(ctx, input.Fn, input.Sn, input.Mail, models.Tutor, r.DB)
 	if err != nil {
-		return "ADD_TUTOR_FAILURE", err
-	}
-
-	if os.Getenv("SMTP_HOST") == "" {
-		fmt.Printf("Email Server not configured. Skipping verification for %s", input.Mail)
-	} else {
-    utils.SendConfirmationMail(input.Mail, input.Fn, id.String())
+		return "FAILED_TUTOR_ADD", err
 	}
 
 	return "SUCCESS_TUTOR_ADD", nil
@@ -84,9 +66,13 @@ func (r *queryResolver) Students(ctx context.Context) ([]*model.Student, error) 
 
 // Tutors is the resolver for the tutors field.
 func (r *queryResolver) Tutors(ctx context.Context) ([]*model.Tutor, error) {
-	var tutors []*models.Tutor
+	var tutors []*models.Person
 
-	err := r.DB.NewSelect().Model(&tutors).Scan(ctx)
+	err := r.DB.NewSelect().
+		Model(&tutors).
+		Where("type = ?", "tutor").
+		Scan(ctx)
+
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +94,13 @@ func (r *queryResolver) Tutors(ctx context.Context) ([]*model.Tutor, error) {
 
 // Tutor is the resolver for the tutor field.
 func (r *queryResolver) Tutor(ctx context.Context, id string) (*model.Tutor, error) {
-	var tutors []*models.Tutor
-	err := r.DB.NewSelect().Model(&tutors).Where("id = ?", id).Scan(ctx)
+	var tutors []*models.Person
+
+	err := r.DB.NewSelect().
+		Model(&tutors).
+		Where("id = ?", id).
+		Scan(ctx)
+
 	if err != nil {
 		return nil, err
 	} else if len(tutors) == 0 {
