@@ -15,3 +15,8 @@ SMTP_PASSWORD=1234
 SMTP_PORT=465
 FROM_ADDRESS=vorkurs@example.de
 ```
+## contributions
+1. [create an issue](https://github.com/FachschaftMathPhysInfo/pepp/issues/new)
+2. from this issue create a branch and work on it
+3. create a pull request and tag one of the main contributors for a short review
+4. sanfter Schulterklopfer ♡
