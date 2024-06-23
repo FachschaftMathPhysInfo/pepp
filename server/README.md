@@ -1,16 +1,16 @@
-# GraphQL Schema Documentation
-**Note: Not all queries and mutations are implemented**
+# GraphQL API Documentation
+
+**Note: Not all queries and mutations are implemented yet**
 
 ## Queries
 
 ### ~~`students`~~
-Fetches a list of all students.
+Fetch a list of all students.
 
-**Query:**
+#### Example
 ```graphql
-{
+query {
   students {
-    id
     fn
     sn
     mail
@@ -22,102 +22,34 @@ Fetches a list of all students.
 }
 ```
 
-**Example Response:**
-```json
-{
-  "data": {
-    "students": [
-      {
-        "id": "1",
-        "fn": "John",
-        "sn": "Doe",
-        "mail": "john.doe@example.com",
-        "confirmed": true,
-        "answers": ["Answer1", "Answer2"],
-        "score": 95,
-        "accepted": true
-      }
-    ]
-  }
-}
-```
-
 ### `tutors`
-Fetches a list of all tutors.
+Fetch a list of all tutors.
 
-**Query:**
+#### Example
 ```graphql
-{
+query {
   tutors {
-    id
     fn
     sn
     mail
     confirmed
-  }
-}
-```
-
-**Example Response:**
-```json
-{
-  "data": {
-    "tutors": [
-      {
-        "id": "1",
-        "fn": "Jane",
-        "sn": "Smith",
-        "mail": "jane.smith@example.com",
-        "confirmed": true
-      }
-    ]
-  }
-}
-```
-
-### `tutor`
-Fetches a specific tutor by ID.
-
-**Query:**
-```graphql
-{
-  tutor(id: "1") {
-    id
-    fn
-    sn
-    mail
-    confirmed
-  }
-}
-```
-
-**Example Response:**
-```json
-{
-  "data": {
-    "tutor": {
-      "id": "1",
-      "fn": "Jane",
-      "sn": "Smith",
-      "mail": "jane.smith@example.com",
-      "confirmed": true
-    }
   }
 }
 ```
 
 ### `events`
-Fetches a list of all events.
+Fetch a list of all events.
 
-**Query:**
+#### Example
 ```graphql
-{
+query {
   events {
     id
     tutor {
-      id
       fn
       sn
+      mail
+      confirmed
     }
     title
     description
@@ -128,47 +60,31 @@ Fetches a list of all events.
       number
       city
       zip
+      osmLink
+      rooms
     }
-    room {
-      id
-      number
-    }
+    room
     from
     to
   }
 }
 ```
 
-**Example Response:**
-```json
-{
-  "data": {
-    "events": [
-      {
-        "id": "1",
-        "tutor": {
-          "id": "1",
-          "fn": "Jane",
-          "sn": "Smith"
-        },
-        "title": "Math Tutoring",
-        "description": "Basic math tutoring session.",
-        "building": {
-          "id": "1",
-          "name": "Main Building",
-          "street": "123 Main St",
-          "number": 123,
-          "city": "Townsville",
-          "zip": "12345"
-        },
-        "room": {
-          "id": "101",
-          "number": "101"
-        },
-        "from": "2024-06-22T10:00:00Z",
-        "to": "2024-06-22T12:00:00Z"
-      }
-    ]
+### ~~`buildings`~~
+Fetch a list of all buildings.
+
+#### Example
+```graphql
+query {
+  buildings {
+    id
+    name
+    street
+    number
+    city
+    zip
+    osmLink
+    rooms
   }
 }
 ```
@@ -176,75 +92,168 @@ Fetches a list of all events.
 ## Mutations
 
 ### ~~`addRegistration`~~
-Registers a new student.
+Add a new student registration.
 
-**Mutation:**
+#### Arguments
+- `student` (NewStudent!): The details of the new student.
+
+#### Example
 ```graphql
 mutation {
-  addRegistration(input: {
-    fn: "John",
-    sn: "Doe",
-    mail: "john.doe@example.com",
+  addRegistration(student: {
+    fn: "John"
+    sn: "Doe"
+    mail: "john.doe@example.com"
     answers: ["Answer1", "Answer2"]
-  })
+  }) 
 }
 ```
 
-**Example Response:**
-```json
-{
-  "data": {
-    "addRegistration": "SUCCESS_STUDENT_ADD"
-  }
+### ~~`updateStudentAcceptedStatus`~~
+Update the acceptance status of a student.
+
+#### Arguments
+- `studentMail` (String!): The email of the student.
+- `accepted` (Boolean!): The new acceptance status.
+
+#### Example
+```graphql
+mutation {
+  updateStudentAcceptedStatus(studentId: "1", accepted: true) 
 }
 ```
 
 ### `addTutor`
-Registers a new tutor.
+Add a new tutor.
 
-**Mutation:**
+#### Arguments
+- `tutor` (NewTutor!): The details of the new tutor.
+
+#### Example
 ```graphql
 mutation {
-  addTutor(input: {
-    fn: "Jane",
-    sn: "Smith",
+  addTutor(tutor: {
+    fn: "Jane"
+    sn: "Smith"
     mail: "jane.smith@example.com"
-  })
+  }) 
 }
 ```
 
-**Example Response:**
-```json
-{
-  "data": {
-    "addTutor": "SUCCESS_TUTOR_ADD"
-  }
-}
-```
+### ~~`updateTutor`~~
+Update an existing tutor's details.
 
-### `newEvent`
-Creates a new event.
+#### Arguments
+- `tutorMail` (String!): The email of the tutor to be updated.
+- `input` (NewTutor!): The new details of the tutor.
 
-**Mutation:**
+#### Example
 ```graphql
 mutation {
-  newEvent(input: {
-    tutorId: "1",
-    title: "Math Tutoring",
-    description: "Basic math tutoring session.",
-    buildingId: "1",
-    roomId: "101",
-    from: "2024-06-22T10:00:00Z",
-    to: "2024-06-22T12:00:00Z"
-  })
+  updateTutor(tutorMail: "jane.smith@example.com", input: {
+    fn: "Jane"
+    sn: "Smith"
+    mail: "jane.smith@newdomain.com"
+  }) 
 }
 ```
 
-**Example Response:**
-```json
-{
-  "data": {
-    "newEvent": "SUCCESS_EVENT_INSERT"
-  }
+### `addEvent`
+Add a new event.
+
+#### Arguments
+- `event` (NewEvent!): The details of the new event.
+
+#### Example
+```graphql
+mutation {
+  addEvent(event: {
+    tutorMail: "jane.smith@example.com"
+    title: "New Event"
+    description: "An exciting new event"
+    buildingId: "1"
+    room: "101"
+    from: "2024-07-01T10:00:00Z"
+    to: "2024-07-01T12:00:00Z"
+  }) 
+}
+```
+
+### ~~`updateEvent`~~
+Update an existing event's details.
+
+#### Arguments
+- `eventId` (ID!): The ID of the event to be updated.
+- `event` (NewEvent!): The new details of the event.
+
+#### Example
+```graphql
+mutation {
+  updateEvent(eventId: "1", event: {
+    tutorMail: "jane.smith@example.com"
+    title: "Updated Event"
+    description: "An updated exciting event"
+    buildingId: "1"
+    room: "101"
+    from: "2024-07-01T10:00:00Z"
+    to: "2024-07-01T12:00:00Z"
+  }) 
+}
+```
+
+### ~~`addBuilding`~~
+Add a new building.
+
+#### Arguments
+- `building` (NewBuilding!): The details of the new building.
+
+#### Example
+```graphql
+mutation {
+  addBuilding(building: {
+    name: "Main Hall"
+    street: "Main St"
+    number: "123"
+    city: "Metropolis"
+    zip: 12345
+    osmLink: "https://osm.org/link"
+    rooms: ["101", "102"]
+  }) 
+}
+```
+
+### ~~`addRoom`~~
+Add a new room to an existing building.
+
+#### Arguments
+- `buildingId` (ID!): The ID of the building.
+- `room` (String!): The name of the new room.
+
+#### Example
+```graphql
+mutation {
+  addRoom(buildingId: "1", room: "103") 
+}
+```
+
+### ~~`updateBuilding`~~
+Update an existing building's details.
+
+#### Arguments
+- `buildingId` (ID!): The ID of the building to be updated.
+- `building` (NewBuilding!): The new details of the building.
+
+#### Example
+```graphql
+mutation {
+  updateBuilding(buildingId: "1", building: {
+    name: "Main Hall"
+    street: "Main St"
+    number: "123"
+    city: "Metropolis"
+    zip: 12345
+    osmLink: "https://osm.org/newlink"
+    rooms: ["101", "102", "103"]
+  }) 
 }
 ```

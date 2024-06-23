@@ -16,47 +16,77 @@ import (
 )
 
 // AddRegistration is the resolver for the addRegistration field.
-func (r *mutationResolver) AddRegistration(ctx context.Context, input model.NewStudent) (string, error) {
+func (r *mutationResolver) AddRegistration(ctx context.Context, student model.NewStudent) (string, error) {
 	panic(fmt.Errorf("not implemented: AddRegistration - addRegistration"))
 }
 
-// AddTutor is the resolver for the addTutor field.
-func (r *mutationResolver) AddTutor(ctx context.Context, input model.NewTutor) (string, error) {
-	err := utils.AddPerson(ctx, input.Fn, input.Sn, input.Mail, models.Tutor, r.DB)
-	if err != nil {
-		return "FAILED_TUTOR_ADD", err
-	}
-
-	return "SUCCESS_TUTOR_ADD", nil
+// UpdateStudentAcceptedStatus is the resolver for the updateStudentAcceptedStatus field.
+func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, studentMail string, accepted bool) (string, error) {
+	panic(fmt.Errorf("not implemented: UpdateStudentAcceptedStatus - updateStudentAcceptedStatus"))
 }
 
-// NewEvent is the resolver for the newEvent field.
-func (r *mutationResolver) NewEvent(ctx context.Context, input model.NewEvent) (string, error) {
-	from, err := time.Parse(time.RFC3339, input.From)
+// AddTutor is the resolver for the addTutor field.
+func (r *mutationResolver) AddTutor(ctx context.Context, tutor model.NewTutor) (string, error) {
+	err := utils.AddPerson(ctx, tutor.Fn, tutor.Sn, tutor.Mail, models.Tutor, r.DB)
 	if err != nil {
-		return "PARSE_TIME_FAILURE", fmt.Errorf("unable to parse timestamp: %s", input.From)
+		return "Failed to add Tutor", err
 	}
 
-	to, err := time.Parse(time.RFC3339, input.To)
+	return "Successfully added new Tutor", nil
+}
+
+// UpdateTutor is the resolver for the updateTutor field.
+func (r *mutationResolver) UpdateTutor(ctx context.Context, tutorMail string, input model.NewTutor) (string, error) {
+	panic(fmt.Errorf("not implemented: UpdateTutor - updateTutor"))
+}
+
+// AddEvent is the resolver for the addEvent field.
+func (r *mutationResolver) AddEvent(ctx context.Context, event model.NewEvent) (string, error) {
+	from, err := time.Parse(time.RFC3339, event.From)
 	if err != nil {
-		return "PARSE_TIME_FAILURE", fmt.Errorf("unable to parse timestamp: %s", input.To)
+		return fmt.Sprintf("Unable to parse timestamp: %s", event.From), err
 	}
 
-	event := &models.Event{
+	to, err := time.Parse(time.RFC3339, event.To)
+	if err != nil {
+		return fmt.Sprintf("Unable to parse timestamp: %s", event.To), err
+	}
+
+	newEvent := &models.Event{
 		ID:          uuid.New(),
-		TutorID:     uuid.MustParse(input.TutorID),
-		Title:       input.Title,
-		Description: *input.Description,
+		TutorMail:   *event.TutorMail,
+		Title:       event.Title,
+		Description: *event.Description,
 		From:        from,
 		To:          to,
 	}
 
-	_, err = r.DB.NewInsert().Model(event).Exec(ctx)
+	_, err = r.DB.NewInsert().Model(newEvent).Exec(ctx)
 	if err != nil {
-		return "INSERT_EVENT_FAILURE", err
+		return "Failed to insert the event inside the Database", err
 	}
 
-	return "SUCCESS_EVENT_INSERT", nil
+	return "Successfully inserted new event", nil
+}
+
+// UpdateEvent is the resolver for the updateEvent field.
+func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID string, event model.NewEvent) (string, error) {
+	panic(fmt.Errorf("not implemented: UpdateEvent - updateEvent"))
+}
+
+// AddBuilding is the resolver for the addBuilding field.
+func (r *mutationResolver) AddBuilding(ctx context.Context, building model.NewBuilding) (string, error) {
+	panic(fmt.Errorf("not implemented: AddBuilding - addBuilding"))
+}
+
+// AddRoom is the resolver for the addRoom field.
+func (r *mutationResolver) AddRoom(ctx context.Context, buildingID string, room string) (string, error) {
+	panic(fmt.Errorf("not implemented: AddRoom - addRoom"))
+}
+
+// UpdateBuilding is the resolver for the updateBuilding field.
+func (r *mutationResolver) UpdateBuilding(ctx context.Context, buildingID string, building model.NewBuilding) (string, error) {
+	panic(fmt.Errorf("not implemented: UpdateBuilding - updateBuilding"))
 }
 
 // Students is the resolver for the students field.
@@ -80,7 +110,6 @@ func (r *queryResolver) Tutors(ctx context.Context) ([]*model.Tutor, error) {
 	var transformedTutors []*model.Tutor
 	for _, tutor := range tutors {
 		transformedTutor := &model.Tutor{
-			ID:        tutor.ID.String(),
 			Fn:        tutor.Fn,
 			Sn:        tutor.Sn,
 			Mail:      tutor.Mail,
@@ -92,33 +121,6 @@ func (r *queryResolver) Tutors(ctx context.Context) ([]*model.Tutor, error) {
 	return transformedTutors, nil
 }
 
-// Tutor is the resolver for the tutor field.
-func (r *queryResolver) Tutor(ctx context.Context, id string) (*model.Tutor, error) {
-	var tutors []*models.Person
-
-	err := r.DB.NewSelect().
-		Model(&tutors).
-		Where("id = ?", id).
-		Scan(ctx)
-
-	if err != nil {
-		return nil, err
-	} else if len(tutors) == 0 {
-		return nil, fmt.Errorf("TUTOR_NOT_FOUND")
-	}
-
-	tutor := tutors[0]
-	transformedTutor := &model.Tutor{
-		ID:        id,
-		Fn:        tutor.Fn,
-		Sn:        tutor.Sn,
-		Mail:      tutor.Mail,
-		Confirmed: tutor.Confirmed,
-	}
-
-	return transformedTutor, nil
-}
-
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
 	var events []*models.Event
@@ -128,9 +130,15 @@ func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
 	}
 	var transformedEvents []*model.Event
 	for _, event := range events {
-		tutor, err := r.Tutor(ctx, event.TutorID.String())
+		person, err := utils.GetPerson(ctx, event.TutorMail, r.DB)
+		tutor := &model.Tutor{}
 		if err != nil {
 			tutor = nil
+		} else {
+			tutor.Fn = person.Fn
+			tutor.Sn = person.Sn
+			tutor.Mail = person.Mail
+			tutor.Confirmed = person.Confirmed
 		}
 
 		transformedEvent := &model.Event{
@@ -145,6 +153,11 @@ func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
 	}
 
 	return transformedEvents, nil
+}
+
+// Buildings is the resolver for the buildings field.
+func (r *queryResolver) Buildings(ctx context.Context) ([]*model.Building, error) {
+	panic(fmt.Errorf("not implemented: Buildings - buildings"))
 }
 
 // Mutation returns MutationResolver implementation.

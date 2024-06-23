@@ -3,11 +3,10 @@ package utils
 import (
 	"context"
 	"fmt"
-	"time"
 	"os"
+	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
-	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
@@ -22,10 +21,8 @@ func AddPerson(ctx context.Context, fn string, sn string, mail string, t models.
     return fmt.Errorf("Person with E-Mail %s already exists", mail)
 	}
 
-	id := uuid.New()
 	createdAt, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
   person := &models.Person{
-    ID: id,
     Fn: fn,
 		Sn: sn,
 		Mail: mail,
@@ -42,8 +39,21 @@ func AddPerson(ctx context.Context, fn string, sn string, mail string, t models.
 	if os.Getenv("SMTP_HOST") == "" {
 		fmt.Printf("Email Server not configured. Skipping verification for %s", mail)
 	} else {
-		SendConfirmationMail(mail, fn, id.String())
+		SendConfirmationMail(mail, fn)
 	}
 
 	return nil
+}
+
+func GetPerson(ctx context.Context, mail string, db *bun.DB) (*models.Person, error) {
+  person := new(models.Person) 
+  err := db.NewSelect().
+    Model(person).
+    Where("mail = ?", mail).
+    Scan(ctx)
+
+  if err != nil {
+    return nil, err
+  }
+  return person, nil
 }

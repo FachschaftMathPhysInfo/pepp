@@ -4,7 +4,6 @@ package model
 
 type Person interface {
 	IsPerson()
-	GetID() string
 	GetFn() string
 	GetSn() string
 	GetMail() string
@@ -12,12 +11,14 @@ type Person interface {
 }
 
 type Building struct {
-	ID     string  `json:"id"`
-	Name   *string `json:"name,omitempty"`
-	Street string  `json:"street"`
-	Number int     `json:"number"`
-	City   string  `json:"city"`
-	Zip    string  `json:"zip"`
+	ID      string    `json:"id"`
+	Name    string    `json:"name"`
+	Street  string    `json:"street"`
+	Number  string    `json:"number"`
+	City    string    `json:"city"`
+	Zip     int       `json:"zip"`
+	OsmLink string    `json:"osmLink"`
+	Rooms   []*string `json:"rooms,omitempty"`
 }
 
 type Event struct {
@@ -26,7 +27,7 @@ type Event struct {
 	Title       string    `json:"title"`
 	Description *string   `json:"description,omitempty"`
 	Building    *Building `json:"building,omitempty"`
-	Room        *Room     `json:"room,omitempty"`
+	Room        *string   `json:"room,omitempty"`
 	From        string    `json:"from"`
 	To          string    `json:"to"`
 }
@@ -34,12 +35,22 @@ type Event struct {
 type Mutation struct {
 }
 
+type NewBuilding struct {
+	Name    string    `json:"name"`
+	Street  string    `json:"street"`
+	Number  string    `json:"number"`
+	City    string    `json:"city"`
+	Zip     int       `json:"zip"`
+	OsmLink string    `json:"osmLink"`
+	Rooms   []*string `json:"rooms,omitempty"`
+}
+
 type NewEvent struct {
-	TutorID     string  `json:"tutorId"`
+	TutorMail   *string `json:"tutorMail,omitempty"`
 	Title       string  `json:"title"`
 	Description *string `json:"description,omitempty"`
 	BuildingID  *string `json:"buildingId,omitempty"`
-	RoomID      *string `json:"roomId,omitempty"`
+	Room        *string `json:"room,omitempty"`
 	From        string  `json:"from"`
 	To          string  `json:"to"`
 }
@@ -60,14 +71,7 @@ type NewTutor struct {
 type Query struct {
 }
 
-type Room struct {
-	ID       string    `json:"id"`
-	Building *Building `json:"building"`
-	Number   string    `json:"number"`
-}
-
 type Student struct {
-	ID        string   `json:"id"`
 	Fn        string   `json:"fn"`
 	Sn        string   `json:"sn"`
 	Mail      string   `json:"mail"`
@@ -78,14 +82,12 @@ type Student struct {
 }
 
 func (Student) IsPerson()               {}
-func (this Student) GetID() string      { return this.ID }
 func (this Student) GetFn() string      { return this.Fn }
 func (this Student) GetSn() string      { return this.Sn }
 func (this Student) GetMail() string    { return this.Mail }
 func (this Student) GetConfirmed() bool { return this.Confirmed }
 
 type Tutor struct {
-	ID        string `json:"id"`
 	Fn        string `json:"fn"`
 	Sn        string `json:"sn"`
 	Mail      string `json:"mail"`
@@ -93,7 +95,6 @@ type Tutor struct {
 }
 
 func (Tutor) IsPerson()               {}
-func (this Tutor) GetID() string      { return this.ID }
 func (this Tutor) GetFn() string      { return this.Fn }
 func (this Tutor) GetSn() string      { return this.Sn }
 func (this Tutor) GetMail() string    { return this.Mail }
