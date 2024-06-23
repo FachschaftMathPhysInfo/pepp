@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/google/uuid v1.6.0
 	github.com/matcornic/hermes/v2 v2.1.0
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/rs/cors v1.11.0
 	github.com/uptrace/bun v1.2.1
 	github.com/uptrace/bun/dialect/pgdialect v1.2.1

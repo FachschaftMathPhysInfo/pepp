@@ -12,6 +12,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
 )
 
@@ -25,12 +26,14 @@ func main() {
 		port = defaultPort
 	}
 
+	// secret key needed to encrypt strings
 	secretKey, err := utils.GenSecretKey()
 	if err != nil {
 		log.Fatal("Failed to generate secret key")
 	}
 	os.Setenv("SECRET_KEY", secretKey)
 
+	// init of database (create tables and stuff)
 	db, sqldb, err := utils.InitDB(ctx)
 	defer sqldb.Close()
 	defer db.Close()
@@ -38,6 +41,21 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// cronjobs for maintenance tasks
+	c := cron.New()
+	c.AddFunc("@hourly", func() {
+		err := utils.DeleteUnconfirmedPeople(ctx, db)
+		if err != nil {
+			log.Println("Error deleting unconfirmed people:", err)
+		}
+	})
+	c.Start()
+	defer c.Stop()
+
+	// server configuration
+	// [/]: GraphQL Playground
+	// [/api]: JSON API endpoint
+	// [/confirm/{email}]: Confirm email addresses
 	router := chi.NewRouter()
 	router.Use(cors.New(cors.Options{
 		AllowedHeaders:   []string{"*"},

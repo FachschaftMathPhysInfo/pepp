@@ -21,5 +21,5 @@ type Person struct {
 	Mail      string     `bun:"mail,pk,notnull"`
 	Confirmed bool       `bun:"confirmed,notnull"`
 	Type      PersonType `bun:"type,notnull,type:person_type"`
-	CreatedAt time.Time  `bun:"createdAt,notnull,type:timestamptz"`
+	CreatedAt time.Time  `bun:"created_at,notnull,type:timestamptz"`
 }
