@@ -12,12 +12,12 @@ import (
 )
 
 func GenSecretKey() (string, error) {
-  key := make([]byte, 32)
-  if _, err := rand.Read(key); err != nil {
-  	panic(err.Error())
-  }
-  
-  return hex.EncodeToString(key), nil
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		panic(err.Error())
+	}
+
+	return hex.EncodeToString(key), nil
 }
 
 func Encrypt(stringToEncrypt string) (encryptedString string) {

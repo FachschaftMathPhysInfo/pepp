@@ -17,30 +17,30 @@ import (
 
 // Make nicer when needed
 func SendConfirmationMail(mail string, fn string) error {
-  h := hermes.Hermes{
-    Product: hermes.Product{
-        Name: "Pepp - Die Vorkursverwaltung",
-        Link: "https://mathphys.info/",
-        Logo: "https://mathphys.info/mathphysinfo-logo.png",
-				Copyright: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.",
-    },
-  }
+	h := hermes.Hermes{
+		Product: hermes.Product{
+			Name:      "Pepp - Die Vorkursverwaltung",
+			Link:      "https://mathphys.info/",
+			Logo:      "https://mathphys.info/mathphysinfo-logo.png",
+			Copyright: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.",
+		},
+	}
 	email := hermes.Email{
-    Body: hermes.Body{
-      Name: fn,
-			Greeting: "Hey",
+		Body: hermes.Body{
+			Name:      fn,
+			Greeting:  "Hey",
 			Signature: "Dein",
 			Intros: []string{
 				"danke für deine Registrierung als Vorkurstutor/-in!",
 			},
 			Actions: []hermes.Action{
 				{
-				  Instructions: "Bitte klicke hier um deine E-Mail Adresse zu bestätigen:",
+					Instructions: "Bitte klicke hier um deine E-Mail Adresse zu bestätigen:",
 					Button: hermes.Button{
-				    Color: "#990000",
-						Text: "E-Mail bestätigen",
+						Color: "#990000",
+						Text:  "E-Mail bestätigen",
 						Link: fmt.Sprintf("%s/confirm/%s",
-		          os.Getenv("API_URL"), Encrypt(mail)),
+							os.Getenv("API_URL"), Encrypt(mail)),
 					},
 				},
 			},
@@ -60,7 +60,7 @@ func SendConfirmationMail(mail string, fn string) error {
 
 	body, err := h.GenerateHTML(email)
 	if err != nil {
-    return fmt.Errorf("EMAIL_GENERATION_FAILED")
+		return fmt.Errorf("EMAIL_GENERATION_FAILED")
 	}
 
 	m := gomail.NewMessage()
@@ -79,22 +79,18 @@ func SendConfirmationMail(mail string, fn string) error {
 }
 
 func ConfirmEmail(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bun.DB) {
-  mail := Decrypt(chi.URLParam(r, "mail"))
-  
-  res, err := db.NewUpdate().
-    Model(&models.Person{}).
-    Set("confirmed = true").
-    Where("mail = ?", mail).
-    Exec(ctx)
+	mail := Decrypt(chi.URLParam(r, "mail"))
 
-  rowsAffected, _ := res.RowsAffected()
-  if rowsAffected == 0 {
-    http.Error(w, "User not found", http.StatusInternalServerError)
-  }
-    
-  if err != nil {
-    http.Error(w, "Failed to update user", http.StatusInternalServerError)
-  }
+	res, err := db.NewUpdate().
+		Model(&models.Person{}).
+		Set("confirmed = true").
+		Where("mail = ?", mail).
+		Exec(ctx)
 
-  fmt.Fprintf(w, "Successfully confirmed %s", mail)
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 0 || err != nil {
+		http.Error(w, "Invalid URL", http.StatusInternalServerError)
+	} else {
+		fmt.Fprintf(w, "Successfully confirmed %s", mail)
+	}
 }

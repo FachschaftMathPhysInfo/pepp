@@ -18,45 +18,45 @@ import (
 const defaultPort = "8080"
 
 func main() {
-  ctx := context.Background()
-  
-  port := os.Getenv("PORT")
-  if port == "" {
-  	port = defaultPort
-  }
-  
-  secretKey, err := utils.GenSecretKey()
-  if err != nil {
-    log.Fatal("Failed to generate secret key")
-  }
-  os.Setenv("SECRET_KEY", secretKey)
-  
-  db, sqldb, err := utils.InitDB(ctx)
-  defer sqldb.Close()
-  defer db.Close()
-  if err != nil {
-  	log.Fatal(err)
-  }
-  
-  router := chi.NewRouter()
-  router.Use(cors.New(cors.Options{
-  	AllowedHeaders:   []string{"*"},
-  	AllowCredentials: true,
-  	Debug:            false,
-  }).Handler)
-  
-  router.Use(middleware.Logger)
-  
-  router.Get("/confirm/{mail}", func(w http.ResponseWriter, r *http.Request) {
-    utils.ConfirmEmail(ctx, w, r, db)
-  })
-  
-  gqlResolvers := graph.Resolver{DB: db}
-  srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &gqlResolvers}))
-  router.Handle("/api", srv)
-  
-  router.Handle("/", playground.Handler("GraphQL playground", "/api"))
-  
-  log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-  log.Fatal(http.ListenAndServe(":"+port, router))
+	ctx := context.Background()
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+	secretKey, err := utils.GenSecretKey()
+	if err != nil {
+		log.Fatal("Failed to generate secret key")
+	}
+	os.Setenv("SECRET_KEY", secretKey)
+
+	db, sqldb, err := utils.InitDB(ctx)
+	defer sqldb.Close()
+	defer db.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	router := chi.NewRouter()
+	router.Use(cors.New(cors.Options{
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		Debug:            false,
+	}).Handler)
+
+	router.Use(middleware.Logger)
+
+	router.Get("/confirm/{mail}", func(w http.ResponseWriter, r *http.Request) {
+		utils.ConfirmEmail(ctx, w, r, db)
+	})
+
+	gqlResolvers := graph.Resolver{DB: db}
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &gqlResolvers}))
+	router.Handle("/api", srv)
+
+	router.Handle("/", playground.Handler("GraphQL playground", "/api"))
+
+	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

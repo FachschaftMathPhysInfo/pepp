@@ -11,29 +11,29 @@ import (
 )
 
 func AddPerson(ctx context.Context, fn string, sn string, mail string, t models.PersonType, db *bun.DB) error {
-  var persons []*models.Person
-  db.NewSelect().
-	  Model(&persons).
+	var persons []*models.Person
+	db.NewSelect().
+		Model(&persons).
 		Where("mail = ?", mail).
 		Scan(ctx)
 
-  if len(persons) != 0 {
-    return fmt.Errorf("Person with E-Mail %s already exists", mail)
+	if len(persons) != 0 {
+		return fmt.Errorf("Person with E-Mail %s already exists", mail)
 	}
 
 	createdAt, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-  person := &models.Person{
-    Fn: fn,
-		Sn: sn,
-		Mail: mail,
+	person := &models.Person{
+		Fn:        fn,
+		Sn:        sn,
+		Mail:      mail,
 		Confirmed: false,
-		Type: t,
+		Type:      t,
 		CreatedAt: createdAt,
-  }
+	}
 
 	_, err := db.NewInsert().Model(person).Exec(ctx)
 	if err != nil {
-    return err
+		return err
 	}
 
 	if os.Getenv("SMTP_HOST") == "" {
@@ -46,14 +46,14 @@ func AddPerson(ctx context.Context, fn string, sn string, mail string, t models.
 }
 
 func GetPerson(ctx context.Context, mail string, db *bun.DB) (*models.Person, error) {
-  person := new(models.Person) 
-  err := db.NewSelect().
-    Model(person).
-    Where("mail = ?", mail).
-    Scan(ctx)
+	person := new(models.Person)
+	err := db.NewSelect().
+		Model(person).
+		Where("mail = ?", mail).
+		Scan(ctx)
 
-  if err != nil {
-    return nil, err
-  }
-  return person, nil
+	if err != nil {
+		return nil, err
+	}
+	return person, nil
 }
