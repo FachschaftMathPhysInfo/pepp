@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/99designs/gqlgen v0.17.49
-	github.com/go-chi/chi/v5 v5.0.12
+	github.com/go-chi/chi/v5 v5.0.14
 	github.com/google/uuid v1.6.0
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/robfig/cron/v3 v3.0.1
