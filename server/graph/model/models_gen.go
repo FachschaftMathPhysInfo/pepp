@@ -2,6 +2,12 @@
 
 package model
 
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
 type Person interface {
 	IsPerson()
 	GetFn() string
@@ -26,6 +32,7 @@ type Event struct {
 	Tutor       *Tutor    `json:"tutor,omitempty"`
 	Title       string    `json:"title"`
 	Description *string   `json:"description,omitempty"`
+	Subject     Subject   `json:"subject"`
 	Building    *Building `json:"building,omitempty"`
 	Room        *string   `json:"room,omitempty"`
 	From        string    `json:"from"`
@@ -49,6 +56,7 @@ type NewEvent struct {
 	TutorMail   *string `json:"tutorMail,omitempty"`
 	Title       string  `json:"title"`
 	Description *string `json:"description,omitempty"`
+	Subject     Subject `json:"subject"`
 	BuildingID  *string `json:"buildingId,omitempty"`
 	Room        *string `json:"room,omitempty"`
 	From        string  `json:"from"`
@@ -99,3 +107,48 @@ func (this Tutor) GetFn() string      { return this.Fn }
 func (this Tutor) GetSn() string      { return this.Sn }
 func (this Tutor) GetMail() string    { return this.Mail }
 func (this Tutor) GetConfirmed() bool { return this.Confirmed }
+
+type Subject string
+
+const (
+	SubjectMathematics Subject = "MATHEMATICS"
+	SubjectPhysics     Subject = "PHYSICS"
+	SubjectInformatics Subject = "INFORMATICS"
+	SubjectGeneral     Subject = "GENERAL"
+)
+
+var AllSubject = []Subject{
+	SubjectMathematics,
+	SubjectPhysics,
+	SubjectInformatics,
+	SubjectGeneral,
+}
+
+func (e Subject) IsValid() bool {
+	switch e {
+	case SubjectMathematics, SubjectPhysics, SubjectInformatics, SubjectGeneral:
+		return true
+	}
+	return false
+}
+
+func (e Subject) String() string {
+	return string(e)
+}
+
+func (e *Subject) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Subject(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Subject", str)
+	}
+	return nil
+}
+
+func (e Subject) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

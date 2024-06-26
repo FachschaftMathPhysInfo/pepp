@@ -25,6 +25,15 @@ func DeleteUnconfirmedPeople(ctx context.Context, db *bun.DB) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Deleted %d unconfirmed people\n", rowsAffected)
+
+	switch rowsAffected {
+	case 0:
+		fmt.Println("No unconfirmed people found")
+	case 1:
+		fmt.Println("Deleted 1 unconfirmed person")
+	default:
+		fmt.Printf("Deleted %d unconfirmed people", rowsAffected)
+	}
+
 	return nil
 }

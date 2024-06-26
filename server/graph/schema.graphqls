@@ -24,11 +24,19 @@ type Tutor implements Person {
   confirmed: Boolean!
 }
 
+enum Subject {
+  MATHEMATICS
+  PHYSICS
+  INFORMATICS
+  GENERAL
+}
+
 type Event {
   id: ID!
   tutor: Tutor
   title: String!
   description: String
+  subject: Subject!
   building: Building
   room: String 
   from: timestamptz!
@@ -49,7 +57,7 @@ type Building {
 type Query {
   students: [Student!]!
   tutors: [Tutor!]!
-  events: [Event!]!
+  events(subjects: [Subject]): [Event!]!
   buildings: [Building!]!
 }
 
@@ -70,6 +78,7 @@ input NewEvent {
   tutorMail: String
   title: String!
   description: String
+  subject: Subject!
   buildingId: ID
   room: String
   from: timestamptz!
@@ -90,7 +99,7 @@ type Mutation {
   addRegistration(student: NewStudent!): String!
   updateStudentAcceptedStatus(studentMail: String!, accepted: Boolean!): String!
   addTutor(tutor: NewTutor!): String!
-  updateTutor(tutorMail: String!, input: NewTutor!): String!
+  updateTutor(tutorMail: String!, tutor: NewTutor!): String!
   addEvent(event: NewEvent!): String!
   updateEvent(eventId: ID!, event: NewEvent!): String!
   addBuilding(building: NewBuilding!): String!

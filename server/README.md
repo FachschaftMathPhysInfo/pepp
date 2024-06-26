@@ -39,11 +39,15 @@ query {
 
 ### `events`
 Fetch a list of all events.
+Possible values for the `subjects` input are `MATHEMATICS`, `PHYSICS`, `INFORMATICS` and `GENERAL`. Querying without the `subjects` argument simply returns all events.
+
+#### Arguments (optional):
+- `subjects` ([Subject]): List of subjects to filter events.
 
 #### Example
 ```graphql
 query {
-  events {
+  events(subjects: [INFORMATICS, MATHEMATICS]) {  # optional
     id
     tutor {
       fn
@@ -53,6 +57,7 @@ query {
     }
     title
     description
+    subject
     building {
       id
       name
@@ -104,7 +109,7 @@ mutation {
     fn: "John"
     sn: "Doe"
     mail: "john.doe@example.com"
-    answers: ["Answer1", "Answer2"]
+    answers: ["Answer1", "Answer2"]  # optional
   }) 
 }
 ```
@@ -119,7 +124,7 @@ Update the acceptance status of a student.
 #### Example
 ```graphql
 mutation {
-  updateStudentAcceptedStatus(studentId: "1", accepted: true) 
+  updateStudentAcceptedStatus(studentMail: "john.doe@example.com", accepted: true) 
 }
 ```
 
@@ -145,12 +150,12 @@ Update an existing tutor's details.
 
 #### Arguments
 - `tutorMail` (String!): The email of the tutor to be updated.
-- `input` (NewTutor!): The new details of the tutor.
+- `tutor` (NewTutor!): The new details of the tutor.
 
 #### Example
 ```graphql
 mutation {
-  updateTutor(tutorMail: "jane.smith@example.com", input: {
+  updateTutor(tutorMail: "jane.smith@example.com", tutor: {
     fn: "Jane"
     sn: "Smith"
     mail: "jane.smith@newdomain.com"
@@ -160,6 +165,7 @@ mutation {
 
 ### `addEvent`
 Add a new event.
+Possible values for the `subject` field are `MATHEMATICS`, `PHYSICS`, `INFORMATICS` and `GENERAL`.
 
 #### Arguments
 - `event` (NewEvent!): The details of the new event.
@@ -168,11 +174,12 @@ Add a new event.
 ```graphql
 mutation {
   addEvent(event: {
-    tutorMail: "jane.smith@example.com"
+    tutorMail: "jane.smith@example.com"  # optional
     title: "New Event"
-    description: "An exciting new event"
-    buildingId: "1"
-    room: "101"
+    description: "An exciting new event"  # optional
+    subject: INFORMATICS
+    buildingId: "1"  # optional
+    room: "101"  # optional
     from: "2024-07-01T10:00:00Z"
     to: "2024-07-01T12:00:00Z"
   }) 
@@ -190,11 +197,12 @@ Update an existing event's details.
 ```graphql
 mutation {
   updateEvent(eventId: "1", event: {
-    tutorMail: "jane.smith@example.com"
+    tutorMail: "jane.smith@example.com"  # optional
     title: "Updated Event"
-    description: "An updated exciting event"
-    buildingId: "1"
-    room: "101"
+    description: "An updated exciting event"  # optional
+    subject: PHYSICS
+    buildingId: "1"  # optional
+    room: "101"  # optional
     from: "2024-07-01T10:00:00Z"
     to: "2024-07-01T12:00:00Z"
   }) 
@@ -217,7 +225,7 @@ mutation {
     city: "Metropolis"
     zip: 12345
     osmLink: "https://osm.org/link"
-    rooms: ["101", "102"]
+    rooms: ["101", "102"]  # optional
   }) 
 }
 ```
@@ -253,7 +261,7 @@ mutation {
     city: "Metropolis"
     zip: 12345
     osmLink: "https://osm.org/newlink"
-    rooms: ["101", "102", "103"]
+    rooms: ["101", "102", "103"]  # optional
   }) 
 }
 ```

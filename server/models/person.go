@@ -9,9 +9,13 @@ import (
 type PersonType string
 
 const (
-	Student PersonType = "student"
-	Tutor   PersonType = "tutor"
+	Student PersonType = "STUDENT"
+	Tutor   PersonType = "TUTOR"
 )
+
+func (e PersonType) String() string {
+	return string(e)
+}
 
 type Person struct {
 	bun.BaseModel `bun:"table:people,alias:p"`

@@ -20,54 +20,45 @@ func GenSecretKey() (string, error) {
 	return hex.EncodeToString(key), nil
 }
 
-func Encrypt(stringToEncrypt string) (encryptedString string) {
-	// convert key to bytes
+func encrypt(stringToEncrypt string) (string, error) {
 	key, _ := hex.DecodeString(os.Getenv("SECRET_KEY"))
 	plaintext := []byte(stringToEncrypt)
 
-	//Create a new Cipher Block from the key
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		return "", err
 	}
 
-	// The IV needs to be unique, but not secure. Therefore it's common to
-	// include it at the beginning of the ciphertext.
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	iv := ciphertext[:aes.BlockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err)
+		return "", err
 	}
 
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
 
-	// convert to base64
-	return base64.URLEncoding.EncodeToString(ciphertext)
+	return base64.URLEncoding.EncodeToString(ciphertext), nil
 }
 
-// decrypt from base64 to decrypted string
-func Decrypt(stringToDecrypt string) string {
+func decrypt(stringToDecrypt string) (string, error) {
 	key, _ := hex.DecodeString(os.Getenv("SECRET_KEY"))
 	ciphertext, _ := base64.URLEncoding.DecodeString(stringToDecrypt)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		fmt.Print(err)
 	}
 
-	// The IV needs to be unique, but not secure. Therefore it's common to
-	// include it at the beginning of the ciphertext.
 	if len(ciphertext) < aes.BlockSize {
-		panic("ciphertext too short")
+		return "", err
 	}
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
 
 	stream := cipher.NewCFBDecrypter(block, iv)
 
-	// XORKeyStream can work in-place if the two arguments are the same.
 	stream.XORKeyStream(ciphertext, ciphertext)
 
-	return fmt.Sprintf("%s", ciphertext)
+	return fmt.Sprintf("%s", ciphertext), nil
 }

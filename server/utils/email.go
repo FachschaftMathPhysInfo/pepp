@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -25,6 +24,12 @@ func SendConfirmationMail(mail string, fn string) error {
 			Copyright: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.",
 		},
 	}
+
+	encryptedMail, err := encrypt(mail)
+	if err != nil {
+		return err
+	}
+
 	email := hermes.Email{
 		Body: hermes.Body{
 			Name:      fn,
@@ -40,7 +45,7 @@ func SendConfirmationMail(mail string, fn string) error {
 						Color: "#990000",
 						Text:  "E-Mail bestätigen",
 						Link: fmt.Sprintf("%s/confirm/%s",
-							os.Getenv("API_URL"), Encrypt(mail)),
+							os.Getenv("API_URL"), encryptedMail),
 					},
 				},
 			},
@@ -60,7 +65,7 @@ func SendConfirmationMail(mail string, fn string) error {
 
 	body, err := h.GenerateHTML(email)
 	if err != nil {
-		return fmt.Errorf("EMAIL_GENERATION_FAILED")
+		return err
 	}
 
 	m := gomail.NewMessage()
@@ -71,7 +76,6 @@ func SendConfirmationMail(mail string, fn string) error {
 
 	d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPW)
 	if err := d.DialAndSend(m); err != nil {
-		log.Fatal(err)
 		return err
 	}
 
@@ -79,18 +83,29 @@ func SendConfirmationMail(mail string, fn string) error {
 }
 
 func ConfirmEmail(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bun.DB) {
-	mail := Decrypt(chi.URLParam(r, "mail"))
+	mail, err := decrypt(chi.URLParam(r, "mail"))
+	if err != nil {
+		http.Error(w, "Failed to decrypt mail from URL", http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
 
 	res, err := db.NewUpdate().
 		Model(&models.Person{}).
 		Set("confirmed = true").
 		Where("mail = ?", mail).
 		Exec(ctx)
+	if err != nil {
+		http.Error(w, "Invalid URL", http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
 
 	rowsAffected, _ := res.RowsAffected()
-	if rowsAffected == 0 || err != nil {
-		http.Error(w, "Invalid URL", http.StatusInternalServerError)
-	} else {
-		fmt.Fprintf(w, "Successfully confirmed %s", mail)
+	if rowsAffected == 0 {
+		http.Error(w, fmt.Sprintf("No person with mail %s found", mail), http.StatusInternalServerError)
+		return
 	}
+
+	fmt.Fprintf(w, "Successfully confirmed %s", mail)
 }

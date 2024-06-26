@@ -1,2 +1,3 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE TYPE person_type AS ENUM ('student', 'tutor');
+CREATE TYPE person_type AS ENUM ('STUDENT', 'TUTOR');
+CREATE TYPE subject AS ENUM ('MATHEMATICS', 'PHYSICS', 'INFORMATICS', 'GENERAL');

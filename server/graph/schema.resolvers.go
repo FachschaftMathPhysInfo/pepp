@@ -13,6 +13,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/google/uuid"
+	"github.com/uptrace/bun"
 )
 
 // AddRegistration is the resolver for the addRegistration field.
@@ -36,7 +37,7 @@ func (r *mutationResolver) AddTutor(ctx context.Context, tutor model.NewTutor) (
 }
 
 // UpdateTutor is the resolver for the updateTutor field.
-func (r *mutationResolver) UpdateTutor(ctx context.Context, tutorMail string, input model.NewTutor) (string, error) {
+func (r *mutationResolver) UpdateTutor(ctx context.Context, tutorMail string, tutor model.NewTutor) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateTutor - updateTutor"))
 }
 
@@ -57,6 +58,7 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event model.NewEvent) (
 		TutorMail:   *event.TutorMail,
 		Title:       event.Title,
 		Description: *event.Description,
+		Subject:     event.Subject,
 		From:        from,
 		To:          to,
 	}
@@ -100,7 +102,7 @@ func (r *queryResolver) Tutors(ctx context.Context) ([]*model.Tutor, error) {
 
 	err := r.DB.NewSelect().
 		Model(&tutors).
-		Where("type = ?", "tutor").
+		Where("type = ?", models.Tutor.String()).
 		Scan(ctx)
 
 	if err != nil {
@@ -122,12 +124,21 @@ func (r *queryResolver) Tutors(ctx context.Context) ([]*model.Tutor, error) {
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, subjects []*model.Subject) ([]*model.Event, error) {
 	var events []*models.Event
-	err := r.DB.NewSelect().Model(&events).Scan(ctx)
+	var err error
+	if subjects != nil {
+		err = r.DB.NewSelect().
+			Model(&events).
+			Where("subject IN (?)", bun.In(subjects)).
+			Scan(ctx)
+	} else {
+		err = r.DB.NewSelect().Model(&events).Scan(ctx)
+	}
 	if err != nil {
 		return nil, err
 	}
+
 	var transformedEvents []*model.Event
 	for _, event := range events {
 		person, err := utils.GetPerson(ctx, event.TutorMail, r.DB)
@@ -146,6 +157,7 @@ func (r *queryResolver) Events(ctx context.Context) ([]*model.Event, error) {
 			Tutor:       tutor,
 			Title:       event.Title,
 			Description: &event.Description,
+			Subject:     event.Subject,
 			From:        event.From.Format(time.RFC3339),
 			To:          event.To.Format(time.RFC3339),
 		}
