@@ -2,12 +2,6 @@
 
 package model
 
-import (
-	"fmt"
-	"io"
-	"strconv"
-)
-
 type Person interface {
 	IsPerson()
 	GetFn() string
@@ -16,51 +10,7 @@ type Person interface {
 	GetConfirmed() bool
 }
 
-type Building struct {
-	ID      string    `json:"id"`
-	Name    string    `json:"name"`
-	Street  string    `json:"street"`
-	Number  string    `json:"number"`
-	City    string    `json:"city"`
-	Zip     int       `json:"zip"`
-	OsmLink string    `json:"osmLink"`
-	Rooms   []*string `json:"rooms,omitempty"`
-}
-
-type Event struct {
-	ID          string    `json:"id"`
-	Tutor       *Tutor    `json:"tutor,omitempty"`
-	Title       string    `json:"title"`
-	Description *string   `json:"description,omitempty"`
-	Subject     Subject   `json:"subject"`
-	Building    *Building `json:"building,omitempty"`
-	Room        *string   `json:"room,omitempty"`
-	From        string    `json:"from"`
-	To          string    `json:"to"`
-}
-
 type Mutation struct {
-}
-
-type NewBuilding struct {
-	Name    string    `json:"name"`
-	Street  string    `json:"street"`
-	Number  string    `json:"number"`
-	City    string    `json:"city"`
-	Zip     int       `json:"zip"`
-	OsmLink string    `json:"osmLink"`
-	Rooms   []*string `json:"rooms,omitempty"`
-}
-
-type NewEvent struct {
-	TutorMail   *string `json:"tutorMail,omitempty"`
-	Title       string  `json:"title"`
-	Description *string `json:"description,omitempty"`
-	Subject     Subject `json:"subject"`
-	BuildingID  *string `json:"buildingId,omitempty"`
-	Room        *string `json:"room,omitempty"`
-	From        string  `json:"from"`
-	To          string  `json:"to"`
 }
 
 type NewStudent struct {
@@ -68,12 +18,6 @@ type NewStudent struct {
 	Sn      string   `json:"sn"`
 	Mail    string   `json:"mail"`
 	Answers []string `json:"answers,omitempty"`
-}
-
-type NewTutor struct {
-	Fn   string `json:"fn"`
-	Sn   string `json:"sn"`
-	Mail string `json:"mail"`
 }
 
 type Query struct {
@@ -94,61 +38,3 @@ func (this Student) GetFn() string      { return this.Fn }
 func (this Student) GetSn() string      { return this.Sn }
 func (this Student) GetMail() string    { return this.Mail }
 func (this Student) GetConfirmed() bool { return this.Confirmed }
-
-type Tutor struct {
-	Fn        string `json:"fn"`
-	Sn        string `json:"sn"`
-	Mail      string `json:"mail"`
-	Confirmed bool   `json:"confirmed"`
-}
-
-func (Tutor) IsPerson()               {}
-func (this Tutor) GetFn() string      { return this.Fn }
-func (this Tutor) GetSn() string      { return this.Sn }
-func (this Tutor) GetMail() string    { return this.Mail }
-func (this Tutor) GetConfirmed() bool { return this.Confirmed }
-
-type Subject string
-
-const (
-	SubjectMathematics Subject = "MATHEMATICS"
-	SubjectPhysics     Subject = "PHYSICS"
-	SubjectInformatics Subject = "INFORMATICS"
-	SubjectGeneral     Subject = "GENERAL"
-)
-
-var AllSubject = []Subject{
-	SubjectMathematics,
-	SubjectPhysics,
-	SubjectInformatics,
-	SubjectGeneral,
-}
-
-func (e Subject) IsValid() bool {
-	switch e {
-	case SubjectMathematics, SubjectPhysics, SubjectInformatics, SubjectGeneral:
-		return true
-	}
-	return false
-}
-
-func (e Subject) String() string {
-	return string(e)
-}
-
-func (e *Subject) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = Subject(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid Subject", str)
-	}
-	return nil
-}
-
-func (e Subject) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}

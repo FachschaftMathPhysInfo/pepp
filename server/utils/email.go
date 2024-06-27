@@ -15,7 +15,7 @@ import (
 )
 
 // Make nicer when needed
-func SendConfirmationMail(mail string, fn string) error {
+func SendConfirmationMail(person models.Person) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
 			Name:      "Pepp - Die Vorkursverwaltung",
@@ -25,14 +25,14 @@ func SendConfirmationMail(mail string, fn string) error {
 		},
 	}
 
-	encryptedMail, err := encrypt(mail)
+	encryptedMail, err := encrypt(person.Mail)
 	if err != nil {
 		return err
 	}
 
 	email := hermes.Email{
 		Body: hermes.Body{
-			Name:      fn,
+			Name:      person.Fn,
 			Greeting:  "Hey",
 			Signature: "Dein",
 			Intros: []string{
@@ -70,7 +70,7 @@ func SendConfirmationMail(mail string, fn string) error {
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf("Pepp - Die Vorkursverwaltung <%s>", from))
-	m.SetHeader("To", mail)
+	m.SetHeader("To", person.Mail)
 	m.SetHeader("Subject", "Bitte bestätige deine E-Mail Adresse")
 	m.SetBody("text/html", body)
 

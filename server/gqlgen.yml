@@ -85,3 +85,17 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
+  Building:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Building
+  NewBuilding:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Building
+  Event:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Event
+  NewEvent:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Event
+  Subject:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Subject
+  Tutor:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
+  NewTutor:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Person

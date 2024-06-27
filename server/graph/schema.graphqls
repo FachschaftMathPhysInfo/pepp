@@ -1,4 +1,5 @@
 scalar timestamptz 
+scalar UUID
 
 interface Person {
   fn: String!
@@ -32,7 +33,7 @@ enum Subject {
 }
 
 type Event {
-  id: ID!
+  id: UUID!
   tutor: Tutor
   title: String!
   description: String
@@ -44,14 +45,14 @@ type Event {
 }
 
 type Building {
-  id: ID!
+  id: UUID!
   name: String!
   street: String!
   number: String!
   city: String!
   zip: Int!
   osmLink: String!
-  rooms: [String]
+  rooms: [String!]
 }
 
 type Query {
@@ -79,7 +80,7 @@ input NewEvent {
   title: String!
   description: String
   subject: Subject!
-  buildingId: ID
+  buildingId: UUID
   room: String
   from: timestamptz!
   to: timestamptz!
@@ -92,7 +93,7 @@ input NewBuilding {
   city: String!
   zip: Int!
   osmLink: String!
-  rooms: [String]
+  rooms: [String!]
 }
 
 type Mutation {
@@ -101,8 +102,8 @@ type Mutation {
   addTutor(tutor: NewTutor!): String!
   updateTutor(tutorMail: String!, tutor: NewTutor!): String!
   addEvent(event: NewEvent!): String!
-  updateEvent(eventId: ID!, event: NewEvent!): String!
+  updateEvent(eventId: UUID!, event: NewEvent!): String!
   addBuilding(building: NewBuilding!): String!
-  addRoom(buildingId: ID!, room: String!): String!
-  updateBuilding(buildingId: ID!, building: NewBuilding!): String!
+  addRoom(buildingId: UUID!, room: String!): String!
+  updateBuilding(buildingId: UUID!, building: NewBuilding!): String!
 }

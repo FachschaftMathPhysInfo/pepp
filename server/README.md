@@ -75,7 +75,7 @@ query {
 }
 ```
 
-### ~~`buildings`~~
+### `buildings`
 Fetch a list of all buildings.
 
 #### Example
@@ -209,7 +209,7 @@ mutation {
 }
 ```
 
-### ~~`addBuilding`~~
+### `addBuilding`
 Add a new building.
 
 #### Arguments

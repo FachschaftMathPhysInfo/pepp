@@ -33,6 +33,10 @@ func InitDB(ctx context.Context) (*bun.DB, *sql.DB, error) {
 		return nil, nil, err
 	}
 
+	if err := createSchema(ctx, db, (*models.Building)(nil)); err != nil {
+		return nil, nil, err
+	}
+
 	return db, sqldb, nil
 }
 

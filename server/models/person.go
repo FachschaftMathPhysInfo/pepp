@@ -9,12 +9,12 @@ import (
 type PersonType string
 
 const (
-	Student PersonType = "STUDENT"
-	Tutor   PersonType = "TUTOR"
+	PersonTypeStudent PersonType = "STUDENT"
+	PersonTypeTutor   PersonType = "TUTOR"
 )
 
-func (e PersonType) String() string {
-	return string(e)
+func (p PersonType) String() string {
+	return string(p)
 }
 
 type Person struct {
@@ -25,5 +25,15 @@ type Person struct {
 	Mail      string     `bun:"mail,pk,notnull"`
 	Confirmed bool       `bun:"confirmed,notnull"`
 	Type      PersonType `bun:"type,notnull,type:person_type"`
-	CreatedAt time.Time  `bun:"created_at,notnull,type:timestamptz"`
+	CreatedAt time.Time  `bun:"created_at,default:current_timestamp"`
 }
+
+type Tutor struct {
+	Person
+}
+
+func (Tutor) IsPerson()               {}
+func (this Tutor) GetFn() string      { return this.Fn }
+func (this Tutor) GetSn() string      { return this.Sn }
+func (this Tutor) GetMail() string    { return this.Mail }
+func (this Tutor) GetConfirmed() bool { return this.Confirmed }
