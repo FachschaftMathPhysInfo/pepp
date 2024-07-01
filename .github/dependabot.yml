@@ -9,7 +9,19 @@ updates:
     directory: "server/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    allow:
+      - dependency-type: "direct"
+        dependency-type: "indirect"
   - package-ecosystem: "npm"
     directory: "frontend/"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+    allow:
+      - dependency-type: "direct"
+        dependency-type: "indirect"
