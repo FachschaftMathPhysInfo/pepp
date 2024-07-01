@@ -7,25 +7,40 @@ import (
 	"github.com/uptrace/bun"
 )
 
-type Subject string
-
-const (
-	Mathematics Subject = "MATHEMATICS"
-	Physics     Subject = "PHYSICS"
-	Informatics Subject = "INFORMATICS"
-	General     Subject = "GENERAL"
-)
-
 type Event struct {
 	bun.BaseModel `bun:"table:events,alias:e"`
 
 	ID          uuid.UUID `bun:"id,default:gen_random_uuid(),pk,type:uuid"`
-	TutorMail   string    `bun:"tutor_mail"`
 	Title       string    `bun:"title,notnull"`
 	Description string    `bun:"description"`
-	BuildingId  uuid.UUID `bun:"building_id,type:uuid"`
-	Room        string    `bun:"room"`
-	Subject     Subject   `bun:"subject,notnull,type:subject"`
+	TopicName   string    `bun:"topic_name,notnull"`
+	Link        string    `bun:"link"`
+	DayID       uuid.UUID `bun:"day_id,notnull,type:uuid"`
 	From        time.Time `bun:"from,notnull"`
 	To          time.Time `bun:"to,notnull"`
+	NeedsTutors bool      `bun:"needs_tutors,notnull"`
+
+	Topic                  *Topic  `bun:"rel:belongs-to,join:topic_name=name"`
+	Day                    *Day    `bun:"rel:belongs-to,join:day_id=id"`
+	AssignedTutorsWithRoom []Tutor `bun:"m2m:event_to_tutors,join:Event=Tutor"`
+	AvailableTutors        []Tutor `bun:"m2m:tutor_to_events,join:Event=Tutor"`
+	RoomsAvailable         []Room  `bun:"m2m:event_to_rooms,join:Event=Room"`
+}
+
+type EventToTutor struct {
+	EventID        uuid.UUID `bun:",pk,type:uuid"`
+	Event          *Event    `bun:"rel:belongs-to,join:event_id=id"`
+	TutorMail      string    `bun:",pk"`
+	Tutor          *Tutor    `bun:"rel:belongs-to,join:tutor_mail=mail"`
+	RoomNumber     string    `bun:",notnull"`
+	RoomBuildingID uuid.UUID `bun:",notnull,type:uuid"`
+	Room           *Room     `bun:"rel:belongs-to,join:room_number=number,join:room_building_id=building_id"`
+}
+
+type EventToRoom struct {
+	EventID        uuid.UUID `bun:"event_id,pk,type:uuid"`
+	Event          *Event    `bun:"rel:belongs-to,join:event_id=id"`
+	RoomNumber     string    `bun:"room_number,pk"`
+	RoomBuildingID uuid.UUID `bun:"room_building_id,pk,type:uuid"`
+	Room           *Room     `bun:"rel:belongs-to,join:room_number=number,join:room_building_id=building_id"`
 }

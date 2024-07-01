@@ -8,8 +8,10 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/FachschaftMathPhysInfo/pepp/server/db"
+	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph"
-	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
+	"github.com/FachschaftMathPhysInfo/pepp/server/maintenance"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/robfig/cron/v3"
@@ -26,15 +28,8 @@ func main() {
 		port = defaultPort
 	}
 
-	// secret key needed to encrypt strings
-	secretKey, err := utils.GenSecretKey()
-	if err != nil {
-		log.Fatal("Failed to generate secret key")
-	}
-	os.Setenv("SECRET_KEY", secretKey)
-
 	// init of database (create tables and stuff)
-	db, sqldb, err := utils.InitDB(ctx)
+	db, sqldb, err := db.Init(ctx)
 	defer sqldb.Close()
 	defer db.Close()
 	if err != nil {
@@ -44,7 +39,7 @@ func main() {
 	// cronjobs for maintenance tasks
 	c := cron.New()
 	c.AddFunc("@hourly", func() {
-		err := utils.DeleteUnconfirmedPeople(ctx, db)
+		err := maintenance.DeleteUnconfirmedPeople(ctx, db)
 		if err != nil {
 			log.Println("Error deleting unconfirmed people:", err)
 		}
@@ -65,8 +60,8 @@ func main() {
 
 	router.Use(middleware.Logger)
 
-	router.Get("/confirm/{mail}", func(w http.ResponseWriter, r *http.Request) {
-		utils.ConfirmEmail(ctx, w, r, db)
+	router.Get("/confirm/{sessionID}", func(w http.ResponseWriter, r *http.Request) {
+		email.Confirm(ctx, w, r, db)
 	})
 
 	gqlResolvers := graph.Resolver{DB: db}
