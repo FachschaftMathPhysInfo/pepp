@@ -3,33 +3,35 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
-
-type PersonType string
-
-const (
-	PersonTypeStudent PersonType = "STUDENT"
-	PersonTypeTutor   PersonType = "TUTOR"
-)
-
-func (p PersonType) String() string {
-	return string(p)
-}
 
 type Person struct {
 	bun.BaseModel `bun:"table:people,alias:p"`
 
-	Fn        string     `bun:"fn,notnull"`
-	Sn        string     `bun:"sn"`
-	Mail      string     `bun:"mail,pk,notnull"`
-	Confirmed bool       `bun:"confirmed,notnull"`
-	Type      PersonType `bun:"type,notnull,type:person_type"`
-	CreatedAt time.Time  `bun:"created_at,default:current_timestamp"`
+	Mail         string    `bun:"mail,pk,notnull"`
+	Fn           string    `bun:"fn,notnull"`
+	Sn           string    `bun:"sn"`
+	Confirmed    bool      `bun:"confirmed,notnull"`
+	SessionID    uuid.UUID `bun:"session_id,type:uuid"`
+	LastLogin    time.Time `bun:"last_login,default:current_timestamp"`
+	PasswordHash string    `bun:"password_hash"`
+	CreatedAt    time.Time `bun:"created_at,default:current_timestamp"`
 }
 
 type Tutor struct {
-	Person
+	Person `bun:",inherit"`
+
+	EventsAvailable []Event `bun:"m2m:tutor_to_events,join:Tutor=Event"`
+	EventsAssigned  []Event `bun:"m2m:event_to_tutors,join:Tutor=Event"`
+}
+
+type TutorToEvent struct {
+	TutorMail string    `bun:",pk"`
+	Tutor     *Tutor    `bun:"rel:belongs-to,join:tutor_mail=mail"`
+	EventID   uuid.UUID `bun:",pk,type:uuid"`
+	Event     *Event    `bun:"rel:belongs-to,join:event_id=id"`
 }
 
 func (Tutor) IsPerson()               {}

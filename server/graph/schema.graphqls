@@ -1,5 +1,7 @@
-scalar timestamptz 
 scalar UUID
+scalar Date
+scalar Time
+scalar HexColorCode
 
 interface Person {
   fn: String!
@@ -23,77 +25,134 @@ type Tutor implements Person {
   sn: String!
   mail: String!
   confirmed: Boolean!
+  eventsAvailable: [Event!]
+  eventsAssigned: [Event!]
 }
 
-enum Subject {
-  MATHEMATICS
-  PHYSICS
-  INFORMATICS
-  GENERAL
+type Day {
+  ID: UUID!
+  name: String
+  date: Date!
+  events: [Event!]
+}
+
+type Topic {
+  name: String!
+  color: HexColorCode
+  events: [Event!]
+}
+
+type EventTutorRoomPair {
+  tutors: [Tutor!]!
+  room: Room
 }
 
 type Event {
-  id: UUID!
-  tutor: Tutor
+  ID: UUID!
+  assignedTutorsWithRoom: [EventTutorRoomPair!]
+  needsTutors: Boolean!
+  availableTutors: [Tutor!]
   title: String!
   description: String
-  subject: Subject!
-  building: Building
-  room: String 
-  from: timestamptz!
-  to: timestamptz!
+  topic: Topic!
+  roomsAvailable: [Room!]
+  link: String
+  day: Day!
+  from: Time!
+  to: Time!
+}
+
+type Room {
+  name: String
+  number: String!
+  capacity: Int
+  floor: Int
+  building: Building!
 }
 
 type Building {
-  id: UUID!
+  ID: UUID!
   name: String!
   street: String!
   number: String!
   city: String!
   zip: Int!
-  osmLink: String!
-  rooms: [String!]
+  osm: String!
+  rooms: [Room!]
 }
 
 type Query {
-  students: [Student!]!
-  tutors: [Tutor!]!
-  events(subjects: [Subject]): [Event!]!
-  buildings: [Building!]!
+  students(mail: [String!]): [Student!]!
+  tutors(mail: [String!], eventID: UUID): [Tutor!]!
+  events(id: [UUID!], topic: [String!]): [Event!]!
+  buildings(id: [UUID!]): [Building!]!
+  rooms(number: [String!], buildingID: UUID!): [Room!]!
+  topics(name: [String!]): [Topic!]!
+  days(id: [UUID!]): [Day!]!
+}
+
+input NewTutor {
+  fn: String!
+  sn: String
+  mail: String!
+  eventsAvailable: [UUID!]
 }
 
 input NewStudent {
   fn: String!
   sn: String!
   mail: String!
-  answers: [String!]
 }
 
-input NewTutor {
-  fn: String!
-  sn: String!
-  mail: String!
+input NewDay {
+  name: String!
+  date: Date!
 }
 
 input NewEvent {
-  tutorMail: String
   title: String!
   description: String
-  subject: Subject!
-  buildingId: UUID
-  room: String
-  from: timestamptz!
-  to: timestamptz!
+  topicName: String!
+  link: String
+  dayID: UUID!
+  needsTutors: Boolean!
+  from: Time!
+  to: Time!
 }
 
 input NewBuilding {
-  name: String!
+  name: String
   street: String!
   number: String!
   city: String!
   zip: Int!
-  osmLink: String!
-  rooms: [String!]
+  osm: String!
+}
+
+input NewRoom {
+  number: String!
+  name: String
+  capacity: Int
+  floor: Int
+  buildingID: UUID!
+}
+
+input NewTopic {
+  name: String!
+  color: HexColorCode
+}
+
+input NewEventToTutorLink {
+  eventID: UUID!
+  tutorMail: String!
+  roomNumber: String!
+  buildingID: UUID!
+}
+
+input NewRoomToEventLink {
+  eventID: UUID!
+  roomNumber: String!
+  buildingID: String!
 }
 
 type Mutation {
@@ -102,8 +161,12 @@ type Mutation {
   addTutor(tutor: NewTutor!): String!
   updateTutor(tutorMail: String!, tutor: NewTutor!): String!
   addEvent(event: NewEvent!): String!
-  updateEvent(eventId: UUID!, event: NewEvent!): String!
+  updateEvent(eventID: UUID!, event: NewEvent!): String!
   addBuilding(building: NewBuilding!): String!
-  addRoom(buildingId: UUID!, room: String!): String!
-  updateBuilding(buildingId: UUID!, building: NewBuilding!): String!
+  addRoom(room: NewRoom!): String!
+  updateBuilding(buildingID: UUID!, building: NewBuilding!): String!
+  addTopic(topic: NewTopic!): String!
+  addDay(day: NewDay!): String!
+  linkAvailableRoomToEvent(link: NewRoomToEventLink!): String!
+  linkTutorToEventAndRoom(link: NewEventToTutorLink!): String!
 }

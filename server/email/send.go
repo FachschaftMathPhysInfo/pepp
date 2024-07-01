@@ -1,21 +1,17 @@
-package utils
+package email
 
 import (
-	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"strconv"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
-	"github.com/go-chi/chi/v5"
 	"github.com/matcornic/hermes/v2"
-	"github.com/uptrace/bun"
 	"gopkg.in/gomail.v2"
 )
 
 // Make nicer when needed
-func SendConfirmationMail(person models.Person) error {
+func SendConfirmation(person models.Person) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
 			Name:      "Pepp - Die Vorkursverwaltung",
@@ -23,11 +19,6 @@ func SendConfirmationMail(person models.Person) error {
 			Logo:      "https://mathphys.info/mathphysinfo-logo.png",
 			Copyright: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.",
 		},
-	}
-
-	encryptedMail, err := encrypt(person.Mail)
-	if err != nil {
-		return err
 	}
 
 	email := hermes.Email{
@@ -45,7 +36,7 @@ func SendConfirmationMail(person models.Person) error {
 						Color: "#990000",
 						Text:  "E-Mail bestätigen",
 						Link: fmt.Sprintf("%s/confirm/%s",
-							os.Getenv("API_URL"), encryptedMail),
+							os.Getenv("API_URL"), person.SessionID),
 					},
 				},
 			},
@@ -80,32 +71,4 @@ func SendConfirmationMail(person models.Person) error {
 	}
 
 	return nil
-}
-
-func ConfirmEmail(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bun.DB) {
-	mail, err := decrypt(chi.URLParam(r, "mail"))
-	if err != nil {
-		http.Error(w, "Failed to decrypt mail from URL", http.StatusInternalServerError)
-		fmt.Println(err)
-		return
-	}
-
-	res, err := db.NewUpdate().
-		Model(&models.Person{}).
-		Set("confirmed = true").
-		Where("mail = ?", mail).
-		Exec(ctx)
-	if err != nil {
-		http.Error(w, "Invalid URL", http.StatusInternalServerError)
-		fmt.Println(err)
-		return
-	}
-
-	rowsAffected, _ := res.RowsAffected()
-	if rowsAffected == 0 {
-		http.Error(w, fmt.Sprintf("No person with mail %s found", mail), http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprintf(w, "Successfully confirmed %s", mail)
 }

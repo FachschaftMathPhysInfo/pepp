@@ -93,9 +93,23 @@ models:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Event
   NewEvent:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Event
-  Subject:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Subject
   Tutor:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
   NewTutor:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Person
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
+  Day:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Day
+  NewDay:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Day
+  Topic:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Topic
+  NewTopic:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Topic
+  Room:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Room
+  NewRoom:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Room
+  NewRoomToEventLink:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.EventToRoom
+  NewEventToTutorLink:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.EventToTutor

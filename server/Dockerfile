@@ -7,8 +7,10 @@ RUN go mod download
 
 COPY graph ./graph
 COPY server.go ./server.go
-COPY utils ./utils
 COPY models ./models
+COPY db ./db
+COPY email ./email
+COPY maintenance ./maintenance
 
 RUN CGO_ENABLED=0 go build -a -o graphql-server server.go
 

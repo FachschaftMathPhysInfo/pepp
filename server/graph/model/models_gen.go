@@ -2,6 +2,10 @@
 
 package model
 
+import (
+	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+)
+
 type Person interface {
 	IsPerson()
 	GetFn() string
@@ -10,14 +14,18 @@ type Person interface {
 	GetConfirmed() bool
 }
 
+type EventTutorRoomPair struct {
+	Tutors []*models.Tutor `json:"tutors"`
+	Room   *models.Room    `json:"room,omitempty"`
+}
+
 type Mutation struct {
 }
 
 type NewStudent struct {
-	Fn      string   `json:"fn"`
-	Sn      string   `json:"sn"`
-	Mail    string   `json:"mail"`
-	Answers []string `json:"answers,omitempty"`
+	Fn   string `json:"fn"`
+	Sn   string `json:"sn"`
+	Mail string `json:"mail"`
 }
 
 type Query struct {
