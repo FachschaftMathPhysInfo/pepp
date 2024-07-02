@@ -6,8 +6,8 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 )
 
-type Person interface {
-	IsPerson()
+type User interface {
+	IsUser()
 	GetFn() string
 	GetSn() string
 	GetMail() string
@@ -32,16 +32,17 @@ type Query struct {
 }
 
 type Student struct {
-	Fn        string   `json:"fn"`
-	Sn        string   `json:"sn"`
-	Mail      string   `json:"mail"`
-	Confirmed bool     `json:"confirmed"`
-	Answers   []string `json:"answers"`
-	Score     *int     `json:"score,omitempty"`
-	Accepted  *bool    `json:"accepted,omitempty"`
+	Fn               string          `json:"fn"`
+	Sn               string          `json:"sn"`
+	Mail             string          `json:"mail"`
+	Confirmed        bool            `json:"confirmed"`
+	Answers          []string        `json:"answers"`
+	Score            *int            `json:"score,omitempty"`
+	Accepted         *bool           `json:"accepted,omitempty"`
+	EventsRegistered []*models.Event `json:"eventsRegistered,omitempty"`
 }
 
-func (Student) IsPerson()               {}
+func (Student) IsUser()                 {}
 func (this Student) GetFn() string      { return this.Fn }
 func (this Student) GetSn() string      { return this.Sn }
 func (this Student) GetMail() string    { return this.Mail }

@@ -11,7 +11,7 @@ import (
 )
 
 // Make nicer when needed
-func SendConfirmation(person models.Person) error {
+func SendConfirmation(person models.User) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
 			Name:      "Pepp - Die Vorkursverwaltung",

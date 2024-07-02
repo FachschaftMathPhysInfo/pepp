@@ -6,7 +6,7 @@ This document describes the queries and mutations available in the GraphQL schem
 
 ## Queries
 
-### ~~students~~
+### ~~`students`~~
 Fetches a list of students by email.
 #### Arguments:
 - `mail: [String!]` (optional) - List of emails to filter students.
@@ -22,11 +22,15 @@ query {
     answers
     score
     accepted
+    eventsRegistered {
+      ID
+      title
+    }
   }
 }
 ```
 
-### tutors
+### `tutors`
 Fetches a list of tutors by email and event ID.
 #### Arguments:
 - `mail: [String!]` (optional) - List of emails to filter tutors.
@@ -52,7 +56,7 @@ query {
 }
 ```
 
-### events
+### `events`
 Fetches a list of events by ID and topic.
 #### Arguments:
 - `id: [UUID!]` (optional) - List of event IDs to filter events.
@@ -67,17 +71,35 @@ query {
     description
     topic {
       name
+      color
     }
-    day {
-      date
+    assignedTutorsWithRoom {
+      tutors {
+        fn
+        sn
+      }
+      room {
+        number
+        name
+      }
     }
+    needsTutors
+    availableTutors {
+      fn
+      sn
+    }
+    roomsAvailable {
+      name
+      number
+    }
+    link
     from
     to
   }
 }
 ```
 
-### buildings
+### `buildings`
 Fetches a list of buildings by ID.
 #### Arguments:
 - `id: [UUID!]` (optional) - List of building IDs to filter buildings.
@@ -93,11 +115,15 @@ query {
     city
     zip
     osm
+    rooms {
+      number
+      name
+    }
   }
 }
 ```
 
-### rooms
+### `rooms`
 Fetches a list of rooms by number and building ID.
 #### Arguments:
 - `number: [String!]` (optional) - List of room numbers to filter rooms.
@@ -118,7 +144,7 @@ query {
 }
 ```
 
-### topics
+### `topics`
 Fetches a list of topics by name.
 #### Arguments:
 - `name: [String!]` (optional) - List of topic names to filter topics.
@@ -137,29 +163,9 @@ query {
 }
 ```
 
-### days
-Fetches a list of days by ID.
-#### Arguments:
-- `id: [UUID!]` (optional) - List of day IDs to filter days.
-
-#### Example:
-```graphql
-query {
-  days(id: ["123e4567-e89b-12d3-a456-426614174000"]) {
-    ID
-    name
-    date
-    events {
-      ID
-      title
-    }
-  }
-}
-```
-
 ## Mutations
 
-### ~~addRegistration~~
+### ~~`addRegistration`~~
 Registers a new student.
 #### Arguments:
 - `student: NewStudent!` - Details of the new student.
@@ -175,7 +181,7 @@ mutation {
 }
 ```
 
-### ~~updateStudentAcceptedStatus~~
+### ~~`updateStudentAcceptedStatus`~~
 Updates the acceptance status of a student.
 #### Arguments:
 - `studentMail: String!` - Email of the student.
@@ -188,7 +194,7 @@ mutation {
 }
 ```
 
-### addTutor
+### `addTutor`
 Adds a new tutor.
 #### Arguments:
 - `tutor: NewTutor!` - Details of the new tutor.
@@ -205,7 +211,7 @@ mutation {
 }
 ```
 
-### ~~updateTutor~~
+### ~~`updateTutor`~~
 Updates a tutor's details.
 #### Arguments:
 - `tutorMail: String!` - Email of the tutor.
@@ -223,7 +229,7 @@ mutation {
 }
 ```
 
-### addEvent
+### `addEvent`
 Adds a new event.
 #### Arguments:
 - `event: NewEvent!` - Details of the new event.
@@ -236,7 +242,6 @@ mutation {
     description: "Tutoring session for Math"
     topicName: "Math"
     link: "http://example.com"
-    dayID: "123e4567-e89b-12d3-a456-426614174000"
     needsTutors: true
     from: "09:00:00"
     to: "11:00:00"
@@ -244,7 +249,7 @@ mutation {
 }
 ```
 
-### ~~updateEvent~~
+### ~~`updateEvent`~~
 Updates an event's details.
 #### Arguments:
 - `eventID: UUID!` - ID of the event.
@@ -258,7 +263,6 @@ mutation {
     description: "Advanced tutoring session for Math"
     topicName: "Math"
     link: "http://example.com"
-    dayID: "123e4567-e89b-12d3-a456-426614174000"
     needsTutors: true
     from: "10:00:00"
     to: "12:00:00"
@@ -266,7 +270,7 @@ mutation {
 }
 ```
 
-### addBuilding
+### `addBuilding`
 Adds a new building.
 #### Arguments:
 - `building: NewBuilding!` - Details of the new building.
@@ -285,7 +289,7 @@ mutation {
 }
 ```
 
-### addRoom
+### `addRoom`
 Adds a new room.
 #### Arguments:
 - `room: NewRoom!` - Details of the new room.
@@ -303,7 +307,7 @@ mutation {
 }
 ```
 
-### ~~updateBuilding~~
+### ~~`updateBuilding`~~
 Updates a building's details.
 #### Arguments:
 - `buildingID: UUID!` - ID of the building.
@@ -323,7 +327,7 @@ mutation {
 }
 ```
 
-### addTopic
+### `addTopic`
 Adds a new topic.
 #### Arguments:
 - `topic: NewTopic!` - Details of the new topic.
@@ -338,22 +342,7 @@ mutation {
 }
 ```
 
-### addDay
-Adds a new day.
-#### Arguments:
-- `day: NewDay!` - Details of the new day.
-
-#### Example:
-```graphql
-mutation {
-  addDay(day: {
-    name: "Monday"
-    date: "2024-07-01"
-  })
-}
-```
-
-### linkAvailableRoomToEvent
+### `linkAvailableRoomToEvent`
 Links an available room to an event.
 #### Arguments:
 - `link: NewRoomToEventLink!` - Details of the room-event link.
@@ -369,7 +358,7 @@ mutation {
 }
 ```
 
-### linkTutorToEventAndRoom
+### `linkTutorToEventAndRoom`
 Links a tutor to an event and room.
 #### Arguments:
 - `link: NewEventToTutorLink!` - Details of the tutor-event-room link.
