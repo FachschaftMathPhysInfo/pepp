@@ -1,31 +1,38 @@
-import { SubmitButton } from "../ui/submit-button"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import EventTable from "@/app/form-tutor/ui/table/table";
+import { Header } from "@/components/header"
+
+const inputDivStyling = "w-96 my-3"
+const tableDivStyling = "my-10 w-full h-full"
 
 export default function Page() {
     return (
-        <center>
-            <div className="w-[360px] h-[800px] relative bg-white">
-                <div className="w-[300px] h-[565px] left-[30px] top-[117px] absolute">
-                <div className="w-[300px] h-12 px-[26px] py-[17px] left-0 top-[517px] absolute bg-rose-700 rounded-[5px] justify-between items-center inline-flex">
-                    <button className="text-white text-2xl font-normal font-['Inter']">Abschicken</button>
+        <div className="w-full h-full">
+            <Header></Header>
+            <div className="w-fit mx-auto p-10">
+                <h1 className="font-bold text-2xl">Anmeldung Vorkurstutor:in</h1>
+
+                <div className={inputDivStyling}>
+                    <Input placeholder="Vorname"/>
                 </div>
-                <div className="w-[300px] h-12 px-3 py-[7px] left-0 top-[200px] absolute bg-neutral-50 rounded-[5px] border border-zinc-400 justify-between items-center inline-flex">
-                    <button className="text-zinc-600 text-base font-normal font-['Inter']">Mögliche Vorlesungen</button>
+
+                <div className={inputDivStyling}>
+                    <Input placeholder="Nachname"/>
                 </div>
-                <div className="w-[300px] h-12 left-0 top-0 absolute rounded-[5px] justify-center items-center inline-flex">
-                    <input className="h-12 pl-3 pr-[206px] py-[14.50px] bg-neutral-50 rounded-[5px] border border-zinc-400 justify-start items-center inline-flex text-zinc-600 text-base font-normal font-['Inter']" 
-                    placeholder="Vorname"/>
+
+                <div className={inputDivStyling}>
+                    <Input type="email" placeholder="E-Mail" />
                 </div>
-                <div className="w-[300px] h-12 left-0 top-[60px] absolute rounded-[5px] justify-center items-center inline-flex">
-                    <input className="h-12 pl-3 pr-[206px] py-[14.50px] bg-neutral-50 rounded-[5px] border border-zinc-400 justify-start items-center inline-flex text-zinc-600 text-base font-normal font-['Inter']" 
-                    placeholder="Nachname"/>
+
+                <div className={tableDivStyling}>
+                    <EventTable/>
                 </div>
-                <div className="w-[300px] h-12 left-0 top-[120px] absolute rounded-[5px] justify-center items-center inline-flex">
-                    <input className="h-12 pl-3 pr-[206px] py-[14.50px] bg-neutral-50 rounded-[5px] border border-zinc-400 justify-start items-center inline-flex text-zinc-600 text-base font-normal font-['Inter']" 
-                    placeholder="E-Mail"/>
+
+                <div className={inputDivStyling}>
+                    <Button>Submit</Button>
                 </div>
-                </div>
-                <div className="left-[62px] top-[16px] absolute text-center text-black text-2xl font-normal font-['Nova Round']">TutorInnenanmeldung</div>
             </div>
-        </center>
+        </div>
     )
-  }
+}
