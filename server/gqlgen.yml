@@ -97,10 +97,6 @@ models:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
   NewTutor:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
-  Day:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Day
-  NewDay:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Day
   Topic:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Topic
   NewTopic:

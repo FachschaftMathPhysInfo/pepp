@@ -3,14 +3,14 @@ scalar Date
 scalar Time
 scalar HexColorCode
 
-interface Person {
+interface User {
   fn: String!
   sn: String!
   mail: String!
   confirmed: Boolean!
 }
 
-type Student implements Person {
+type Student implements User {
   fn: String!
   sn: String!
   mail: String!
@@ -18,22 +18,16 @@ type Student implements Person {
   answers: [String!]!
   score: Int
   accepted: Boolean
+  eventsRegistered: [Event!]
 }
 
-type Tutor implements Person {
+type Tutor implements User {
   fn: String!
   sn: String!
   mail: String!
   confirmed: Boolean!
   eventsAvailable: [Event!]
   eventsAssigned: [Event!]
-}
-
-type Day {
-  ID: UUID!
-  name: String
-  date: Date!
-  events: [Event!]
 }
 
 type Topic {
@@ -57,7 +51,6 @@ type Event {
   topic: Topic!
   roomsAvailable: [Room!]
   link: String
-  day: Day!
   from: Time!
   to: Time!
 }
@@ -88,7 +81,6 @@ type Query {
   buildings(id: [UUID!]): [Building!]!
   rooms(number: [String!], buildingID: UUID!): [Room!]!
   topics(name: [String!]): [Topic!]!
-  days(id: [UUID!]): [Day!]!
 }
 
 input NewTutor {
@@ -104,17 +96,11 @@ input NewStudent {
   mail: String!
 }
 
-input NewDay {
-  name: String!
-  date: Date!
-}
-
 input NewEvent {
   title: String!
   description: String
   topicName: String!
   link: String
-  dayID: UUID!
   needsTutors: Boolean!
   from: Time!
   to: Time!
@@ -166,7 +152,6 @@ type Mutation {
   addRoom(room: NewRoom!): String!
   updateBuilding(buildingID: UUID!, building: NewBuilding!): String!
   addTopic(topic: NewTopic!): String!
-  addDay(day: NewDay!): String!
   linkAvailableRoomToEvent(link: NewRoomToEventLink!): String!
   linkTutorToEventAndRoom(link: NewEventToTutorLink!): String!
 }
