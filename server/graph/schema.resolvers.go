@@ -215,7 +215,7 @@ func (r *queryResolver) Tutors(ctx context.Context, mail []string, eventID *stri
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []string, topic []string) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []string, topic []string, needsTutors *bool) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
@@ -227,6 +227,10 @@ func (r *queryResolver) Events(ctx context.Context, id []string, topic []string)
 
 	if topic != nil {
 		query = query.Where("topic_name IN (?)", bun.In(topic))
+	}
+
+	if needsTutors != nil {
+		query = query.Where("needs_tutors = ?", *needsTutors)
 	}
 
 	if id != nil {
