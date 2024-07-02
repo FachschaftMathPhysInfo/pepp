@@ -7,7 +7,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
@@ -19,16 +18,6 @@ import (
 // ID is the resolver for the id field.
 func (r *buildingResolver) ID(ctx context.Context, obj *models.Building) (string, error) {
 	return obj.ID.String(), nil
-}
-
-// ID is the resolver for the id field.
-func (r *dayResolver) ID(ctx context.Context, obj *models.Day) (string, error) {
-	return obj.ID.String(), nil
-}
-
-// Date is the resolver for the date field.
-func (r *dayResolver) Date(ctx context.Context, obj *models.Day) (string, error) {
-	return obj.Date.Format(time.RFC3339), nil
 }
 
 // ID is the resolver for the id field.
@@ -84,11 +73,13 @@ func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, stud
 // AddTutor is the resolver for the addTutor field.
 func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (string, error) {
 	tutor.SessionID = uuid.New()
-	if _, err := r.DB.NewInsert().Model(&tutor).Exec(ctx); err != nil {
+	if _, err := r.DB.NewInsert().
+		Model(&tutor).
+		Exec(ctx); err != nil {
 		return "Failed to add tutor", err
 	}
 
-	if err := email.SendConfirmation(tutor.Person); err != nil {
+	if err := email.SendConfirmation(tutor.User); err != nil {
 		return "Failed to send confirmation mail", err
 	}
 
@@ -102,7 +93,9 @@ func (r *mutationResolver) UpdateTutor(ctx context.Context, tutorMail string, tu
 
 // AddEvent is the resolver for the addEvent field.
 func (r *mutationResolver) AddEvent(ctx context.Context, event models.Event) (string, error) {
-	if _, err := r.DB.NewInsert().Model(&event).Exec(ctx); err != nil {
+	if _, err := r.DB.NewInsert().
+		Model(&event).
+		Exec(ctx); err != nil {
 		return "Failed to insert the event", err
 	}
 
@@ -116,7 +109,9 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID string, even
 
 // AddBuilding is the resolver for the addBuilding field.
 func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Building) (string, error) {
-	if _, err := r.DB.NewInsert().Model(&building).Exec(ctx); err != nil {
+	if _, err := r.DB.NewInsert().
+		Model(&building).
+		Exec(ctx); err != nil {
 		return "Failed to insert building", err
 	}
 
@@ -125,7 +120,9 @@ func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Buil
 
 // AddRoom is the resolver for the addRoom field.
 func (r *mutationResolver) AddRoom(ctx context.Context, room models.Room) (string, error) {
-	if _, err := r.DB.NewInsert().Model(&room).Exec(ctx); err != nil {
+	if _, err := r.DB.NewInsert().
+		Model(&room).
+		Exec(ctx); err != nil {
 		return "Failed to insert room", err
 	}
 
@@ -148,17 +145,6 @@ func (r *mutationResolver) AddTopic(ctx context.Context, topic models.Topic) (st
 	return "Successfully inserted new topic", nil
 }
 
-// AddDay is the resolver for the addDay field.
-func (r *mutationResolver) AddDay(ctx context.Context, day models.Day) (string, error) {
-	if _, err := r.DB.NewInsert().
-		Model(&day).
-		Exec(ctx); err != nil {
-		return "Failed to insert room", err
-	}
-
-	return "Successfully inserted new day", nil
-}
-
 // LinkAvailableRoomToEvent is the resolver for the linkAvailableRoomToEvent field.
 func (r *mutationResolver) LinkAvailableRoomToEvent(ctx context.Context, link models.EventToRoom) (string, error) {
 	if _, err := r.DB.NewInsert().
@@ -173,8 +159,8 @@ func (r *mutationResolver) LinkAvailableRoomToEvent(ctx context.Context, link mo
 // LinkTutorToEventAndRoom is the resolver for the linkTutorToEventAndRoom field.
 func (r *mutationResolver) LinkTutorToEventAndRoom(ctx context.Context, link models.EventToTutor) (string, error) {
 	res, err := r.DB.NewDelete().
-		Model((*models.TutorToEvent)(nil)).
-		Where("tutor_mail = ?", link.TutorMail).
+		Model((*models.UserToEvent)(nil)).
+		Where("user_mail = ?", link.TutorMail).
 		Exec(ctx)
 	if err != nil {
 		return "", err
@@ -205,7 +191,7 @@ func (r *queryResolver) Tutors(ctx context.Context, mail []string, eventID *stri
 
 	query := r.DB.NewSelect().
 		Model(&tutors).
-		Relation("EventsAvailable")
+		Relation("Events")
 
 	if eventID != nil {
 		if err := uuid.Validate(*eventID); err != nil {
@@ -234,7 +220,6 @@ func (r *queryResolver) Events(ctx context.Context, id []string, topic []string)
 
 	query := r.DB.NewSelect().
 		Model(&events).
-		Relation("Day").
 		Relation("Topic").
 		Relation("AssignedTutorsWithRoom").
 		Relation("AvailableTutors").
@@ -325,51 +310,14 @@ func (r *queryResolver) Topics(ctx context.Context, name []string) ([]*models.To
 	return topics, nil
 }
 
-// Days is the resolver for the days field.
-func (r *queryResolver) Days(ctx context.Context, id []string) ([]*models.Day, error) {
-	var days []*models.Day
-
-	query := r.DB.NewSelect().
-		Model(&days).
-		Relation("Events")
-
-	if id != nil {
-		for _, uid := range id {
-			if err := uuid.Validate(uid); err != nil {
-				return nil, err
-			}
-		}
-
-		query = query.Where("name IN (?)", bun.In(id))
+// EventsAvailable is the resolver for the eventsAvailable field.
+func (r *tutorResolver) EventsAvailable(ctx context.Context, obj *models.Tutor) ([]*models.Event, error) {
+	var events []*models.Event
+	for _, event := range obj.Events {
+		events = append(events, &event)
 	}
 
-	if err := query.Scan(ctx); err != nil {
-		return nil, err
-	}
-
-	return days, nil
-}
-
-// Date is the resolver for the date field.
-func (r *newDayResolver) Date(ctx context.Context, obj *models.Day, data string) error {
-	date, err := time.Parse(time.RFC3339, data)
-	if err != nil {
-		return err
-	}
-
-	obj.Date = date
-	return nil
-}
-
-// DayID is the resolver for the dayID field.
-func (r *newEventResolver) DayID(ctx context.Context, obj *models.Event, data string) error {
-	id, err := uuid.Parse(data)
-	if err != nil {
-		return err
-	}
-
-	obj.DayID = id
-	return nil
+	return events, nil
 }
 
 // EventID is the resolver for the eventID field.
@@ -429,16 +377,16 @@ func (r *newRoomToEventLinkResolver) BuildingID(ctx context.Context, obj *models
 
 // EventsAvailable is the resolver for the eventsAvailable field.
 func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tutor, data []string) error {
-	var tutorToEventRelations []*models.TutorToEvent
+	var tutorToEventRelations []*models.UserToEvent
 	for _, id := range data {
 		eventID, err := uuid.Parse(id)
 		if err != nil {
 			return err
 		}
 
-		tutorToEventRelation := &models.TutorToEvent{
-			TutorMail: obj.Mail,
-			EventID:   eventID,
+		tutorToEventRelation := &models.UserToEvent{
+			UserMail: obj.Mail,
+			EventID:  eventID,
 		}
 
 		tutorToEventRelations = append(tutorToEventRelations, tutorToEventRelation)
@@ -456,9 +404,6 @@ func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tuto
 // Building returns BuildingResolver implementation.
 func (r *Resolver) Building() BuildingResolver { return &buildingResolver{r} }
 
-// Day returns DayResolver implementation.
-func (r *Resolver) Day() DayResolver { return &dayResolver{r} }
-
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
 
@@ -468,11 +413,8 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-// NewDay returns NewDayResolver implementation.
-func (r *Resolver) NewDay() NewDayResolver { return &newDayResolver{r} }
-
-// NewEvent returns NewEventResolver implementation.
-func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
+// Tutor returns TutorResolver implementation.
+func (r *Resolver) Tutor() TutorResolver { return &tutorResolver{r} }
 
 // NewEventToTutorLink returns NewEventToTutorLinkResolver implementation.
 func (r *Resolver) NewEventToTutorLink() NewEventToTutorLinkResolver {
@@ -491,12 +433,10 @@ func (r *Resolver) NewRoomToEventLink() NewRoomToEventLinkResolver {
 func (r *Resolver) NewTutor() NewTutorResolver { return &newTutorResolver{r} }
 
 type buildingResolver struct{ *Resolver }
-type dayResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type newDayResolver struct{ *Resolver }
-type newEventResolver struct{ *Resolver }
+type tutorResolver struct{ *Resolver }
 type newEventToTutorLinkResolver struct{ *Resolver }
 type newRoomResolver struct{ *Resolver }
 type newRoomToEventLinkResolver struct{ *Resolver }

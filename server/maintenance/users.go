@@ -13,7 +13,7 @@ func DeleteUnconfirmedPeople(ctx context.Context, db *bun.DB) error {
 	twoHoursAgo := time.Now().Add(-2 * time.Hour)
 
 	res, err := db.NewDelete().
-		Model((*models.Person)(nil)).
+		Model((*models.User)(nil)).
 		Where("confirmed = ?", false).
 		Where("created_at <= ?", twoHoursAgo).
 		Exec(ctx)

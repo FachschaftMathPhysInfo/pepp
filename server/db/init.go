@@ -31,7 +31,7 @@ func Init(ctx context.Context) (*bun.DB, *sql.DB, error) {
 	relations := []interface{}{
 		(*models.EventToRoom)(nil),
 		(*models.EventToTutor)(nil),
-		(*models.TutorToEvent)(nil),
+		(*models.UserToEvent)(nil),
 	}
 
 	for _, relation := range relations {
@@ -45,10 +45,10 @@ func Init(ctx context.Context) (*bun.DB, *sql.DB, error) {
 	tables := []interface{}{
 		(*models.Topic)(nil),
 		(*models.Event)(nil),
-		(*models.Person)(nil),
+		(*models.User)(nil),
 		(*models.Building)(nil),
-		(*models.Day)(nil),
 		(*models.Room)(nil),
+		(*models.Answer)(nil),
 	}
 
 	if err := createTables(ctx, db, tables); err != nil {

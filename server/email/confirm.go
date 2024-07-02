@@ -14,7 +14,7 @@ func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bu
 	sessionID := chi.URLParam(r, "sessionID")
 
 	res, err := db.NewUpdate().
-		Model(&models.Person{}).
+		Model(&models.User{}).
 		Set("confirmed = true").
 		Where("session_id = ?", sessionID).
 		Exec(ctx)
