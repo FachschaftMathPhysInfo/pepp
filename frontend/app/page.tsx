@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 const linkStyling = "text-red-700"
@@ -9,7 +8,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
           <h1 className={headerStyling}>
               Under Development, see
-              <Link href="/form-tutor" className={linkStyling}> /form-tutor </Link>
+              <Link href="/form-tutor/" className={linkStyling}> /form-tutor </Link>
               for registrations
           </h1>
     </main>

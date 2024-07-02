@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import EventTable from "@/app/form-tutor/ui/table/table";
-import { Header } from "./ui/header"
+import { Header } from "../../components/header"
 
 const inputDivCss = "w-96 my-3"
 const divCSS = "my-10 w-full h-full"
