@@ -1,56 +1,28 @@
-import {Vorlesung, columns} from "./columns"
+import {Event, columns} from "./columns"
 import {DataTable} from "./data-table"
 
-async function getData(): Promise<Vorlesung[]> {
-    // Fetch data from your API here.
-    return [
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        {
-            isSelected: false,
-            name: "Logik",
-            date: "1.10.",
-        },
-        // ...
-    ]
+async function getData(): Promise<Event[]> {
+    const jsonData = {
+        "data": {
+            "events": [
+                {
+                    "ID": "6da7655a-1c20-4228-9b8c-d1ee99317a87",
+                    "title": "event1",
+                    "from": "2024-07-01T10:00:00Z",
+                    "to": "2024-07-01T12:00:00Z"
+                }
+            ]
+        }
+    };
+
+    const events: Event[] = jsonData.data.events.map(event => ({
+        id: event.ID,
+        title: event.title,
+        from: new Date(event.from),
+        to: new Date(event.to)
+    }));
+
+    return events;
 }
 
 export default async function EventTable() {
