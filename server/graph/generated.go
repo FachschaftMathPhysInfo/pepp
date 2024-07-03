@@ -103,7 +103,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Buildings func(childComplexity int, id []string) int
-		Events    func(childComplexity int, id []string, topic []string) int
+		Events    func(childComplexity int, id []string, topic []string, needsTutors *bool) int
 		Rooms     func(childComplexity int, number []string, buildingID string) int
 		Students  func(childComplexity int, mail []string) int
 		Topics    func(childComplexity int, name []string) int
@@ -169,7 +169,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Students(ctx context.Context, mail []string) ([]*model.Student, error)
 	Tutors(ctx context.Context, mail []string, eventID *string) ([]*models.Tutor, error)
-	Events(ctx context.Context, id []string, topic []string) ([]*models.Event, error)
+	Events(ctx context.Context, id []string, topic []string, needsTutors *bool) ([]*models.Event, error)
 	Buildings(ctx context.Context, id []string) ([]*models.Building, error)
 	Rooms(ctx context.Context, number []string, buildingID string) ([]*models.Room, error)
 	Topics(ctx context.Context, name []string) ([]*models.Topic, error)
@@ -527,7 +527,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Events(childComplexity, args["id"].([]string), args["topic"].([]string)), true
+		return e.complexity.Query.Events(childComplexity, args["id"].([]string), args["topic"].([]string), args["needsTutors"].(*bool)), true
 
 	case "Query.rooms":
 		if e.complexity.Query.Rooms == nil {
@@ -1130,6 +1130,15 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 		}
 	}
 	args["topic"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["needsTutors"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("needsTutors"))
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["needsTutors"] = arg2
 	return args, nil
 }
 
@@ -3046,7 +3055,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Events(rctx, fc.Args["id"].([]string), fc.Args["topic"].([]string))
+		return ec.resolvers.Query().Events(rctx, fc.Args["id"].([]string), fc.Args["topic"].([]string), fc.Args["needsTutors"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

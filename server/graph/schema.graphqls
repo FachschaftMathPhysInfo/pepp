@@ -77,7 +77,7 @@ type Building {
 type Query {
   students(mail: [String!]): [Student!]!
   tutors(mail: [String!], eventID: UUID): [Tutor!]!
-  events(id: [UUID!], topic: [String!]): [Event!]!
+  events(id: [UUID!], topic: [String!], needsTutors: Boolean): [Event!]!
   buildings(id: [UUID!]): [Building!]!
   rooms(number: [String!], buildingID: UUID!): [Room!]!
   topics(name: [String!]): [Topic!]!

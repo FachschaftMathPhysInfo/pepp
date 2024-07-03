@@ -61,11 +61,12 @@ Fetches a list of events by ID and topic.
 #### Arguments:
 - `id: [UUID!]` (optional) - List of event IDs to filter events.
 - `topic: [String!]` (optional) - List of topics to filter events.
+- `needsTutors: Boolean` (optional) - Filter events whether it needs tutors.
 
 #### Example:
 ```graphql
 query {
-  events(id: ["123e4567-e89b-12d3-a456-426614174000"], topic: ["Math"]) {
+  events(id: ["123e4567-e89b-12d3-a456-426614174000"], topic: ["Math"], needsTutors: true) {
     ID
     title
     description
