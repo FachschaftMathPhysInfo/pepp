@@ -15,15 +15,13 @@ type Event struct {
 	Description string    `bun:"description"`
 	TopicName   string    `bun:"topic_name,notnull"`
 	Link        string    `bun:"link"`
-	DayID       uuid.UUID `bun:"day_id,notnull,type:uuid"`
 	From        time.Time `bun:"from,notnull"`
 	To          time.Time `bun:"to,notnull"`
 	NeedsTutors bool      `bun:"needs_tutors,notnull"`
 
 	Topic                  *Topic  `bun:"rel:belongs-to,join:topic_name=name"`
-	Day                    *Day    `bun:"rel:belongs-to,join:day_id=id"`
 	AssignedTutorsWithRoom []Tutor `bun:"m2m:event_to_tutors,join:Event=Tutor"`
-	AvailableTutors        []Tutor `bun:"m2m:tutor_to_events,join:Event=Tutor"`
+	AvailableTutors        []Tutor `bun:"m2m:user_to_events,join:Event=User"`
 	RoomsAvailable         []Room  `bun:"m2m:event_to_rooms,join:Event=Room"`
 }
 

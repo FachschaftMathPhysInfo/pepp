@@ -42,12 +42,10 @@ type Config struct {
 
 type ResolverRoot interface {
 	Building() BuildingResolver
-	Day() DayResolver
 	Event() EventResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
-	NewDay() NewDayResolver
-	NewEvent() NewEventResolver
+	Tutor() TutorResolver
 	NewEventToTutorLink() NewEventToTutorLinkResolver
 	NewRoom() NewRoomResolver
 	NewRoomToEventLink() NewRoomToEventLinkResolver
@@ -69,17 +67,9 @@ type ComplexityRoot struct {
 		Zip    func(childComplexity int) int
 	}
 
-	Day struct {
-		Date   func(childComplexity int) int
-		Events func(childComplexity int) int
-		ID     func(childComplexity int) int
-		Name   func(childComplexity int) int
-	}
-
 	Event struct {
 		AssignedTutorsWithRoom func(childComplexity int) int
 		AvailableTutors        func(childComplexity int) int
-		Day                    func(childComplexity int) int
 		Description            func(childComplexity int) int
 		From                   func(childComplexity int) int
 		ID                     func(childComplexity int) int
@@ -98,7 +88,6 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddBuilding                 func(childComplexity int, building models.Building) int
-		AddDay                      func(childComplexity int, day models.Day) int
 		AddEvent                    func(childComplexity int, event models.Event) int
 		AddRegistration             func(childComplexity int, student model.NewStudent) int
 		AddRoom                     func(childComplexity int, room models.Room) int
@@ -114,7 +103,6 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Buildings func(childComplexity int, id []string) int
-		Days      func(childComplexity int, id []string) int
 		Events    func(childComplexity int, id []string, topic []string) int
 		Rooms     func(childComplexity int, number []string, buildingID string) int
 		Students  func(childComplexity int, mail []string) int
@@ -131,13 +119,14 @@ type ComplexityRoot struct {
 	}
 
 	Student struct {
-		Accepted  func(childComplexity int) int
-		Answers   func(childComplexity int) int
-		Confirmed func(childComplexity int) int
-		Fn        func(childComplexity int) int
-		Mail      func(childComplexity int) int
-		Score     func(childComplexity int) int
-		Sn        func(childComplexity int) int
+		Accepted         func(childComplexity int) int
+		Answers          func(childComplexity int) int
+		Confirmed        func(childComplexity int) int
+		EventsRegistered func(childComplexity int) int
+		Fn               func(childComplexity int) int
+		Mail             func(childComplexity int) int
+		Score            func(childComplexity int) int
+		Sn               func(childComplexity int) int
 	}
 
 	Topic struct {
@@ -159,11 +148,6 @@ type ComplexityRoot struct {
 type BuildingResolver interface {
 	ID(ctx context.Context, obj *models.Building) (string, error)
 }
-type DayResolver interface {
-	ID(ctx context.Context, obj *models.Day) (string, error)
-
-	Date(ctx context.Context, obj *models.Day) (string, error)
-}
 type EventResolver interface {
 	ID(ctx context.Context, obj *models.Event) (string, error)
 	AssignedTutorsWithRoom(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error)
@@ -179,7 +163,6 @@ type MutationResolver interface {
 	AddRoom(ctx context.Context, room models.Room) (string, error)
 	UpdateBuilding(ctx context.Context, buildingID string, building models.Building) (string, error)
 	AddTopic(ctx context.Context, topic models.Topic) (string, error)
-	AddDay(ctx context.Context, day models.Day) (string, error)
 	LinkAvailableRoomToEvent(ctx context.Context, link models.EventToRoom) (string, error)
 	LinkTutorToEventAndRoom(ctx context.Context, link models.EventToTutor) (string, error)
 }
@@ -190,15 +173,11 @@ type QueryResolver interface {
 	Buildings(ctx context.Context, id []string) ([]*models.Building, error)
 	Rooms(ctx context.Context, number []string, buildingID string) ([]*models.Room, error)
 	Topics(ctx context.Context, name []string) ([]*models.Topic, error)
-	Days(ctx context.Context, id []string) ([]*models.Day, error)
+}
+type TutorResolver interface {
+	EventsAvailable(ctx context.Context, obj *models.Tutor) ([]*models.Event, error)
 }
 
-type NewDayResolver interface {
-	Date(ctx context.Context, obj *models.Day, data string) error
-}
-type NewEventResolver interface {
-	DayID(ctx context.Context, obj *models.Event, data string) error
-}
 type NewEventToTutorLinkResolver interface {
 	EventID(ctx context.Context, obj *models.EventToTutor, data string) error
 
@@ -291,34 +270,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Building.Zip(childComplexity), true
 
-	case "Day.date":
-		if e.complexity.Day.Date == nil {
-			break
-		}
-
-		return e.complexity.Day.Date(childComplexity), true
-
-	case "Day.events":
-		if e.complexity.Day.Events == nil {
-			break
-		}
-
-		return e.complexity.Day.Events(childComplexity), true
-
-	case "Day.ID":
-		if e.complexity.Day.ID == nil {
-			break
-		}
-
-		return e.complexity.Day.ID(childComplexity), true
-
-	case "Day.name":
-		if e.complexity.Day.Name == nil {
-			break
-		}
-
-		return e.complexity.Day.Name(childComplexity), true
-
 	case "Event.assignedTutorsWithRoom":
 		if e.complexity.Event.AssignedTutorsWithRoom == nil {
 			break
@@ -332,13 +283,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.AvailableTutors(childComplexity), true
-
-	case "Event.day":
-		if e.complexity.Event.Day == nil {
-			break
-		}
-
-		return e.complexity.Event.Day(childComplexity), true
 
 	case "Event.description":
 		if e.complexity.Event.Description == nil {
@@ -428,18 +372,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddBuilding(childComplexity, args["building"].(models.Building)), true
-
-	case "Mutation.addDay":
-		if e.complexity.Mutation.AddDay == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addDay_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddDay(childComplexity, args["day"].(models.Day)), true
 
 	case "Mutation.addEvent":
 		if e.complexity.Mutation.AddEvent == nil {
@@ -585,18 +517,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Buildings(childComplexity, args["id"].([]string)), true
 
-	case "Query.days":
-		if e.complexity.Query.Days == nil {
-			break
-		}
-
-		args, err := ec.field_Query_days_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Days(childComplexity, args["id"].([]string)), true
-
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
 			break
@@ -713,6 +633,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Student.Confirmed(childComplexity), true
 
+	case "Student.eventsRegistered":
+		if e.complexity.Student.EventsRegistered == nil {
+			break
+		}
+
+		return e.complexity.Student.EventsRegistered(childComplexity), true
+
 	case "Student.fn":
 		if e.complexity.Student.Fn == nil {
 			break
@@ -813,7 +740,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputNewBuilding,
-		ec.unmarshalInputNewDay,
 		ec.unmarshalInputNewEvent,
 		ec.unmarshalInputNewEventToTutorLink,
 		ec.unmarshalInputNewRoom,
@@ -949,21 +875,6 @@ func (ec *executionContext) field_Mutation_addBuilding_args(ctx context.Context,
 		}
 	}
 	args["building"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_addDay_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 models.Day
-	if tmp, ok := rawArgs["day"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("day"))
-		arg0, err = ec.unmarshalNNewDay2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐDay(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["day"] = arg0
 	return args, nil
 }
 
@@ -1184,21 +1095,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 }
 
 func (ec *executionContext) field_Query_buildings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 []string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalOUUID2ᚕstringᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_days_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 []string
@@ -1714,202 +1610,6 @@ func (ec *executionContext) fieldContext_Building_rooms(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Day_ID(ctx context.Context, field graphql.CollectedField, obj *models.Day) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Day_ID(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Day().ID(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNUUID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Day_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Day",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type UUID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Day_name(ctx context.Context, field graphql.CollectedField, obj *models.Day) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Day_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Day_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Day",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Day_date(ctx context.Context, field graphql.CollectedField, obj *models.Day) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Day_date(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Day().Date(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNDate2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Day_date(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Day",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Date does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Day_events(ctx context.Context, field graphql.CollectedField, obj *models.Day) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Day_events(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Events, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.Event)
-	fc.Result = res
-	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEventᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Day_events(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Day",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Event_ID(ctx, field)
-			case "assignedTutorsWithRoom":
-				return ec.fieldContext_Event_assignedTutorsWithRoom(ctx, field)
-			case "needsTutors":
-				return ec.fieldContext_Event_needsTutors(ctx, field)
-			case "availableTutors":
-				return ec.fieldContext_Event_availableTutors(ctx, field)
-			case "title":
-				return ec.fieldContext_Event_title(ctx, field)
-			case "description":
-				return ec.fieldContext_Event_description(ctx, field)
-			case "topic":
-				return ec.fieldContext_Event_topic(ctx, field)
-			case "roomsAvailable":
-				return ec.fieldContext_Event_roomsAvailable(ctx, field)
-			case "link":
-				return ec.fieldContext_Event_link(ctx, field)
-			case "day":
-				return ec.fieldContext_Event_day(ctx, field)
-			case "from":
-				return ec.fieldContext_Event_from(ctx, field)
-			case "to":
-				return ec.fieldContext_Event_to(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Event_ID(ctx context.Context, field graphql.CollectedField, obj *models.Event) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Event_ID(ctx, field)
 	if err != nil {
@@ -2326,60 +2026,6 @@ func (ec *executionContext) fieldContext_Event_link(_ context.Context, field gra
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Event_day(ctx context.Context, field graphql.CollectedField, obj *models.Event) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Event_day(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Day, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.Day)
-	fc.Result = res
-	return ec.marshalNDay2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐDay(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Event_day(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Event",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Day_ID(ctx, field)
-			case "name":
-				return ec.fieldContext_Day_name(ctx, field)
-			case "date":
-				return ec.fieldContext_Day_date(ctx, field)
-			case "events":
-				return ec.fieldContext_Day_events(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Day", field.Name)
 		},
 	}
 	return fc, nil
@@ -3134,61 +2780,6 @@ func (ec *executionContext) fieldContext_Mutation_addTopic(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_addDay(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_addDay(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddDay(rctx, fc.Args["day"].(models.Day))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_addDay(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_addDay_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_linkAvailableRoomToEvent(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_linkAvailableRoomToEvent(ctx, field)
 	if err != nil {
@@ -3352,6 +2943,8 @@ func (ec *executionContext) fieldContext_Query_students(ctx context.Context, fie
 				return ec.fieldContext_Student_score(ctx, field)
 			case "accepted":
 				return ec.fieldContext_Student_accepted(ctx, field)
+			case "eventsRegistered":
+				return ec.fieldContext_Student_eventsRegistered(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Student", field.Name)
 		},
@@ -3496,8 +3089,6 @@ func (ec *executionContext) fieldContext_Query_events(ctx context.Context, field
 				return ec.fieldContext_Event_roomsAvailable(ctx, field)
 			case "link":
 				return ec.fieldContext_Event_link(ctx, field)
-			case "day":
-				return ec.fieldContext_Event_day(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
@@ -3717,71 +3308,6 @@ func (ec *executionContext) fieldContext_Query_topics(ctx context.Context, field
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_topics_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_days(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_days(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Days(rctx, fc.Args["id"].([]string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*models.Day)
-	fc.Result = res
-	return ec.marshalNDay2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐDayᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_days(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "ID":
-				return ec.fieldContext_Day_ID(ctx, field)
-			case "name":
-				return ec.fieldContext_Day_name(ctx, field)
-			case "date":
-				return ec.fieldContext_Day_date(ctx, field)
-			case "events":
-				return ec.fieldContext_Day_events(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Day", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_days_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4448,6 +3974,71 @@ func (ec *executionContext) fieldContext_Student_accepted(_ context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Student_eventsRegistered(ctx context.Context, field graphql.CollectedField, obj *model.Student) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Student_eventsRegistered(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EventsRegistered, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Event)
+	fc.Result = res
+	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEventᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Student_eventsRegistered(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Student",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Event_ID(ctx, field)
+			case "assignedTutorsWithRoom":
+				return ec.fieldContext_Event_assignedTutorsWithRoom(ctx, field)
+			case "needsTutors":
+				return ec.fieldContext_Event_needsTutors(ctx, field)
+			case "availableTutors":
+				return ec.fieldContext_Event_availableTutors(ctx, field)
+			case "title":
+				return ec.fieldContext_Event_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Event_description(ctx, field)
+			case "topic":
+				return ec.fieldContext_Event_topic(ctx, field)
+			case "roomsAvailable":
+				return ec.fieldContext_Event_roomsAvailable(ctx, field)
+			case "link":
+				return ec.fieldContext_Event_link(ctx, field)
+			case "from":
+				return ec.fieldContext_Event_from(ctx, field)
+			case "to":
+				return ec.fieldContext_Event_to(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Topic_name(ctx context.Context, field graphql.CollectedField, obj *models.Topic) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Topic_name(ctx, field)
 	if err != nil {
@@ -4587,8 +4178,6 @@ func (ec *executionContext) fieldContext_Topic_events(_ context.Context, field g
 				return ec.fieldContext_Event_roomsAvailable(ctx, field)
 			case "link":
 				return ec.fieldContext_Event_link(ctx, field)
-			case "day":
-				return ec.fieldContext_Event_day(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
@@ -4790,7 +4379,7 @@ func (ec *executionContext) _Tutor_eventsAvailable(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.EventsAvailable, nil
+		return ec.resolvers.Tutor().EventsAvailable(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4799,17 +4388,17 @@ func (ec *executionContext) _Tutor_eventsAvailable(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]models.Event)
+	res := resTmp.([]*models.Event)
 	fc.Result = res
-	return ec.marshalOEvent2ᚕgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEventᚄ(ctx, field.Selections, res)
+	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEventᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Tutor_eventsAvailable(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Tutor",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "ID":
@@ -4830,8 +4419,6 @@ func (ec *executionContext) fieldContext_Tutor_eventsAvailable(_ context.Context
 				return ec.fieldContext_Event_roomsAvailable(ctx, field)
 			case "link":
 				return ec.fieldContext_Event_link(ctx, field)
-			case "day":
-				return ec.fieldContext_Event_day(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
@@ -4897,8 +4484,6 @@ func (ec *executionContext) fieldContext_Tutor_eventsAssigned(_ context.Context,
 				return ec.fieldContext_Event_roomsAvailable(ctx, field)
 			case "link":
 				return ec.fieldContext_Event_link(ctx, field)
-			case "day":
-				return ec.fieldContext_Event_day(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
@@ -6745,42 +6330,6 @@ func (ec *executionContext) unmarshalInputNewBuilding(ctx context.Context, obj i
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewDay(ctx context.Context, obj interface{}) (models.Day, error) {
-	var it models.Day
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"name", "date"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "date":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
-			data, err := ec.unmarshalNDate2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			if err = ec.resolvers.NewDay().Date(ctx, &it, data); err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputNewEvent(ctx context.Context, obj interface{}) (models.Event, error) {
 	var it models.Event
 	asMap := map[string]interface{}{}
@@ -6788,7 +6337,7 @@ func (ec *executionContext) unmarshalInputNewEvent(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "description", "topicName", "link", "dayID", "needsTutors", "from", "to"}
+	fieldsInOrder := [...]string{"title", "description", "topicName", "link", "needsTutors", "from", "to"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6823,15 +6372,6 @@ func (ec *executionContext) unmarshalInputNewEvent(ctx context.Context, obj inte
 				return it, err
 			}
 			it.Link = data
-		case "dayID":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("dayID"))
-			data, err := ec.unmarshalNUUID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			if err = ec.resolvers.NewEvent().DayID(ctx, &it, data); err != nil {
-				return it, err
-			}
 		case "needsTutors":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("needsTutors"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
@@ -7142,7 +6682,7 @@ func (ec *executionContext) unmarshalInputNewTutor(ctx context.Context, obj inte
 
 // region    ************************** interface.gotpl ***************************
 
-func (ec *executionContext) _Person(ctx context.Context, sel ast.SelectionSet, obj model.Person) graphql.Marshaler {
+func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj model.User) graphql.Marshaler {
 	switch obj := (obj).(type) {
 	case nil:
 		return graphql.Null
@@ -7271,116 +6811,6 @@ func (ec *executionContext) _Building(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var dayImplementors = []string{"Day"}
-
-func (ec *executionContext) _Day(ctx context.Context, sel ast.SelectionSet, obj *models.Day) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, dayImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Day")
-		case "ID":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Day_ID(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "name":
-			out.Values[i] = ec._Day_name(ctx, field, obj)
-		case "date":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Day_date(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "events":
-			out.Values[i] = ec._Day_events(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
 var eventImplementors = []string{"Event"}
 
 func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, obj *models.Event) graphql.Marshaler {
@@ -7484,11 +6914,6 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Event_roomsAvailable(ctx, field, obj)
 		case "link":
 			out.Values[i] = ec._Event_link(ctx, field, obj)
-		case "day":
-			out.Values[i] = ec._Event_day(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "from":
 			out.Values[i] = ec._Event_from(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7648,13 +7073,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "addTopic":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addTopic(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "addDay":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_addDay(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7847,28 +7265,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "days":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_days(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -7950,7 +7346,7 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
-var studentImplementors = []string{"Student", "Person"}
+var studentImplementors = []string{"Student", "User"}
 
 func (ec *executionContext) _Student(ctx context.Context, sel ast.SelectionSet, obj *model.Student) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, studentImplementors)
@@ -7990,6 +7386,8 @@ func (ec *executionContext) _Student(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Student_score(ctx, field, obj)
 		case "accepted":
 			out.Values[i] = ec._Student_accepted(ctx, field, obj)
+		case "eventsRegistered":
+			out.Values[i] = ec._Student_eventsRegistered(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8056,7 +7454,7 @@ func (ec *executionContext) _Topic(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
-var tutorImplementors = []string{"Tutor", "Person"}
+var tutorImplementors = []string{"Tutor", "User"}
 
 func (ec *executionContext) _Tutor(ctx context.Context, sel ast.SelectionSet, obj *models.Tutor) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, tutorImplementors)
@@ -8070,25 +7468,56 @@ func (ec *executionContext) _Tutor(ctx context.Context, sel ast.SelectionSet, ob
 		case "fn":
 			out.Values[i] = ec._Tutor_fn(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "sn":
 			out.Values[i] = ec._Tutor_sn(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "mail":
 			out.Values[i] = ec._Tutor_mail(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "confirmed":
 			out.Values[i] = ec._Tutor_confirmed(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "eventsAvailable":
-			out.Values[i] = ec._Tutor_eventsAvailable(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tutor_eventsAvailable(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "eventsAssigned":
 			out.Values[i] = ec._Tutor_eventsAssigned(ctx, field, obj)
 		default:
@@ -8509,75 +7938,6 @@ func (ec *executionContext) marshalNBuilding2ᚖgithubᚗcomᚋFachschaftMathPhy
 	return ec._Building(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNDate2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNDate2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalString(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) marshalNDay2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐDayᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Day) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNDay2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐDay(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNDay2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐDay(ctx context.Context, sel ast.SelectionSet, v *models.Day) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Day(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNEvent2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEvent(ctx context.Context, sel ast.SelectionSet, v models.Event) graphql.Marshaler {
 	return ec._Event(ctx, sel, &v)
 }
@@ -8663,11 +8023,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 
 func (ec *executionContext) unmarshalNNewBuilding2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐBuilding(ctx context.Context, v interface{}) (models.Building, error) {
 	res, err := ec.unmarshalInputNewBuilding(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewDay2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐDay(ctx context.Context, v interface{}) (models.Day, error) {
-	res, err := ec.unmarshalInputNewDay(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
