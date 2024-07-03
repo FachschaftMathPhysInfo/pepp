@@ -29,9 +29,10 @@ func Init(ctx context.Context) (*bun.DB, *sql.DB, error) {
 	db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
 
 	relations := []interface{}{
-		(*models.EventToRoom)(nil),
 		(*models.EventToTutor)(nil),
-		(*models.UserToEvent)(nil),
+		(*models.TutorToEvent)(nil),
+		(*models.StudentToEvent)(nil),
+		(*models.RoomToEvent)(nil),
 	}
 
 	for _, relation := range relations {

@@ -1,7 +1,5 @@
 # GraphQL Schema Documentation
 
-This document describes the queries and mutations available in the GraphQL schema, along with example requests.
-
 **Note: Not all queries and mutations are implemented yet**
 
 ## Queries
@@ -34,12 +32,12 @@ query {
 Fetches a list of tutors by email and event ID.
 #### Arguments:
 - `mail: [String!]` (optional) - List of emails to filter tutors.
-- `eventID: UUID` (optional) - Event ID to filter tutors.
+- `eventID: Int` (optional) - Event ID to filter tutors.
 
 #### Example:
 ```graphql
 query {
-  tutors(mail: ["tutor1@example.com"], eventID: "123e4567-e89b-12d3-a456-426614174000") {
+  tutors(mail: ["tutor1@example.com"], eventID: 1) {
     fn
     sn
     mail
@@ -59,14 +57,14 @@ query {
 ### `events`
 Fetches a list of events by ID and topic.
 #### Arguments:
-- `id: [UUID!]` (optional) - List of event IDs to filter events.
+- `id: [Int!]` (optional) - List of event IDs to filter events.
 - `topic: [String!]` (optional) - List of topics to filter events.
 - `needsTutors: Boolean` (optional) - Filter events whether it needs tutors.
 
 #### Example:
 ```graphql
 query {
-  events(id: ["123e4567-e89b-12d3-a456-426614174000"], topic: ["Math"], needsTutors: true) {
+  events(id: [1], topic: ["Math"], needsTutors: true) {
     ID
     title
     description
@@ -103,12 +101,12 @@ query {
 ### `buildings`
 Fetches a list of buildings by ID.
 #### Arguments:
-- `id: [UUID!]` (optional) - List of building IDs to filter buildings.
+- `id: [Int!]` (optional) - List of building IDs to filter buildings.
 
 #### Example:
 ```graphql
 query {
-  buildings(id: ["123e4567-e89b-12d3-a456-426614174000"]) {
+  buildings(id: [1]) {
     ID
     name
     street
@@ -128,12 +126,12 @@ query {
 Fetches a list of rooms by number and building ID.
 #### Arguments:
 - `number: [String!]` (optional) - List of room numbers to filter rooms.
-- `buildingID: UUID!` - Building ID where rooms are located.
+- `buildingID: Int!` - Building ID where rooms are located.
 
 #### Example:
 ```graphql
 query {
-  rooms(number: ["101", "102"], buildingID: "123e4567-e89b-12d3-a456-426614174000") {
+  rooms(number: ["101", "102"], buildingID: 1) {
     number
     name
     capacity
@@ -207,7 +205,7 @@ mutation {
     fn: "Jane"
     sn: "Doe"
     mail: "jane.doe@example.com"
-    eventsAvailable: ["123e4567-e89b-12d3-a456-426614174000"]
+    eventsAvailable: [1]
   })
 }
 ```
@@ -225,7 +223,7 @@ mutation {
     fn: "Jane"
     sn: "Doe"
     mail: "jane.doe@example.com"
-    eventsAvailable: ["123e4567-e89b-12d3-a456-426614174000"]
+    eventsAvailable: [1]
   })
 }
 ```
@@ -244,8 +242,8 @@ mutation {
     topicName: "Math"
     link: "http://example.com"
     needsTutors: true
-    from: "09:00:00"
-    to: "11:00:00"
+    from: "2023-07-03T09:00:00Z"
+    to: "2023-07-03T11:00:00Z"
   })
 }
 ```
@@ -253,20 +251,20 @@ mutation {
 ### ~~`updateEvent`~~
 Updates an event's details.
 #### Arguments:
-- `eventID: UUID!` - ID of the event.
+- `eventID: Int!` - ID of the event.
 - `event: NewEvent!` - Updated details of the event.
 
 #### Example:
 ```graphql
 mutation {
-  updateEvent(eventID: "123e4567-e89b-12d3-a456-426614174000", event: {
+  updateEvent(eventID: 1, event: {
     title: "Advanced Math Tutoring"
     description: "Advanced tutoring session for Math"
     topicName: "Math"
     link: "http://example.com"
     needsTutors: true
-    from: "10:00:00"
-    to: "12:00:00"
+    from: "2023-07-03T10:00:00Z"
+    to: "2023-07-03T12:00:00Z"
   })
 }
 ```
@@ -303,7 +301,7 @@ mutation {
     name: "Physics Lab"
     capacity: 30
     floor: 1
-    buildingID: "123e4567-e89b-12d3-a456-426614174000"
+    buildingID: 1
   })
 }
 ```
@@ -311,13 +309,13 @@ mutation {
 ### ~~`updateBuilding`~~
 Updates a building's details.
 #### Arguments:
-- `buildingID: UUID!` - ID of the building.
+- `buildingID: Int!` - ID of the building.
 - `building: NewBuilding!` - Updated details of the building.
 
 #### Example:
 ```graphql
 mutation {
-  updateBuilding(buildingID: "123e4567-e89b-12d3-a456-426614174000", building: {
+  updateBuilding(buildingID: 1, building: {
     name: "Science Building"
     street: "123 Main St"
     number: "1"
@@ -352,9 +350,9 @@ Links an available room to an event.
 ```graphql
 mutation {
   linkAvailableRoomToEvent(link: {
-    eventID: "123e4567-e89b-12d3-a456-426614174000"
+    eventID: 1
     roomNumber: "101"
-    buildingID: "123e4567-e89b-12d3-a456-426614174000"
+    buildingID: 1
   })
 }
 ```
@@ -368,10 +366,10 @@ Links a tutor to an event and room.
 ```graphql
 mutation {
   linkTutorToEventAndRoom(link: {
-    eventID: "123e4567-e89b-12d3-a456-426614174000"
+    eventID: 1
     tutorMail: "tutor1@example.com"
     roomNumber: "101"
-    buildingID: "123e4567-e89b-12d3-a456-426614174000"
+    buildingID: 1
   })
 }
 ```

@@ -1,7 +1,5 @@
-scalar UUID
-scalar Date
-scalar Time
 scalar HexColorCode
+scalar timestamptz
 
 interface User {
   fn: String!
@@ -42,17 +40,17 @@ type EventTutorRoomPair {
 }
 
 type Event {
-  ID: UUID!
-  assignedTutorsWithRoom: [EventTutorRoomPair!]
+  ID: Int!
+  tutorsAssigned: [EventTutorRoomPair!]
+  tutorsAvailable: [Tutor!]
+  roomsAvailable: [Room!]
   needsTutors: Boolean!
-  availableTutors: [Tutor!]
   title: String!
   description: String
   topic: Topic!
-  roomsAvailable: [Room!]
   link: String
-  from: Time!
-  to: Time!
+  from: timestamptz!
+  to: timestamptz!
 }
 
 type Room {
@@ -64,7 +62,7 @@ type Room {
 }
 
 type Building {
-  ID: UUID!
+  ID: Int!
   name: String!
   street: String!
   number: String!
@@ -76,10 +74,10 @@ type Building {
 
 type Query {
   students(mail: [String!]): [Student!]!
-  tutors(mail: [String!], eventID: UUID): [Tutor!]!
-  events(id: [UUID!], topic: [String!], needsTutors: Boolean): [Event!]!
-  buildings(id: [UUID!]): [Building!]!
-  rooms(number: [String!], buildingID: UUID!): [Room!]!
+  tutors(mail: [String!], eventID: Int): [Tutor!]!
+  events(id: [Int!], topic: [String!], needsTutors: Boolean): [Event!]!
+  buildings(id: [Int!]): [Building!]!
+  rooms(number: [String!], buildingID: Int!): [Room!]!
   topics(name: [String!]): [Topic!]!
 }
 
@@ -87,7 +85,7 @@ input NewTutor {
   fn: String!
   sn: String
   mail: String!
-  eventsAvailable: [UUID!]
+  eventsAvailable: [Int!]
 }
 
 input NewStudent {
@@ -102,8 +100,8 @@ input NewEvent {
   topicName: String!
   link: String
   needsTutors: Boolean!
-  from: Time!
-  to: Time!
+  from: timestamptz!
+  to: timestamptz!
 }
 
 input NewBuilding {
@@ -120,7 +118,7 @@ input NewRoom {
   name: String
   capacity: Int
   floor: Int
-  buildingID: UUID!
+  buildingID: Int!
 }
 
 input NewTopic {
@@ -129,16 +127,16 @@ input NewTopic {
 }
 
 input NewEventToTutorLink {
-  eventID: UUID!
+  eventID: Int!
   tutorMail: String!
   roomNumber: String!
-  buildingID: UUID!
+  buildingID: Int!
 }
 
 input NewRoomToEventLink {
-  eventID: UUID!
+  eventID: Int!
   roomNumber: String!
-  buildingID: String!
+  buildingID: Int!
 }
 
 type Mutation {
@@ -147,10 +145,10 @@ type Mutation {
   addTutor(tutor: NewTutor!): String!
   updateTutor(tutorMail: String!, tutor: NewTutor!): String!
   addEvent(event: NewEvent!): String!
-  updateEvent(eventID: UUID!, event: NewEvent!): String!
+  updateEvent(eventID: Int!, event: NewEvent!): String!
   addBuilding(building: NewBuilding!): String!
   addRoom(room: NewRoom!): String!
-  updateBuilding(buildingID: UUID!, building: NewBuilding!): String!
+  updateBuilding(buildingID: Int!, building: NewBuilding!): String!
   addTopic(topic: NewTopic!): String!
   linkAvailableRoomToEvent(link: NewRoomToEventLink!): String!
   linkTutorToEventAndRoom(link: NewEventToTutorLink!): String!

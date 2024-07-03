@@ -26,6 +26,8 @@ resolver:
   # Optional: turn on to not generate template comments above resolvers
   # omit_template_comment: false
 
+omit_getters: true
+
 # Optional: turn on use ` + "`" + `gqlgen:"fieldName"` + "`" + ` tags in your models
 # struct_tag: json
 
@@ -97,6 +99,10 @@ models:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
   NewTutor:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
+  Student:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Student
+  NewStudent:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Student
   Topic:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Topic
   NewTopic:
@@ -106,6 +112,6 @@ models:
   NewRoom:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Room
   NewRoomToEventLink:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.EventToRoom
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.RoomToEvent
   NewEventToTutorLink:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.EventToTutor

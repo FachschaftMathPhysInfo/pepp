@@ -36,7 +36,7 @@ func SendConfirmation(person models.User) error {
 						Color: "#990000",
 						Text:  "E-Mail bestätigen",
 						Link: fmt.Sprintf("%s/confirm/%s",
-							os.Getenv("API_URL"), person.SessionID),
+							os.Getenv("API_URL"), strconv.Itoa(person.SessionID)),
 					},
 				},
 			},

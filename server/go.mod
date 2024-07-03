@@ -5,7 +5,6 @@ go 1.22.4
 require (
 	github.com/99designs/gqlgen v0.17.49
 	github.com/go-chi/chi/v5 v5.0.14
-	github.com/google/uuid v1.6.0
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/cors v1.11.0
@@ -26,6 +25,7 @@ require (
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/fatih/color v1.16.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect

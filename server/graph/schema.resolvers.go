@@ -7,26 +7,18 @@ package graph
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"strconv"
+	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
-	"github.com/google/uuid"
 	"github.com/uptrace/bun"
 )
 
-// ID is the resolver for the id field.
-func (r *buildingResolver) ID(ctx context.Context, obj *models.Building) (string, error) {
-	return obj.ID.String(), nil
-}
-
-// ID is the resolver for the id field.
-func (r *eventResolver) ID(ctx context.Context, obj *models.Event) (string, error) {
-	return obj.ID.String(), nil
-}
-
-// AssignedTutorsWithRoom is the resolver for the assignedTutorsWithRoom field.
-func (r *eventResolver) AssignedTutorsWithRoom(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error) {
+// TutorsAssigned is the resolver for the tutorsAssigned field.
+func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error) {
 	var eventToTutorRelations []*models.EventToTutor
 	if err := r.DB.NewSelect().
 		Model(&eventToTutorRelations).
@@ -41,7 +33,7 @@ func (r *eventResolver) AssignedTutorsWithRoom(ctx context.Context, obj *models.
 	roomMap := make(map[string]*model.EventTutorRoomPair)
 	for _, eventToTutorRelation := range eventToTutorRelations {
 		roomKey := eventToTutorRelation.Room.Number +
-			eventToTutorRelation.Room.BuildingID.String()
+			strconv.Itoa(eventToTutorRelation.Room.BuildingID)
 		if room, exists := roomMap[roomKey]; exists {
 			room.Tutors = append(room.Tutors, eventToTutorRelation.Tutor)
 		} else {
@@ -60,8 +52,18 @@ func (r *eventResolver) AssignedTutorsWithRoom(ctx context.Context, obj *models.
 	return tutorRoomPairs, nil
 }
 
+// From is the resolver for the from field.
+func (r *eventResolver) From(ctx context.Context, obj *models.Event) (string, error) {
+	return obj.From.String(), nil
+}
+
+// To is the resolver for the to field.
+func (r *eventResolver) To(ctx context.Context, obj *models.Event) (string, error) {
+	return obj.To.String(), nil
+}
+
 // AddRegistration is the resolver for the addRegistration field.
-func (r *mutationResolver) AddRegistration(ctx context.Context, student model.NewStudent) (string, error) {
+func (r *mutationResolver) AddRegistration(ctx context.Context, student models.Student) (string, error) {
 	panic(fmt.Errorf("not implemented: AddRegistration - addRegistration"))
 }
 
@@ -72,7 +74,7 @@ func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, stud
 
 // AddTutor is the resolver for the addTutor field.
 func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (string, error) {
-	tutor.SessionID = uuid.New()
+	tutor.SessionID = rand.Intn(9999999-1000000+1) + 1000000
 	if _, err := r.DB.NewInsert().
 		Model(&tutor).
 		Exec(ctx); err != nil {
@@ -103,7 +105,7 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event models.Event) (st
 }
 
 // UpdateEvent is the resolver for the updateEvent field.
-func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID string, event models.Event) (string, error) {
+func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID int, event models.Event) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateEvent - updateEvent"))
 }
 
@@ -130,7 +132,7 @@ func (r *mutationResolver) AddRoom(ctx context.Context, room models.Room) (strin
 }
 
 // UpdateBuilding is the resolver for the updateBuilding field.
-func (r *mutationResolver) UpdateBuilding(ctx context.Context, buildingID string, building models.Building) (string, error) {
+func (r *mutationResolver) UpdateBuilding(ctx context.Context, buildingID int, building models.Building) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateBuilding - updateBuilding"))
 }
 
@@ -146,7 +148,7 @@ func (r *mutationResolver) AddTopic(ctx context.Context, topic models.Topic) (st
 }
 
 // LinkAvailableRoomToEvent is the resolver for the linkAvailableRoomToEvent field.
-func (r *mutationResolver) LinkAvailableRoomToEvent(ctx context.Context, link models.EventToRoom) (string, error) {
+func (r *mutationResolver) LinkAvailableRoomToEvent(ctx context.Context, link models.RoomToEvent) (string, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&link).
 		Exec(ctx); err != nil {
@@ -159,8 +161,8 @@ func (r *mutationResolver) LinkAvailableRoomToEvent(ctx context.Context, link mo
 // LinkTutorToEventAndRoom is the resolver for the linkTutorToEventAndRoom field.
 func (r *mutationResolver) LinkTutorToEventAndRoom(ctx context.Context, link models.EventToTutor) (string, error) {
 	res, err := r.DB.NewDelete().
-		Model((*models.UserToEvent)(nil)).
-		Where("user_mail = ?", link.TutorMail).
+		Model((*models.TutorToEvent)(nil)).
+		Where("tutor_mail = ?", link.TutorMail).
 		Exec(ctx)
 	if err != nil {
 		return "", err
@@ -181,23 +183,19 @@ func (r *mutationResolver) LinkTutorToEventAndRoom(ctx context.Context, link mod
 }
 
 // Students is the resolver for the students field.
-func (r *queryResolver) Students(ctx context.Context, mail []string) ([]*model.Student, error) {
+func (r *queryResolver) Students(ctx context.Context, mail []string) ([]*models.Student, error) {
 	panic(fmt.Errorf("not implemented: Students - students"))
 }
 
 // Tutors is the resolver for the tutors field.
-func (r *queryResolver) Tutors(ctx context.Context, mail []string, eventID *string) ([]*models.Tutor, error) {
+func (r *queryResolver) Tutors(ctx context.Context, mail []string, eventID *int) ([]*models.Tutor, error) {
 	var tutors []*models.Tutor
 
 	query := r.DB.NewSelect().
 		Model(&tutors).
-		Relation("Events")
+		Relation("EventsAvailable")
 
 	if eventID != nil {
-		if err := uuid.Validate(*eventID); err != nil {
-			return nil, err
-		}
-
 		query = query.
 			Relation("EventsAssigned").
 			Where("event_id = ?", *eventID)
@@ -215,14 +213,14 @@ func (r *queryResolver) Tutors(ctx context.Context, mail []string, eventID *stri
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []string, topic []string, needsTutors *bool) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, needsTutors *bool) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
 		Model(&events).
 		Relation("Topic").
-		Relation("AssignedTutorsWithRoom").
-		Relation("AvailableTutors").
+		Relation("TutorsAssigned").
+		Relation("TutorsAvailable").
 		Relation("RoomsAvailable")
 
 	if topic != nil {
@@ -234,12 +232,6 @@ func (r *queryResolver) Events(ctx context.Context, id []string, topic []string,
 	}
 
 	if id != nil {
-		for _, uid := range id {
-			if err := uuid.Validate(uid); err != nil {
-				return nil, err
-			}
-		}
-
 		query = query.Where("id IN (?)", bun.In(id))
 	}
 
@@ -251,7 +243,7 @@ func (r *queryResolver) Events(ctx context.Context, id []string, topic []string,
 }
 
 // Buildings is the resolver for the buildings field.
-func (r *queryResolver) Buildings(ctx context.Context, id []string) ([]*models.Building, error) {
+func (r *queryResolver) Buildings(ctx context.Context, id []int) ([]*models.Building, error) {
 	var buildings []*models.Building
 
 	query := r.DB.NewSelect().
@@ -259,12 +251,6 @@ func (r *queryResolver) Buildings(ctx context.Context, id []string) ([]*models.B
 		Relation("Rooms")
 
 	if id != nil {
-		for _, uid := range id {
-			if err := uuid.Validate(uid); err != nil {
-				return nil, err
-			}
-		}
-
 		query = query.Where("id IN (?)", bun.In(id))
 	}
 
@@ -276,7 +262,7 @@ func (r *queryResolver) Buildings(ctx context.Context, id []string) ([]*models.B
 }
 
 // Rooms is the resolver for the rooms field.
-func (r *queryResolver) Rooms(ctx context.Context, number []string, buildingID string) ([]*models.Room, error) {
+func (r *queryResolver) Rooms(ctx context.Context, number []string, buildingID int) ([]*models.Room, error) {
 	var rooms []*models.Room
 
 	query := r.DB.NewSelect().
@@ -301,7 +287,7 @@ func (r *queryResolver) Topics(ctx context.Context, name []string) ([]*models.To
 
 	query := r.DB.NewSelect().
 		Model(&topics).
-		Relation("Building")
+		Relation("Events")
 
 	if name != nil {
 		query = query.Where("name IN (?)", bun.In(name))
@@ -314,83 +300,40 @@ func (r *queryResolver) Topics(ctx context.Context, name []string) ([]*models.To
 	return topics, nil
 }
 
-// EventsAvailable is the resolver for the eventsAvailable field.
-func (r *tutorResolver) EventsAvailable(ctx context.Context, obj *models.Tutor) ([]*models.Event, error) {
-	var events []*models.Event
-	for _, event := range obj.Events {
-		events = append(events, &event)
-	}
-
-	return events, nil
+// Answers is the resolver for the answers field.
+func (r *studentResolver) Answers(ctx context.Context, obj *models.Student) ([]string, error) {
+	panic(fmt.Errorf("not implemented: Answers - answers"))
 }
 
-// EventID is the resolver for the eventID field.
-func (r *newEventToTutorLinkResolver) EventID(ctx context.Context, obj *models.EventToTutor, data string) error {
-	id, err := uuid.Parse(data)
+// From is the resolver for the from field.
+func (r *newEventResolver) From(ctx context.Context, obj *models.Event, data string) error {
+	from, err := time.Parse(time.RFC3339, data)
 	if err != nil {
 		return err
 	}
 
-	obj.EventID = id
+	obj.From = from
 	return nil
 }
 
-// BuildingID is the resolver for the buildingID field.
-func (r *newEventToTutorLinkResolver) BuildingID(ctx context.Context, obj *models.EventToTutor, data string) error {
-	id, err := uuid.Parse(data)
+// To is the resolver for the to field.
+func (r *newEventResolver) To(ctx context.Context, obj *models.Event, data string) error {
+	to, err := time.Parse(time.RFC3339, data)
 	if err != nil {
 		return err
 	}
 
-	obj.RoomBuildingID = id
-	return nil
-}
-
-// BuildingID is the resolver for the BuildingID field.
-func (r *newRoomResolver) BuildingID(ctx context.Context, obj *models.Room, data string) error {
-	id, err := uuid.Parse(data)
-	if err != nil {
-		return err
-	}
-
-	obj.BuildingID = id
-	return nil
-}
-
-// EventID is the resolver for the eventID field.
-func (r *newRoomToEventLinkResolver) EventID(ctx context.Context, obj *models.EventToRoom, data string) error {
-	id, err := uuid.Parse(data)
-	if err != nil {
-		return err
-	}
-
-	obj.EventID = id
-	return nil
-}
-
-// BuildingID is the resolver for the buildingID field.
-func (r *newRoomToEventLinkResolver) BuildingID(ctx context.Context, obj *models.EventToRoom, data string) error {
-	id, err := uuid.Parse(data)
-	if err != nil {
-		return err
-	}
-
-	obj.EventID = id
+	obj.To = to
 	return nil
 }
 
 // EventsAvailable is the resolver for the eventsAvailable field.
-func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tutor, data []string) error {
-	var tutorToEventRelations []*models.UserToEvent
-	for _, id := range data {
-		eventID, err := uuid.Parse(id)
-		if err != nil {
-			return err
-		}
-
-		tutorToEventRelation := &models.UserToEvent{
-			UserMail: obj.Mail,
-			EventID:  eventID,
+func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tutor, data []int) error {
+	var tutorToEventRelations []*models.TutorToEvent
+	for _, eventId := range data {
+		tutorToEventRelation := &models.TutorToEvent{
+			TutorMail: obj.Mail,
+			EventID:   eventId,
 		}
 
 		tutorToEventRelations = append(tutorToEventRelations, tutorToEventRelation)
@@ -405,9 +348,6 @@ func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tuto
 	return nil
 }
 
-// Building returns BuildingResolver implementation.
-func (r *Resolver) Building() BuildingResolver { return &buildingResolver{r} }
-
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
 
@@ -417,31 +357,18 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-// Tutor returns TutorResolver implementation.
-func (r *Resolver) Tutor() TutorResolver { return &tutorResolver{r} }
+// Student returns StudentResolver implementation.
+func (r *Resolver) Student() StudentResolver { return &studentResolver{r} }
 
-// NewEventToTutorLink returns NewEventToTutorLinkResolver implementation.
-func (r *Resolver) NewEventToTutorLink() NewEventToTutorLinkResolver {
-	return &newEventToTutorLinkResolver{r}
-}
-
-// NewRoom returns NewRoomResolver implementation.
-func (r *Resolver) NewRoom() NewRoomResolver { return &newRoomResolver{r} }
-
-// NewRoomToEventLink returns NewRoomToEventLinkResolver implementation.
-func (r *Resolver) NewRoomToEventLink() NewRoomToEventLinkResolver {
-	return &newRoomToEventLinkResolver{r}
-}
+// NewEvent returns NewEventResolver implementation.
+func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
 
 // NewTutor returns NewTutorResolver implementation.
 func (r *Resolver) NewTutor() NewTutorResolver { return &newTutorResolver{r} }
 
-type buildingResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type tutorResolver struct{ *Resolver }
-type newEventToTutorLinkResolver struct{ *Resolver }
-type newRoomResolver struct{ *Resolver }
-type newRoomToEventLinkResolver struct{ *Resolver }
+type studentResolver struct{ *Resolver }
+type newEventResolver struct{ *Resolver }
 type newTutorResolver struct{ *Resolver }

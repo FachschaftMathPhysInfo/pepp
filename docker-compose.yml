@@ -8,7 +8,6 @@ services:
     restart: always
     volumes:
       - data:/var/lib/postgresql/data
-      - ./server/init.sql:/docker-entrypoint-initdb.d/init.sql
     env_file: .env.local
   server:
     build:
