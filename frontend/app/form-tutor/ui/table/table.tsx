@@ -5,7 +5,7 @@ import { GET_EVENTS } from "@/lib/queries"
 import { Event } from "@/lib/definitions"
 
 async function getData(): Promise<Event[]> {
-    const jsonData = await client.request(GET_EVENTS);
+    const jsonData: string = await client.request(GET_EVENTS);
 
     const events: Event[] = jsonData.events.map(event => ({
         id: event.ID,
