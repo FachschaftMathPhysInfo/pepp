@@ -24,9 +24,9 @@ interface DataTableProps<TData, TValue> {
 const scrollable = "w-full h-30 overflow-scroll"
 
 export function DataTable<TData, TValue>({
-                                             columns,
-                                             data,
-                                         }: DataTableProps<TData, TValue>) {
+    columns,
+    data,
+}: Readonly<DataTableProps<TData, TValue>>) {
     const table = useReactTable({
         data,
         columns,
