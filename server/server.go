@@ -18,7 +18,10 @@ import (
 	"github.com/rs/cors"
 )
 
-const defaultPort = "8080"
+const (
+	defaultPort  = "8080"
+	apiKeyHeader = "X-API-Key"
+)
 
 func main() {
 	ctx := context.Background()
@@ -66,7 +69,15 @@ func main() {
 
 	gqlResolvers := graph.Resolver{DB: db}
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &gqlResolvers}))
-	router.Handle("/api", srv)
+	router.With(func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Header.Get(apiKeyHeader) != os.Getenv("API_KEY") {
+				http.Error(w, "Invalid API Key", http.StatusUnauthorized)
+				return
+			}
+			h.ServeHTTP(w, r)
+		})
+	}).Handle("/api", srv)
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/api"))
 
