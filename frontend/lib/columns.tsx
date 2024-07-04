@@ -1,15 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Event = {
-  id: string;
-  title: string;
-  from: Date;
-  to: Date;
-};
-
 export const columns: ColumnDef<Event>[] = [
   {
     accessorKey: "isSelected",
@@ -19,22 +10,24 @@ export const columns: ColumnDef<Event>[] = [
         <Checkbox
           className={"mx-auto"}
           checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          onCheckedChange={
+            (value) => row.toggleSelected(!!value)
+          }
           aria-label="Ich kann diese Vorlesung halten"
         />
       </div>
     ),
   },
   {
-    accessorKey: "name",
+    accessorKey: "title",
     header: "Veranstaltung",
   },
   {
-    accessorKey: "from",
-    header: "Von",
+    accessorKey: "date",
+    header: "Datum",
   },
   {
-    accessorKey: "to",
-    header: "Bis",
+    accessorKey: "time",
+    header: "Uhrzeit",
   },
 ];

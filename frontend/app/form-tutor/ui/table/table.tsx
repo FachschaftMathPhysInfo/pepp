@@ -1,25 +1,17 @@
-import {Event, columns} from "./columns"
+import {columns} from "../../../../lib/columns"
 import {DataTable} from "./data-table"
+import { client } from "@/lib/graphClient"
+import { GET_EVENTS } from "@/lib/queries"
+import { Event } from "@/lib/definitions"
 
 async function getData(): Promise<Event[]> {
-    const jsonData = {
-        "data": {
-            "events": [
-                {
-                    "ID": "6da7655a-1c20-4228-9b8c-d1ee99317a87",
-                    "title": "event1",
-                    "from": "2024-07-01T10:00:00Z",
-                    "to": "2024-07-01T12:00:00Z"
-                }
-            ]
-        }
-    };
+    const jsonData = await client.request(GET_EVENTS);
 
-    const events: Event[] = jsonData.data.events.map(event => ({
+    const events: Event[] = jsonData.events.map(event => ({
         id: event.ID,
         title: event.title,
-        from: new Date(event.from),
-        to: new Date(event.to)
+        date: new Date(event.from).toLocaleDateString(),
+        time: new Date(event.from).toLocaleTimeString() + " - " + new Date(event.to).toLocaleTimeString()
     }));
 
     return events;
