@@ -72,12 +72,12 @@ query {
       name
       color
     }
-    assignedTutorsWithRoom {
+    assignedTutors {
       tutors {
         fn
         sn
       }
-      room {
+      rooms {
         number
         name
       }

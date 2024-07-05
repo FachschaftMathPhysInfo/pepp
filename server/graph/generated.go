@@ -78,7 +78,7 @@ type ComplexityRoot struct {
 	}
 
 	EventTutorRoomPair struct {
-		Room   func(childComplexity int) int
+		Rooms  func(childComplexity int) int
 		Tutors func(childComplexity int) int
 	}
 
@@ -333,12 +333,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Event.TutorsAvailable(childComplexity), true
 
-	case "EventTutorRoomPair.room":
-		if e.complexity.EventTutorRoomPair.Room == nil {
+	case "EventTutorRoomPair.rooms":
+		if e.complexity.EventTutorRoomPair.Rooms == nil {
 			break
 		}
 
-		return e.complexity.EventTutorRoomPair.Room(childComplexity), true
+		return e.complexity.EventTutorRoomPair.Rooms(childComplexity), true
 
 	case "EventTutorRoomPair.tutors":
 		if e.complexity.EventTutorRoomPair.Tutors == nil {
@@ -1687,8 +1687,8 @@ func (ec *executionContext) fieldContext_Event_tutorsAssigned(_ context.Context,
 			switch field.Name {
 			case "tutors":
 				return ec.fieldContext_EventTutorRoomPair_tutors(ctx, field)
-			case "room":
-				return ec.fieldContext_EventTutorRoomPair_room(ctx, field)
+			case "rooms":
+				return ec.fieldContext_EventTutorRoomPair_rooms(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type EventTutorRoomPair", field.Name)
 		},
@@ -2135,14 +2135,11 @@ func (ec *executionContext) _EventTutorRoomPair_tutors(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.([]*models.Tutor)
 	fc.Result = res
-	return ec.marshalNTutor2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐTutorᚄ(ctx, field.Selections, res)
+	return ec.marshalOTutor2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐTutorᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_EventTutorRoomPair_tutors(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2172,8 +2169,8 @@ func (ec *executionContext) fieldContext_EventTutorRoomPair_tutors(_ context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _EventTutorRoomPair_room(ctx context.Context, field graphql.CollectedField, obj *model.EventTutorRoomPair) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_EventTutorRoomPair_room(ctx, field)
+func (ec *executionContext) _EventTutorRoomPair_rooms(ctx context.Context, field graphql.CollectedField, obj *model.EventTutorRoomPair) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_EventTutorRoomPair_rooms(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2186,7 +2183,7 @@ func (ec *executionContext) _EventTutorRoomPair_room(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Room, nil
+		return obj.Rooms, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2195,12 +2192,12 @@ func (ec *executionContext) _EventTutorRoomPair_room(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.Room)
+	res := resTmp.([]*models.Room)
 	fc.Result = res
-	return ec.marshalORoom2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐRoom(ctx, field.Selections, res)
+	return ec.marshalORoom2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐRoomᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_EventTutorRoomPair_room(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_EventTutorRoomPair_rooms(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "EventTutorRoomPair",
 		Field:      field,
@@ -6949,11 +6946,8 @@ func (ec *executionContext) _EventTutorRoomPair(ctx context.Context, sel ast.Sel
 			out.Values[i] = graphql.MarshalString("EventTutorRoomPair")
 		case "tutors":
 			out.Values[i] = ec._EventTutorRoomPair_tutors(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "room":
-			out.Values[i] = ec._EventTutorRoomPair_room(ctx, field, obj)
+		case "rooms":
+			out.Values[i] = ec._EventTutorRoomPair_rooms(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8924,13 +8918,6 @@ func (ec *executionContext) marshalORoom2ᚕᚖgithubᚗcomᚋFachschaftMathPhys
 	return ret
 }
 
-func (ec *executionContext) marshalORoom2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐRoom(ctx context.Context, sel ast.SelectionSet, v *models.Room) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Room(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -9023,6 +9010,53 @@ func (ec *executionContext) marshalOTutor2ᚕgithubᚗcomᚋFachschaftMathPhysIn
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNTutor2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐTutor(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOTutor2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐTutorᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Tutor) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTutor2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐTutor(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

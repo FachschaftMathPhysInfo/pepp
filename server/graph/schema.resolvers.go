@@ -30,22 +30,27 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 		return nil, err
 	}
 
-	roomMap := make(map[string]*model.EventTutorRoomPair)
+	tutorRoomMap := make(map[string]*model.EventTutorRoomPair)
 	for _, eventToTutorRelation := range eventToTutorRelations {
 		roomKey := eventToTutorRelation.Room.Number +
 			strconv.Itoa(eventToTutorRelation.Room.BuildingID)
-		if room, exists := roomMap[roomKey]; exists {
+		if room, exists := tutorRoomMap[roomKey]; exists {
 			room.Tutors = append(room.Tutors, eventToTutorRelation.Tutor)
+		} else if tutor, exists := tutorRoomMap[eventToTutorRelation.TutorMail]; exists {
+			tutor.Rooms = append(tutor.Rooms, eventToTutorRelation.Room)
 		} else {
-			roomMap[roomKey] = &model.EventTutorRoomPair{
+			tutorRoomPair := &model.EventTutorRoomPair{
 				Tutors: []*models.Tutor{eventToTutorRelation.Tutor},
-				Room:   eventToTutorRelation.Room,
+				Rooms:  []*models.Room{eventToTutorRelation.Room},
 			}
+
+			tutorRoomMap[roomKey] = tutorRoomPair
+			tutorRoomMap[eventToTutorRelation.TutorMail] = tutorRoomPair
 		}
 	}
 
 	var tutorRoomPairs []*model.EventTutorRoomPair
-	for _, tutorRoomPair := range roomMap {
+	for _, tutorRoomPair := range tutorRoomMap {
 		tutorRoomPairs = append(tutorRoomPairs, tutorRoomPair)
 	}
 

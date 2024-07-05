@@ -35,8 +35,8 @@ type Topic {
 }
 
 type EventTutorRoomPair {
-  tutors: [Tutor!]!
-  room: Room
+  tutors: [Tutor!]
+  rooms: [Room!] 
 }
 
 type Event {
