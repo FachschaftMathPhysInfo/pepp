@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -51,9 +53,10 @@ func main() {
 	defer c.Stop()
 
 	// server configuration
-	// [/]: GraphQL Playground
+	// [/]: Next.JS frontend
 	// [/api]: JSON API endpoint
-	// [/confirm/{email}]: Confirm email addresses
+	// [/playground]: GraphQL Playground
+	// [/confirm/{sessionID}]: Confirm email addresses
 	router := chi.NewRouter()
 	router.Use(cors.New(cors.Options{
 		AllowedHeaders:   []string{"*"},
@@ -62,6 +65,10 @@ func main() {
 	}).Handler)
 
 	router.Use(middleware.Logger)
+
+	frontendUrl, _ := url.Parse("http://frontend:3000")
+	proxy := httputil.NewSingleHostReverseProxy(frontendUrl)
+	router.Handle("/*", proxy)
 
 	router.Get("/confirm/{sessionID}", func(w http.ResponseWriter, r *http.Request) {
 		email.Confirm(ctx, w, r, db)
@@ -79,7 +86,7 @@ func main() {
 		})
 	}).Handle("/api", srv)
 
-	router.Handle("/", playground.Handler("GraphQL playground", "/api"))
+	router.Handle("/playground", playground.Handler("GraphQL playground", "/api"))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

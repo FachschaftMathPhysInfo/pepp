@@ -19,3 +19,11 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    env_file: .env.local
+    depends_on:
+      - server
