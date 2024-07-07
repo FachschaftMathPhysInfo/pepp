@@ -1,0 +1,8 @@
+mutation addTutor($firstName:String!, $lastName:String!, $email:String!, $eventsAvailable:[Int!]) {
+  addTutor(tutor: {
+    fn: $firstName
+    sn: $lastName
+    mail: $email
+    eventsAvailable: $eventsAvailable
+  })
+}

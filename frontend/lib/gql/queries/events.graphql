@@ -1,0 +1,8 @@
+query tutorFormEvents {
+  events(needsTutors: true) {
+    ID
+    title
+    from
+    to
+  }
+}

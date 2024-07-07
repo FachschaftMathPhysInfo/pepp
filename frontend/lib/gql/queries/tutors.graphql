@@ -1,0 +1,8 @@
+query tutors {
+  tutors {
+    fn
+    sn
+    mail
+    confirmed
+  }
+}
