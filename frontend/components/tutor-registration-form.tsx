@@ -1,12 +1,16 @@
-'use client';
+"use client";
 
 import { useFormState } from "react-dom";
-import { EventTable } from "@/app/form-tutor/ui/table/table";
 import { SubmitButton } from "./submit-button";
 import { FieldError } from "./field-error";
 import { EMPTY_FORM_STATE } from "@/lib/to-form-state";
 import { addTutor } from "@/app/actions";
 import { Input } from "@/components/ui/input";
+import dynamic from "next/dynamic";
+
+const EventTable = dynamic(() => import("@/app/form-tutor/ui/table/table"), {
+  ssr: false,
+});
 
 const TutorRegistrationForm = () => {
   const inputDivStyling = "w-full my-3 ";
@@ -36,7 +40,7 @@ const TutorRegistrationForm = () => {
       </div>
       <FieldError formState={formState} name="text" />
 
-      <SubmitButton label="Anmelden" loading="Bitte warten"/>
+      <SubmitButton label="Anmelden" loading="Bitte warten" />
     </form>
   );
 };

@@ -1,10 +1,9 @@
 import { GraphQLClient } from 'graphql-request';
-import {env} from 'process';
 
-var endpoint = 'http://localhost:8080/api'
+const endpoint = 'http://localhost:8080/api'
 
 export const client = new GraphQLClient(endpoint, {
   headers: {
-    authorization: "X-API-Key " + env.API_KEY
+    authorization: "X-API-Key " + process.env.API_KEY
   },
 });
