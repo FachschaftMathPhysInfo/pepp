@@ -44,9 +44,12 @@ func main() {
 	// cronjobs for maintenance tasks
 	c := cron.New()
 	c.AddFunc("@hourly", func() {
-		err := maintenance.DeleteUnconfirmedPeople(ctx, db)
-		if err != nil {
+		if err := maintenance.DeleteUnconfirmedPeople(ctx, db); err != nil {
 			log.Println("Error deleting unconfirmed people:", err)
+		}
+
+		if err := maintenance.CleanSessionIds(ctx, db); err != nil {
+			log.Println("Error cleaning session ids:", err)
 		}
 	})
 	c.Start()

@@ -2,7 +2,6 @@ package maintenance
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
@@ -12,27 +11,26 @@ import (
 func DeleteUnconfirmedPeople(ctx context.Context, db *bun.DB) error {
 	twoHoursAgo := time.Now().Add(-2 * time.Hour)
 
-	res, err := db.NewDelete().
+	if _, err := db.NewDelete().
 		Model((*models.User)(nil)).
 		Where("confirmed = ?", false).
 		Where("created_at <= ?", twoHoursAgo).
-		Exec(ctx)
-	if err != nil {
+		Exec(ctx); err != nil {
 		return err
 	}
 
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
+	return nil
+}
 
-	switch rowsAffected {
-	case 0:
-		fmt.Println("No unconfirmed people found")
-	case 1:
-		fmt.Println("Deleted 1 unconfirmed person")
-	default:
-		fmt.Printf("Deleted %d unconfirmed people", rowsAffected)
+func CleanSessionIds(ctx context.Context, db *bun.DB) error {
+	twelveHoursAgo := time.Now().Add(-12 * time.Hour)
+
+	if _, err := db.NewUpdate().
+		Model(&models.User{}).
+		Set("session_id = null").
+		Where("last_login <= ?", twelveHoursAgo).
+		Exec(ctx); err != nil {
+		return err
 	}
 
 	return nil
