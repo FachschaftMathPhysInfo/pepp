@@ -9,6 +9,16 @@ services:
     volumes:
       - data:/var/lib/postgresql/data
     env_file: .env.local
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - 16686:16686
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    depends_on:
+      - jaeger
   server:
     build:
       context: ./server
@@ -19,6 +29,7 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+      - otel-collector
   frontend:
     build:
       context: ./frontend
