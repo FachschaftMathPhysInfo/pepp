@@ -9,6 +9,12 @@ services:
     volumes:
       - data:/var/lib/postgresql/data
     env_file: .env.local
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+
   server:
     build:
       context: ./server
@@ -19,6 +25,8 @@ services:
       - 8080:8080
     depends_on:
       - postgres
+      - otel-collector
+
   frontend:
     build:
       context: ./frontend

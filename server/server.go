@@ -14,10 +14,14 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph"
 	"github.com/FachschaftMathPhysInfo/pepp/server/maintenance"
+	"github.com/FachschaftMathPhysInfo/pepp/server/tracing"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/ravilushqa/otelgqlgen"
+	"github.com/riandyrn/otelchi"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
@@ -33,8 +37,13 @@ func main() {
 		port = defaultPort
 	}
 
+	apiTracer := tracing.InitTracing("api")
+	routerTracer := tracing.InitTracing("router")
+	databaseTracer := tracing.InitTracing("database")
+	maintenanceTracer := tracing.InitTracing("cronjobs")
+
 	// init of database (create tables and stuff)
-	db, sqldb, err := db.Init(ctx)
+	db, sqldb, err := db.Init(ctx, databaseTracer)
 	defer sqldb.Close()
 	defer db.Close()
 	if err != nil {
@@ -44,11 +53,13 @@ func main() {
 	// cronjobs for maintenance tasks
 	c := cron.New()
 	c.AddFunc("@hourly", func() {
-		if err := maintenance.DeleteUnconfirmedPeople(ctx, db); err != nil {
+		hourlyTracer := maintenanceTracer.Tracer("hourly")
+
+		if err := maintenance.DeleteUnconfirmedPeople(ctx, db, hourlyTracer); err != nil {
 			log.Println("Error deleting unconfirmed people:", err)
 		}
 
-		if err := maintenance.CleanSessionIds(ctx, db); err != nil {
+		if err := maintenance.CleanSessionIds(ctx, db, hourlyTracer); err != nil {
 			log.Println("Error cleaning session ids:", err)
 		}
 	})
@@ -60,24 +71,34 @@ func main() {
 	// [/api]: JSON API endpoint
 	// [/playground]: GraphQL Playground
 	// [/confirm/{sessionID}]: Confirm email addresses
+
 	router := chi.NewRouter()
-	router.Use(cors.New(cors.Options{
-		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
-		Debug:            false,
-	}).Handler)
+	router.Use(
+		cors.New(cors.Options{
+			AllowedHeaders:   []string{"*"},
+			AllowCredentials: true,
+			Debug:            false,
+		}).Handler,
+		otelchi.Middleware("pepp-server",
+			otelchi.WithChiRoutes(router),
+			otelchi.WithTracerProvider(routerTracer),
+		),
+	)
 
 	router.Use(middleware.Logger)
 
 	frontendUrl, _ := url.Parse("http://frontend:3000")
 	proxy := httputil.NewSingleHostReverseProxy(frontendUrl)
-	router.Handle("/*", proxy)
+	router.Handle("/*", otelhttp.NewHandler(proxy, "frontend-proxy"))
 
-	router.Get("/confirm/{sessionID}", func(w http.ResponseWriter, r *http.Request) {
+	router.MethodFunc(http.MethodGet, "/confirm/{sessionID}", otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		email.Confirm(ctx, w, r, db)
-	})
+	}), "confirm-email").ServeHTTP)
 
-	gqlResolvers := graph.Resolver{DB: db}
+	gqlResolvers := graph.Resolver{
+		DB: db,
+	}
+
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &gqlResolvers}))
 	router.With(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +108,8 @@ func main() {
 			}
 			h.ServeHTTP(w, r)
 		})
-	}).Handle("/api", srv)
+	}).Handle("/api", otelhttp.NewHandler(srv, "graphql-api"))
+	srv.Use(otelgqlgen.Middleware(otelgqlgen.WithTracerProvider(apiTracer)))
 
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/api"))
 
