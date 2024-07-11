@@ -21,7 +21,6 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
@@ -71,7 +70,6 @@ func main() {
 	// [/api]: JSON API endpoint
 	// [/playground]: GraphQL Playground
 	// [/confirm/{sessionID}]: Confirm email addresses
-
 	router := chi.NewRouter()
 	router.Use(
 		cors.New(cors.Options{
@@ -88,17 +86,13 @@ func main() {
 	router.Use(middleware.Logger)
 
 	frontendUrl, _ := url.Parse("http://frontend:3000")
-	proxy := httputil.NewSingleHostReverseProxy(frontendUrl)
-	router.Handle("/*", otelhttp.NewHandler(proxy, "frontend-proxy"))
+	router.Handle("/*", httputil.NewSingleHostReverseProxy(frontendUrl))
 
-	router.MethodFunc(http.MethodGet, "/confirm/{sessionID}", otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/confirm/{sessionID}", func(w http.ResponseWriter, r *http.Request) {
 		email.Confirm(ctx, w, r, db)
-	}), "confirm-email").ServeHTTP)
+	})
 
-	gqlResolvers := graph.Resolver{
-		DB: db,
-	}
-
+	gqlResolvers := graph.Resolver{DB: db}
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &gqlResolvers}))
 	router.With(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -108,7 +102,7 @@ func main() {
 			}
 			h.ServeHTTP(w, r)
 		})
-	}).Handle("/api", otelhttp.NewHandler(srv, "graphql-api"))
+	}).Handle("/api", srv)
 	srv.Use(otelgqlgen.Middleware(otelgqlgen.WithTracerProvider(apiTracer)))
 
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/api"))
