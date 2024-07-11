@@ -11,9 +11,10 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bunotel"
+	"go.opentelemetry.io/otel/sdk/trace"
 )
 
-func Init(ctx context.Context) (*bun.DB, *sql.DB, error) {
+func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, error) {
 	db_user := os.Getenv("POSTGRES_USER")
 	db_pw := os.Getenv("POSTGRES_PASSWORD")
 	db_db := os.Getenv("POSTGRES_DB")
@@ -26,7 +27,10 @@ func Init(ctx context.Context) (*bun.DB, *sql.DB, error) {
 
 	db := bun.NewDB(sqldb, pgdialect.New())
 
-	db.AddQueryHook(bunotel.NewQueryHook(bunotel.WithDBName("pepp")))
+	db.AddQueryHook(bunotel.NewQueryHook(
+    bunotel.WithFormattedQueries(true),
+    bunotel.WithTracerProvider(tracer),
+  ))
 
 	relations := []interface{}{
 		(*models.EventToTutor)(nil),
