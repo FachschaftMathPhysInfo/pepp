@@ -28,9 +28,9 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 	db := bun.NewDB(sqldb, pgdialect.New())
 
 	db.AddQueryHook(bunotel.NewQueryHook(
-    bunotel.WithFormattedQueries(true),
-    bunotel.WithTracerProvider(tracer),
-  ))
+		bunotel.WithFormattedQueries(true),
+		bunotel.WithTracerProvider(tracer),
+	))
 
 	relations := []interface{}{
 		(*models.EventToTutor)(nil),
