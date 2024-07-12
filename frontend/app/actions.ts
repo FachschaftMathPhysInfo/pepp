@@ -11,6 +11,7 @@ import {
   TutorFormEventsQuery,
   TutorFormEventsDocument,
 } from "@/lib/gql/generated/graphql";
+import {eventBroker} from "@/lib/eventBroker";
 
 export const getEvents = async (): Promise<TutorFormEventsQuery> => {
   await new Promise((resolve) => setTimeout(resolve, 250));
@@ -28,7 +29,7 @@ export const addTutor = async (formState: FormState, formData: FormData) => {
   const firstName = formData.get("fn")?.toString() || "";
   const lastName = formData.get("sn")?.toString() || "";
   const email = formData.get("email")?.toString() || "";
-  const eventsAvailable = selectedEvents;
+  const eventsAvailable = eventBroker.getEvents();
 
   const vars: AddTutorMutationVariables = {
     firstName,
@@ -45,14 +46,3 @@ export const addTutor = async (formState: FormState, formData: FormData) => {
 
   return toFormState("SUCCESS", "Anmeldung erfolgreich");
 };
-
-let selectedEvents: number[] = []
-
-export function manageEvents(addEvent: boolean, eventID: number) {
-  if(addEvent) {
-    selectedEvents.push(eventID)
-  } else {
-    const index = selectedEvents.indexOf(eventID)
-    if (index > -1) selectedEvents.splice(index, 1)
-  }
-}
