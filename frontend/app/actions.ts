@@ -28,7 +28,7 @@ export const addTutor = async (formState: FormState, formData: FormData) => {
   const firstName = formData.get("fn")?.toString() || "";
   const lastName = formData.get("sn")?.toString() || "";
   const email = formData.get("email")?.toString() || "";
-  const eventsAvailable = [1, 2];
+  const eventsAvailable = selectedEvents;
 
   const vars: AddTutorMutationVariables = {
     firstName,
@@ -48,12 +48,11 @@ export const addTutor = async (formState: FormState, formData: FormData) => {
 
 let selectedEvents: number[] = []
 
-export function removeEvent(eventID: number){
-  const index = selectedEvents.indexOf(eventID)
-  if (index > -1) selectedEvents.splice(index, 1)
+export function manageEvents(addEvent: boolean, eventID: number) {
+  if(addEvent) {
+    selectedEvents.push(eventID)
+  } else {
+    const index = selectedEvents.indexOf(eventID)
+    if (index > -1) selectedEvents.splice(index, 1)
+  }
 }
-
-export function addEvent(eventID: number){
-  selectedEvents.push(eventID)
-}
-
