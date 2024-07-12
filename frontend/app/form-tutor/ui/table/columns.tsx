@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TutorFormEventsQuery } from "@/lib/gql/generated/graphql";
+import {addEvent, removeEvent} from "@/app/actions";
 
 export const columns: ColumnDef<TutorFormEventsQuery['events'][0]>[] = [
   {
@@ -13,7 +14,16 @@ export const columns: ColumnDef<TutorFormEventsQuery['events'][0]>[] = [
         <Checkbox
           className={"mx-auto"}
           checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          onCheckedChange={(value) => {
+            row.toggleSelected(!!value)
+
+            if(!row.getIsSelected()) {
+              addEvent(row.original.ID)
+            } else {
+              removeEvent(row.original.ID)
+            }
+
+          }}
           aria-label="Ich kann diese Vorlesung halten"
         />
       </div>

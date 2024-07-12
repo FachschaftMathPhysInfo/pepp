@@ -45,3 +45,15 @@ export const addTutor = async (formState: FormState, formData: FormData) => {
 
   return toFormState("SUCCESS", "Anmeldung erfolgreich");
 };
+
+let selectedEvents: number[] = []
+
+export function removeEvent(eventID: number){
+  const index = selectedEvents.indexOf(eventID)
+  if (index > -1) selectedEvents.splice(index, 1)
+}
+
+export function addEvent(eventID: number){
+  selectedEvents.push(eventID)
+}
+
