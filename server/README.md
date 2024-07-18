@@ -80,7 +80,9 @@ query {
       room {
         number
         name
+        capacity
       }
+      registrations
     }
     needsTutors
     availableTutors {

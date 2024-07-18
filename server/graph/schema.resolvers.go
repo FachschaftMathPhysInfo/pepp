@@ -37,9 +37,21 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 		if room, exists := roomMap[roomKey]; exists {
 			room.Tutors = append(room.Tutors, eventToTutorRelation.Tutor)
 		} else {
+			registrationsCount, err := r.DB.NewSelect().
+				Model((*models.StudentToEvent)(nil)).
+				Where("event_id = ?", obj.ID).
+				Where("room_number = ?", eventToTutorRelation.Room.Name).
+				Where("building_id = ?", eventToTutorRelation.BuildingID).
+				Count(ctx)
+
+			if err != nil {
+				return nil, err
+			}
+
 			roomMap[roomKey] = &model.EventTutorRoomPair{
-				Tutors: []*models.Tutor{eventToTutorRelation.Tutor},
-				Room:   eventToTutorRelation.Room,
+				Tutors:        []*models.Tutor{eventToTutorRelation.Tutor},
+				Room:          eventToTutorRelation.Room,
+				Registrations: &registrationsCount,
 			}
 		}
 	}

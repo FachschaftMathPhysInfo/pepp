@@ -11,8 +11,9 @@ type User interface {
 }
 
 type EventTutorRoomPair struct {
-	Tutors []*models.Tutor `json:"tutors"`
-	Room   *models.Room    `json:"room,omitempty"`
+	Tutors        []*models.Tutor `json:"tutors,omitempty"`
+	Room          *models.Room    `json:"room,omitempty"`
+	Registrations *int            `json:"registrations,omitempty"`
 }
 
 type Mutation struct {
