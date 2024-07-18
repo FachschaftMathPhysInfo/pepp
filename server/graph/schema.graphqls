@@ -144,12 +144,19 @@ type Mutation {
   updateStudentAcceptedStatus(studentMail: String!, accepted: Boolean!): String!
   addTutor(tutor: NewTutor!): String!
   updateTutor(tutorMail: String!, tutor: NewTutor!): String!
+  deleteUser(mail: [String!]!): String!
   addEvent(event: NewEvent!): String!
   updateEvent(eventID: Int!, event: NewEvent!): String!
+  deleteEvent(eventID: [Int!]!): String!
   addBuilding(building: NewBuilding!): String!
-  addRoom(room: NewRoom!): String!
   updateBuilding(buildingID: Int!, building: NewBuilding!): String!
+  deleteBuilding(buildingID: [Int!]!): String!
+  addRoom(room: NewRoom!): String!
+  deleteRoom(roomNumber: String!, buildingID: Int!): String!
   addTopic(topic: NewTopic!): String!
-  linkAvailableRoomToEvent(link: NewRoomToEventLink!): String!
-  linkTutorToEventAndRoom(link: NewEventToTutorLink!): String!
+  deleteTopic(name: [String!]!): String!
+  addAvailableRoomToEvent(link: NewRoomToEventLink!): String!
+  deleteRoomFromEvent(link: NewRoomToEventLink!): String!
+  assignTutorToEvent(link: NewEventToTutorLink!): String!
+  unassignTutorFromEvent(link: NewEventToTutorLink!): String!
 }

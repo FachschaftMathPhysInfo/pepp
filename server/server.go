@@ -28,6 +28,8 @@ const (
 	apiKeyHeader = "X-API-Key"
 )
 
+var resolver graph.Resolver
+
 func main() {
 	ctx := context.Background()
 
@@ -49,16 +51,18 @@ func main() {
 		log.Fatal(err)
 	}
 
+	resolver = graph.Resolver{DB: db}
+
 	// cronjobs for maintenance tasks
 	c := cron.New()
 	c.AddFunc("@hourly", func() {
 		hourlyTracer := maintenanceTracer.Tracer("hourly")
 
-		if err := maintenance.DeleteUnconfirmedPeople(ctx, db, hourlyTracer); err != nil {
+		if err := maintenance.DeleteUnconfirmedPeople(ctx, &resolver, hourlyTracer); err != nil {
 			log.Println("Error deleting unconfirmed people:", err)
 		}
 
-		if err := maintenance.CleanSessionIds(ctx, db, hourlyTracer); err != nil {
+		if err := maintenance.CleanSessionIds(ctx, &resolver, hourlyTracer); err != nil {
 			log.Println("Error cleaning session ids:", err)
 		}
 	})
@@ -92,8 +96,7 @@ func main() {
 		email.Confirm(ctx, w, r, db)
 	})
 
-	gqlResolvers := graph.Resolver{DB: db}
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &gqlResolvers}))
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver}))
 	router.With(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get(apiKeyHeader) != os.Getenv("API_KEY") {

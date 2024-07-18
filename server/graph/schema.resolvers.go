@@ -74,13 +74,7 @@ func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, stud
 
 // AddTutor is the resolver for the addTutor field.
 func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (string, error) {
-	tutor.SessionID = rand.Intn(9999999-1000000+1) + 1000000
-	if _, err := r.DB.NewInsert().
-		Model(&tutor).
-		Exec(ctx); err != nil {
-		return "Failed to add tutor", err
-	}
-
+	// database insert happens in the eventsAvailable resolver
 	if err := email.SendConfirmation(tutor.User); err != nil {
 		return "Failed to send confirmation mail", err
 	}
@@ -91,6 +85,18 @@ func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (st
 // UpdateTutor is the resolver for the updateTutor field.
 func (r *mutationResolver) UpdateTutor(ctx context.Context, tutorMail string, tutor models.Tutor) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateTutor - updateTutor"))
+}
+
+// DeleteUser is the resolver for the deleteUser field.
+func (r *mutationResolver) DeleteUser(ctx context.Context, mail []string) (string, error) {
+	if _, err := r.DB.NewDelete().
+		Model((*models.User)(nil)).
+		Where("mail IN (?)", bun.In(mail)).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return "Successfully removed user(s)", nil
 }
 
 // AddEvent is the resolver for the addEvent field.
@@ -109,6 +115,18 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID int, event m
 	panic(fmt.Errorf("not implemented: UpdateEvent - updateEvent"))
 }
 
+// DeleteEvent is the resolver for the deleteEvent field.
+func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID []int) (string, error) {
+	if _, err := r.DB.NewDelete().
+		Model((*models.User)(nil)).
+		Where("id IN (?)", bun.In(eventID)).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return "Successfully removed event(s)", nil
+}
+
 // AddBuilding is the resolver for the addBuilding field.
 func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Building) (string, error) {
 	if _, err := r.DB.NewInsert().
@@ -118,6 +136,23 @@ func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Buil
 	}
 
 	return "Successfully inserted new building", nil
+}
+
+// UpdateBuilding is the resolver for the updateBuilding field.
+func (r *mutationResolver) UpdateBuilding(ctx context.Context, buildingID int, building models.Building) (string, error) {
+	panic(fmt.Errorf("not implemented: UpdateBuilding - updateBuilding"))
+}
+
+// DeleteBuilding is the resolver for the deleteBuilding field.
+func (r *mutationResolver) DeleteBuilding(ctx context.Context, buildingID []int) (string, error) {
+	if _, err := r.DB.NewDelete().
+		Model((*models.User)(nil)).
+		Where("id IN (?)", bun.In(buildingID)).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return "Successfully deleted building(s) and referenced room(s)", nil
 }
 
 // AddRoom is the resolver for the addRoom field.
@@ -131,9 +166,17 @@ func (r *mutationResolver) AddRoom(ctx context.Context, room models.Room) (strin
 	return "Successfully inserted new room", nil
 }
 
-// UpdateBuilding is the resolver for the updateBuilding field.
-func (r *mutationResolver) UpdateBuilding(ctx context.Context, buildingID int, building models.Building) (string, error) {
-	panic(fmt.Errorf("not implemented: UpdateBuilding - updateBuilding"))
+// DeleteRoom is the resolver for the deleteRoom field.
+func (r *mutationResolver) DeleteRoom(ctx context.Context, roomNumber string, buildingID int) (string, error) {
+	if _, err := r.DB.NewDelete().
+		Model((*models.Room)(nil)).
+		Where("number = ?", roomNumber).
+		Where("building_id = ?", buildingID).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return "Successfully deleted room", nil
 }
 
 // AddTopic is the resolver for the addTopic field.
@@ -147,8 +190,20 @@ func (r *mutationResolver) AddTopic(ctx context.Context, topic models.Topic) (st
 	return "Successfully inserted new topic", nil
 }
 
-// LinkAvailableRoomToEvent is the resolver for the linkAvailableRoomToEvent field.
-func (r *mutationResolver) LinkAvailableRoomToEvent(ctx context.Context, link models.RoomToEvent) (string, error) {
+// DeleteTopic is the resolver for the deleteTopic field.
+func (r *mutationResolver) DeleteTopic(ctx context.Context, name []string) (string, error) {
+	if _, err := r.DB.NewDelete().
+		Model((*models.Topic)(nil)).
+		Where("name IN (?)", bun.In(name)).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return "Successfully deleted topic(s)", nil
+}
+
+// AddAvailableRoomToEvent is the resolver for the addAvailableRoomToEvent field.
+func (r *mutationResolver) AddAvailableRoomToEvent(ctx context.Context, link models.RoomToEvent) (string, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&link).
 		Exec(ctx); err != nil {
@@ -158,8 +213,19 @@ func (r *mutationResolver) LinkAvailableRoomToEvent(ctx context.Context, link mo
 	return "Successfully linked room to event", nil
 }
 
-// LinkTutorToEventAndRoom is the resolver for the linkTutorToEventAndRoom field.
-func (r *mutationResolver) LinkTutorToEventAndRoom(ctx context.Context, link models.EventToTutor) (string, error) {
+// DeleteRoomFromEvent is the resolver for the deleteRoomFromEvent field.
+func (r *mutationResolver) DeleteRoomFromEvent(ctx context.Context, link models.RoomToEvent) (string, error) {
+	if _, err := r.DB.NewDelete().
+		Model(&link).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return "Successfully unlinked room from event", nil
+}
+
+// AssignTutorToEvent is the resolver for the assignTutorToEvent field.
+func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.EventToTutor) (string, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.TutorToEvent)(nil)).
 		Where("tutor_mail = ?", link.TutorMail).
@@ -182,6 +248,17 @@ func (r *mutationResolver) LinkTutorToEventAndRoom(ctx context.Context, link mod
 	return "Successfully linked tutor to event and room", nil
 }
 
+// UnassignTutorFromEvent is the resolver for the unassignTutorFromEvent field.
+func (r *mutationResolver) UnassignTutorFromEvent(ctx context.Context, link models.EventToTutor) (string, error) {
+	if _, err := r.DB.NewDelete().
+		Model(&link).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return "Successfully unassigned tutor from event", nil
+}
+
 // Students is the resolver for the students field.
 func (r *queryResolver) Students(ctx context.Context, mail []string) ([]*models.Student, error) {
 	panic(fmt.Errorf("not implemented: Students - students"))
@@ -193,12 +270,11 @@ func (r *queryResolver) Tutors(ctx context.Context, mail []string, eventID *int)
 
 	query := r.DB.NewSelect().
 		Model(&tutors).
+		Relation("EventsAssigned").
 		Relation("EventsAvailable")
 
 	if eventID != nil {
-		query = query.
-			Relation("EventsAssigned").
-			Where("event_id = ?", *eventID)
+		query = query.Where("event_id = ?", *eventID)
 	}
 
 	if mail != nil {
@@ -329,6 +405,13 @@ func (r *newEventResolver) To(ctx context.Context, obj *models.Event, data strin
 
 // EventsAvailable is the resolver for the eventsAvailable field.
 func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tutor, data []int) error {
+	obj.SessionID = rand.Intn(9999999-1000000+1) + 1000000
+	if _, err := r.DB.NewInsert().
+		Model(obj).
+		Exec(ctx); err != nil {
+		return err
+	}
+
 	var tutorToEventRelations []*models.TutorToEvent
 	for _, eventId := range data {
 		tutorToEventRelation := &models.TutorToEvent{
