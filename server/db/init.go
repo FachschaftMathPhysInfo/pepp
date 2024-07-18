@@ -36,16 +36,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		(*models.EventToTutor)(nil),
 		(*models.TutorToEvent)(nil),
 		(*models.StudentToEvent)(nil),
-		(*models.RoomToEvent)(nil),
-	}
-
-	for _, relation := range relations {
-		db.RegisterModel(relation)
-	}
-
-	if err := createTables(ctx, db, relations); err != nil {
-		return nil, nil, err
-	}
+		(*models.RoomToEvent)(nil)}
 
 	tables := []interface{}{
 		(*models.Topic)(nil),
@@ -53,10 +44,17 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		(*models.User)(nil),
 		(*models.Building)(nil),
 		(*models.Room)(nil),
-		(*models.Answer)(nil),
+		(*models.Answer)(nil)}
+
+	for _, relation := range relations {
+		db.RegisterModel(relation)
 	}
 
 	if err := createTables(ctx, db, tables); err != nil {
+		return nil, nil, err
+	}
+
+	if err := createTables(ctx, db, relations); err != nil {
 		return nil, nil, err
 	}
 

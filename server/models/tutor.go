@@ -1,5 +1,11 @@
 package models
 
+import (
+	"context"
+
+	"github.com/uptrace/bun"
+)
+
 type Tutor struct {
 	User `bun:",inherit"`
 
@@ -14,4 +20,12 @@ type TutorToEvent struct {
 	Tutor     *Tutor `bun:"rel:belongs-to,join:tutor_mail=mail"`
 	EventID   int    `bun:",pk"`
 	Event     *Event `bun:"rel:belongs-to,join:event_id=id"`
+}
+
+var _ bun.BeforeCreateTableHook = (*TutorToEvent)(nil)
+
+func (*TutorToEvent) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
+	query.ForeignKey(`("event_id") REFERENCES "events" ("id") ON DELETE CASCADE`)
+	query.ForeignKey(`("tutor_mail") REFERENCES "users" ("mail") ON DELETE CASCADE`)
+	return nil
 }

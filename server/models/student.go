@@ -1,10 +1,16 @@
 package models
 
+import (
+	"context"
+
+	"github.com/uptrace/bun"
+)
+
 type Student struct {
 	User `bun:",inherit"`
 
-	Score    int  `bun:"score"`
-	Accepted bool `bun:"accepted"`
+	Score    int
+	Accepted bool
 
 	EventsRegistered []Event  `bun:"m2m:student_to_events,join:Student=Event"`
 	Answers          []Answer `bun:"rel:has-many,join:mail=student_mail"`
@@ -13,11 +19,20 @@ type Student struct {
 func (Student) IsUser() {}
 
 type StudentToEvent struct {
-	StudentMail    string   `bun:",pk"`
-	Student        *Student `bun:"rel:belongs-to,join:student_mail=mail"`
-	EventID        int      `bun:",pk"`
-	Event          *Event   `bun:"rel:belongs-to,join:event_id=id"`
-	RoomNumber     string   `bun:",notnull"`
-	RoomBuildingID int      `bun:",notnull"`
-	Room           *Room    `bun:"rel:belongs-to,join:room_number=number,join:room_building_id=building_id"`
+	StudentMail string   `bun:",pk"`
+	Student     *Student `bun:"rel:belongs-to,join:student_mail=mail"`
+	EventID     int      `bun:",pk"`
+	Event       *Event   `bun:"rel:belongs-to,join:event_id=id"`
+	RoomNumber  string   `bun:",pk"`
+	BuildingID  int      `bun:",pk"`
+	Room        *Room    `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
+}
+
+var _ bun.BeforeCreateTableHook = (*StudentToEvent)(nil)
+
+func (*StudentToEvent) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
+	query.ForeignKey(`("student_mail") REFERENCES "users" ("mail") ON DELETE CASCADE`)
+	query.ForeignKey(`("event_id") REFERENCES "events" ("id") ON DELETE CASCADE`)
+	query.ForeignKey(`("room_number", "building_id") REFERENCES "rooms" ("number", "building_id") ON DELETE CASCADE`)
+	return nil
 }
