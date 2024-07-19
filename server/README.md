@@ -230,6 +230,18 @@ mutation {
 }
 ```
 
+### `deleteUser`
+Deletes a list of users. *Note: Tutors and Students are users.*
+#### Arguments:
+- `mail: [String!]!` - Email of the users.
+
+#### Example:
+```graphql
+mutation {
+  deleteUser(mail: "jane.doe@example.com")
+}
+```
+
 ### `addEvent`
 Adds a new event.
 #### Arguments:
@@ -271,6 +283,18 @@ mutation {
 }
 ```
 
+### `deleteEvent`
+Deletes a list of events.
+#### Arguments:
+- `eventID: [Int!]!` - IDs of the event
+
+#### Example:
+```graphql
+mutation {
+  deleteEvent(eventID: [1, 2])
+}
+```
+
 ### `addBuilding`
 Adds a new building.
 #### Arguments:
@@ -286,24 +310,6 @@ mutation {
     city: "Example City"
     zip: 12345
     osm: "osm-link"
-  })
-}
-```
-
-### `addRoom`
-Adds a new room.
-#### Arguments:
-- `room: NewRoom!` - Details of the new room.
-
-#### Example:
-```graphql
-mutation {
-  addRoom(room: {
-    number: "101"
-    name: "Physics Lab"
-    capacity: 30
-    floor: 1
-    buildingID: 1
   })
 }
 ```
@@ -328,6 +334,49 @@ mutation {
 }
 ```
 
+### `deleteBuilding`
+Deletes a list of buildings. *Note: This also deletes all rooms in the buildings*
+#### Arguments:
+- `buildingID: [Int!]!` - IDs of buildings
+
+#### Example:
+```graphql
+mutation {
+  deleteBuilding(buildingID: [1, 2])
+}
+```
+
+### `addRoom`
+Adds a new room.
+#### Arguments:
+- `room: NewRoom!` - Details of the new room.
+
+#### Example:
+```graphql
+mutation {
+  addRoom(room: {
+    number: "101"
+    name: "Physics Lab"
+    capacity: 30
+    floor: 1
+    buildingID: 1
+  })
+}
+```
+
+### `deleteRoom`
+Deletes a room in a building.
+#### Arguments:
+- `roomNumber: String!` - Number of room
+- `buildingID: [Int!]!` - IDs of buildings
+
+#### Example:
+```graphql
+mutation {
+  deleteRoom(roomNumber: "101", buildingID: 1)
+}
+```
+
 ### `addTopic`
 Adds a new topic.
 #### Arguments:
@@ -343,7 +392,19 @@ mutation {
 }
 ```
 
-### `linkAvailableRoomToEvent`
+### `deleteTopic`
+Deletes a list of topics. *Note: This also deletes all events related to it*
+#### Arguments:
+- `name: [String!]!` - Names of topics
+
+#### Example:
+```graphql
+mutation {
+  deleteTopic(name: "Math")
+}
+```
+
+### `addAvailableRoomToEvent`
 Links an available room to an event.
 #### Arguments:
 - `link: NewRoomToEventLink!` - Details of the room-event link.
@@ -351,7 +412,7 @@ Links an available room to an event.
 #### Example:
 ```graphql
 mutation {
-  linkAvailableRoomToEvent(link: {
+  addAvailableRoomToEvent(link: {
     eventID: 1
     roomNumber: "101"
     buildingID: 1
@@ -359,7 +420,23 @@ mutation {
 }
 ```
 
-### `linkTutorToEventAndRoom`
+### `deleteRoomFromEvent`
+Unmarks a room as available for an event.
+#### Arguments:
+- `link: NewRoomToEventLink!` - Details of the room-event link.
+
+#### Example:
+```graphql
+mutation {
+  deleteRoomFromEvent(link: {
+    eventID: 1
+    roomNumber: "101"
+    buildingID: 1
+  })
+}
+```
+
+### `assignTutorToEvent`
 Links a tutor to an event and room.
 #### Arguments:
 - `link: NewEventToTutorLink!` - Details of the tutor-event-room link.
@@ -368,6 +445,23 @@ Links a tutor to an event and room.
 ```graphql
 mutation {
   linkTutorToEventAndRoom(link: {
+    eventID: 1
+    tutorMail: "tutor1@example.com"
+    roomNumber: "101"
+    buildingID: 1
+  })
+}
+```
+
+### `unassignTutorFromEvent`
+Unassign a tutor from an event and room.
+#### Arguments:
+- `link: NewEventToTutorLink!` - Details of the tutor-event-room link.
+
+#### Example:
+```graphql
+mutation {
+  unassignTutorFromEvent(link: {
     eventID: 1
     tutorMail: "tutor1@example.com"
     roomNumber: "101"
