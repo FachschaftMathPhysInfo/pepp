@@ -46,7 +46,7 @@ export const columns: ColumnDef<TutorFormEventsQuery['events'][0]>[] = [
     header: () => <div className="text-left">Von</div>,
     cell: ({ row }) => {
       const time = new Date(row.getValue('from'));
-      return time.toLocaleTimeString();
+      return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
   },
   {
@@ -54,7 +54,7 @@ export const columns: ColumnDef<TutorFormEventsQuery['events'][0]>[] = [
     header: () => <div className="text-left">Bis</div>,
     cell: ({ row }) => {
       const time = new Date(row.getValue('to'));
-      return time.toLocaleTimeString();
+      return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
   },
 ];
