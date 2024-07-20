@@ -286,12 +286,12 @@ mutation {
 ### `deleteEvent`
 Deletes a list of events.
 #### Arguments:
-- `eventID: [Int!]!` - IDs of the event
+- `id: [Int!]!` - IDs of the event
 
 #### Example:
 ```graphql
 mutation {
-  deleteEvent(eventID: [1, 2])
+  deleteEvent(id: [1, 2])
 }
 ```
 
@@ -337,12 +337,12 @@ mutation {
 ### `deleteBuilding`
 Deletes a list of buildings. *Note: This also deletes all rooms in the buildings*
 #### Arguments:
-- `buildingID: [Int!]!` - IDs of buildings
+- `id: [Int!]!` - IDs of buildings
 
 #### Example:
 ```graphql
 mutation {
-  deleteBuilding(buildingID: [1, 2])
+  deleteBuilding(id: [1, 2])
 }
 ```
 
@@ -367,13 +367,13 @@ mutation {
 ### `deleteRoom`
 Deletes a room in a building.
 #### Arguments:
-- `roomNumber: String!` - Number of room
+- `number: String!` - Number of room
 - `buildingID: [Int!]!` - IDs of buildings
 
 #### Example:
 ```graphql
 mutation {
-  deleteRoom(roomNumber: "101", buildingID: 1)
+  deleteRoom(number: "101", buildingID: 1)
 }
 ```
 

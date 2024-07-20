@@ -92,17 +92,17 @@ type ComplexityRoot struct {
 		AddTopic                    func(childComplexity int, topic models.Topic) int
 		AddTutor                    func(childComplexity int, tutor models.Tutor) int
 		AssignTutorToEvent          func(childComplexity int, link models.EventToTutor) int
-		DeleteBuilding              func(childComplexity int, buildingID []int) int
-		DeleteEvent                 func(childComplexity int, eventID []int) int
-		DeleteRoom                  func(childComplexity int, roomNumber string, buildingID int) int
+		DeleteBuilding              func(childComplexity int, id []int) int
+		DeleteEvent                 func(childComplexity int, id []int) int
+		DeleteRoom                  func(childComplexity int, number string, buildingID int) int
 		DeleteRoomFromEvent         func(childComplexity int, link models.RoomToEvent) int
 		DeleteTopic                 func(childComplexity int, name []string) int
 		DeleteUser                  func(childComplexity int, mail []string) int
 		UnassignTutorFromEvent      func(childComplexity int, link models.EventToTutor) int
-		UpdateBuilding              func(childComplexity int, buildingID int, building models.Building) int
-		UpdateEvent                 func(childComplexity int, eventID int, event models.Event) int
-		UpdateStudentAcceptedStatus func(childComplexity int, studentMail string, accepted bool) int
-		UpdateTutor                 func(childComplexity int, tutorMail string, tutor models.Tutor) int
+		UpdateBuilding              func(childComplexity int, id int, building models.Building) int
+		UpdateEvent                 func(childComplexity int, id int, event models.Event) int
+		UpdateStudentAcceptedStatus func(childComplexity int, mail string, accepted bool) int
+		UpdateTutor                 func(childComplexity int, mail string, tutor models.Tutor) int
 	}
 
 	Query struct {
@@ -157,18 +157,18 @@ type EventResolver interface {
 }
 type MutationResolver interface {
 	AddRegistration(ctx context.Context, student models.Student) (string, error)
-	UpdateStudentAcceptedStatus(ctx context.Context, studentMail string, accepted bool) (string, error)
+	UpdateStudentAcceptedStatus(ctx context.Context, mail string, accepted bool) (string, error)
 	AddTutor(ctx context.Context, tutor models.Tutor) (string, error)
-	UpdateTutor(ctx context.Context, tutorMail string, tutor models.Tutor) (string, error)
+	UpdateTutor(ctx context.Context, mail string, tutor models.Tutor) (string, error)
 	DeleteUser(ctx context.Context, mail []string) (string, error)
 	AddEvent(ctx context.Context, event models.Event) (string, error)
-	UpdateEvent(ctx context.Context, eventID int, event models.Event) (string, error)
-	DeleteEvent(ctx context.Context, eventID []int) (string, error)
+	UpdateEvent(ctx context.Context, id int, event models.Event) (string, error)
+	DeleteEvent(ctx context.Context, id []int) (string, error)
 	AddBuilding(ctx context.Context, building models.Building) (string, error)
-	UpdateBuilding(ctx context.Context, buildingID int, building models.Building) (string, error)
-	DeleteBuilding(ctx context.Context, buildingID []int) (string, error)
+	UpdateBuilding(ctx context.Context, id int, building models.Building) (string, error)
+	DeleteBuilding(ctx context.Context, id []int) (string, error)
 	AddRoom(ctx context.Context, room models.Room) (string, error)
-	DeleteRoom(ctx context.Context, roomNumber string, buildingID int) (string, error)
+	DeleteRoom(ctx context.Context, number string, buildingID int) (string, error)
 	AddTopic(ctx context.Context, topic models.Topic) (string, error)
 	DeleteTopic(ctx context.Context, name []string) (string, error)
 	AddAvailableRoomToEvent(ctx context.Context, link models.RoomToEvent) (string, error)
@@ -475,7 +475,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteBuilding(childComplexity, args["buildingID"].([]int)), true
+		return e.complexity.Mutation.DeleteBuilding(childComplexity, args["id"].([]int)), true
 
 	case "Mutation.deleteEvent":
 		if e.complexity.Mutation.DeleteEvent == nil {
@@ -487,7 +487,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteEvent(childComplexity, args["eventID"].([]int)), true
+		return e.complexity.Mutation.DeleteEvent(childComplexity, args["id"].([]int)), true
 
 	case "Mutation.deleteRoom":
 		if e.complexity.Mutation.DeleteRoom == nil {
@@ -499,7 +499,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteRoom(childComplexity, args["roomNumber"].(string), args["buildingID"].(int)), true
+		return e.complexity.Mutation.DeleteRoom(childComplexity, args["number"].(string), args["buildingID"].(int)), true
 
 	case "Mutation.deleteRoomFromEvent":
 		if e.complexity.Mutation.DeleteRoomFromEvent == nil {
@@ -559,7 +559,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateBuilding(childComplexity, args["buildingID"].(int), args["building"].(models.Building)), true
+		return e.complexity.Mutation.UpdateBuilding(childComplexity, args["id"].(int), args["building"].(models.Building)), true
 
 	case "Mutation.updateEvent":
 		if e.complexity.Mutation.UpdateEvent == nil {
@@ -571,7 +571,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateEvent(childComplexity, args["eventID"].(int), args["event"].(models.Event)), true
+		return e.complexity.Mutation.UpdateEvent(childComplexity, args["id"].(int), args["event"].(models.Event)), true
 
 	case "Mutation.updateStudentAcceptedStatus":
 		if e.complexity.Mutation.UpdateStudentAcceptedStatus == nil {
@@ -583,7 +583,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateStudentAcceptedStatus(childComplexity, args["studentMail"].(string), args["accepted"].(bool)), true
+		return e.complexity.Mutation.UpdateStudentAcceptedStatus(childComplexity, args["mail"].(string), args["accepted"].(bool)), true
 
 	case "Mutation.updateTutor":
 		if e.complexity.Mutation.UpdateTutor == nil {
@@ -595,7 +595,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTutor(childComplexity, args["tutorMail"].(string), args["tutor"].(models.Tutor)), true
+		return e.complexity.Mutation.UpdateTutor(childComplexity, args["mail"].(string), args["tutor"].(models.Tutor)), true
 
 	case "Query.buildings":
 		if e.complexity.Query.Buildings == nil {
@@ -1079,14 +1079,14 @@ func (ec *executionContext) field_Mutation_deleteBuilding_args(ctx context.Conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 []int
-	if tmp, ok := rawArgs["buildingID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildingID"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNInt2ᚕintᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["buildingID"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1094,14 +1094,14 @@ func (ec *executionContext) field_Mutation_deleteEvent_args(ctx context.Context,
 	var err error
 	args := map[string]interface{}{}
 	var arg0 []int
-	if tmp, ok := rawArgs["eventID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventID"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNInt2ᚕintᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["eventID"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -1124,14 +1124,14 @@ func (ec *executionContext) field_Mutation_deleteRoom_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["roomNumber"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomNumber"))
+	if tmp, ok := rawArgs["number"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("number"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["roomNumber"] = arg0
+	args["number"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["buildingID"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildingID"))
@@ -1193,14 +1193,14 @@ func (ec *executionContext) field_Mutation_updateBuilding_args(ctx context.Conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["buildingID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildingID"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["buildingID"] = arg0
+	args["id"] = arg0
 	var arg1 models.Building
 	if tmp, ok := rawArgs["building"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("building"))
@@ -1217,14 +1217,14 @@ func (ec *executionContext) field_Mutation_updateEvent_args(ctx context.Context,
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["eventID"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventID"))
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["eventID"] = arg0
+	args["id"] = arg0
 	var arg1 models.Event
 	if tmp, ok := rawArgs["event"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
@@ -1241,14 +1241,14 @@ func (ec *executionContext) field_Mutation_updateStudentAcceptedStatus_args(ctx 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["studentMail"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("studentMail"))
+	if tmp, ok := rawArgs["mail"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mail"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["studentMail"] = arg0
+	args["mail"] = arg0
 	var arg1 bool
 	if tmp, ok := rawArgs["accepted"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("accepted"))
@@ -1265,14 +1265,14 @@ func (ec *executionContext) field_Mutation_updateTutor_args(ctx context.Context,
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["tutorMail"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tutorMail"))
+	if tmp, ok := rawArgs["mail"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mail"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tutorMail"] = arg0
+	args["mail"] = arg0
 	var arg1 models.Tutor
 	if tmp, ok := rawArgs["tutor"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tutor"))
@@ -2554,7 +2554,7 @@ func (ec *executionContext) _Mutation_updateStudentAcceptedStatus(ctx context.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateStudentAcceptedStatus(rctx, fc.Args["studentMail"].(string), fc.Args["accepted"].(bool))
+		return ec.resolvers.Mutation().UpdateStudentAcceptedStatus(rctx, fc.Args["mail"].(string), fc.Args["accepted"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2664,7 +2664,7 @@ func (ec *executionContext) _Mutation_updateTutor(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTutor(rctx, fc.Args["tutorMail"].(string), fc.Args["tutor"].(models.Tutor))
+		return ec.resolvers.Mutation().UpdateTutor(rctx, fc.Args["mail"].(string), fc.Args["tutor"].(models.Tutor))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2829,7 +2829,7 @@ func (ec *executionContext) _Mutation_updateEvent(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateEvent(rctx, fc.Args["eventID"].(int), fc.Args["event"].(models.Event))
+		return ec.resolvers.Mutation().UpdateEvent(rctx, fc.Args["id"].(int), fc.Args["event"].(models.Event))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2884,7 +2884,7 @@ func (ec *executionContext) _Mutation_deleteEvent(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteEvent(rctx, fc.Args["eventID"].([]int))
+		return ec.resolvers.Mutation().DeleteEvent(rctx, fc.Args["id"].([]int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2994,7 +2994,7 @@ func (ec *executionContext) _Mutation_updateBuilding(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateBuilding(rctx, fc.Args["buildingID"].(int), fc.Args["building"].(models.Building))
+		return ec.resolvers.Mutation().UpdateBuilding(rctx, fc.Args["id"].(int), fc.Args["building"].(models.Building))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3049,7 +3049,7 @@ func (ec *executionContext) _Mutation_deleteBuilding(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteBuilding(rctx, fc.Args["buildingID"].([]int))
+		return ec.resolvers.Mutation().DeleteBuilding(rctx, fc.Args["id"].([]int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3159,7 +3159,7 @@ func (ec *executionContext) _Mutation_deleteRoom(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteRoom(rctx, fc.Args["roomNumber"].(string), fc.Args["buildingID"].(int))
+		return ec.resolvers.Mutation().DeleteRoom(rctx, fc.Args["number"].(string), fc.Args["buildingID"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

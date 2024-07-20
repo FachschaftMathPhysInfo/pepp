@@ -15,7 +15,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
-	"github.com/matcornic/hermes/v2"
+	hermes "github.com/matcornic/hermes/v2"
 	"github.com/uptrace/bun"
 )
 
@@ -82,7 +82,7 @@ func (r *mutationResolver) AddRegistration(ctx context.Context, student models.S
 }
 
 // UpdateStudentAcceptedStatus is the resolver for the updateStudentAcceptedStatus field.
-func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, studentMail string, accepted bool) (string, error) {
+func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, mail string, accepted bool) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateStudentAcceptedStatus - updateStudentAcceptedStatus"))
 }
 
@@ -111,7 +111,7 @@ func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (st
 }
 
 // UpdateTutor is the resolver for the updateTutor field.
-func (r *mutationResolver) UpdateTutor(ctx context.Context, tutorMail string, tutor models.Tutor) (string, error) {
+func (r *mutationResolver) UpdateTutor(ctx context.Context, mail string, tutor models.Tutor) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateTutor - updateTutor"))
 }
 
@@ -139,15 +139,15 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event models.Event) (st
 }
 
 // UpdateEvent is the resolver for the updateEvent field.
-func (r *mutationResolver) UpdateEvent(ctx context.Context, eventID int, event models.Event) (string, error) {
+func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models.Event) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateEvent - updateEvent"))
 }
 
 // DeleteEvent is the resolver for the deleteEvent field.
-func (r *mutationResolver) DeleteEvent(ctx context.Context, eventID []int) (string, error) {
+func (r *mutationResolver) DeleteEvent(ctx context.Context, id []int) (string, error) {
 	if _, err := r.DB.NewDelete().
-		Model((*models.User)(nil)).
-		Where("id IN (?)", bun.In(eventID)).
+		Model((*models.Event)(nil)).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx); err != nil {
 		return "", err
 	}
@@ -167,15 +167,15 @@ func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Buil
 }
 
 // UpdateBuilding is the resolver for the updateBuilding field.
-func (r *mutationResolver) UpdateBuilding(ctx context.Context, buildingID int, building models.Building) (string, error) {
+func (r *mutationResolver) UpdateBuilding(ctx context.Context, id int, building models.Building) (string, error) {
 	panic(fmt.Errorf("not implemented: UpdateBuilding - updateBuilding"))
 }
 
 // DeleteBuilding is the resolver for the deleteBuilding field.
-func (r *mutationResolver) DeleteBuilding(ctx context.Context, buildingID []int) (string, error) {
+func (r *mutationResolver) DeleteBuilding(ctx context.Context, id []int) (string, error) {
 	if _, err := r.DB.NewDelete().
-		Model((*models.User)(nil)).
-		Where("id IN (?)", bun.In(buildingID)).
+		Model((*models.Building)(nil)).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx); err != nil {
 		return "", err
 	}
@@ -195,10 +195,10 @@ func (r *mutationResolver) AddRoom(ctx context.Context, room models.Room) (strin
 }
 
 // DeleteRoom is the resolver for the deleteRoom field.
-func (r *mutationResolver) DeleteRoom(ctx context.Context, roomNumber string, buildingID int) (string, error) {
+func (r *mutationResolver) DeleteRoom(ctx context.Context, number string, buildingID int) (string, error) {
 	if _, err := r.DB.NewDelete().
 		Model((*models.Room)(nil)).
-		Where("number = ?", roomNumber).
+		Where("number = ?", number).
 		Where("building_id = ?", buildingID).
 		Exec(ctx); err != nil {
 		return "", err

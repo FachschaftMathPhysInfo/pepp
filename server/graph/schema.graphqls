@@ -142,18 +142,18 @@ input NewRoomToEventLink {
 
 type Mutation {
   addRegistration(student: NewStudent!): String!
-  updateStudentAcceptedStatus(studentMail: String!, accepted: Boolean!): String!
+  updateStudentAcceptedStatus(mail: String!, accepted: Boolean!): String!
   addTutor(tutor: NewTutor!): String!
-  updateTutor(tutorMail: String!, tutor: NewTutor!): String!
+  updateTutor(mail: String!, tutor: NewTutor!): String!
   deleteUser(mail: [String!]!): String!
   addEvent(event: NewEvent!): String!
-  updateEvent(eventID: Int!, event: NewEvent!): String!
-  deleteEvent(eventID: [Int!]!): String!
+  updateEvent(id: Int!, event: NewEvent!): String!
+  deleteEvent(id: [Int!]!): String!
   addBuilding(building: NewBuilding!): String!
-  updateBuilding(buildingID: Int!, building: NewBuilding!): String!
-  deleteBuilding(buildingID: [Int!]!): String!
+  updateBuilding(id: Int!, building: NewBuilding!): String!
+  deleteBuilding(id: [Int!]!): String!
   addRoom(room: NewRoom!): String!
-  deleteRoom(roomNumber: String!, buildingID: Int!): String!
+  deleteRoom(number: String!, buildingID: Int!): String!
   addTopic(topic: NewTopic!): String!
   deleteTopic(name: [String!]!): String!
   addAvailableRoomToEvent(link: NewRoomToEventLink!): String!
