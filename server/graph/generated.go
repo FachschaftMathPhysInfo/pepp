@@ -43,8 +43,10 @@ type ResolverRoot interface {
 	Event() EventResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Room() RoomResolver
 	Student() StudentResolver
 	NewEvent() NewEventResolver
+	NewRoom() NewRoomResolver
 	NewTutor() NewTutorResolver
 }
 
@@ -184,13 +186,22 @@ type QueryResolver interface {
 	Rooms(ctx context.Context, number []string, buildingID int) ([]*models.Room, error)
 	Topics(ctx context.Context, name []string) ([]*models.Topic, error)
 }
+type RoomResolver interface {
+	Capacity(ctx context.Context, obj *models.Room) (*int, error)
+	Floor(ctx context.Context, obj *models.Room) (*int, error)
+}
 type StudentResolver interface {
 	Answers(ctx context.Context, obj *models.Student) ([]string, error)
+	Score(ctx context.Context, obj *models.Student) (*int, error)
 }
 
 type NewEventResolver interface {
 	From(ctx context.Context, obj *models.Event, data string) error
 	To(ctx context.Context, obj *models.Event, data string) error
+}
+type NewRoomResolver interface {
+	Capacity(ctx context.Context, obj *models.Room, data *int) error
+	Floor(ctx context.Context, obj *models.Room, data *int) error
 }
 type NewTutorResolver interface {
 	EventsAvailable(ctx context.Context, obj *models.Tutor, data []int) error
@@ -1490,9 +1501,9 @@ func (ec *executionContext) _Building_ID(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int32)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Building_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1710,9 +1721,9 @@ func (ec *executionContext) _Building_zip(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int32)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Building_zip(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1851,9 +1862,9 @@ func (ec *executionContext) _Event_ID(ctx context.Context, field graphql.Collect
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int32)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt2int32(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Event_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -4182,7 +4193,7 @@ func (ec *executionContext) _Room_capacity(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Capacity, nil
+		return ec.resolvers.Room().Capacity(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4191,17 +4202,17 @@ func (ec *executionContext) _Room_capacity(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Room_capacity(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Room",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
 		},
@@ -4223,7 +4234,7 @@ func (ec *executionContext) _Room_floor(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Floor, nil
+		return ec.resolvers.Room().Floor(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4232,17 +4243,17 @@ func (ec *executionContext) _Room_floor(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Room_floor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Room",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
 		},
@@ -4546,7 +4557,7 @@ func (ec *executionContext) _Student_score(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Score, nil
+		return ec.resolvers.Student().Score(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4555,17 +4566,17 @@ func (ec *executionContext) _Student_score(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Student_score(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Student",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
 		},
@@ -6952,7 +6963,7 @@ func (ec *executionContext) unmarshalInputNewBuilding(ctx context.Context, obj i
 			it.City = data
 		case "zip":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("zip"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int32(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7059,7 +7070,7 @@ func (ec *executionContext) unmarshalInputNewEventToTutorLink(ctx context.Contex
 		switch k {
 		case "eventID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int32(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7080,7 +7091,7 @@ func (ec *executionContext) unmarshalInputNewEventToTutorLink(ctx context.Contex
 			it.RoomNumber = data
 		case "buildingID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildingID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int32(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7121,21 +7132,25 @@ func (ec *executionContext) unmarshalInputNewRoom(ctx context.Context, obj inter
 			it.Name = data
 		case "capacity":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("capacity"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Capacity = data
+			if err = ec.resolvers.NewRoom().Capacity(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "floor":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("floor"))
-			data, err := ec.unmarshalOInt2int(ctx, v)
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Floor = data
+			if err = ec.resolvers.NewRoom().Floor(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "buildingID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildingID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int32(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7162,7 +7177,7 @@ func (ec *executionContext) unmarshalInputNewRoomToEventLink(ctx context.Context
 		switch k {
 		case "eventID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int32(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7176,7 +7191,7 @@ func (ec *executionContext) unmarshalInputNewRoomToEventLink(ctx context.Context
 			it.RoomNumber = data
 		case "buildingID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildingID"))
-			data, err := ec.unmarshalNInt2int(ctx, v)
+			data, err := ec.unmarshalNInt2int32(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7994,16 +8009,78 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 		case "number":
 			out.Values[i] = ec._Room_number(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "capacity":
-			out.Values[i] = ec._Room_capacity(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Room_capacity(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "floor":
-			out.Values[i] = ec._Room_floor(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Room_floor(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "building":
 			out.Values[i] = ec._Room_building(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -8096,7 +8173,38 @@ func (ec *executionContext) _Student(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "score":
-			out.Values[i] = ec._Student_score(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Student_score(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "accepted":
 			out.Values[i] = ec._Student_accepted(ctx, field, obj)
 		case "eventsRegistered":
@@ -8695,6 +8803,21 @@ func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int32(ctx context.Context, v interface{}) (int32, error) {
+	res, err := graphql.UnmarshalInt32(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int32(ctx context.Context, sel ast.SelectionSet, v int32) graphql.Marshaler {
+	res := graphql.MarshalInt32(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -9488,16 +9611,6 @@ func (ec *executionContext) unmarshalOHexColorCode2string(ctx context.Context, v
 
 func (ec *executionContext) marshalOHexColorCode2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
-	return res
-}
-
-func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
-	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
-	res := graphql.MarshalInt(v)
 	return res
 }
 

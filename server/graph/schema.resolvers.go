@@ -35,7 +35,7 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 	roomMap := make(map[string]*model.EventTutorRoomPair)
 	for _, eventToTutorRelation := range eventToTutorRelations {
 		roomKey := eventToTutorRelation.Room.Number +
-			strconv.Itoa(eventToTutorRelation.Room.BuildingID)
+			strconv.Itoa(int(eventToTutorRelation.Room.BuildingID))
 		if room, exists := roomMap[roomKey]; exists {
 			room.Tutors = append(room.Tutors, eventToTutorRelation.Tutor)
 		} else {
@@ -101,7 +101,7 @@ func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (st
 				Color: os.Getenv("PRIMARY_COLOR"),
 				Text:  os.Getenv("EMAIL_CONFIRM_BUTTON_TEXT"),
 				Link: fmt.Sprintf("%s/confirm/%s",
-					os.Getenv("PUBLIC_URL"), strconv.Itoa(tutor.SessionID))}}}
+					os.Getenv("PUBLIC_URL"), strconv.Itoa(int(tutor.SessionID)))}}}
 
 	if err := email.Send(tutor.User, mail); err != nil {
 		return "Failed to send confirmation mail", err
@@ -274,9 +274,9 @@ func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.E
 		return "Failed to link tutor to event and room", err
 	}
 
-	event, err := r.Query().Events(ctx, []int{link.EventID}, nil, nil)
+	event, err := r.Query().Events(ctx, []int{int(link.EventID)}, nil, nil)
 	tutor, err := r.Query().Tutors(ctx, []string{link.TutorMail}, nil)
-	room, err := r.Query().Rooms(ctx, []string{link.RoomNumber}, link.BuildingID)
+	room, err := r.Query().Rooms(ctx, []string{link.RoomNumber}, int(link.BuildingID))
 	if err != nil {
 		return "", err
 	}
@@ -308,7 +308,7 @@ func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.E
 			Value: fmt.Sprintf("%s, %s %s, %s, %s",
 				room[0].Building.Name,
 				room[0].Building.Street, room[0].Building.Number,
-				strconv.Itoa(room[0].Building.Zip), room[0].Building.City)}}
+				strconv.Itoa(int(room[0].Building.Zip)), room[0].Building.City)}}
 
 	if err := email.Send(tutor[0].User, mail); err != nil {
 		return "", err
@@ -445,9 +445,24 @@ func (r *queryResolver) Topics(ctx context.Context, name []string) ([]*models.To
 	return topics, nil
 }
 
+// Capacity is the resolver for the capacity field.
+func (r *roomResolver) Capacity(ctx context.Context, obj *models.Room) (*int, error) {
+	panic(fmt.Errorf("not implemented: Capacity - capacity"))
+}
+
+// Floor is the resolver for the floor field.
+func (r *roomResolver) Floor(ctx context.Context, obj *models.Room) (*int, error) {
+	panic(fmt.Errorf("not implemented: Floor - floor"))
+}
+
 // Answers is the resolver for the answers field.
 func (r *studentResolver) Answers(ctx context.Context, obj *models.Student) ([]string, error) {
 	panic(fmt.Errorf("not implemented: Answers - answers"))
+}
+
+// Score is the resolver for the score field.
+func (r *studentResolver) Score(ctx context.Context, obj *models.Student) (*int, error) {
+	panic(fmt.Errorf("not implemented: Score - score"))
 }
 
 // From is the resolver for the from field.
@@ -472,9 +487,19 @@ func (r *newEventResolver) To(ctx context.Context, obj *models.Event, data strin
 	return nil
 }
 
+// Capacity is the resolver for the capacity field.
+func (r *newRoomResolver) Capacity(ctx context.Context, obj *models.Room, data *int) error {
+	panic(fmt.Errorf("not implemented: Capacity - capacity"))
+}
+
+// Floor is the resolver for the floor field.
+func (r *newRoomResolver) Floor(ctx context.Context, obj *models.Room, data *int) error {
+	panic(fmt.Errorf("not implemented: Floor - floor"))
+}
+
 // EventsAvailable is the resolver for the eventsAvailable field.
 func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tutor, data []int) error {
-	obj.SessionID = rand.Intn(9999999-1000000+1) + 1000000
+	obj.SessionID = rand.Int31n(9999999-1000000+1) + 1000000
 	if _, err := r.DB.NewInsert().
 		Model(obj).
 		Exec(ctx); err != nil {
@@ -485,7 +510,7 @@ func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tuto
 	for _, eventId := range data {
 		tutorToEventRelation := &models.TutorToEvent{
 			TutorMail: obj.Mail,
-			EventID:   eventId,
+			EventID:   int32(eventId),
 		}
 
 		tutorToEventRelations = append(tutorToEventRelations, tutorToEventRelation)
@@ -509,11 +534,17 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Room returns RoomResolver implementation.
+func (r *Resolver) Room() RoomResolver { return &roomResolver{r} }
+
 // Student returns StudentResolver implementation.
 func (r *Resolver) Student() StudentResolver { return &studentResolver{r} }
 
 // NewEvent returns NewEventResolver implementation.
 func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
+
+// NewRoom returns NewRoomResolver implementation.
+func (r *Resolver) NewRoom() NewRoomResolver { return &newRoomResolver{r} }
 
 // NewTutor returns NewTutorResolver implementation.
 func (r *Resolver) NewTutor() NewTutorResolver { return &newTutorResolver{r} }
@@ -521,6 +552,8 @@ func (r *Resolver) NewTutor() NewTutorResolver { return &newTutorResolver{r} }
 type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type roomResolver struct{ *Resolver }
 type studentResolver struct{ *Resolver }
 type newEventResolver struct{ *Resolver }
+type newRoomResolver struct{ *Resolver }
 type newTutorResolver struct{ *Resolver }
