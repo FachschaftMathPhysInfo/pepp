@@ -10,7 +10,7 @@ import (
 type Event struct {
 	bun.BaseModel `bun:"table:events,alias:e"`
 
-	ID          int    `bun:",pk,autoincrement"`
+	ID          int32  `bun:",pk,autoincrement"`
 	Title       string `bun:",notnull"`
 	Description string
 	TopicName   string `bun:",notnull"`
@@ -33,12 +33,12 @@ func (*Event) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery
 }
 
 type EventToTutor struct {
-	EventID    int    `bun:",pk"`
+	EventID    int32  `bun:",pk"`
 	Event      *Event `bun:"rel:belongs-to,join:event_id=id"`
 	TutorMail  string `bun:",pk"`
 	Tutor      *Tutor `bun:"rel:belongs-to,join:tutor_mail=mail"`
 	RoomNumber string `bun:",pk"`
-	BuildingID int    `bun:",pk"`
+	BuildingID int32  `bun:",pk"`
 	Room       *Room  `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
 }
 

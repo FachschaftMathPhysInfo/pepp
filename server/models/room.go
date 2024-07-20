@@ -11,9 +11,9 @@ type Room struct {
 
 	Number     string `bun:",pk,notnull"`
 	Name       string
-	Capacity   int
-	Floor      int
-	BuildingID int `bun:",pk"`
+	Capacity   int16
+	Floor      int8
+	BuildingID int32 `bun:",pk"`
 
 	Building *Building `bun:"rel:belongs-to,join:building_id=id"`
 }
@@ -27,9 +27,9 @@ func (*Room) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery)
 
 type RoomToEvent struct {
 	RoomNumber string `bun:",pk"`
-	BuildingID int    `bun:",pk"`
+	BuildingID int32  `bun:",pk"`
 	Room       *Room  `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
-	EventID    int    `bun:"event_id,pk"`
+	EventID    int32  `bun:"event_id,pk"`
 	Event      *Event `bun:"rel:belongs-to,join:event_id=id"`
 }
 

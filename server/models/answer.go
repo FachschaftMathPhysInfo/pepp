@@ -9,10 +9,10 @@ import (
 type Answer struct {
 	bun.BaseModel `bun:"table:answers,alias:a"`
 
-	Number      int    `bun:",pk"`
+	Number      int8   `bun:",pk"`
 	StudentMail string `bun:",pk"`
 	Text        string
-	Score       int `bun:",notnull"`
+	Score       int8 `bun:",notnull"`
 
 	Student *Student `bun:"rel:belongs-to,join:student_mail=mail"`
 }
