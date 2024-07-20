@@ -10,39 +10,33 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-// Make nicer when needed
-func SendConfirmation(person models.User) error {
+type Email struct {
+	Subject    string
+	Intros     []string
+	Dictionary []hermes.Entry
+	Actions    []hermes.Action
+	Outros     []string
+}
+
+func Send(person models.User, email Email) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name:      "Pepp - Die Vorkursverwaltung",
-			Link:      "https://mathphys.info/",
-			Logo:      "https://mathphys.info/mathphysinfo-logo.png",
-			Copyright: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.",
+			Name:      os.Getenv("EMAIL_NAME"),
+			Link:      os.Getenv("HOMEPAGE_URL"),
+			Logo:      os.Getenv("LOGO_URL"),
+			Copyright: os.Getenv("COPYRIGHT"),
 		},
 	}
 
-	email := hermes.Email{
+	mail := hermes.Email{
 		Body: hermes.Body{
-			Name:      person.Fn,
-			Greeting:  "Hey",
-			Signature: "Dein",
-			Intros: []string{
-				"danke für deine Registrierung als Vorkurstutor/-in!",
-			},
-			Actions: []hermes.Action{
-				{
-					Instructions: "Bitte klicke hier um deine E-Mail Adresse zu bestätigen:",
-					Button: hermes.Button{
-						Color: "#990000",
-						Text:  "E-Mail bestätigen",
-						Link: fmt.Sprintf("%s/confirm/%s",
-							os.Getenv("URL"), strconv.Itoa(person.SessionID)),
-					},
-				},
-			},
-			Outros: []string{
-				"Danke! Wir melden uns bei dir.",
-			},
+			Name:       person.Fn,
+			Greeting:   os.Getenv("EMAIL_GREETING"),
+			Signature:  os.Getenv("EMAIL_SIGNATURE"),
+			Intros:     email.Intros,
+			Dictionary: email.Dictionary,
+			Actions:    email.Actions,
+			Outros:     email.Outros,
 		},
 	}
 
@@ -55,15 +49,15 @@ func SendConfirmation(person models.User) error {
 		return err
 	}
 
-	body, err := h.GenerateHTML(email)
+	body, err := h.GenerateHTML(mail)
 	if err != nil {
 		return err
 	}
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", fmt.Sprintf("Pepp - Die Vorkursverwaltung <%s>", from))
+	m.SetHeader("From", fmt.Sprintf("%s <%s>", os.Getenv("EMAIL_NAME"), from))
 	m.SetHeader("To", person.Mail)
-	m.SetHeader("Subject", "Bitte bestätige deine E-Mail Adresse")
+	m.SetHeader("Subject", email.Subject)
 	m.SetBody("text/html", body)
 
 	d := gomail.NewDialer(smtpHost, smtpPort, smtpUser, smtpPW)

@@ -8,12 +8,14 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/matcornic/hermes/v2"
 	"github.com/uptrace/bun"
 )
 
@@ -87,7 +89,21 @@ func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, stud
 // AddTutor is the resolver for the addTutor field.
 func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (string, error) {
 	// database insert happens in the eventsAvailable resolver
-	if err := email.SendConfirmation(tutor.User); err != nil {
+	mail := email.Email{
+		Subject: os.Getenv("EMAIL_CONFIRM_SUBJECT"),
+		Intros:  []string{os.Getenv("EMAIL_CONFIRM_INTRO")},
+		Outros:  []string{os.Getenv("EMAIL_CONFIRM_OUTRO")}}
+
+	mail.Actions = []hermes.Action{
+		{
+			Instructions: os.Getenv("EMAIL_CONFIRM_BUTTON_INSTRUCTION"),
+			Button: hermes.Button{
+				Color: os.Getenv("PRIMARY_COLOR"),
+				Text:  os.Getenv("EMAIL_CONFIRM_BUTTON_TEXT"),
+				Link: fmt.Sprintf("%s/confirm/%s",
+					os.Getenv("PUBLIC_URL"), strconv.Itoa(tutor.SessionID))}}}
+
+	if err := email.Send(tutor.User, mail); err != nil {
 		return "Failed to send confirmation mail", err
 	}
 
@@ -241,6 +257,7 @@ func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.E
 	res, err := r.DB.NewDelete().
 		Model((*models.TutorToEvent)(nil)).
 		Where("tutor_mail = ?", link.TutorMail).
+		Where("event_id = ?", link.EventID).
 		Exec(ctx)
 	if err != nil {
 		return "", err
@@ -255,6 +272,46 @@ func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.E
 		Model(&link).
 		Exec(ctx); err != nil {
 		return "Failed to link tutor to event and room", err
+	}
+
+	event, err := r.Query().Events(ctx, []int{link.EventID}, nil, nil)
+	tutor, err := r.Query().Tutors(ctx, []string{link.TutorMail}, nil)
+	room, err := r.Query().Rooms(ctx, []string{link.RoomNumber}, link.BuildingID)
+	if err != nil {
+		return "", err
+	}
+
+	mail := email.Email{
+		Subject: fmt.Sprintf("%s: %s",
+			os.Getenv("EMAIL_ASSIGNMENTS_SUBJECT"), event[0].Title),
+		Intros: []string{os.Getenv("EMAIL_ASSIGNMENTS_INTRO")},
+		Outros: []string{os.Getenv("EMAIL_ASSIGNMENTS_OUTRO")},
+	}
+
+	roomNumber := room[0].Number
+	if room[0].Name == "" {
+		roomNumber = fmt.Sprintf("%s (%s)",
+			room[0].Name, room[0].Number)
+	}
+
+	mail.Dictionary = []hermes.Entry{
+		{Key: os.Getenv("EMAIL_ASSIGNMENTS_EVENT_TITLE"),
+			Value: event[0].Title},
+		{Key: os.Getenv("EMAIL_ASSIGNMENTS_DATE_TITLE"),
+			Value: event[0].From.Format("02.01.2006")},
+		{Key: os.Getenv("EMAIL_ASSIGNMENTS_TIME_TITLE"),
+			Value: fmt.Sprintf("%s - %s",
+				event[0].From.Format("15:04"), event[0].To.Format("15:04"))},
+		{Key: os.Getenv("EMAIL_ASSIGNMENTS_ROOM_TITLE"),
+			Value: roomNumber},
+		{Key: os.Getenv("EMAIL_ASSIGNMENTS_BUILDING_TITLE"),
+			Value: fmt.Sprintf("%s, %s %s, %s, %s",
+				room[0].Building.Name,
+				room[0].Building.Street, room[0].Building.Number,
+				strconv.Itoa(room[0].Building.Zip), room[0].Building.City)}}
+
+	if err := email.Send(tutor[0].User, mail); err != nil {
+		return "", err
 	}
 
 	return "Successfully linked tutor to event and room", nil
@@ -359,7 +416,7 @@ func (r *queryResolver) Rooms(ctx context.Context, number []string, buildingID i
 		Where("building_id = ?", buildingID)
 
 	if number != nil {
-		query = query.Where("number IN (?)", bun.In(number))
+		query = query.Where("r.number IN (?)", bun.In(number))
 	}
 
 	if err := query.Scan(ctx); err != nil {
