@@ -28,10 +28,14 @@ type Tutor implements User {
   eventsAssigned: [Event!]
 }
 
-type Topic {
+enum LabelKind {
+  EVENT_TYPE
+  TOPIC
+}
+
+type Label {
   name: String!
   color: HexColorCode
-  events: [Event!]
 }
 
 type EventTutorRoomPair {
@@ -48,7 +52,8 @@ type Event {
   needsTutors: Boolean!
   title: String!
   description: String
-  topic: Topic!
+  topic: Label!
+  type: Label!
   link: String
   from: timestamptz!
   to: timestamptz!
@@ -76,10 +81,10 @@ type Building {
 type Query {
   students(mail: [String!]): [Student!]!
   tutors(mail: [String!], eventID: Int): [Tutor!]!
-  events(id: [Int!], topic: [String!], needsTutors: Boolean): [Event!]!
+  events(id: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, all: Boolean, tutorsAssigned: [String!], tutorsAvailable: [String!]): [Event!]!
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: Int!): [Room!]!
-  topics(name: [String!]): [Topic!]!
+  labels(name: [String!], kind: [LabelKind!]): [Label!]!
 }
 
 input NewTutor {
@@ -98,7 +103,8 @@ input NewStudent {
 input NewEvent {
   title: String!
   description: String
-  topicName: String!
+  topic: String!
+  type: String!
   link: String
   needsTutors: Boolean!
   from: timestamptz!
@@ -122,9 +128,10 @@ input NewRoom {
   buildingID: Int!
 }
 
-input NewTopic {
+input NewLabel {
   name: String!
   color: HexColorCode
+  kind: LabelKind!
 }
 
 input NewEventToTutorLink {
@@ -154,8 +161,8 @@ type Mutation {
   deleteBuilding(id: [Int!]!): String!
   addRoom(room: NewRoom!): String!
   deleteRoom(number: String!, buildingID: Int!): String!
-  addTopic(topic: NewTopic!): String!
-  deleteTopic(name: [String!]!): String!
+  addLabel(label: NewLabel!): String!
+  deleteLabel(name: [String!]!): String!
   addAvailableRoomToEvent(link: NewRoomToEventLink!): String!
   deleteRoomFromEvent(link: NewRoomToEventLink!): String!
   assignTutorToEvent(link: NewEventToTutorLink!): String!

@@ -39,7 +39,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		(*models.RoomToEvent)(nil)}
 
 	tables := []interface{}{
-		(*models.Topic)(nil),
+		(*models.Label)(nil),
 		(*models.Event)(nil),
 		(*models.User)(nil),
 		(*models.Building)(nil),

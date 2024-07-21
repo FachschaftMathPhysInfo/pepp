@@ -15,6 +15,7 @@ type Email struct {
 	Intros     []string
 	Dictionary []hermes.Entry
 	Actions    []hermes.Action
+	Table      hermes.Table
 	Outros     []string
 }
 
@@ -36,6 +37,7 @@ func Send(person models.User, email Email) error {
 			Intros:     email.Intros,
 			Dictionary: email.Dictionary,
 			Actions:    email.Actions,
+			Table:      email.Table,
 			Outros:     email.Outros,
 		},
 	}

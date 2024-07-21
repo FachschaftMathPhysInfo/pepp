@@ -103,10 +103,10 @@ models:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Student
   NewStudent:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Student
-  Topic:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Topic
-  NewTopic:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Topic
+  Label:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Label
+  NewLabel:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Label
   Room:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Room
   NewRoom:

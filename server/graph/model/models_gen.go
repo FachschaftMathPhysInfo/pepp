@@ -3,6 +3,10 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
+
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 )
 
@@ -20,4 +24,45 @@ type Mutation struct {
 }
 
 type Query struct {
+}
+
+type LabelKind string
+
+const (
+	LabelKindEventType LabelKind = "EVENT_TYPE"
+	LabelKindTopic     LabelKind = "TOPIC"
+)
+
+var AllLabelKind = []LabelKind{
+	LabelKindEventType,
+	LabelKindTopic,
+}
+
+func (e LabelKind) IsValid() bool {
+	switch e {
+	case LabelKindEventType, LabelKindTopic:
+		return true
+	}
+	return false
+}
+
+func (e LabelKind) String() string {
+	return string(e)
+}
+
+func (e *LabelKind) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = LabelKind(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid LabelKind", str)
+	}
+	return nil
+}
+
+func (e LabelKind) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

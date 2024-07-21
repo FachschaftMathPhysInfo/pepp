@@ -66,6 +66,26 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 	return tutorRoomPairs, nil
 }
 
+// Topic is the resolver for the topic field.
+func (r *eventResolver) Topic(ctx context.Context, obj *models.Event) (*models.Label, error) {
+	topics, err := r.Query().Labels(ctx, []string{obj.Topic}, []model.LabelKind{model.LabelKindTopic})
+	if err != nil {
+		return nil, err
+	}
+
+	return topics[0], nil
+}
+
+// Type is the resolver for the type field.
+func (r *eventResolver) Type(ctx context.Context, obj *models.Event) (*models.Label, error) {
+	types, err := r.Query().Labels(ctx, []string{obj.Type}, []model.LabelKind{model.LabelKindEventType})
+	if err != nil {
+		return nil, err
+	}
+
+	return types[0], nil
+}
+
 // From is the resolver for the from field.
 func (r *eventResolver) From(ctx context.Context, obj *models.Event) (string, error) {
 	return obj.From.String(), nil
@@ -89,10 +109,31 @@ func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, mail
 // AddTutor is the resolver for the addTutor field.
 func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (string, error) {
 	// database insert happens in the eventsAvailable resolver
+	eventsAvailable, err := r.Query().Events(ctx, nil, nil, nil, nil, nil, nil, []string{tutor.Mail})
+	table := hermes.Table{
+		Columns: hermes.Columns{
+			CustomWidth: map[string]string{
+				os.Getenv("EMAIL_ASSIGNMENTS_DATE_TITLE"): "20%",
+				os.Getenv("EMAIL_ASSIGNMENTS_KIND_TITLE"): "30%",
+			}}}
+
+	for _, event := range eventsAvailable {
+		e := []hermes.Entry{
+			{Key: os.Getenv("EMAIL_ASSIGNMENTS_EVENT_TITLE"), Value: event.Title},
+			{Key: os.Getenv("EMAIL_ASSIGNMENTS_DATE_TITLE"), Value: event.From.Format("02.01")},
+			{Key: os.Getenv("EMAIL_ASSIGNMENTS_KIND_TITLE"), Value: event.Type}}
+		table.Data = append(table.Data, e)
+	}
+
 	mail := email.Email{
 		Subject: os.Getenv("EMAIL_CONFIRM_SUBJECT"),
 		Intros:  []string{os.Getenv("EMAIL_CONFIRM_INTRO")},
-		Outros:  []string{os.Getenv("EMAIL_CONFIRM_OUTRO")}}
+		Outros:  []string{os.Getenv("EMAIL_CONFIRM_OUTRO")},
+		Table:   table}
+
+	if err != nil {
+		return "", err
+	}
 
 	mail.Actions = []hermes.Action{
 		{
@@ -207,21 +248,21 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, number string, buildi
 	return "Successfully deleted room", nil
 }
 
-// AddTopic is the resolver for the addTopic field.
-func (r *mutationResolver) AddTopic(ctx context.Context, topic models.Topic) (string, error) {
+// AddLabel is the resolver for the addLabel field.
+func (r *mutationResolver) AddLabel(ctx context.Context, label models.Label) (string, error) {
 	if _, err := r.DB.NewInsert().
-		Model(&topic).
+		Model(&label).
 		Exec(ctx); err != nil {
 		return "Failed to insert topic", err
 	}
 
-	return "Successfully inserted new topic", nil
+	return "Successfully inserted new label", nil
 }
 
-// DeleteTopic is the resolver for the deleteTopic field.
-func (r *mutationResolver) DeleteTopic(ctx context.Context, name []string) (string, error) {
+// DeleteLabel is the resolver for the deleteLabel field.
+func (r *mutationResolver) DeleteLabel(ctx context.Context, name []string) (string, error) {
 	if _, err := r.DB.NewDelete().
-		Model((*models.Topic)(nil)).
+		Model((*models.Label)(nil)).
 		Where("name IN (?)", bun.In(name)).
 		Exec(ctx); err != nil {
 		return "", err
@@ -274,7 +315,7 @@ func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.E
 		return "Failed to link tutor to event and room", err
 	}
 
-	event, err := r.Query().Events(ctx, []int{int(link.EventID)}, nil, nil)
+	event, err := r.Query().Events(ctx, []int{int(link.EventID)}, nil, nil, nil, nil, nil, nil)
 	tutor, err := r.Query().Tutors(ctx, []string{link.TutorMail}, nil)
 	room, err := r.Query().Rooms(ctx, []string{link.RoomNumber}, int(link.BuildingID))
 	if err != nil {
@@ -358,12 +399,11 @@ func (r *queryResolver) Tutors(ctx context.Context, mail []string, eventID *int)
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, needsTutors *bool) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, typeArg []string, needsTutors *bool, all *bool, tutorsAssigned []string, tutorsAvailable []string) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
 		Model(&events).
-		Relation("Topic").
 		Relation("TutorsAssigned").
 		Relation("TutorsAvailable").
 		Relation("RoomsAvailable")
@@ -378,6 +418,26 @@ func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, ne
 
 	if id != nil {
 		query = query.Where("id IN (?)", bun.In(id))
+	}
+
+	if typeArg != nil {
+		query = query.Where("type IN (?)", bun.In(typeArg))
+	}
+
+	if all == nil || *all == false {
+		query = query.Where(`"to" >= ?`, time.Now())
+	}
+
+	if tutorsAssigned != nil {
+		query = query.
+			Join("JOIN event_to_tutors AS ett ON ett.event_id = e.id").
+			Where("ett.tutor_mail IN (?)", bun.In(tutorsAssigned))
+	}
+
+	if tutorsAvailable != nil {
+		query = query.
+			Join("JOIN tutor_to_events AS tte ON tte.event_id = e.id").
+			Where("tte.tutor_mail IN (?)", bun.In(tutorsAvailable))
 	}
 
 	if err := query.Scan(ctx); err != nil {
@@ -426,13 +486,12 @@ func (r *queryResolver) Rooms(ctx context.Context, number []string, buildingID i
 	return rooms, nil
 }
 
-// Topics is the resolver for the topics field.
-func (r *queryResolver) Topics(ctx context.Context, name []string) ([]*models.Topic, error) {
-	var topics []*models.Topic
+// Labels is the resolver for the labels field.
+func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.LabelKind) ([]*models.Label, error) {
+	var labels []*models.Label
 
 	query := r.DB.NewSelect().
-		Model(&topics).
-		Relation("Events")
+		Model(&labels)
 
 	if name != nil {
 		query = query.Where("name IN (?)", bun.In(name))
@@ -442,17 +501,19 @@ func (r *queryResolver) Topics(ctx context.Context, name []string) ([]*models.To
 		return nil, err
 	}
 
-	return topics, nil
+	return labels, nil
 }
 
 // Capacity is the resolver for the capacity field.
 func (r *roomResolver) Capacity(ctx context.Context, obj *models.Room) (*int, error) {
-	panic(fmt.Errorf("not implemented: Capacity - capacity"))
+	capacity := int(obj.Capacity)
+	return &capacity, nil
 }
 
 // Floor is the resolver for the floor field.
 func (r *roomResolver) Floor(ctx context.Context, obj *models.Room) (*int, error) {
-	panic(fmt.Errorf("not implemented: Floor - floor"))
+	floor := int(obj.Floor)
+	return &floor, nil
 }
 
 // Answers is the resolver for the answers field.
@@ -487,14 +548,22 @@ func (r *newEventResolver) To(ctx context.Context, obj *models.Event, data strin
 	return nil
 }
 
+// Kind is the resolver for the kind field.
+func (r *newLabelResolver) Kind(ctx context.Context, obj *models.Label, data model.LabelKind) error {
+	obj.Kind = data.String()
+	return nil
+}
+
 // Capacity is the resolver for the capacity field.
 func (r *newRoomResolver) Capacity(ctx context.Context, obj *models.Room, data *int) error {
-	panic(fmt.Errorf("not implemented: Capacity - capacity"))
+	obj.Capacity = int16(*data)
+	return nil
 }
 
 // Floor is the resolver for the floor field.
 func (r *newRoomResolver) Floor(ctx context.Context, obj *models.Room, data *int) error {
-	panic(fmt.Errorf("not implemented: Floor - floor"))
+	obj.Floor = int8(*data)
+	return nil
 }
 
 // EventsAvailable is the resolver for the eventsAvailable field.
@@ -543,6 +612,9 @@ func (r *Resolver) Student() StudentResolver { return &studentResolver{r} }
 // NewEvent returns NewEventResolver implementation.
 func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
 
+// NewLabel returns NewLabelResolver implementation.
+func (r *Resolver) NewLabel() NewLabelResolver { return &newLabelResolver{r} }
+
 // NewRoom returns NewRoomResolver implementation.
 func (r *Resolver) NewRoom() NewRoomResolver { return &newRoomResolver{r} }
 
@@ -555,5 +627,6 @@ type queryResolver struct{ *Resolver }
 type roomResolver struct{ *Resolver }
 type studentResolver struct{ *Resolver }
 type newEventResolver struct{ *Resolver }
+type newLabelResolver struct{ *Resolver }
 type newRoomResolver struct{ *Resolver }
 type newTutorResolver struct{ *Resolver }
