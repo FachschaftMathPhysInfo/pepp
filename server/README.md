@@ -55,11 +55,15 @@ query {
 ```
 
 ### `events`
-Fetches a list of events by ID and topic.
+Fetches a list of events. *Note: per default only returns events in the future. See `all` argument to change this*
 #### Arguments:
 - `id: [Int!]` (optional) - List of event IDs to filter events.
 - `topic: [String!]` (optional) - List of topics to filter events.
+- `type: [String!]` (optional) - List of types to filter events.
 - `needsTutors: Boolean` (optional) - Filter events whether it needs tutors.
+- `all: Boolean` (optional) - When set to true also returns events from the past.
+- `tutorsAssigned: [String!]` (optional) - Filter events for assigned tutors.
+- `tutorsAvailable: [String!]` (optional) - Filter events for available tutors.
 
 #### Example:
 ```graphql
@@ -72,7 +76,7 @@ query {
       name
       color
     }
-    assignedTutorsWithRoom {
+    tutorsAssigned {
       tutors {
         fn
         sn
@@ -85,7 +89,7 @@ query {
       registrations
     }
     needsTutors
-    availableTutors {
+    tutorsAvailable {
       fn
       sn
     }
@@ -93,7 +97,6 @@ query {
       name
       number
     }
-    link
     from
     to
   }
@@ -145,21 +148,18 @@ query {
 }
 ```
 
-### `topics`
-Fetches a list of topics by name.
+### `labels`
+Fetches a list of labels by name or kind.
 #### Arguments:
-- `name: [String!]` (optional) - List of topic names to filter topics.
+- `name: [String!]` (optional) - List of topic names to filter labels.
+- `kind: [LabelKind!]` (optional) - List of label kinds to filter labels. Is `EVENT_TYPE` or `TOPIC`
 
 #### Example:
 ```graphql
 query {
-  topics(name: ["Math", "Science"]) {
+  labels(name: ["Math", "Science"], kind: TOPIC) {
     name
     color
-    events {
-      ID
-      title
-    }
   }
 }
 ```
@@ -254,10 +254,10 @@ mutation {
     title: "Math Tutoring"
     description: "Tutoring session for Math"
     topicName: "Math"
-    link: "http://example.com"
+    typeName: "Tutorial"
     needsTutors: true
-    from: "2023-07-03T09:00:00Z"
-    to: "2023-07-03T11:00:00Z"
+    from: "2024-10-03T09:00:00Z"
+    to: "2024-10-03T11:00:00Z"
   })
 }
 ```
@@ -377,30 +377,31 @@ mutation {
 }
 ```
 
-### `addTopic`
-Adds a new topic.
+### `addLabel`
+Adds a new event label. `kind` takes `TOPIC` or `EVENT_TYPE` as value.
 #### Arguments:
-- `topic: NewTopic!` - Details of the new topic.
+- `label: NewLabel!` - Details of the new label.
 
 #### Example:
 ```graphql
 mutation {
-  addTopic(topic: {
+  addLabel(topic: {
     name: "Physics"
     color: "#FF0000"
+    kind: TOPIC
   })
 }
 ```
 
-### `deleteTopic`
-Deletes a list of topics. *Note: This also deletes all events related to it*
+### `deleteLabel`
+Deletes a list of labels. *Note: This also deletes all events related to it*
 #### Arguments:
-- `name: [String!]!` - Names of topics
+- `name: [String!]!` - Names of labels
 
 #### Example:
 ```graphql
 mutation {
-  deleteTopic(name: "Math")
+  deleteLabel(name: "Math")
 }
 ```
 
