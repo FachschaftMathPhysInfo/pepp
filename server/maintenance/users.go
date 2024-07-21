@@ -18,14 +18,14 @@ func DeleteUnconfirmedPeople(ctx context.Context, r *graph.Resolver, tracer trac
 	var mails []string
 	if _, err := r.DB.NewSelect().
 		Model((*models.User)(nil)).
-		Column("email").
+		Column("mail").
 		Where("confirmed = ?", false).
 		Where("created_at <= ?", twoHoursAgo).
 		Exec(ctx, &mails); err != nil {
 		return err
 	}
 
-	if _, err := graph.MutationResolver.DeleteUser(r.Mutation(), ctx, mails); err != nil {
+	if _, err := r.Mutation().DeleteUser(ctx, mails); err != nil {
 		return err
 	}
 
