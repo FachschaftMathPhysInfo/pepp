@@ -70,7 +70,6 @@ type ComplexityRoot struct {
 		Description     func(childComplexity int) int
 		From            func(childComplexity int) int
 		ID              func(childComplexity int) int
-		Link            func(childComplexity int) int
 		NeedsTutors     func(childComplexity int) int
 		RoomsAvailable  func(childComplexity int) int
 		Title           func(childComplexity int) int
@@ -154,9 +153,6 @@ type ComplexityRoot struct {
 
 type EventResolver interface {
 	TutorsAssigned(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error)
-
-	Topic(ctx context.Context, obj *models.Event) (*models.Label, error)
-	Type(ctx context.Context, obj *models.Event) (*models.Label, error)
 
 	From(ctx context.Context, obj *models.Event) (string, error)
 	To(ctx context.Context, obj *models.Event) (string, error)
@@ -309,13 +305,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.ID(childComplexity), true
-
-	case "Event.link":
-		if e.complexity.Event.Link == nil {
-			break
-		}
-
-		return e.complexity.Event.Link(childComplexity), true
 
 	case "Event.needsTutors":
 		if e.complexity.Event.NeedsTutors == nil {
@@ -2232,7 +2221,7 @@ func (ec *executionContext) _Event_topic(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Event().Topic(rctx, obj)
+		return obj.Topic, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2253,8 +2242,8 @@ func (ec *executionContext) fieldContext_Event_topic(_ context.Context, field gr
 	fc = &graphql.FieldContext{
 		Object:     "Event",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "name":
@@ -2282,7 +2271,7 @@ func (ec *executionContext) _Event_type(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Event().Type(rctx, obj)
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2303,8 +2292,8 @@ func (ec *executionContext) fieldContext_Event_type(_ context.Context, field gra
 	fc = &graphql.FieldContext{
 		Object:     "Event",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "name":
@@ -2313,47 +2302,6 @@ func (ec *executionContext) fieldContext_Event_type(_ context.Context, field gra
 				return ec.fieldContext_Label_color(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Label", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Event_link(ctx context.Context, field graphql.CollectedField, obj *models.Event) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Event_link(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Link, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Event_link(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Event",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3925,8 +3873,6 @@ func (ec *executionContext) fieldContext_Query_events(ctx context.Context, field
 				return ec.fieldContext_Event_topic(ctx, field)
 			case "type":
 				return ec.fieldContext_Event_type(ctx, field)
-			case "link":
-				return ec.fieldContext_Event_link(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
@@ -4864,8 +4810,6 @@ func (ec *executionContext) fieldContext_Student_eventsRegistered(_ context.Cont
 				return ec.fieldContext_Event_topic(ctx, field)
 			case "type":
 				return ec.fieldContext_Event_type(ctx, field)
-			case "link":
-				return ec.fieldContext_Event_link(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
@@ -5107,8 +5051,6 @@ func (ec *executionContext) fieldContext_Tutor_eventsAvailable(_ context.Context
 				return ec.fieldContext_Event_topic(ctx, field)
 			case "type":
 				return ec.fieldContext_Event_type(ctx, field)
-			case "link":
-				return ec.fieldContext_Event_link(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
@@ -5174,8 +5116,6 @@ func (ec *executionContext) fieldContext_Tutor_eventsAssigned(_ context.Context,
 				return ec.fieldContext_Event_topic(ctx, field)
 			case "type":
 				return ec.fieldContext_Event_type(ctx, field)
-			case "link":
-				return ec.fieldContext_Event_link(ctx, field)
 			case "from":
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
@@ -7029,7 +6969,7 @@ func (ec *executionContext) unmarshalInputNewEvent(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "description", "topic", "type", "link", "needsTutors", "from", "to"}
+	fieldsInOrder := [...]string{"title", "description", "topicName", "typeName", "needsTutors", "from", "to"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7050,27 +6990,20 @@ func (ec *executionContext) unmarshalInputNewEvent(ctx context.Context, obj inte
 				return it, err
 			}
 			it.Description = data
-		case "topic":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topic"))
+		case "topicName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topicName"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Topic = data
-		case "type":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.TopicName = data
+		case "typeName":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeName"))
 			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Type = data
-		case "link":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("link"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Link = data
+			it.TypeName = data
 		case "needsTutors":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("needsTutors"))
 			data, err := ec.unmarshalNBoolean2bool(ctx, v)
@@ -7552,79 +7485,15 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 		case "description":
 			out.Values[i] = ec._Event_description(ctx, field, obj)
 		case "topic":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Event_topic(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._Event_topic(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "type":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Event_type(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._Event_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
 			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "link":
-			out.Values[i] = ec._Event_link(ctx, field, obj)
 		case "from":
 			field := field
 
@@ -8978,10 +8847,6 @@ func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.S
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalNLabel2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐLabel(ctx context.Context, sel ast.SelectionSet, v models.Label) graphql.Marshaler {
-	return ec._Label(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNLabel2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐLabelᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Label) graphql.Marshaler {

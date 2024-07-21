@@ -54,7 +54,6 @@ type Event {
   description: String
   topic: Label!
   type: Label!
-  link: String
   from: timestamptz!
   to: timestamptz!
 }
@@ -103,9 +102,8 @@ input NewStudent {
 input NewEvent {
   title: String!
   description: String
-  topic: String!
-  type: String!
-  link: String
+  topicName: String!
+  typeName: String!
   needsTutors: Boolean!
   from: timestamptz!
   to: timestamptz!

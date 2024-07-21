@@ -66,26 +66,6 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 	return tutorRoomPairs, nil
 }
 
-// Topic is the resolver for the topic field.
-func (r *eventResolver) Topic(ctx context.Context, obj *models.Event) (*models.Label, error) {
-	topics, err := r.Query().Labels(ctx, []string{obj.Topic}, []model.LabelKind{model.LabelKindTopic})
-	if err != nil {
-		return nil, err
-	}
-
-	return topics[0], nil
-}
-
-// Type is the resolver for the type field.
-func (r *eventResolver) Type(ctx context.Context, obj *models.Event) (*models.Label, error) {
-	types, err := r.Query().Labels(ctx, []string{obj.Type}, []model.LabelKind{model.LabelKindEventType})
-	if err != nil {
-		return nil, err
-	}
-
-	return types[0], nil
-}
-
 // From is the resolver for the from field.
 func (r *eventResolver) From(ctx context.Context, obj *models.Event) (string, error) {
 	return obj.From.String(), nil
@@ -121,7 +101,7 @@ func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (st
 		e := []hermes.Entry{
 			{Key: os.Getenv("EMAIL_ASSIGNMENTS_EVENT_TITLE"), Value: event.Title},
 			{Key: os.Getenv("EMAIL_ASSIGNMENTS_DATE_TITLE"), Value: event.From.Format("02.01")},
-			{Key: os.Getenv("EMAIL_ASSIGNMENTS_KIND_TITLE"), Value: event.Type}}
+			{Key: os.Getenv("EMAIL_ASSIGNMENTS_KIND_TITLE"), Value: event.TypeName}}
 		table.Data = append(table.Data, e)
 	}
 
@@ -330,7 +310,7 @@ func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.E
 	}
 
 	roomNumber := room[0].Number
-	if room[0].Name == "" {
+	if room[0].Name != "" {
 		roomNumber = fmt.Sprintf("%s (%s)",
 			room[0].Name, room[0].Number)
 	}
@@ -404,6 +384,8 @@ func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, ty
 
 	query := r.DB.NewSelect().
 		Model(&events).
+		Relation("Topic").
+		Relation("Type").
 		Relation("TutorsAssigned").
 		Relation("TutorsAvailable").
 		Relation("RoomsAvailable")
@@ -412,16 +394,16 @@ func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, ty
 		query = query.Where("topic_name IN (?)", bun.In(topic))
 	}
 
+	if typeArg != nil {
+		query = query.Where("type_name IN (?)", bun.In(typeArg))
+	}
+
 	if needsTutors != nil {
 		query = query.Where("needs_tutors = ?", *needsTutors)
 	}
 
 	if id != nil {
 		query = query.Where("id IN (?)", bun.In(id))
-	}
-
-	if typeArg != nil {
-		query = query.Where("type IN (?)", bun.In(typeArg))
 	}
 
 	if all == nil || *all == false {
