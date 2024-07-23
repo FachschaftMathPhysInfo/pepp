@@ -13,6 +13,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/db"
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph"
+	"github.com/FachschaftMathPhysInfo/pepp/server/ical"
 	"github.com/FachschaftMathPhysInfo/pepp/server/maintenance"
 	"github.com/FachschaftMathPhysInfo/pepp/server/tracing"
 	"github.com/go-chi/chi/v5"
@@ -94,6 +95,10 @@ func main() {
 
 	router.Get("/confirm/{sessionID}", func(w http.ResponseWriter, r *http.Request) {
 		email.Confirm(ctx, w, r, db)
+	})
+
+	router.Get("/ical", func(w http.ResponseWriter, r *http.Request) {
+		ical.Handler(ctx, w, r, &resolver)
 	})
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver}))

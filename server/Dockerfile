@@ -12,6 +12,7 @@ COPY db ./db
 COPY email ./email
 COPY maintenance ./maintenance
 COPY tracing ./tracing
+COPY ical ./ical
 
 RUN CGO_ENABLED=0 go build -a -o graphql-server server.go
 
