@@ -4,6 +4,7 @@ go 1.22.4
 
 require (
 	github.com/99designs/gqlgen v0.17.49
+	github.com/arran4/golang-ical v0.3.1
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/ravilushqa/otelgqlgen v0.16.0
