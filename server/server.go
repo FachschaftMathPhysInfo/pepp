@@ -74,6 +74,7 @@ func main() {
 	// [/]: Next.JS frontend
 	// [/api]: JSON API endpoint
 	// [/playground]: GraphQL Playground
+	// [/ical]: .ics calendar
 	// [/confirm/{sessionID}]: Confirm email addresses
 	router := chi.NewRouter()
 	router.Use(

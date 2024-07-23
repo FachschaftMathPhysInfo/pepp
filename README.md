@@ -7,7 +7,7 @@
 3. `docker compose up -d && docker compose logs -f`
 
 - Frontend: [localhost:8080](http://localhost:8080)
-- ICal Calendar: [localhost:8080/ical?l="Tutorium"](http://localhost:8080/ical?l="Tutorium")
+- ICal Calendar: [localhost:8080/ical?l=Tutorium](http://localhost:8080/ical?l="Tutorium")
 - API: [localhost:8080/api](http://localhost:8080/api)
 - GraphQL Playground: [localhost:8080/playground](http://localhost:8080/playground)
   - Documentation for all endpoints can be found in the [`server/README.md`](server/README.md)
@@ -19,10 +19,9 @@
 3. `npm run dev`
 
 #### backend
-
 i just rebuild the docker image on change
 
-For the E-Mail verification to work you have to provide a smtp server inside your `.env.local`, e.g.:
+The backend sends emails (confirmation, ...). You need provide a smtp server inside your `.env.local`, e.g.:
 ```
 SMTP_HOST=smtp.example.de
 SMTP_USER=example@example.de
