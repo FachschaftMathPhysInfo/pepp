@@ -80,7 +80,7 @@ type Building {
 type Query {
   students(mail: [String!]): [Student!]!
   tutors(mail: [String!], eventID: Int): [Tutor!]!
-  events(id: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, all: Boolean, tutorsAssigned: [String!], tutorsAvailable: [String!]): [Event!]!
+  events(id: [Int!], label: [String!], needsTutors: Boolean, all: Boolean, tutor: [String!]): [Event!]!
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: Int!): [Room!]!
   labels(name: [String!], kind: [LabelKind!]): [Label!]!

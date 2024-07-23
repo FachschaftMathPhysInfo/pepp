@@ -89,7 +89,7 @@ func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, mail
 // AddTutor is the resolver for the addTutor field.
 func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (string, error) {
 	// database insert happens in the eventsAvailable resolver
-	eventsAvailable, err := r.Query().Events(ctx, nil, nil, nil, nil, nil, nil, []string{tutor.Mail})
+	eventsAvailable, err := r.Query().Events(ctx, nil, nil, nil, nil, []string{tutor.Mail})
 	table := hermes.Table{
 		Columns: hermes.Columns{
 			CustomWidth: map[string]string{
@@ -295,7 +295,7 @@ func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.E
 		return "Failed to link tutor to event and room", err
 	}
 
-	event, err := r.Query().Events(ctx, []int{int(link.EventID)}, nil, nil, nil, nil, nil, nil)
+	event, err := r.Query().Events(ctx, []int{int(link.EventID)}, nil, nil, nil, nil)
 	tutor, err := r.Query().Tutors(ctx, []string{link.TutorMail}, nil)
 	room, err := r.Query().Rooms(ctx, []string{link.RoomNumber}, int(link.BuildingID))
 	if err != nil {
@@ -379,7 +379,7 @@ func (r *queryResolver) Tutors(ctx context.Context, mail []string, eventID *int)
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, typeArg []string, needsTutors *bool, all *bool, tutorsAssigned []string, tutorsAvailable []string) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, label []string, needsTutors *bool, all *bool, tutor []string) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
@@ -390,12 +390,10 @@ func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, ty
 		Relation("TutorsAvailable").
 		Relation("RoomsAvailable")
 
-	if topic != nil {
-		query = query.Where("topic_name IN (?)", bun.In(topic))
-	}
-
-	if typeArg != nil {
-		query = query.Where("type_name IN (?)", bun.In(typeArg))
+	if label != nil {
+		query = query.
+			Where("topic_name IN (?)", bun.In(label)).
+			WhereOr("type_name IN (?)", bun.In(label))
 	}
 
 	if needsTutors != nil {
@@ -410,16 +408,11 @@ func (r *queryResolver) Events(ctx context.Context, id []int, topic []string, ty
 		query = query.Where(`"to" >= ?`, time.Now())
 	}
 
-	if tutorsAssigned != nil {
+	if tutor != nil {
 		query = query.
 			Join("JOIN event_to_tutors AS ett ON ett.event_id = e.id").
-			Where("ett.tutor_mail IN (?)", bun.In(tutorsAssigned))
-	}
-
-	if tutorsAvailable != nil {
-		query = query.
-			Join("JOIN tutor_to_events AS tte ON tte.event_id = e.id").
-			Where("tte.tutor_mail IN (?)", bun.In(tutorsAvailable))
+			Join("LEFT JOIN tutor_to_events AS tte ON tte.event_id = e.id").
+			Where("ett.tutor_mail IN (?) OR tte.tutor_mail IN (?)", bun.In(tutor), bun.In(tutor))
 	}
 
 	if err := query.Scan(ctx); err != nil {

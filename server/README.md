@@ -58,17 +58,15 @@ query {
 Fetches a list of events. *Note: per default only returns events in the future. See `all` argument to change this*
 #### Arguments:
 - `id: [Int!]` (optional) - List of event IDs to filter events.
-- `topic: [String!]` (optional) - List of topics to filter events.
-- `type: [String!]` (optional) - List of types to filter events.
+- `label: [String!]` (optional) - List of labels to filter events.
 - `needsTutors: Boolean` (optional) - Filter events whether it needs tutors.
 - `all: Boolean` (optional) - When set to true also returns events from the past.
-- `tutorsAssigned: [String!]` (optional) - Filter events for assigned tutors.
-- `tutorsAvailable: [String!]` (optional) - Filter events for available tutors.
+- `tutor: [String!]` (optional) - Filter events for tutors. Any tutor that is in any relation to the event.
 
 #### Example:
 ```graphql
 query {
-  events(id: [1], topic: ["Math"], needsTutors: true) {
+  events(id: [1], label: ["Math"], needsTutors: true) {
     ID
     title
     description
