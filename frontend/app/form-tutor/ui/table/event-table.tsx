@@ -21,7 +21,7 @@ const EventTable = () => {
   }
 
   return (
-    <div className="w-fill mx-auto">
+    <div className="w-full h-full mx-auto">
       <DataTable columns={columns} data={data.events} />
     </div>
   );
