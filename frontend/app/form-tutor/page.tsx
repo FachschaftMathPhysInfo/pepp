@@ -5,8 +5,9 @@ export default function Page() {
   return (
     <div className="w-full h-full">
       <Header></Header>
-      <div className="w-fit mx-auto p-10">
-        <TutorRegistrationForm />
+      <div className="w-full mt-3">
+        <h1 className="text-center font-bold text-2xl mb-2"> Anmeldung Vorkurstutor:in </h1>
+        <TutorRegistrationForm/>
       </div>
     </div>
   );

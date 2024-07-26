@@ -8,21 +8,17 @@ import { addTutor } from "@/app/actions";
 import { Input } from "@/components/ui/input";
 import dynamic from "next/dynamic";
 
-const EventTable = dynamic(() => import("@/app/form-tutor/ui/table/table"), {
+const EventTable = dynamic(() => import("@/app/form-tutor/ui/table/event-table"), {
   ssr: false,
 });
 
 const TutorRegistrationForm = () => {
-  const inputDivStyling = "w-full my-3 ";
-  const tableDivStyling = "my-10 w-full h-full";
+  const inputDivStyling = "w-full my-1 grow-0";
+  const tableDivStyling = "my-5 md:min-h-32 grow";
   const [formState, action] = useFormState(addTutor, EMPTY_FORM_STATE);
 
   return (
-    <form action={action} className="flex flex-col gap-y-2">
-      <h1 className="text-center font-bold text-2xl">
-        Anmeldung Vorkurstutor:in
-      </h1>
-
+    <form action={action} className="flex flex-col w-[85%] md:w-[50%] xl:w-[35%] md:h-[calc(100vh-10rem)] mx-auto pb-3">
       <div className={inputDivStyling}>
         <Input type="text" name="fn" placeholder="Vorname" />
       </div>
@@ -40,7 +36,7 @@ const TutorRegistrationForm = () => {
       </div>
       <FieldError formState={formState} name="text" />
 
-      <SubmitButton label="Anmelden" loading="Bitte warten" />
+      <SubmitButton label="Anmelden" loading="Bitte warten"/>
     </form>
   );
 };
