@@ -376,7 +376,7 @@ mutation {
 ```
 
 ### `addLabel`
-Adds a new event label. `kind` takes `TOPIC` or `EVENT_TYPE` as value.
+Adds a new event label. `kind` takes `TOPIC` or `EVENT_TYPE` as value. *Note: when no coler provided, default is #F1F5F9*
 #### Arguments:
 - `label: NewLabel!` - Details of the new label.
 
