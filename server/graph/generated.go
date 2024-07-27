@@ -86,6 +86,11 @@ type ComplexityRoot struct {
 		Tutors        func(childComplexity int) int
 	}
 
+	Form struct {
+		ID   func(childComplexity int) int
+		Name func(childComplexity int) int
+	}
+
 	Label struct {
 		Color func(childComplexity int) int
 		Name  func(childComplexity int) int
@@ -95,8 +100,8 @@ type ComplexityRoot struct {
 		AddAvailableRoomToEvent     func(childComplexity int, link models.RoomToEvent) int
 		AddBuilding                 func(childComplexity int, building models.Building) int
 		AddEvent                    func(childComplexity int, event models.Event) int
+		AddForm                     func(childComplexity int, form models.Form) int
 		AddLabel                    func(childComplexity int, label models.Label) int
-		AddRegistration             func(childComplexity int, student models.Student) int
 		AddRoom                     func(childComplexity int, room models.Room) int
 		AddTutor                    func(childComplexity int, tutor models.Tutor) int
 		AssignTutorToEvent          func(childComplexity int, link models.EventToTutor) int
@@ -116,6 +121,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Buildings func(childComplexity int, id []int) int
 		Events    func(childComplexity int, id []int, label []string, needsTutors *bool, all *bool, tutor []string) int
+		Forms     func(childComplexity int, isTemplate *bool) int
 		Labels    func(childComplexity int, name []string, kind []model.LabelKind) int
 		Rooms     func(childComplexity int, number []string, buildingID int) int
 		Students  func(childComplexity int, mail []string) int
@@ -158,7 +164,6 @@ type EventResolver interface {
 	To(ctx context.Context, obj *models.Event) (string, error)
 }
 type MutationResolver interface {
-	AddRegistration(ctx context.Context, student models.Student) (string, error)
 	UpdateStudentAcceptedStatus(ctx context.Context, mail string, accepted bool) (string, error)
 	AddTutor(ctx context.Context, tutor models.Tutor) (string, error)
 	UpdateTutor(ctx context.Context, mail string, tutor models.Tutor) (string, error)
@@ -177,6 +182,7 @@ type MutationResolver interface {
 	DeleteRoomFromEvent(ctx context.Context, link models.RoomToEvent) (string, error)
 	AssignTutorToEvent(ctx context.Context, link models.EventToTutor) (string, error)
 	UnassignTutorFromEvent(ctx context.Context, link models.EventToTutor) (string, error)
+	AddForm(ctx context.Context, form models.Form) (string, error)
 }
 type QueryResolver interface {
 	Students(ctx context.Context, mail []string) ([]*models.Student, error)
@@ -185,6 +191,7 @@ type QueryResolver interface {
 	Buildings(ctx context.Context, id []int) ([]*models.Building, error)
 	Rooms(ctx context.Context, number []string, buildingID int) ([]*models.Room, error)
 	Labels(ctx context.Context, name []string, kind []model.LabelKind) ([]*models.Label, error)
+	Forms(ctx context.Context, isTemplate *bool) ([]*models.Form, error)
 }
 type RoomResolver interface {
 	Capacity(ctx context.Context, obj *models.Room) (*int, error)
@@ -383,6 +390,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EventTutorRoomPair.Tutors(childComplexity), true
 
+	case "Form.ID":
+		if e.complexity.Form.ID == nil {
+			break
+		}
+
+		return e.complexity.Form.ID(childComplexity), true
+
+	case "Form.name":
+		if e.complexity.Form.Name == nil {
+			break
+		}
+
+		return e.complexity.Form.Name(childComplexity), true
+
 	case "Label.color":
 		if e.complexity.Label.Color == nil {
 			break
@@ -433,6 +454,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddEvent(childComplexity, args["event"].(models.Event)), true
 
+	case "Mutation.addForm":
+		if e.complexity.Mutation.AddForm == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addForm_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddForm(childComplexity, args["form"].(models.Form)), true
+
 	case "Mutation.addLabel":
 		if e.complexity.Mutation.AddLabel == nil {
 			break
@@ -444,18 +477,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddLabel(childComplexity, args["label"].(models.Label)), true
-
-	case "Mutation.addRegistration":
-		if e.complexity.Mutation.AddRegistration == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addRegistration_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddRegistration(childComplexity, args["student"].(models.Student)), true
 
 	case "Mutation.addRoom":
 		if e.complexity.Mutation.AddRoom == nil {
@@ -649,6 +670,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Events(childComplexity, args["id"].([]int), args["label"].([]string), args["needsTutors"].(*bool), args["all"].(*bool), args["tutor"].([]string)), true
 
+	case "Query.forms":
+		if e.complexity.Query.Forms == nil {
+			break
+		}
+
+		args, err := ec.field_Query_forms_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Forms(childComplexity, args["isTemplate"].(*bool)), true
+
 	case "Query.labels":
 		if e.complexity.Query.Labels == nil {
 			break
@@ -841,6 +874,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewBuilding,
 		ec.unmarshalInputNewEvent,
 		ec.unmarshalInputNewEventToTutorLink,
+		ec.unmarshalInputNewForm,
 		ec.unmarshalInputNewLabel,
 		ec.unmarshalInputNewRoom,
 		ec.unmarshalInputNewRoomToEventLink,
@@ -1007,6 +1041,21 @@ func (ec *executionContext) field_Mutation_addEvent_args(ctx context.Context, ra
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addForm_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.Form
+	if tmp, ok := rawArgs["form"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("form"))
+		arg0, err = ec.unmarshalNNewForm2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐForm(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["form"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addLabel_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1019,21 +1068,6 @@ func (ec *executionContext) field_Mutation_addLabel_args(ctx context.Context, ra
 		}
 	}
 	args["label"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_addRegistration_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 models.Student
-	if tmp, ok := rawArgs["student"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("student"))
-		arg0, err = ec.unmarshalNNewStudent2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐStudent(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["student"] = arg0
 	return args, nil
 }
 
@@ -1370,6 +1404,21 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 		}
 	}
 	args["tutor"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_forms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["isTemplate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isTemplate"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["isTemplate"] = arg0
 	return args, nil
 }
 
@@ -2526,6 +2575,94 @@ func (ec *executionContext) fieldContext_EventTutorRoomPair_registrations(_ cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Form_ID(ctx context.Context, field graphql.CollectedField, obj *models.Form) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Form_ID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Form_ID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Form",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Form_name(ctx context.Context, field graphql.CollectedField, obj *models.Form) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Form_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Form_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Form",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Label_name(ctx context.Context, field graphql.CollectedField, obj *models.Label) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Label_name(ctx, field)
 	if err != nil {
@@ -2607,61 +2744,6 @@ func (ec *executionContext) fieldContext_Label_color(_ context.Context, field gr
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type HexColorCode does not have child fields")
 		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_addRegistration(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_addRegistration(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddRegistration(rctx, fc.Args["student"].(models.Student))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_addRegistration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_addRegistration_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
@@ -3656,6 +3738,61 @@ func (ec *executionContext) fieldContext_Mutation_unassignTutorFromEvent(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_addForm(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addForm(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddForm(rctx, fc.Args["form"].(models.Form))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addForm(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addForm_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_students(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_students(ctx, field)
 	if err != nil {
@@ -4072,6 +4209,67 @@ func (ec *executionContext) fieldContext_Query_labels(ctx context.Context, field
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_labels_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_forms(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_forms(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Forms(rctx, fc.Args["isTemplate"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Form)
+	fc.Result = res
+	return ec.marshalNForm2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐFormᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_forms(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Form_ID(ctx, field)
+			case "name":
+				return ec.fieldContext_Form_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Form", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_forms_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4761,9 +4959,9 @@ func (ec *executionContext) _Student_eventsRegistered(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]models.Event)
+	res := resTmp.([]*models.Event)
 	fc.Result = res
-	return ec.marshalOEvent2ᚕgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEventᚄ(ctx, field.Selections, res)
+	return ec.marshalOEvent2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEventᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Student_eventsRegistered(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -7065,6 +7263,47 @@ func (ec *executionContext) unmarshalInputNewEventToTutorLink(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewForm(ctx context.Context, obj interface{}) (models.Form, error) {
+	var it models.Form
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"ID", "name", "templateID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "ID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ID"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "templateID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateID"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateID = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewLabel(ctx context.Context, obj interface{}) (models.Label, error) {
 	var it models.Label
 	asMap := map[string]interface{}{}
@@ -7611,6 +7850,50 @@ func (ec *executionContext) _EventTutorRoomPair(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var formImplementors = []string{"Form"}
+
+func (ec *executionContext) _Form(ctx context.Context, sel ast.SelectionSet, obj *models.Form) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, formImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Form")
+		case "ID":
+			out.Values[i] = ec._Form_ID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Form_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var labelImplementors = []string{"Label"}
 
 func (ec *executionContext) _Label(ctx context.Context, sel ast.SelectionSet, obj *models.Label) graphql.Marshaler {
@@ -7671,13 +7954,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "addRegistration":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_addRegistration(ctx, field)
-			})
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "updateStudentAcceptedStatus":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateStudentAcceptedStatus(ctx, field)
@@ -7800,6 +8076,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "unassignTutorFromEvent":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_unassignTutorFromEvent(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "addForm":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addForm(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -7966,6 +8249,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_labels(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "forms":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_forms(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -8769,6 +9074,60 @@ func (ec *executionContext) marshalNEventTutorRoomPair2ᚖgithubᚗcomᚋFachsch
 	return ec._EventTutorRoomPair(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNForm2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐFormᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Form) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNForm2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐForm(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNForm2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐForm(ctx context.Context, sel ast.SelectionSet, v *models.Form) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Form(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8910,6 +9269,11 @@ func (ec *executionContext) unmarshalNNewEventToTutorLink2githubᚗcomᚋFachsch
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNNewForm2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐForm(ctx context.Context, v interface{}) (models.Form, error) {
+	res, err := ec.unmarshalInputNewForm(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewLabel2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐLabel(ctx context.Context, v interface{}) (models.Label, error) {
 	res, err := ec.unmarshalInputNewLabel(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -8922,11 +9286,6 @@ func (ec *executionContext) unmarshalNNewRoom2githubᚗcomᚋFachschaftMathPhysI
 
 func (ec *executionContext) unmarshalNNewRoomToEventLink2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐRoomToEvent(ctx context.Context, v interface{}) (models.RoomToEvent, error) {
 	res, err := ec.unmarshalInputNewRoomToEventLink(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewStudent2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐStudent(ctx context.Context, v interface{}) (models.Student, error) {
-	res, err := ec.unmarshalInputNewStudent(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -9474,6 +9833,53 @@ func (ec *executionContext) marshalOEvent2ᚕgithubᚗcomᚋFachschaftMathPhysIn
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNEvent2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEvent(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOEvent2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Event) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEvent2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEvent(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

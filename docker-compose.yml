@@ -1,19 +1,19 @@
 ---
 volumes:
-  data:
+  postgres_data:
 
 services:
   postgres:
     image: postgres:15.6-alpine
     restart: always
     volumes:
-      - data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     env_file: .env.local
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib
     volumes:
-      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
 
   server:
     build:
@@ -23,6 +23,7 @@ services:
     env_file: .env.local
     ports:
       - 8080:8080
+
     depends_on:
       - postgres
       - otel-collector

@@ -17,6 +17,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	hermes "github.com/matcornic/hermes/v2"
 	"github.com/uptrace/bun"
+	"google.golang.org/api/forms/v1"
 )
 
 // TutorsAssigned is the resolver for the tutorsAssigned field.
@@ -74,11 +75,6 @@ func (r *eventResolver) From(ctx context.Context, obj *models.Event) (string, er
 // To is the resolver for the to field.
 func (r *eventResolver) To(ctx context.Context, obj *models.Event) (string, error) {
 	return obj.To.String(), nil
-}
-
-// AddRegistration is the resolver for the addRegistration field.
-func (r *mutationResolver) AddRegistration(ctx context.Context, student models.Student) (string, error) {
-	panic(fmt.Errorf("not implemented: AddRegistration - addRegistration"))
 }
 
 // UpdateStudentAcceptedStatus is the resolver for the updateStudentAcceptedStatus field.
@@ -349,6 +345,19 @@ func (r *mutationResolver) UnassignTutorFromEvent(ctx context.Context, link mode
 	return "Successfully unassigned tutor from event", nil
 }
 
+// AddForm is the resolver for the addForm field.
+func (r *mutationResolver) AddForm(ctx context.Context, form models.Form) (string, error) {
+	if _, err := r.DB.NewInsert().
+		Model(&form).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	// TODO: Add watch request (if not: fetch mutation)
+
+	return "Successfully inserted new form", nil
+}
+
 // Students is the resolver for the students field.
 func (r *queryResolver) Students(ctx context.Context, mail []string) ([]*models.Student, error) {
 	panic(fmt.Errorf("not implemented: Students - students"))
@@ -477,6 +486,11 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 	}
 
 	return labels, nil
+}
+
+// Forms is the resolver for the forms field.
+func (r *queryResolver) Forms(ctx context.Context, isTemplate *bool) ([]*models.Form, error) {
+	panic(fmt.Errorf("not implemented: Forms - forms"))
 }
 
 // Capacity is the resolver for the capacity field.

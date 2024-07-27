@@ -13,12 +13,14 @@ type Event struct {
 	ID          int32  `bun:",pk,autoincrement"`
 	Title       string `bun:",notnull"`
 	Description string
-	TopicName   string    `bun:",notnull"`
-	TypeName    string    `bun:",notnull"`
+	TopicName   string `bun:",notnull"`
+	TypeName    string `bun:",notnull"`
+	FormID      string
 	From        time.Time `bun:",notnull"`
 	To          time.Time `bun:",notnull"`
 	NeedsTutors bool      `bun:",notnull"`
 
+	Form            *Form   `bun:"rel:belongs-to,join:form_id=id"`
 	Topic           *Label  `bun:"rel:belongs-to,join:topic_name=name"`
 	Type            *Label  `bun:"rel:belongs-to,join:type_name=name"`
 	TutorsAssigned  []Tutor `bun:"m2m:event_to_tutors,join:Event=Tutor"`

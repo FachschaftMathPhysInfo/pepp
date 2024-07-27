@@ -12,8 +12,8 @@ type Student struct {
 	Score    int8
 	Accepted bool
 
-	EventsRegistered []Event  `bun:"m2m:student_to_events,join:Student=Event"`
-	Answers          []Answer `bun:"rel:has-many,join:mail=student_mail"`
+	EventsRegistered []*Event        `bun:"m2m:student_to_events,join:Student=Event"`
+	Registrations    []*Registration `bun:"rel:has-many,join:mail=student_mail"`
 }
 
 func (Student) IsUser() {}

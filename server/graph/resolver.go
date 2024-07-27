@@ -6,8 +6,10 @@ package graph
 
 import (
 	"github.com/uptrace/bun"
+	"google.golang.org/api/forms/v1"
 )
 
 type Resolver struct {
-	DB *bun.DB
+	DB           *bun.DB
+	FormsService *forms.FormsService
 }

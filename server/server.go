@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -12,6 +13,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/FachschaftMathPhysInfo/pepp/server/db"
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
+	"github.com/FachschaftMathPhysInfo/pepp/server/form"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph"
 	"github.com/FachschaftMathPhysInfo/pepp/server/ical"
 	"github.com/FachschaftMathPhysInfo/pepp/server/maintenance"
@@ -22,6 +24,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -29,7 +32,10 @@ const (
 	apiKeyHeader = "X-API-Key"
 )
 
-var resolver graph.Resolver
+var (
+	resolver          *graph.Resolver
+	googleOauthConfig *oauth2.Config
+)
 
 func main() {
 	ctx := context.Background()
@@ -52,18 +58,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	resolver = graph.Resolver{DB: db}
+	resolver = &graph.Resolver{DB: db}
 
 	// cronjobs for maintenance tasks
 	c := cron.New()
 	c.AddFunc("@hourly", func() {
 		hourlyTracer := maintenanceTracer.Tracer("hourly")
 
-		if err := maintenance.DeleteUnconfirmedPeople(ctx, &resolver, hourlyTracer); err != nil {
+		if err := maintenance.DeleteUnconfirmedPeople(ctx, resolver, hourlyTracer); err != nil {
 			log.Println("Error deleting unconfirmed people:", err)
 		}
 
-		if err := maintenance.CleanSessionIds(ctx, &resolver, hourlyTracer); err != nil {
+		if err := maintenance.CleanSessionIds(ctx, resolver, hourlyTracer); err != nil {
 			log.Println("Error cleaning session ids:", err)
 		}
 	})
@@ -99,13 +105,27 @@ func main() {
 	})
 
 	router.Get("/ical", func(w http.ResponseWriter, r *http.Request) {
-		ical.Handler(ctx, w, r, &resolver)
+		ical.Handler(ctx, w, r, resolver)
 	})
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver}))
+	googleOauthConfig = form.Init()
+	router.Get("/oauth2/login", func(w http.ResponseWriter, r *http.Request) {
+		form.HandleGoogleLogin(w, r, googleOauthConfig)
+	})
+
+	router.Get("/oauth2/callback", func(w http.ResponseWriter, r *http.Request) {
+		srv, err := form.HandleGoogleCallback(ctx, w, r, googleOauthConfig)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		resolver.Forms = srv
+	})
+
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
 	router.With(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Header.Get(apiKeyHeader) != os.Getenv("API_KEY") {
+			if r.Header.Get(apiKeyHeader) != os.Getenv("PEPP_API_KEY") {
 				http.Error(w, "Invalid API Key", http.StatusUnauthorized)
 				return
 			}

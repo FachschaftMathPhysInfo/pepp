@@ -77,6 +77,11 @@ type Building {
   rooms: [Room!]
 }
 
+type Form {
+  ID: String!
+  name: String!
+}
+
 type Query {
   students(mail: [String!]): [Student!]!
   tutors(mail: [String!], eventID: Int): [Tutor!]!
@@ -84,6 +89,7 @@ type Query {
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: Int!): [Room!]!
   labels(name: [String!], kind: [LabelKind!]): [Label!]!
+  forms(isTemplate: Boolean): [Form!]!
 }
 
 input NewTutor {
@@ -145,8 +151,13 @@ input NewRoomToEventLink {
   buildingID: Int!
 }
 
+input NewForm {
+  ID: String!
+  name: String!
+  templateID: String
+}
+
 type Mutation {
-  addRegistration(student: NewStudent!): String!
   updateStudentAcceptedStatus(mail: String!, accepted: Boolean!): String!
   addTutor(tutor: NewTutor!): String!
   updateTutor(mail: String!, tutor: NewTutor!): String!
@@ -165,4 +176,5 @@ type Mutation {
   deleteRoomFromEvent(link: NewRoomToEventLink!): String!
   assignTutorToEvent(link: NewEventToTutorLink!): String!
   unassignTutorFromEvent(link: NewEventToTutorLink!): String!
+  addForm(form: NewForm!): String!
 }
