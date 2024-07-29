@@ -66,3 +66,54 @@ func (e *LabelKind) UnmarshalGQL(v interface{}) error {
 func (e LabelKind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
+
+type ScalarType string
+
+const (
+	ScalarTypeString    ScalarType = "STRING"
+	ScalarTypeInt       ScalarType = "INT"
+	ScalarTypeFloat     ScalarType = "FLOAT"
+	ScalarTypeBoolean   ScalarType = "BOOLEAN"
+	ScalarTypeColor     ScalarType = "COLOR"
+	ScalarTypeTimestamp ScalarType = "TIMESTAMP"
+	ScalarTypeAny       ScalarType = "ANY"
+)
+
+var AllScalarType = []ScalarType{
+	ScalarTypeString,
+	ScalarTypeInt,
+	ScalarTypeFloat,
+	ScalarTypeBoolean,
+	ScalarTypeColor,
+	ScalarTypeTimestamp,
+	ScalarTypeAny,
+}
+
+func (e ScalarType) IsValid() bool {
+	switch e {
+	case ScalarTypeString, ScalarTypeInt, ScalarTypeFloat, ScalarTypeBoolean, ScalarTypeColor, ScalarTypeTimestamp, ScalarTypeAny:
+		return true
+	}
+	return false
+}
+
+func (e ScalarType) String() string {
+	return string(e)
+}
+
+func (e *ScalarType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ScalarType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ScalarType", str)
+	}
+	return nil
+}
+
+func (e ScalarType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}

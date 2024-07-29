@@ -19,9 +19,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 	db_pw := os.Getenv("POSTGRES_PASSWORD")
 	db_db := os.Getenv("POSTGRES_DB")
 	dsn := fmt.Sprintf("postgres://%s:%s@postgres:5432/%s?sslmode=disable",
-		db_user,
-		db_pw,
-		db_db)
+		db_user, db_pw, db_db)
 
 	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 
@@ -44,7 +42,8 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		(*models.User)(nil),
 		(*models.Building)(nil),
 		(*models.Room)(nil),
-		(*models.Answer)(nil)}
+		(*models.Answer)(nil),
+		(*models.Setting)(nil)}
 
 	for _, relation := range relations {
 		db.RegisterModel(relation)

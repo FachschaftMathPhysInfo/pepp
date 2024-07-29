@@ -1,6 +1,16 @@
 scalar HexColorCode
 scalar timestamptz
 
+enum ScalarType {
+  STRING
+  INT
+  FLOAT
+  BOOLEAN
+  COLOR
+  TIMESTAMP
+  ANY
+}
+
 interface User {
   fn: String!
   sn: String!
@@ -77,6 +87,12 @@ type Building {
   rooms: [Room!]
 }
 
+type Setting {
+  key: String!
+  value: String!
+  type: ScalarType!
+}
+
 type Query {
   students(mail: [String!]): [Student!]!
   tutors(mail: [String!], eventID: Int): [Tutor!]!
@@ -84,6 +100,7 @@ type Query {
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: Int!): [Room!]!
   labels(name: [String!], kind: [LabelKind!]): [Label!]!
+  settings(key: [String!], type: [ScalarType!]): [Setting!]!
 }
 
 input NewTutor {
@@ -145,6 +162,12 @@ input NewRoomToEventLink {
   buildingID: Int!
 }
 
+input NewSetting {
+  key: String!
+  value: String!
+  type: ScalarType!
+}
+
 type Mutation {
   addRegistration(student: NewStudent!): String!
   updateStudentAcceptedStatus(mail: String!, accepted: Boolean!): String!
@@ -165,4 +188,5 @@ type Mutation {
   deleteRoomFromEvent(link: NewRoomToEventLink!): String!
   assignTutorToEvent(link: NewEventToTutorLink!): String!
   unassignTutorFromEvent(link: NewEventToTutorLink!): String!
+  addSetting(setting: NewSetting!): String!
 }

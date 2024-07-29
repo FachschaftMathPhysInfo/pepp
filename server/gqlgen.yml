@@ -115,3 +115,7 @@ models:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.RoomToEvent
   NewEventToTutorLink:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.EventToTutor
+  Setting:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Setting
+  NewSetting:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Setting

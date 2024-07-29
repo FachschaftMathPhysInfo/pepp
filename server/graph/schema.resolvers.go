@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -353,6 +354,24 @@ func (r *mutationResolver) UnassignTutorFromEvent(ctx context.Context, link mode
 	return "Successfully unassigned tutor from event", nil
 }
 
+// AddSetting is the resolver for the addSetting field.
+func (r *mutationResolver) AddSetting(ctx context.Context, setting models.Setting) (string, error) {
+	if setting.Type == model.ScalarTypeColor.String() {
+		hexColorPattern := `^#(?:[0-9a-fA-F]{3,4}){1,2}$`
+		if match, _ := regexp.MatchString(hexColorPattern, setting.Value); !match {
+			return "", fmt.Errorf("unable to parse color: %s", setting.Value)
+		}
+	}
+
+	if _, err := r.DB.NewInsert().
+		Model(&setting).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	return "Successfully inserted new setting", nil
+}
+
 // Students is the resolver for the students field.
 func (r *queryResolver) Students(ctx context.Context, mail []string) ([]*models.Student, error) {
 	panic(fmt.Errorf("not implemented: Students - students"))
@@ -483,6 +502,33 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 	return labels, nil
 }
 
+// Settings is the resolver for the settings field.
+func (r *queryResolver) Settings(ctx context.Context, key []string, typeArg []model.ScalarType) ([]*models.Setting, error) {
+	var settings []*models.Setting
+
+	query := r.DB.NewSelect().
+		Model(&settings)
+
+	if key != nil {
+		query = query.Where("key IN (?)", bun.In(key))
+	}
+
+	if typeArg != nil {
+		var types []string
+		for _, t := range typeArg {
+			types = append(types, t.String())
+		}
+
+		query = query.Where("type IN (?)", bun.In(types))
+	}
+
+	if err := query.Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	return settings, nil
+}
+
 // Capacity is the resolver for the capacity field.
 func (r *roomResolver) Capacity(ctx context.Context, obj *models.Room) (*int, error) {
 	capacity := int(obj.Capacity)
@@ -493,6 +539,17 @@ func (r *roomResolver) Capacity(ctx context.Context, obj *models.Room) (*int, er
 func (r *roomResolver) Floor(ctx context.Context, obj *models.Room) (*int, error) {
 	floor := int(obj.Floor)
 	return &floor, nil
+}
+
+// Type is the resolver for the type field.
+func (r *settingResolver) Type(ctx context.Context, obj *models.Setting) (model.ScalarType, error) {
+	for _, t := range model.AllScalarType {
+		if t.String() == obj.Type {
+			return t, nil
+		}
+	}
+
+	return model.ScalarTypeAny, fmt.Errorf("unable to resolve type: %s", obj.Type)
 }
 
 // Answers is the resolver for the answers field.
@@ -545,6 +602,12 @@ func (r *newRoomResolver) Floor(ctx context.Context, obj *models.Room, data *int
 	return nil
 }
 
+// Type is the resolver for the type field.
+func (r *newSettingResolver) Type(ctx context.Context, obj *models.Setting, data model.ScalarType) error {
+	obj.Type = data.String()
+	return nil
+}
+
 // EventsAvailable is the resolver for the eventsAvailable field.
 func (r *newTutorResolver) EventsAvailable(ctx context.Context, obj *models.Tutor, data []int) error {
 	obj.SessionID = rand.Int31n(9999999-1000000+1) + 1000000
@@ -585,6 +648,9 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 // Room returns RoomResolver implementation.
 func (r *Resolver) Room() RoomResolver { return &roomResolver{r} }
 
+// Setting returns SettingResolver implementation.
+func (r *Resolver) Setting() SettingResolver { return &settingResolver{r} }
+
 // Student returns StudentResolver implementation.
 func (r *Resolver) Student() StudentResolver { return &studentResolver{r} }
 
@@ -597,6 +663,9 @@ func (r *Resolver) NewLabel() NewLabelResolver { return &newLabelResolver{r} }
 // NewRoom returns NewRoomResolver implementation.
 func (r *Resolver) NewRoom() NewRoomResolver { return &newRoomResolver{r} }
 
+// NewSetting returns NewSettingResolver implementation.
+func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{r} }
+
 // NewTutor returns NewTutorResolver implementation.
 func (r *Resolver) NewTutor() NewTutorResolver { return &newTutorResolver{r} }
 
@@ -604,8 +673,10 @@ type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type roomResolver struct{ *Resolver }
+type settingResolver struct{ *Resolver }
 type studentResolver struct{ *Resolver }
 type newEventResolver struct{ *Resolver }
 type newLabelResolver struct{ *Resolver }
 type newRoomResolver struct{ *Resolver }
+type newSettingResolver struct{ *Resolver }
 type newTutorResolver struct{ *Resolver }
