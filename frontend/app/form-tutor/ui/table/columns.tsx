@@ -4,13 +4,14 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TutorFormEventsQuery } from "@/lib/gql/generated/graphql";
 import { eventBroker } from "@/lib/eventBroker";
+import { EventLabelBadge } from "@/components/ui/badge";
+import { calculateFontColor } from "@/lib/utils/colorUtils";
 
 export const columns: ColumnDef<TutorFormEventsQuery['events'][0]>[] = [
   {
     accessorKey: "isSelected",
     header: "",
     cell: ({ row }) => (
-      <div className="w-full flex flex-row justify-center">
         <Checkbox
           className={"mx-auto"}
           checked={row.getIsSelected()}
@@ -26,12 +27,21 @@ export const columns: ColumnDef<TutorFormEventsQuery['events'][0]>[] = [
           }}
           aria-label="Ich kann diese Vorlesung halten"
         />
-      </div>
     ),
   },
   {
     accessorKey: "title",
     header: () => <div className="text-left">Veranstaltung</div>,
+    cell: ({ row }) => (
+      <div>
+        <div className={'mb-0.5'}>{row.original.title}</div>
+        <EventLabelBadge
+          className={`bg-[${row.original.type.color}] text-[${calculateFontColor(row.original.type.color)}]`}
+        >
+          {row.original.type.name}
+        </EventLabelBadge>
+      </div>
+    ),
   },
   {
     accessorKey: "from",
