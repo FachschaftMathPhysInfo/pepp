@@ -4,5 +4,13 @@ query tutorFormEvents {
     title
     from
     to
+    topic {
+       name
+       color
+    }
+    type {
+       name
+       color
+    }
   }
 }
