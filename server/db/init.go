@@ -57,6 +57,10 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		return nil, nil, err
 	}
 
+	if err := seedData(ctx, db); err != nil {
+		return nil, nil, err
+	}
+
 	return db, sqldb, nil
 }
 
