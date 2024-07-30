@@ -232,7 +232,7 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, number string, buildi
 // AddLabel is the resolver for the addLabel field.
 func (r *mutationResolver) AddLabel(ctx context.Context, label models.Label) (string, error) {
 	if label.Color == "" {
-		label.Color = "#F1F5F9"
+		label.Color = "#D1D1D1"
 	}
 
 	if _, err := r.DB.NewInsert().
