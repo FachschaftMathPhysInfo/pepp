@@ -42,7 +42,6 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		(*models.User)(nil),
 		(*models.Building)(nil),
 		(*models.Room)(nil),
-		(*models.Answer)(nil),
 		(*models.Setting)(nil)}
 
 	for _, relation := range relations {

@@ -12,18 +12,17 @@ type Student struct {
 	Score    int8
 	Accepted bool
 
-	EventsRegistered []Event  `bun:"m2m:student_to_events,join:Student=Event"`
-	Answers          []Answer `bun:"rel:has-many,join:mail=student_mail"`
+	EventsRegistered []Event `bun:"m2m:student_to_events,join:Student=Event"`
 }
 
 func (Student) IsUser() {}
 
 type StudentToEvent struct {
-	StudentMail string   `bun:",pk"`
+	StudentMail string   `bun:",pk,type:varchar(255)"`
 	Student     *Student `bun:"rel:belongs-to,join:student_mail=mail"`
 	EventID     int32    `bun:",pk"`
 	Event       *Event   `bun:"rel:belongs-to,join:event_id=id"`
-	RoomNumber  string   `bun:",pk"`
+	RoomNumber  string   `bun:",pk,type:varchar(50)"`
 	BuildingID  int32    `bun:",pk"`
 	Room        *Room    `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
 }

@@ -16,7 +16,7 @@ type Tutor struct {
 func (Tutor) IsUser() {}
 
 type TutorToEvent struct {
-	TutorMail string `bun:",pk"`
+	TutorMail string `bun:",pk,type:varchar(255)"`
 	Tutor     *Tutor `bun:"rel:belongs-to,join:tutor_mail=mail"`
 	EventID   int32  `bun:",pk"`
 	Event     *Event `bun:"rel:belongs-to,join:event_id=id"`

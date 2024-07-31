@@ -9,8 +9,8 @@ import (
 type Room struct {
 	bun.BaseModel `bun:"table:rooms,alias:r"`
 
-	Number     string `bun:",pk,notnull"`
-	Name       string
+	Number     string `bun:",pk,notnull,type:varchar(50)"`
+	Name       string `bun:",type:varchar(255)"`
 	Capacity   int16
 	Floor      int8
 	BuildingID int32 `bun:",pk"`
@@ -26,10 +26,10 @@ func (*Room) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery)
 }
 
 type RoomToEvent struct {
-	RoomNumber string `bun:",pk"`
+	RoomNumber string `bun:",pk,type:varchar(50)"`
 	BuildingID int32  `bun:",pk"`
 	Room       *Room  `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
-	EventID    int32  `bun:"event_id,pk"`
+	EventID    int32  `bun:",pk"`
 	Event      *Event `bun:"rel:belongs-to,join:event_id=id"`
 }
 

@@ -7,13 +7,13 @@ import (
 type Building struct {
 	bun.BaseModel `bun:"table:buildings,alias:b"`
 
-	ID     int32  `bun:"id,pk,autoincrement"`
-	Name   string `bun:"name,notnull"`
-	Street string `bun:"street,notnull"`
-	Number string `bun:"number,notnull"`
-	City   string `bun:"city,notnull"`
-	Zip    int32  `bun:"zip,notnull"`
-	Osm    string `bun:"osm,notnull"`
+	ID     int32  `bun:",pk,autoincrement"`
+	Name   string `bun:",notnull,type:varchar(255)"`
+	Street string `bun:",notnull,type:varchar(255)"`
+	Number string `bun:",notnull,type:varchar(255)"`
+	City   string `bun:",notnull,type:varchar(255)"`
+	Zip    int32  `bun:",notnull"`
+	Osm    string `bun:",notnull,type:varchar(255)"`
 
 	Rooms []*Room `bun:"rel:has-many,join:id=building_id"`
 }

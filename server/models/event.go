@@ -11,10 +11,10 @@ type Event struct {
 	bun.BaseModel `bun:"table:events,alias:e"`
 
 	ID          int32  `bun:",pk,autoincrement"`
-	Title       string `bun:",notnull"`
+	Title       string `bun:",notnull,type:varchar(255)"`
 	Description string
-	TopicName   string    `bun:",notnull"`
-	TypeName    string    `bun:",notnull"`
+	TopicName   string    `bun:",notnull,type:varchar(50)"`
+	TypeName    string    `bun:",notnull,type:varchar(50)"`
 	From        time.Time `bun:",notnull"`
 	To          time.Time `bun:",notnull"`
 	NeedsTutors bool      `bun:",notnull"`
@@ -39,7 +39,7 @@ type EventToTutor struct {
 	Event      *Event `bun:"rel:belongs-to,join:event_id=id"`
 	TutorMail  string `bun:",pk"`
 	Tutor      *Tutor `bun:"rel:belongs-to,join:tutor_mail=mail"`
-	RoomNumber string `bun:",pk"`
+	RoomNumber string `bun:",pk,type:varchar(50)"`
 	BuildingID int32  `bun:",pk"`
 	Room       *Room  `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
 }
