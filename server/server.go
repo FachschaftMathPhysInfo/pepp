@@ -52,7 +52,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	resolver = graph.Resolver{DB: db}
+	resolver = graph.Resolver{
+		DB:         db,
+		Settings:   make(map[string]string),
+		MailConfig: new(email.Config)}
+	if err := resolver.FetchSettings(ctx); err != nil {
+		log.Fatalf("unable to fetch settings: %s", err)
+	}
 
 	// cronjobs for maintenance tasks
 	c := cron.New()

@@ -19,21 +19,21 @@ type Email struct {
 	Outros     []string
 }
 
-func Send(person models.User, email Email) error {
+func Send(person models.User, email Email, config *Config) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name:      os.Getenv("EMAIL_NAME"),
-			Link:      os.Getenv("HOMEPAGE_URL"),
-			Logo:      os.Getenv("LOGO_URL"),
-			Copyright: os.Getenv("COPYRIGHT"),
+			Name:      config.Name,
+			Link:      config.HomepageUrl,
+			Logo:      config.LogoUrl,
+			Copyright: config.CopyrightNotice,
 		},
 	}
 
 	mail := hermes.Email{
 		Body: hermes.Body{
 			Name:       person.Fn,
-			Greeting:   os.Getenv("EMAIL_GREETING"),
-			Signature:  os.Getenv("EMAIL_SIGNATURE"),
+			Greeting:   config.Greeting,
+			Signature:  config.Signature,
 			Intros:     email.Intros,
 			Dictionary: email.Dictionary,
 			Actions:    email.Actions,
@@ -57,7 +57,7 @@ func Send(person models.User, email Email) error {
 	}
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", fmt.Sprintf("%s <%s>", os.Getenv("EMAIL_NAME"), from))
+	m.SetHeader("From", fmt.Sprintf("%s <%s>", config.Name, from))
 	m.SetHeader("To", person.Mail)
 	m.SetHeader("Subject", email.Subject)
 	m.SetBody("text/html", body)

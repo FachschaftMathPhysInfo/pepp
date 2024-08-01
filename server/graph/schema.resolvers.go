@@ -91,41 +91,25 @@ func (r *mutationResolver) UpdateStudentAcceptedStatus(ctx context.Context, mail
 func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.Tutor) (string, error) {
 	// database insert happens in the eventsAvailable resolver
 	eventsAvailable, err := r.Query().Events(ctx, nil, nil, nil, nil, []string{tutor.Mail})
-	table := hermes.Table{
-		Columns: hermes.Columns{
-			CustomWidth: map[string]string{
-				os.Getenv("EMAIL_ASSIGNMENTS_DATE_TITLE"): "20%",
-				os.Getenv("EMAIL_ASSIGNMENTS_KIND_TITLE"): "30%",
-			}}}
-
-	for _, event := range eventsAvailable {
-		e := []hermes.Entry{
-			{Key: os.Getenv("EMAIL_ASSIGNMENTS_EVENT_TITLE"), Value: event.Title},
-			{Key: os.Getenv("EMAIL_ASSIGNMENTS_DATE_TITLE"), Value: event.From.Format("02.01")},
-			{Key: os.Getenv("EMAIL_ASSIGNMENTS_KIND_TITLE"), Value: event.TypeName}}
-		table.Data = append(table.Data, e)
-	}
-
-	mail := email.Email{
-		Subject: os.Getenv("EMAIL_CONFIRM_SUBJECT"),
-		Intros:  []string{os.Getenv("EMAIL_CONFIRM_INTRO")},
-		Outros:  []string{os.Getenv("EMAIL_CONFIRM_OUTRO")},
-		Table:   table}
-
 	if err != nil {
 		return "", err
 	}
 
-	mail.Actions = []hermes.Action{
-		{
-			Instructions: os.Getenv("EMAIL_CONFIRM_BUTTON_INSTRUCTION"),
-			Button: hermes.Button{
-				Color: os.Getenv("PRIMARY_COLOR"),
-				Text:  os.Getenv("EMAIL_CONFIRM_BUTTON_TEXT"),
-				Link: fmt.Sprintf("%s/confirm/%s",
-					os.Getenv("PUBLIC_URL"), strconv.Itoa(int(tutor.SessionID)))}}}
+	m := r.MailConfig.Confirmation
 
-	if err := email.Send(tutor.User, mail); err != nil {
+	m.Table.Data = *new([][]hermes.Entry)
+	for _, event := range eventsAvailable {
+		e := []hermes.Entry{
+			{Key: r.Settings["email-assignment-event-title"], Value: event.Title},
+			{Key: r.Settings["email-assignment-date-title"], Value: event.From.Format("02.01")},
+			{Key: r.Settings["email-assignment-kind-title"], Value: event.TypeName}}
+		m.Table.Data = append(m.Table.Data, e)
+	}
+
+	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
+		os.Getenv("PUBLIC_URL"), strconv.Itoa(int(tutor.SessionID)))
+
+	if err := email.Send(tutor.User, m, r.MailConfig); err != nil {
 		return "Failed to send confirmation mail", err
 	}
 
@@ -300,43 +284,46 @@ func (r *mutationResolver) AssignTutorToEvent(ctx context.Context, link models.E
 		return "Failed to link tutor to event and room", err
 	}
 
-	event, err := r.Query().Events(ctx, []int{int(link.EventID)}, nil, nil, nil, nil)
-	tutor, err := r.Query().Tutors(ctx, []string{link.TutorMail}, nil)
-	room, err := r.Query().Rooms(ctx, []string{link.RoomNumber}, int(link.BuildingID))
+	e, err := r.Query().Events(ctx, []int{int(link.EventID)}, nil, nil, nil, []string{link.TutorMail})
 	if err != nil {
 		return "", err
 	}
+	event := e[0]
 
-	mail := email.Email{
-		Subject: fmt.Sprintf("%s: %s",
-			os.Getenv("EMAIL_ASSIGNMENTS_SUBJECT"), event[0].Title),
-		Intros: []string{os.Getenv("EMAIL_ASSIGNMENTS_INTRO")},
-		Outros: []string{os.Getenv("EMAIL_ASSIGNMENTS_OUTRO")},
+	ro, err := r.Query().Rooms(ctx, []string{link.RoomNumber}, int(link.BuildingID))
+	if err != nil {
+		return "", err
 	}
+	room := ro[0]
 
-	roomNumber := room[0].Number
-	if room[0].Name != "" {
+	m := r.MailConfig.Assignment
+
+	m.Subject = fmt.Sprintf("%s: %s",
+		r.Settings["email-assignment-subject"], event.Title)
+
+	roomNumber := room.Number
+	if room.Name != "" {
 		roomNumber = fmt.Sprintf("%s (%s)",
-			room[0].Name, room[0].Number)
+			room.Name, room.Number)
 	}
 
-	mail.Dictionary = []hermes.Entry{
-		{Key: os.Getenv("EMAIL_ASSIGNMENTS_EVENT_TITLE"),
-			Value: event[0].Title},
-		{Key: os.Getenv("EMAIL_ASSIGNMENTS_DATE_TITLE"),
-			Value: event[0].From.Format("02.01.2006")},
-		{Key: os.Getenv("EMAIL_ASSIGNMENTS_TIME_TITLE"),
+	m.Dictionary = []hermes.Entry{
+		{Key: r.Settings["email-assignment-event-title"],
+			Value: event.Title},
+		{Key: r.Settings["email-assignment-date-title"],
+			Value: event.From.Format("02.01.2006")},
+		{Key: r.Settings["email-assignment-time-title"],
 			Value: fmt.Sprintf("%s - %s",
-				event[0].From.Format("15:04"), event[0].To.Format("15:04"))},
-		{Key: os.Getenv("EMAIL_ASSIGNMENTS_ROOM_TITLE"),
+				event.From.Format("15:04"), event.To.Format("15:04"))},
+		{Key: r.Settings["email-assignment-room-title"],
 			Value: roomNumber},
-		{Key: os.Getenv("EMAIL_ASSIGNMENTS_BUILDING_TITLE"),
+		{Key: r.Settings["email-assignment-building-title"],
 			Value: fmt.Sprintf("%s, %s %s, %s, %s",
-				room[0].Building.Name,
-				room[0].Building.Street, room[0].Building.Number,
-				strconv.Itoa(int(room[0].Building.Zip)), room[0].Building.City)}}
+				room.Building.Name,
+				room.Building.Street, room.Building.Number,
+				strconv.Itoa(int(room.Building.Zip)), room.Building.City)}}
 
-	if err := email.Send(tutor[0].User, mail); err != nil {
+	if err := email.Send(event.TutorsAssigned[0].User, m, r.MailConfig); err != nil {
 		return "", err
 	}
 
