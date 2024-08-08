@@ -31,10 +31,10 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 	))
 
 	relations := []interface{}{
-		(*models.EventToTutor)(nil),
-		(*models.TutorToEvent)(nil),
-		(*models.StudentToEvent)(nil),
-		(*models.RoomToEvent)(nil)}
+		(*models.EventToUserAssignment)(nil),
+		(*models.UserToEventAvailability)(nil),
+		(*models.UserToEventRegistration)(nil),
+		(*models.RoomToEventAvailability)(nil)}
 
 	tables := []interface{}{
 		(*models.Label)(nil),

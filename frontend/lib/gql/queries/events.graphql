@@ -1,5 +1,5 @@
 query tutorFormEvents {
-  events(needsTutors: true) {
+  events(needsTutors: true, onlyFuture: true) {
     ID
     title
     from

@@ -3,6 +3,7 @@ package ical
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph"
@@ -26,17 +27,25 @@ func createCalendar(events []*models.Event) string {
 
 func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, re *graph.Resolver) {
 	var events []*models.Event
-	var err error
-	l := r.URL.Query().Get("l")
-	if l != "" {
-		labels := strings.Split(l, ",")
-		events, err = re.Query().Events(ctx, nil, labels, nil, nil, nil)
-	} else {
-		events, err = re.Query().Events(ctx, nil, nil, nil, nil, nil)
+	var labels []string
+	var umbrellaID int
+
+	u := r.URL.Query().Get("u")
+	umbrellaID, err := strconv.Atoi(u)
+	if u == "" || err != nil {
+		http.Error(w, "Calendar needs a valid umbrella id", http.StatusBadRequest)
+		return
 	}
 
-	if err != nil {
-		http.Error(w, "Calendar could not be created", http.StatusBadRequest)
+	l := r.URL.Query().Get("l")
+	if l != "" {
+		labels = strings.Split(l, ",")
+	}
+
+	events, err = re.Query().Events(ctx, nil, []int{umbrellaID}, labels, nil, nil, nil)
+	if err != nil || len(events) == 0 {
+		http.Error(w, "No events found", http.StatusBadRequest)
+		return
 	}
 
 	cal := createCalendar(events)

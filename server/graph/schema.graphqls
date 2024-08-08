@@ -8,32 +8,14 @@ enum ScalarType {
   BOOLEAN
   COLOR
   TIMESTAMP
-  ANY
 }
 
-interface User {
+type User {
   fn: String!
   sn: String!
   mail: String!
   confirmed: Boolean!
-}
-
-type Student implements User {
-  fn: String!
-  sn: String!
-  mail: String!
-  confirmed: Boolean!
-  answers: [String!]!
-  score: Int
-  accepted: Boolean
   eventsRegistered: [Event!]
-}
-
-type Tutor implements User {
-  fn: String!
-  sn: String!
-  mail: String!
-  confirmed: Boolean!
   eventsAvailable: [Event!]
   eventsAssigned: [Event!]
 }
@@ -49,7 +31,7 @@ type Label {
 }
 
 type EventTutorRoomPair {
-  tutors: [Tutor!]
+  tutors: [User!]
   room: Room
   registrations: Int
 }
@@ -57,8 +39,9 @@ type EventTutorRoomPair {
 type Event {
   ID: Int!
   tutorsAssigned: [EventTutorRoomPair!]
-  tutorsAvailable: [Tutor!]
+  tutorsAvailable: [User!]
   roomsAvailable: [Room!]
+  umbrella: Event
   needsTutors: Boolean!
   title: String!
   description: String
@@ -94,36 +77,31 @@ type Setting {
 }
 
 type Query {
-  students(mail: [String!]): [Student!]!
-  tutors(mail: [String!], eventID: Int): [Tutor!]!
-  events(id: [Int!], label: [String!], needsTutors: Boolean, all: Boolean, tutor: [String!]): [Event!]!
+  events(id: [Int!], umbrellaID: [Int!], label: [String!], needsTutors: Boolean, onlyFuture: Boolean, userMail: [String!]): [Event!]!
+  umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: Int!): [Room!]!
   labels(name: [String!], kind: [LabelKind!]): [Label!]!
   settings(key: [String!], type: [ScalarType!]): [Setting!]!
+  users(mail: [String!]): [User!]!
 }
 
-input NewTutor {
+input NewUser {
   fn: String!
   sn: String
   mail: String!
-  eventsAvailable: [Int!]
-}
-
-input NewStudent {
-  fn: String!
-  sn: String!
-  mail: String!
+  password: String
 }
 
 input NewEvent {
   title: String!
   description: String
-  topicName: String!
-  typeName: String!
+  topicName: String
+  typeName: String
   needsTutors: Boolean!
   from: timestamptz!
   to: timestamptz!
+  umbrellaID: Int
 }
 
 input NewBuilding {
@@ -149,44 +127,64 @@ input NewLabel {
   kind: LabelKind!
 }
 
-input NewEventToTutorLink {
-  eventID: Int!
-  tutorMail: String!
-  roomNumber: String!
-  buildingID: Int!
-}
-
-input NewRoomToEventLink {
-  eventID: Int!
-  roomNumber: String!
-  buildingID: Int!
-}
-
 input NewSetting {
   key: String!
-  value: String!
-  type: ScalarType!
+  value: String
+  type: ScalarType
+}
+
+input EventToUserAssignment {
+  eventID: Int!
+  userMail: String!
+  roomNumber: String!
+  buildingID: Int!
+}
+
+input NewUserToEventAvailability {
+  userMail: String!
+  eventID: [Int!]!
+}
+
+input RoomToEventAvailability {
+  roomNumber: String!
+  buildingID: Int!
+  eventID: Int!
+}
+
+input UserToEventRegistration {
+  eventID: Int!
+  userMail: String!
+  roomNumber: String!
+  buildingID: Int!
 }
 
 type Mutation {
-  addRegistration(student: NewStudent!): String!
-  updateStudentAcceptedStatus(mail: String!, accepted: Boolean!): String!
-  addTutor(tutor: NewTutor!): String!
-  updateTutor(mail: String!, tutor: NewTutor!): String!
-  deleteUser(mail: [String!]!): String!
-  addEvent(event: NewEvent!): String!
-  updateEvent(id: Int!, event: NewEvent!): String!
-  deleteEvent(id: [Int!]!): String!
-  addBuilding(building: NewBuilding!): String!
-  updateBuilding(id: Int!, building: NewBuilding!): String!
-  deleteBuilding(id: [Int!]!): String!
-  addRoom(room: NewRoom!): String!
-  deleteRoom(number: String!, buildingID: Int!): String!
-  addLabel(label: NewLabel!): String!
-  deleteLabel(name: [String!]!): String!
-  addAvailableRoomToEvent(link: NewRoomToEventLink!): String!
-  deleteRoomFromEvent(link: NewRoomToEventLink!): String!
-  assignTutorToEvent(link: NewEventToTutorLink!): String!
-  unassignTutorFromEvent(link: NewEventToTutorLink!): String!
-  addSetting(setting: NewSetting!): String!
+  addUser(user: NewUser!): User!
+  updateUser(user: NewUser!): User!
+  deleteUser(mail: [String!]!): Int!
+  addTutor(tutor: NewUser!, availability: NewUserToEventAvailability!): User!
+  addEvent(event: NewEvent!): Event!
+  updateEvent(id: Int!, event: NewEvent!): Event!
+  deleteEvent(id: [Int!]!): Int!
+  addBuilding(building: NewBuilding!): Building!
+  updateBuilding(id: Int!, building: NewBuilding!): Building!
+  deleteBuilding(id: [Int!]!): Int!
+  addRoom(room: NewRoom!): Room!
+  updateRoom(room: NewRoom!): Room!
+  deleteRoom(number: [String!]!, buildingID: Int!): Int!
+  addLabel(label: NewLabel!): Label!
+  updateLabel(label: NewLabel!): Label!
+  deleteLabel(name: [String!]!): Int!
+  addSetting(setting: NewSetting!): Setting!
+  updateSetting(setting: NewSetting!): Setting!
+  deleteSetting(key: [String!]!): Int!
+
+  addEventAssignmentForTutor(assignment: EventToUserAssignment!): Event!
+  deleteEventAssignmentForTutor(assignment: EventToUserAssignment!): Event!
+  addTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
+  deleteTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
+  addRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
+  deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
+  addStudentRegistrationForEvent(registration: UserToEventRegistration!): User!
+  deleteStudentRegistrationForEvent(registration: UserToEventRegistration!): User!
 }

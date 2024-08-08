@@ -10,17 +10,18 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 )
 
-type User interface {
-	IsUser()
-}
-
 type EventTutorRoomPair struct {
-	Tutors        []*models.Tutor `json:"tutors,omitempty"`
-	Room          *models.Room    `json:"room,omitempty"`
-	Registrations *int            `json:"registrations,omitempty"`
+	Tutors        []*models.User `json:"tutors,omitempty"`
+	Room          *models.Room   `json:"room,omitempty"`
+	Registrations *int           `json:"registrations,omitempty"`
 }
 
 type Mutation struct {
+}
+
+type NewUserToEventAvailability struct {
+	UserMail string `json:"userMail"`
+	EventID  []int  `json:"eventID"`
 }
 
 type Query struct {
@@ -76,7 +77,6 @@ const (
 	ScalarTypeBoolean   ScalarType = "BOOLEAN"
 	ScalarTypeColor     ScalarType = "COLOR"
 	ScalarTypeTimestamp ScalarType = "TIMESTAMP"
-	ScalarTypeAny       ScalarType = "ANY"
 )
 
 var AllScalarType = []ScalarType{
@@ -86,12 +86,11 @@ var AllScalarType = []ScalarType{
 	ScalarTypeBoolean,
 	ScalarTypeColor,
 	ScalarTypeTimestamp,
-	ScalarTypeAny,
 }
 
 func (e ScalarType) IsValid() bool {
 	switch e {
-	case ScalarTypeString, ScalarTypeInt, ScalarTypeFloat, ScalarTypeBoolean, ScalarTypeColor, ScalarTypeTimestamp, ScalarTypeAny:
+	case ScalarTypeString, ScalarTypeInt, ScalarTypeFloat, ScalarTypeBoolean, ScalarTypeColor, ScalarTypeTimestamp:
 		return true
 	}
 	return false

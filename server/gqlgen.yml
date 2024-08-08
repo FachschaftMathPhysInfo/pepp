@@ -68,7 +68,7 @@ omit_getters: true
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-#  - "github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
+- github.com/FachschaftMathPhysInfo/pepp/server/models
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -87,35 +87,15 @@ models:
       - github.com/99designs/gqlgen/graphql.Int
       - github.com/99designs/gqlgen/graphql.Int64
       - github.com/99designs/gqlgen/graphql.Int32
-  Building:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Building
   NewBuilding:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Building
-  Event:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Event
+  NewUser:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.User
   NewEvent:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Event
-  Tutor:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
-  NewTutor:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutor
-  Student:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Student
-  NewStudent:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Student
-  Label:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Label
   NewLabel:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Label
-  Room:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Room
   NewRoom:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Room
-  NewRoomToEventLink:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.RoomToEvent
-  NewEventToTutorLink:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.EventToTutor
-  Setting:
-    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Setting
   NewSetting:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Setting

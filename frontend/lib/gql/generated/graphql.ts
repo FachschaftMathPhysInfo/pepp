@@ -41,15 +41,23 @@ export type Event = {
   to: Scalars['timestamptz']['output'];
   topic: Label;
   tutorsAssigned?: Maybe<Array<EventTutorRoomPair>>;
-  tutorsAvailable?: Maybe<Array<Tutor>>;
+  tutorsAvailable?: Maybe<Array<User>>;
   type: Label;
+  umbrella?: Maybe<Event>;
+};
+
+export type EventToUserAssignment = {
+  buildingID: Scalars['Int']['input'];
+  eventID: Scalars['Int']['input'];
+  roomNumber: Scalars['String']['input'];
+  userMail: Scalars['String']['input'];
 };
 
 export type EventTutorRoomPair = {
   __typename?: 'EventTutorRoomPair';
   registrations?: Maybe<Scalars['Int']['output']>;
   room?: Maybe<Room>;
-  tutors?: Maybe<Array<Tutor>>;
+  tutors?: Maybe<Array<User>>;
 };
 
 export type Label = {
@@ -65,30 +73,33 @@ export enum LabelKind {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  addAvailableRoomToEvent: Scalars['String']['output'];
-  addBuilding: Scalars['String']['output'];
-  addEvent: Scalars['String']['output'];
-  addLabel: Scalars['String']['output'];
-  addRegistration: Scalars['String']['output'];
-  addRoom: Scalars['String']['output'];
-  addTutor: Scalars['String']['output'];
-  assignTutorToEvent: Scalars['String']['output'];
-  deleteBuilding: Scalars['String']['output'];
-  deleteEvent: Scalars['String']['output'];
-  deleteLabel: Scalars['String']['output'];
-  deleteRoom: Scalars['String']['output'];
-  deleteRoomFromEvent: Scalars['String']['output'];
-  deleteUser: Scalars['String']['output'];
-  unassignTutorFromEvent: Scalars['String']['output'];
-  updateBuilding: Scalars['String']['output'];
-  updateEvent: Scalars['String']['output'];
-  updateStudentAcceptedStatus: Scalars['String']['output'];
-  updateTutor: Scalars['String']['output'];
-};
-
-
-export type MutationAddAvailableRoomToEventArgs = {
-  link: NewRoomToEventLink;
+  addBuilding: Building;
+  addEvent: Event;
+  addEventAssignmentForTutor: Event;
+  addLabel: Label;
+  addRoom: Room;
+  addRoomAvailabilityForEvent: Room;
+  addSetting: Setting;
+  addStudentRegistrationForEvent: User;
+  addTutor: User;
+  addTutorAvailabilityForEvent: User;
+  addUser: User;
+  deleteBuilding: Scalars['Int']['output'];
+  deleteEvent: Scalars['Int']['output'];
+  deleteEventAssignmentForTutor: Event;
+  deleteLabel: Scalars['Int']['output'];
+  deleteRoom: Scalars['Int']['output'];
+  deleteRoomAvailabilityForEvent: Room;
+  deleteSetting: Scalars['Int']['output'];
+  deleteStudentRegistrationForEvent: User;
+  deleteTutorAvailabilityForEvent: User;
+  deleteUser: Scalars['Int']['output'];
+  updateBuilding: Building;
+  updateEvent: Event;
+  updateLabel: Label;
+  updateRoom: Room;
+  updateSetting: Setting;
+  updateUser: User;
 };
 
 
@@ -102,13 +113,13 @@ export type MutationAddEventArgs = {
 };
 
 
-export type MutationAddLabelArgs = {
-  label: NewLabel;
+export type MutationAddEventAssignmentForTutorArgs = {
+  assignment: EventToUserAssignment;
 };
 
 
-export type MutationAddRegistrationArgs = {
-  student: NewStudent;
+export type MutationAddLabelArgs = {
+  label: NewLabel;
 };
 
 
@@ -117,13 +128,34 @@ export type MutationAddRoomArgs = {
 };
 
 
-export type MutationAddTutorArgs = {
-  tutor: NewTutor;
+export type MutationAddRoomAvailabilityForEventArgs = {
+  availability: RoomToEventAvailability;
 };
 
 
-export type MutationAssignTutorToEventArgs = {
-  link: NewEventToTutorLink;
+export type MutationAddSettingArgs = {
+  setting: NewSetting;
+};
+
+
+export type MutationAddStudentRegistrationForEventArgs = {
+  registration: UserToEventRegistration;
+};
+
+
+export type MutationAddTutorArgs = {
+  availability: NewUserToEventAvailability;
+  tutor: NewUser;
+};
+
+
+export type MutationAddTutorAvailabilityForEventArgs = {
+  availability: NewUserToEventAvailability;
+};
+
+
+export type MutationAddUserArgs = {
+  user: NewUser;
 };
 
 
@@ -137,6 +169,11 @@ export type MutationDeleteEventArgs = {
 };
 
 
+export type MutationDeleteEventAssignmentForTutorArgs = {
+  assignment: EventToUserAssignment;
+};
+
+
 export type MutationDeleteLabelArgs = {
   name: Array<Scalars['String']['input']>;
 };
@@ -144,22 +181,32 @@ export type MutationDeleteLabelArgs = {
 
 export type MutationDeleteRoomArgs = {
   buildingID: Scalars['Int']['input'];
-  number: Scalars['String']['input'];
+  number: Array<Scalars['String']['input']>;
 };
 
 
-export type MutationDeleteRoomFromEventArgs = {
-  link: NewRoomToEventLink;
+export type MutationDeleteRoomAvailabilityForEventArgs = {
+  availability: RoomToEventAvailability;
+};
+
+
+export type MutationDeleteSettingArgs = {
+  key: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationDeleteStudentRegistrationForEventArgs = {
+  registration: UserToEventRegistration;
+};
+
+
+export type MutationDeleteTutorAvailabilityForEventArgs = {
+  availability: NewUserToEventAvailability;
 };
 
 
 export type MutationDeleteUserArgs = {
   mail: Array<Scalars['String']['input']>;
-};
-
-
-export type MutationUnassignTutorFromEventArgs = {
-  link: NewEventToTutorLink;
 };
 
 
@@ -175,15 +222,23 @@ export type MutationUpdateEventArgs = {
 };
 
 
-export type MutationUpdateStudentAcceptedStatusArgs = {
-  accepted: Scalars['Boolean']['input'];
-  mail: Scalars['String']['input'];
+export type MutationUpdateLabelArgs = {
+  label: NewLabel;
 };
 
 
-export type MutationUpdateTutorArgs = {
-  mail: Scalars['String']['input'];
-  tutor: NewTutor;
+export type MutationUpdateRoomArgs = {
+  room: NewRoom;
+};
+
+
+export type MutationUpdateSettingArgs = {
+  setting: NewSetting;
+};
+
+
+export type MutationUpdateUserArgs = {
+  user: NewUser;
 };
 
 export type NewBuilding = {
@@ -201,15 +256,9 @@ export type NewEvent = {
   needsTutors: Scalars['Boolean']['input'];
   title: Scalars['String']['input'];
   to: Scalars['timestamptz']['input'];
-  topicName: Scalars['String']['input'];
-  typeName: Scalars['String']['input'];
-};
-
-export type NewEventToTutorLink = {
-  buildingID: Scalars['Int']['input'];
-  eventID: Scalars['Int']['input'];
-  roomNumber: Scalars['String']['input'];
-  tutorMail: Scalars['String']['input'];
+  topicName?: InputMaybe<Scalars['String']['input']>;
+  typeName?: InputMaybe<Scalars['String']['input']>;
+  umbrellaID?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type NewLabel = {
@@ -226,23 +275,22 @@ export type NewRoom = {
   number: Scalars['String']['input'];
 };
 
-export type NewRoomToEventLink = {
-  buildingID: Scalars['Int']['input'];
-  eventID: Scalars['Int']['input'];
-  roomNumber: Scalars['String']['input'];
+export type NewSetting = {
+  key: Scalars['String']['input'];
+  type?: InputMaybe<ScalarType>;
+  value?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type NewStudent = {
+export type NewUser = {
   fn: Scalars['String']['input'];
   mail: Scalars['String']['input'];
-  sn: Scalars['String']['input'];
-};
-
-export type NewTutor = {
-  eventsAvailable?: InputMaybe<Array<Scalars['Int']['input']>>;
-  fn: Scalars['String']['input'];
-  mail: Scalars['String']['input'];
+  password?: InputMaybe<Scalars['String']['input']>;
   sn?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type NewUserToEventAvailability = {
+  eventID: Array<Scalars['Int']['input']>;
+  userMail: Scalars['String']['input'];
 };
 
 export type Query = {
@@ -251,8 +299,9 @@ export type Query = {
   events: Array<Event>;
   labels: Array<Label>;
   rooms: Array<Room>;
-  students: Array<Student>;
-  tutors: Array<Tutor>;
+  settings: Array<Setting>;
+  umbrellas: Array<Event>;
+  users: Array<User>;
 };
 
 
@@ -262,11 +311,12 @@ export type QueryBuildingsArgs = {
 
 
 export type QueryEventsArgs = {
-  all?: InputMaybe<Scalars['Boolean']['input']>;
   id?: InputMaybe<Array<Scalars['Int']['input']>>;
   label?: InputMaybe<Array<Scalars['String']['input']>>;
   needsTutors?: InputMaybe<Scalars['Boolean']['input']>;
-  tutor?: InputMaybe<Array<Scalars['String']['input']>>;
+  onlyFuture?: InputMaybe<Scalars['Boolean']['input']>;
+  umbrellaID?: InputMaybe<Array<Scalars['Int']['input']>>;
+  userMail?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
@@ -282,13 +332,19 @@ export type QueryRoomsArgs = {
 };
 
 
-export type QueryStudentsArgs = {
-  mail?: InputMaybe<Array<Scalars['String']['input']>>;
+export type QuerySettingsArgs = {
+  key?: InputMaybe<Array<Scalars['String']['input']>>;
+  type?: InputMaybe<Array<ScalarType>>;
 };
 
 
-export type QueryTutorsArgs = {
-  eventID?: InputMaybe<Scalars['Int']['input']>;
+export type QueryUmbrellasArgs = {
+  id?: InputMaybe<Array<Scalars['Int']['input']>>;
+  onlyFuture?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryUsersArgs = {
   mail?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
@@ -301,56 +357,61 @@ export type Room = {
   number: Scalars['String']['output'];
 };
 
-export type Student = User & {
-  __typename?: 'Student';
-  accepted?: Maybe<Scalars['Boolean']['output']>;
-  answers: Array<Scalars['String']['output']>;
-  confirmed: Scalars['Boolean']['output'];
-  eventsRegistered?: Maybe<Array<Event>>;
-  fn: Scalars['String']['output'];
-  mail: Scalars['String']['output'];
-  score?: Maybe<Scalars['Int']['output']>;
-  sn: Scalars['String']['output'];
+export type RoomToEventAvailability = {
+  buildingID: Scalars['Int']['input'];
+  eventID: Scalars['Int']['input'];
+  roomNumber: Scalars['String']['input'];
 };
 
-export type Tutor = User & {
-  __typename?: 'Tutor';
-  confirmed: Scalars['Boolean']['output'];
-  eventsAssigned?: Maybe<Array<Event>>;
-  eventsAvailable?: Maybe<Array<Event>>;
-  fn: Scalars['String']['output'];
-  mail: Scalars['String']['output'];
-  sn: Scalars['String']['output'];
+export enum ScalarType {
+  Boolean = 'BOOLEAN',
+  Color = 'COLOR',
+  Float = 'FLOAT',
+  Int = 'INT',
+  String = 'STRING',
+  Timestamp = 'TIMESTAMP'
+}
+
+export type Setting = {
+  __typename?: 'Setting';
+  key: Scalars['String']['output'];
+  type: ScalarType;
+  value: Scalars['String']['output'];
 };
 
 export type User = {
+  __typename?: 'User';
   confirmed: Scalars['Boolean']['output'];
+  eventsAssigned?: Maybe<Array<Event>>;
+  eventsAvailable?: Maybe<Array<Event>>;
+  eventsRegistered?: Maybe<Array<Event>>;
   fn: Scalars['String']['output'];
   mail: Scalars['String']['output'];
   sn: Scalars['String']['output'];
+};
+
+export type UserToEventRegistration = {
+  buildingID: Scalars['Int']['input'];
+  eventID: Scalars['Int']['input'];
+  roomNumber: Scalars['String']['input'];
+  userMail: Scalars['String']['input'];
 };
 
 export type AddTutorMutationVariables = Exact<{
   firstName: Scalars['String']['input'];
   lastName: Scalars['String']['input'];
   email: Scalars['String']['input'];
-  eventsAvailable?: InputMaybe<Array<Scalars['Int']['input']> | Scalars['Int']['input']>;
+  eventsAvailable: Array<Scalars['Int']['input']> | Scalars['Int']['input'];
 }>;
 
 
-export type AddTutorMutation = { __typename?: 'Mutation', addTutor: string };
+export type AddTutorMutation = { __typename?: 'Mutation', addTutor: { __typename?: 'User', fn: string } };
 
 export type TutorFormEventsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type TutorFormEventsQuery = { __typename?: 'Query', events: Array<{ __typename?: 'Event', ID: number, title: string, from: any, to: any, topic: { __typename?: 'Label', name: string, color?: any | null }, type: { __typename?: 'Label', name: string, color?: any | null } }> };
 
-export type TutorsQueryVariables = Exact<{ [key: string]: never; }>;
 
-
-export type TutorsQuery = { __typename?: 'Query', tutors: Array<{ __typename?: 'Tutor', fn: string, sn: string, mail: string, confirmed: boolean }> };
-
-
-export const AddTutorDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"addTutor"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"firstName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lastName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"eventsAvailable"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addTutor"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tutor"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"fn"},"value":{"kind":"Variable","name":{"kind":"Name","value":"firstName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"sn"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lastName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"mail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"eventsAvailable"},"value":{"kind":"Variable","name":{"kind":"Name","value":"eventsAvailable"}}}]}}]}]}}]} as unknown as DocumentNode<AddTutorMutation, AddTutorMutationVariables>;
-export const TutorFormEventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"tutorFormEvents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"needsTutors"},"value":{"kind":"BooleanValue","value":true}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"from"}},{"kind":"Field","name":{"kind":"Name","value":"to"}},{"kind":"Field","name":{"kind":"Name","value":"topic"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}},{"kind":"Field","name":{"kind":"Name","value":"type"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}}]}}]}}]} as unknown as DocumentNode<TutorFormEventsQuery, TutorFormEventsQueryVariables>;
-export const TutorsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"tutors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tutors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}},{"kind":"Field","name":{"kind":"Name","value":"sn"}},{"kind":"Field","name":{"kind":"Name","value":"mail"}},{"kind":"Field","name":{"kind":"Name","value":"confirmed"}}]}}]}}]} as unknown as DocumentNode<TutorsQuery, TutorsQueryVariables>;
+export const AddTutorDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"addTutor"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"firstName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lastName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"eventsAvailable"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addTutor"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tutor"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"fn"},"value":{"kind":"Variable","name":{"kind":"Name","value":"firstName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"sn"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lastName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"mail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"availability"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"userMail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"eventID"},"value":{"kind":"Variable","name":{"kind":"Name","value":"eventsAvailable"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}}]}}]}}]} as unknown as DocumentNode<AddTutorMutation, AddTutorMutationVariables>;
+export const TutorFormEventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"tutorFormEvents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"needsTutors"},"value":{"kind":"BooleanValue","value":true}},{"kind":"Argument","name":{"kind":"Name","value":"onlyFuture"},"value":{"kind":"BooleanValue","value":true}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"from"}},{"kind":"Field","name":{"kind":"Name","value":"to"}},{"kind":"Field","name":{"kind":"Name","value":"topic"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}},{"kind":"Field","name":{"kind":"Name","value":"type"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}}]}}]}}]} as unknown as DocumentNode<TutorFormEventsQuery, TutorFormEventsQueryVariables>;

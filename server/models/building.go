@@ -5,10 +5,10 @@ import (
 )
 
 type Building struct {
-	bun.BaseModel `bun:"table:buildings,alias:b"`
+	bun.BaseModel `bun:",alias:b"`
 
 	ID     int32  `bun:",pk,autoincrement"`
-	Name   string `bun:",notnull,type:varchar(255)"`
+	Name   string `bun:",type:varchar(255)"`
 	Street string `bun:",notnull,type:varchar(255)"`
 	Number string `bun:",notnull,type:varchar(255)"`
 	City   string `bun:",notnull,type:varchar(255)"`

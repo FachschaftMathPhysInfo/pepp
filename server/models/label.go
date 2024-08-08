@@ -5,7 +5,7 @@ import (
 )
 
 type Label struct {
-	bun.BaseModel `bun:"table:labels,alias:l"`
+	bun.BaseModel `bun:",alias:l"`
 
 	Name  string `bun:",pk,type:varchar(50)"`
 	Color string `bun:",type:varchar(7)"`

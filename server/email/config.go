@@ -12,6 +12,7 @@ type Config struct {
 
 	Confirmation Email
 	Assignment   Email
+	Availability Email
 }
 
 func (c *Config) ApplySettings(s map[string]string) {
@@ -32,7 +33,14 @@ func (c *Config) ApplySettings(s map[string]string) {
 			Text:  s["email-confirm-button-text"],
 		},
 	}}
-	c.Confirmation.Table = hermes.Table{
+
+	c.Assignment.Intros = []string{s["email-assignment-intro"]}
+	c.Assignment.Outros = []string{s["email-assignment-outro"]}
+
+	c.Availability.Subject = s["email-availability-subject"]
+	c.Availability.Intros = []string{s["email-availability-intro"]}
+	c.Availability.Outros = []string{s["email-availability-outro"]}
+	c.Availability.Table = hermes.Table{
 		Columns: hermes.Columns{
 			CustomWidth: map[string]string{
 				s["email-assignment-date-title"]: "20%",
@@ -40,7 +48,4 @@ func (c *Config) ApplySettings(s map[string]string) {
 			},
 		},
 	}
-
-	c.Assignment.Intros = []string{s["email-assignment-intro"]}
-	c.Assignment.Outros = []string{s["email-assignment-outro"]}
 }

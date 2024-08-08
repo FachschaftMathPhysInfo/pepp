@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
@@ -10,11 +12,11 @@ import (
 )
 
 func seedData(ctx context.Context, db *bun.DB) error {
-	tutors := []*models.Tutor{
-		{User: models.User{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true}},
-		{User: models.User{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true}},
+	users := []*models.User{
+		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true},
+		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true},
 	}
-	if err := insertData(ctx, db, (*models.Tutor)(nil), tutors, "Tutors"); err != nil {
+	if err := insertData(ctx, db, (*models.User)(nil), users, "Users"); err != nil {
 		return err
 	}
 
@@ -50,15 +52,24 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
-	events := []*models.Event{{
-		Title:       "Lineare Algebra",
-		Description: "Lorem Ipsum dolor sit amed",
-		TopicName:   "Mathe",
-		TypeName:    "Tutorium",
-		NeedsTutors: true,
-		From:        time.Now().Add(4 * time.Hour),
-		To:          time.Now().Add(5 * time.Hour),
-	}}
+	umbrellaID := int32(1)
+	events := []*models.Event{
+		{
+			Title:       fmt.Sprintf("Vorkurs %s", strconv.Itoa(time.Now().Year())),
+			Description: "Lorem Ipsum",
+			From:        time.Now(),
+			To:          time.Now().Add(3 * (time.Hour * 24)),
+		},
+		{
+			Title:       "Lineare Algebra",
+			Description: "Lorem Ipsum dolor sit amed",
+			TopicName:   "Mathe",
+			TypeName:    "Tutorium",
+			NeedsTutors: true,
+			From:        time.Now().Add(4 * time.Hour),
+			To:          time.Now().Add(5 * time.Hour),
+			UmbrellaID:  &umbrellaID,
+		}}
 	if err := insertData(ctx, db, (*models.Event)(nil), events, "Events"); err != nil {
 		return err
 	}
@@ -72,10 +83,12 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		{Key: "email-signature", Value: "Dein", Type: "STRING"},
 		{Key: "email-name", Value: "Pepp - Die Vorkursverwaltung", Type: "STRING"},
 		{Key: "email-confirm-subject", Value: "Bitte bestätige deine E-Mail Adresse", Type: "STRING"},
-		{Key: "email-confirm-intro", Value: "danke für deine Registrierung als Vorkurstutor/-in!", Type: "STRING"},
-		{Key: "email-confirm-button-instruction", Value: "Bitte klicke hier, um deine E-Mail Adresse und die Verfügbarkeiten zu bestätigen:", Type: "STRING"},
+		{Key: "email-confirm-intro", Value: "danke für deine Registrierung!", Type: "STRING"},
+		{Key: "email-confirm-button-instruction", Value: "Bitte klicke hier, um deine E-Mail Adresse zu bestätigen:", Type: "STRING"},
 		{Key: "email-confirm-button-text", Value: "Bestätigen", Type: "STRING"},
-		{Key: "email-confirm-outro", Value: "Wir melden uns bei dir.", Type: "STRING"},
+		{Key: "email-availability-subject", Value: "Deine Verfügbarkeiten", Type: "STRING"},
+		{Key: "email-availability-intro", Value: "du hast dich zu folgenden Veranstaltungen als verfügbar eingetragen:", Type: "STRING"},
+		{Key: "email-availability-outro", Value: "Danke! Wir melden uns bei dir.", Type: "STRING"},
 		{Key: "email-assignment-subject", Value: "Deine Veranstaltung", Type: "STRING"},
 		{Key: "email-assignment-event-title", Value: "Veranstaltung", Type: "STRING"},
 		{Key: "email-assignment-kind-title", Value: "Art", Type: "STRING"},
