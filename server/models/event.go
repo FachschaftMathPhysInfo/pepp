@@ -20,12 +20,13 @@ type Event struct {
 	NeedsTutors bool      `bun:",notnull"`
 	UmbrellaID  *int32
 
-	Umbrella        *Event `bun:"rel:belongs-to,join:umbrella_id=id"`
-	Topic           *Label `bun:"rel:belongs-to,join:topic_name=name"`
-	Type            *Label `bun:"rel:belongs-to,join:type_name=name"`
-	TutorsAssigned  []User `bun:"m2m:event_to_user_assignments,join:Event=User"`
-	TutorsAvailable []User `bun:"m2m:user_to_event_availabilitys,join:Event=User"`
-	RoomsAvailable  []Room `bun:"m2m:room_to_event_availabilitys,join:Event=Room"`
+	Umbrella         *Event `bun:"rel:belongs-to,join:umbrella_id=id"`
+	Topic            *Label `bun:"rel:belongs-to,join:topic_name=name"`
+	Type             *Label `bun:"rel:belongs-to,join:type_name=name"`
+	TutorsAssigned   []User `bun:"m2m:event_to_user_assignments,join:Event=User"`
+	TutorsAvailable  []User `bun:"m2m:user_to_event_availabilitys,join:Event=User"`
+	RoomsAvailable   []Room `bun:"m2m:room_to_event_availabilitys,join:Event=Room"`
+	RegistrationForm *Form  `bun:"rel:has-one,join:id=event_id"`
 }
 
 var _ bun.BeforeCreateTableHook = (*Event)(nil)

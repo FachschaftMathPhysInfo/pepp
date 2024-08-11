@@ -20,6 +20,11 @@ import (
 	"github.com/uptrace/bun"
 )
 
+// Points is the resolver for the points field.
+func (r *answerResolver) Points(ctx context.Context, obj *models.Answer) (int, error) {
+	return int(obj.Points), nil
+}
+
 // TutorsAssigned is the resolver for the tutorsAssigned field.
 func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error) {
 	var eventToTutorRelations []*models.EventToUserAssignment
@@ -351,6 +356,47 @@ func (r *mutationResolver) DeleteSetting(ctx context.Context, key []string) (int
 	res, err := r.DB.NewDelete().
 		Model((*models.Setting)(nil)).
 		Where("key = ?", key).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, _ := res.RowsAffected()
+	return int(rowsAffected), nil
+}
+
+// AddForm is the resolver for the addForm field.
+func (r *mutationResolver) AddForm(ctx context.Context, form models.Form) (*models.Form, error) {
+	if _, err := r.DB.NewInsert().
+		Model(&form).
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	return &form, nil
+}
+
+// UpdateForm is the resolver for the updateForm field.
+func (r *mutationResolver) UpdateForm(ctx context.Context, id int, form models.Form) (*models.Form, error) {
+	if _, err := r.DB.NewUpdate().
+		Model(&form).
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	updatedForm, err := r.Query().Forms(ctx, []int{id})
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedForm[0], nil
+}
+
+// DeleteForm is the resolver for the deleteForm field.
+func (r *mutationResolver) DeleteForm(ctx context.Context, id []int) (int, error) {
+	res, err := r.DB.NewDelete().
+		Model((*models.Form)(nil)).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
 		return 0, err
@@ -769,6 +815,37 @@ func (r *queryResolver) Users(ctx context.Context, mail []string) ([]*models.Use
 	return users, nil
 }
 
+// Forms is the resolver for the forms field.
+func (r *queryResolver) Forms(ctx context.Context, id []int) ([]*models.Form, error) {
+	var forms []*models.Form
+
+	query := r.DB.NewSelect().
+		Model(&forms).
+		Relation("Questions").
+		Relation("Questions.Answers")
+
+	if id != nil {
+		query = query.Where("event_id IN (?)", bun.In(id))
+	}
+
+	if err := query.Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	return forms, nil
+}
+
+// Type is the resolver for the type field.
+func (r *questionResolver) Type(ctx context.Context, obj *models.Question) (model.QuestionType, error) {
+	for _, t := range model.AllQuestionType {
+		if t.String() == obj.Type {
+			return t, nil
+		}
+	}
+
+	return model.QuestionTypeText, fmt.Errorf("%s is not a valid question type", obj.Type)
+}
+
 // Capacity is the resolver for the capacity field.
 func (r *roomResolver) Capacity(ctx context.Context, obj *models.Room) (*int, error) {
 	capacity := int(obj.Capacity)
@@ -790,6 +867,12 @@ func (r *settingResolver) Type(ctx context.Context, obj *models.Setting) (model.
 	}
 
 	return model.ScalarTypeString, fmt.Errorf("unable to resolve type: %s", obj.Type)
+}
+
+// Points is the resolver for the points field.
+func (r *newAnswerResolver) Points(ctx context.Context, obj *models.Answer, data int) error {
+	obj.Points = int8(data)
+	return nil
 }
 
 // From is the resolver for the from field.
@@ -820,6 +903,12 @@ func (r *newLabelResolver) Kind(ctx context.Context, obj *models.Label, data mod
 	return nil
 }
 
+// Type is the resolver for the type field.
+func (r *newQuestionResolver) Type(ctx context.Context, obj *models.Question, data model.QuestionType) error {
+	obj.Type = data.String()
+	return nil
+}
+
 // Capacity is the resolver for the capacity field.
 func (r *newRoomResolver) Capacity(ctx context.Context, obj *models.Room, data *int) error {
 	obj.Capacity = int16(*data)
@@ -838,6 +927,9 @@ func (r *newSettingResolver) Type(ctx context.Context, obj *models.Setting, data
 	return nil
 }
 
+// Answer returns AnswerResolver implementation.
+func (r *Resolver) Answer() AnswerResolver { return &answerResolver{r} }
+
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
 
@@ -847,11 +939,17 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Question returns QuestionResolver implementation.
+func (r *Resolver) Question() QuestionResolver { return &questionResolver{r} }
+
 // Room returns RoomResolver implementation.
 func (r *Resolver) Room() RoomResolver { return &roomResolver{r} }
 
 // Setting returns SettingResolver implementation.
 func (r *Resolver) Setting() SettingResolver { return &settingResolver{r} }
+
+// NewAnswer returns NewAnswerResolver implementation.
+func (r *Resolver) NewAnswer() NewAnswerResolver { return &newAnswerResolver{r} }
 
 // NewEvent returns NewEventResolver implementation.
 func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
@@ -859,18 +957,25 @@ func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
 // NewLabel returns NewLabelResolver implementation.
 func (r *Resolver) NewLabel() NewLabelResolver { return &newLabelResolver{r} }
 
+// NewQuestion returns NewQuestionResolver implementation.
+func (r *Resolver) NewQuestion() NewQuestionResolver { return &newQuestionResolver{r} }
+
 // NewRoom returns NewRoomResolver implementation.
 func (r *Resolver) NewRoom() NewRoomResolver { return &newRoomResolver{r} }
 
 // NewSetting returns NewSettingResolver implementation.
 func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{r} }
 
+type answerResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type questionResolver struct{ *Resolver }
 type roomResolver struct{ *Resolver }
 type settingResolver struct{ *Resolver }
+type newAnswerResolver struct{ *Resolver }
 type newEventResolver struct{ *Resolver }
 type newLabelResolver struct{ *Resolver }
+type newQuestionResolver struct{ *Resolver }
 type newRoomResolver struct{ *Resolver }
 type newSettingResolver struct{ *Resolver }

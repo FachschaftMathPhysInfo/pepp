@@ -1,0 +1,15 @@
+query registrationForm($eventID:Int!) {
+  forms(id: [$eventID]) {
+    title
+    description
+    questions {
+      title
+      type
+      answers {
+        ID
+        title
+        points
+      }
+    }
+  }
+}

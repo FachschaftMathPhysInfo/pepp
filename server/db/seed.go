@@ -74,6 +74,39 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
+	form := []*models.Form{{
+		Title:       "Beispielregistrierung",
+		Description: "Lorem Ipsum dolor sit amed",
+		EventID:     1,
+	}}
+	if err := insertData(ctx, db, (*models.Form)(nil), form, "Form"); err != nil {
+		return err
+	}
+
+	questions := []*models.Question{
+		{Title: "Wie viel Programmiererfahrung hast du?", Type: "SCALE", FormID: 1},
+		{Title: "Welche der folgenden Konzepte kennst du noch nicht?", Type: "MULTIPLE_CHOICE", FormID: 1},
+		{Title: "Welchen Studiengang belegst du?", Type: "SINGLE_CHOICE", FormID: 1},
+	}
+	if err := insertData(ctx, db, (*models.Question)(nil), questions, "Questions"); err != nil {
+		return err
+	}
+
+	answers := []*models.Answer{
+		{QuestionID: 1, Title: "Keine", Points: 8},
+		{QuestionID: 1, Title: "Ich arbeite an eigenen Projekten", Points: 0},
+		{QuestionID: 2, Title: "Variablen", Points: 5},
+		{QuestionID: 2, Title: "If-Bedingungen", Points: 4},
+		{QuestionID: 2, Title: "For/While-Schleifen", Points: 3},
+		{QuestionID: 2, Title: "Klassen", Points: 1},
+		{QuestionID: 3, Title: "Informatik", Points: 2},
+		{QuestionID: 3, Title: "Mathematik", Points: 1},
+		{QuestionID: 3, Title: "Physik", Points: 1},
+	}
+	if err := insertData(ctx, db, (*models.Answer)(nil), answers, "Answers"); err != nil {
+		return err
+	}
+
 	settings := []*models.Setting{
 		{Key: "primary-color", Value: "#990000", Type: "COLOR"},
 		{Key: "logo-url", Value: "https://mathphys.info/mathphysinfo-logo.png", Type: "STRING"},

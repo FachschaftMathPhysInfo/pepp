@@ -68,6 +68,51 @@ func (e LabelKind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type QuestionType string
+
+const (
+	QuestionTypeMultipleChoice QuestionType = "MULTIPLE_CHOICE"
+	QuestionTypeSingleChoice   QuestionType = "SINGLE_CHOICE"
+	QuestionTypeScale          QuestionType = "SCALE"
+	QuestionTypeText           QuestionType = "TEXT"
+)
+
+var AllQuestionType = []QuestionType{
+	QuestionTypeMultipleChoice,
+	QuestionTypeSingleChoice,
+	QuestionTypeScale,
+	QuestionTypeText,
+}
+
+func (e QuestionType) IsValid() bool {
+	switch e {
+	case QuestionTypeMultipleChoice, QuestionTypeSingleChoice, QuestionTypeScale, QuestionTypeText:
+		return true
+	}
+	return false
+}
+
+func (e QuestionType) String() string {
+	return string(e)
+}
+
+func (e *QuestionType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = QuestionType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid QuestionType", str)
+	}
+	return nil
+}
+
+func (e QuestionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type ScalarType string
 
 const (
