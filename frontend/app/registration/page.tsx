@@ -41,7 +41,7 @@ type Props = {
 
 const SingleChoiceFormSchema = z.object({
   singleChoice: z.number({
-    required_error: "Du musst eine Auswahl treffen.",
+    required_error: "Bitte wähle eine Option",
   }),
 });
 
@@ -49,7 +49,7 @@ const MultipleChoiceFormSchema = z.object({
   multipleChoice: z
     .array(z.number())
     .refine((value) => value.some((item) => item), {
-      message: "Du musst mindestens eins auswählen.",
+      message: "Bitte triff eine Auswahl",
     }),
 });
 
@@ -92,7 +92,7 @@ const Home = ({ searchParams }: Props) => {
 
   useEffect(() => {
     if (regForm) {
-      setProgressValue((100 / regForm.questions.length) * (index + 1));
+      setProgressValue((100 / (regForm.questions.length - 1)) * index);
     }
   }, [index, regForm]);
 
