@@ -154,10 +154,11 @@ type ComplexityRoot struct {
 	}
 
 	Question struct {
-		Answers func(childComplexity int) int
-		ID      func(childComplexity int) int
-		Title   func(childComplexity int) int
-		Type    func(childComplexity int) int
+		Answers  func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Required func(childComplexity int) int
+		Title    func(childComplexity int) int
+		Type     func(childComplexity int) int
 	}
 
 	Room struct {
@@ -980,6 +981,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Question.ID(childComplexity), true
+
+	case "Question.required":
+		if e.complexity.Question.Required == nil {
+			break
+		}
+
+		return e.complexity.Question.Required(childComplexity), true
 
 	case "Question.title":
 		if e.complexity.Question.Title == nil {
@@ -3391,6 +3399,8 @@ func (ec *executionContext) fieldContext_Form_questions(_ context.Context, field
 				return ec.fieldContext_Question_title(ctx, field)
 			case "type":
 				return ec.fieldContext_Question_type(ctx, field)
+			case "required":
+				return ec.fieldContext_Question_required(ctx, field)
 			case "answers":
 				return ec.fieldContext_Question_answers(ctx, field)
 			}
@@ -6306,6 +6316,50 @@ func (ec *executionContext) fieldContext_Question_type(_ context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Question_required(ctx context.Context, field graphql.CollectedField, obj *models.Question) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Question_required(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Required, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Question_required(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Question",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Question_answers(ctx context.Context, field graphql.CollectedField, obj *models.Question) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Question_answers(ctx, field)
 	if err != nil {
@@ -9186,7 +9240,7 @@ func (ec *executionContext) unmarshalInputNewQuestion(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"title", "type", "answers"}
+	fieldsInOrder := [...]string{"title", "type", "answers", "required"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -9216,6 +9270,13 @@ func (ec *executionContext) unmarshalInputNewQuestion(ctx context.Context, obj i
 				return it, err
 			}
 			it.Answers = data
+		case "required":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("required"))
+			data, err := ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Required = data
 		}
 	}
 
@@ -10493,6 +10554,11 @@ func (ec *executionContext) _Question(ctx context.Context, sel ast.SelectionSet,
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "required":
+			out.Values[i] = ec._Question_required(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
 		case "answers":
 			out.Values[i] = ec._Question_answers(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

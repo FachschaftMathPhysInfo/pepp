@@ -39,19 +39,23 @@ type Props = {
   };
 };
 
-const SingleChoiceFormSchema = z.object({
-  singleChoice: z.number({
-    required_error: "Bitte wähle eine Option",
-  }),
-});
+const SingleChoiceFormSchema = (required: boolean) =>
+  z.object({
+    singleChoice: required
+      ? z.number({
+          required_error: "Bitte wähle eine Option",
+        })
+      : z.number().optional(),
+  });
 
-const MultipleChoiceFormSchema = z.object({
-  multipleChoice: z
-    .array(z.number())
-    .refine((value) => value.some((item) => item), {
-      message: "Bitte triff eine Auswahl",
-    }),
-});
+const MultipleChoiceFormSchema = (required: boolean) =>
+  z.object({
+    multipleChoice: required
+      ? z.array(z.number()).refine((value) => value.some((item) => item), {
+          message: "Bitte triff eine Auswahl",
+        })
+      : z.array(z.number()).optional(),
+  });
 
 const Home = ({ searchParams }: Props) => {
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
@@ -96,15 +100,15 @@ const Home = ({ searchParams }: Props) => {
     }
   }, [index, regForm]);
 
-  const mcForm = useForm<z.infer<typeof MultipleChoiceFormSchema>>({
-    resolver: zodResolver(MultipleChoiceFormSchema),
+  const mcForm = useForm<z.infer<ReturnType<typeof MultipleChoiceFormSchema>>>({
+    resolver: zodResolver(MultipleChoiceFormSchema(regForm?.questions[index].required!)),
     defaultValues: {
       multipleChoice: [],
     },
   });
 
-  const scForm = useForm<z.infer<typeof SingleChoiceFormSchema>>({
-    resolver: zodResolver(SingleChoiceFormSchema),
+  const scForm = useForm<z.infer<ReturnType<typeof SingleChoiceFormSchema>>>({
+    resolver: zodResolver(SingleChoiceFormSchema(regForm?.questions[index].required!)),
     defaultValues: {
       singleChoice: undefined,
     },
@@ -136,11 +140,11 @@ const Home = ({ searchParams }: Props) => {
     setSliderValue(0);
   }
 
-  function onMCSubmit(data: z.infer<typeof MultipleChoiceFormSchema>) {
+  function onMCSubmit(data: z.infer<ReturnType<typeof MultipleChoiceFormSchema>>) {
     onSubmit();
   }
 
-  function onSCSubmit(data: z.infer<typeof SingleChoiceFormSchema>) {
+  function onSCSubmit(data: z.infer<ReturnType<typeof SingleChoiceFormSchema>>) {
     onSubmit();
   }
 
@@ -191,7 +195,7 @@ const Home = ({ searchParams }: Props) => {
                                         onCheckedChange={(checked) => {
                                           return checked
                                             ? field.onChange([
-                                                ...field.value,
+                                                ...field.value || [],
                                                 answer.ID,
                                               ])
                                             : field.onChange(

@@ -87,6 +87,7 @@ type Question {
   ID: Int!
   title: String!
   type: QuestionType!
+  required: Boolean!
   answers: [Answer!]!
 }
 
@@ -164,6 +165,7 @@ input NewQuestion {
   title: String!
   type: QuestionType!
   answers: [NewAnswer!]!
+  required: Boolean!
 }
 
 input NewForm {

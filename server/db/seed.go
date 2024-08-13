@@ -85,8 +85,8 @@ func seedData(ctx context.Context, db *bun.DB) error {
 
 	questions := []*models.Question{
 		{Title: "Wie viel Programmiererfahrung hast du?", Type: "SCALE", FormID: 1},
-		{Title: "Welche der folgenden Konzepte kennst du noch nicht?", Type: "MULTIPLE_CHOICE", FormID: 1},
-		{Title: "Welchen Studiengang belegst du?", Type: "SINGLE_CHOICE", FormID: 1},
+		{Title: "Welche der folgenden Konzepte kennst du noch nicht?", Type: "MULTIPLE_CHOICE", Required: false, FormID: 1},
+		{Title: "Welchen Studiengang belegst du?", Type: "SINGLE_CHOICE", Required: true, FormID: 1},
 	}
 	if err := insertData(ctx, db, (*models.Question)(nil), questions, "Questions"); err != nil {
 		return err

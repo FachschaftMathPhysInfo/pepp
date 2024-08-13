@@ -5,6 +5,7 @@ query registrationForm($eventID:Int!) {
     questions {
       title
       type
+      required
       answers {
         ID
         title
