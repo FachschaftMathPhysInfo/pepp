@@ -18,6 +18,13 @@ export type Scalars = {
   timestamptz: { input: any; output: any; }
 };
 
+export type Answer = {
+  __typename?: 'Answer';
+  ID: Scalars['Int']['output'];
+  points: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+};
+
 export type Building = {
   __typename?: 'Building';
   ID: Scalars['Int']['output'];
@@ -60,6 +67,14 @@ export type EventTutorRoomPair = {
   tutors?: Maybe<Array<User>>;
 };
 
+export type Form = {
+  __typename?: 'Form';
+  description?: Maybe<Scalars['String']['output']>;
+  eventID: Scalars['Int']['output'];
+  questions: Array<Question>;
+  title: Scalars['String']['output'];
+};
+
 export type Label = {
   __typename?: 'Label';
   color?: Maybe<Scalars['HexColorCode']['output']>;
@@ -76,6 +91,7 @@ export type Mutation = {
   addBuilding: Building;
   addEvent: Event;
   addEventAssignmentForTutor: Event;
+  addForm: Form;
   addLabel: Label;
   addRoom: Room;
   addRoomAvailabilityForEvent: Room;
@@ -87,6 +103,7 @@ export type Mutation = {
   deleteBuilding: Scalars['Int']['output'];
   deleteEvent: Scalars['Int']['output'];
   deleteEventAssignmentForTutor: Event;
+  deleteForm: Scalars['Int']['output'];
   deleteLabel: Scalars['Int']['output'];
   deleteRoom: Scalars['Int']['output'];
   deleteRoomAvailabilityForEvent: Room;
@@ -96,6 +113,7 @@ export type Mutation = {
   deleteUser: Scalars['Int']['output'];
   updateBuilding: Building;
   updateEvent: Event;
+  updateForm: Form;
   updateLabel: Label;
   updateRoom: Room;
   updateSetting: Setting;
@@ -115,6 +133,11 @@ export type MutationAddEventArgs = {
 
 export type MutationAddEventAssignmentForTutorArgs = {
   assignment: EventToUserAssignment;
+};
+
+
+export type MutationAddFormArgs = {
+  form: NewForm;
 };
 
 
@@ -174,6 +197,11 @@ export type MutationDeleteEventAssignmentForTutorArgs = {
 };
 
 
+export type MutationDeleteFormArgs = {
+  id: Array<Scalars['Int']['input']>;
+};
+
+
 export type MutationDeleteLabelArgs = {
   name: Array<Scalars['String']['input']>;
 };
@@ -222,6 +250,12 @@ export type MutationUpdateEventArgs = {
 };
 
 
+export type MutationUpdateFormArgs = {
+  form: NewForm;
+  id: Scalars['Int']['input'];
+};
+
+
 export type MutationUpdateLabelArgs = {
   label: NewLabel;
 };
@@ -239,6 +273,11 @@ export type MutationUpdateSettingArgs = {
 
 export type MutationUpdateUserArgs = {
   user: NewUser;
+};
+
+export type NewAnswer = {
+  points: Scalars['Int']['input'];
+  title: Scalars['String']['input'];
 };
 
 export type NewBuilding = {
@@ -261,10 +300,23 @@ export type NewEvent = {
   umbrellaID?: InputMaybe<Scalars['Int']['input']>;
 };
 
+export type NewForm = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  questions: Array<NewQuestion>;
+  title: Scalars['String']['input'];
+};
+
 export type NewLabel = {
   color?: InputMaybe<Scalars['HexColorCode']['input']>;
   kind: LabelKind;
   name: Scalars['String']['input'];
+};
+
+export type NewQuestion = {
+  answers: Array<NewAnswer>;
+  required?: InputMaybe<Scalars['Boolean']['input']>;
+  title: Scalars['String']['input'];
+  type: QuestionType;
 };
 
 export type NewRoom = {
@@ -297,6 +349,7 @@ export type Query = {
   __typename?: 'Query';
   buildings: Array<Building>;
   events: Array<Event>;
+  forms: Array<Form>;
   labels: Array<Label>;
   rooms: Array<Room>;
   settings: Array<Setting>;
@@ -317,6 +370,11 @@ export type QueryEventsArgs = {
   onlyFuture?: InputMaybe<Scalars['Boolean']['input']>;
   umbrellaID?: InputMaybe<Array<Scalars['Int']['input']>>;
   userMail?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type QueryFormsArgs = {
+  id?: InputMaybe<Array<Scalars['Int']['input']>>;
 };
 
 
@@ -347,6 +405,22 @@ export type QueryUmbrellasArgs = {
 export type QueryUsersArgs = {
   mail?: InputMaybe<Array<Scalars['String']['input']>>;
 };
+
+export type Question = {
+  __typename?: 'Question';
+  ID: Scalars['Int']['output'];
+  answers: Array<Answer>;
+  required: Scalars['Boolean']['output'];
+  title: Scalars['String']['output'];
+  type: QuestionType;
+};
+
+export enum QuestionType {
+  MultipleChoice = 'MULTIPLE_CHOICE',
+  Scale = 'SCALE',
+  SingleChoice = 'SINGLE_CHOICE',
+  Text = 'TEXT'
+}
 
 export type Room = {
   __typename?: 'Room';
@@ -412,6 +486,14 @@ export type TutorFormEventsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type TutorFormEventsQuery = { __typename?: 'Query', events: Array<{ __typename?: 'Event', ID: number, title: string, from: any, to: any, topic: { __typename?: 'Label', name: string, color?: any | null }, type: { __typename?: 'Label', name: string, color?: any | null } }> };
 
+export type RegistrationFormQueryVariables = Exact<{
+  eventID: Scalars['Int']['input'];
+}>;
+
+
+export type RegistrationFormQuery = { __typename?: 'Query', forms: Array<{ __typename?: 'Form', title: string, description?: string | null, questions: Array<{ __typename?: 'Question', title: string, type: QuestionType, required: boolean, answers: Array<{ __typename?: 'Answer', ID: number, title: string, points: number }> }> }> };
+
 
 export const AddTutorDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"addTutor"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"firstName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lastName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"eventsAvailable"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addTutor"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tutor"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"fn"},"value":{"kind":"Variable","name":{"kind":"Name","value":"firstName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"sn"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lastName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"mail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"availability"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"userMail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"eventID"},"value":{"kind":"Variable","name":{"kind":"Name","value":"eventsAvailable"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}}]}}]}}]} as unknown as DocumentNode<AddTutorMutation, AddTutorMutationVariables>;
 export const TutorFormEventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"tutorFormEvents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"needsTutors"},"value":{"kind":"BooleanValue","value":true}},{"kind":"Argument","name":{"kind":"Name","value":"onlyFuture"},"value":{"kind":"BooleanValue","value":true}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"from"}},{"kind":"Field","name":{"kind":"Name","value":"to"}},{"kind":"Field","name":{"kind":"Name","value":"topic"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}},{"kind":"Field","name":{"kind":"Name","value":"type"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}}]}}]}}]} as unknown as DocumentNode<TutorFormEventsQuery, TutorFormEventsQueryVariables>;
+export const RegistrationFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"registrationForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"eventID"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"forms"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"eventID"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"questions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"answers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}}]}}]}}]} as unknown as DocumentNode<RegistrationFormQuery, RegistrationFormQueryVariables>;

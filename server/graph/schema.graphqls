@@ -70,6 +70,34 @@ type Building {
   rooms: [Room!]
 }
 
+type Answer {
+  ID: Int!
+  title: String!
+  points: Int!
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  SINGLE_CHOICE
+  SCALE
+  TEXT
+}
+
+type Question {
+  ID: Int!
+  title: String!
+  type: QuestionType!
+  required: Boolean!
+  answers: [Answer!]!
+}
+
+type Form {
+  eventID: Int!
+  title: String!
+  description: String
+  questions: [Question!]!
+}
+
 type Setting {
   key: String!
   value: String!
@@ -84,6 +112,7 @@ type Query {
   labels(name: [String!], kind: [LabelKind!]): [Label!]!
   settings(key: [String!], type: [ScalarType!]): [Setting!]!
   users(mail: [String!]): [User!]!
+  forms(id: [Int!]): [Form!]!
 }
 
 input NewUser {
@@ -125,6 +154,24 @@ input NewLabel {
   name: String!
   color: HexColorCode
   kind: LabelKind!
+}
+
+input NewAnswer {
+  title: String!
+  points: Int!
+}
+
+input NewQuestion {
+  title: String!
+  type: QuestionType!
+  answers: [NewAnswer!]!
+  required: Boolean!
+}
+
+input NewForm {
+  title: String!
+  description: String
+  questions: [NewQuestion!]!
 }
 
 input NewSetting {
@@ -178,6 +225,9 @@ type Mutation {
   addSetting(setting: NewSetting!): Setting!
   updateSetting(setting: NewSetting!): Setting!
   deleteSetting(key: [String!]!): Int!
+  addForm(form: NewForm!): Form!
+  updateForm(id: Int!, form: NewForm!): Form!
+  deleteForm(id: [Int!]!): Int!
 
   addEventAssignmentForTutor(assignment: EventToUserAssignment!): Event!
   deleteEventAssignmentForTutor(assignment: EventToUserAssignment!): Event!
