@@ -31,6 +31,14 @@ export const addTutor = async (formState: FormState, formData: FormData) => {
   const email = formData.get("email")?.toString() || "";
   const eventsAvailable = eventBroker.getEvents();
 
+  try {
+    if (eventsAvailable.length == 0) {
+      throw new Error("Keine Veranstaltung ausgewählt");
+    }
+  } catch (error) {
+    return fromErrorToFormState(error);
+  }
+
   const vars: AddTutorMutationVariables = {
     firstName,
     lastName,

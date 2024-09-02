@@ -20,15 +20,15 @@ const TutorRegistrationForm = () => {
   return (
     <form action={action} className="flex flex-col w-[85%] md:w-[50%] xl:w-[35%] md:h-[calc(100vh-10rem)] mx-auto pb-3">
       <div className={inputDivStyling}>
-        <Input type="text" name="fn" placeholder="Vorname" />
+        <Input type="text" name="fn" placeholder="Vorname" required/>
       </div>
 
       <div className={inputDivStyling}>
-        <Input type="text" name="sn" placeholder="Nachname" />
+        <Input type="text" name="sn" placeholder="Nachname" required/>
       </div>
 
       <div className={inputDivStyling}>
-        <Input type="email" name="email" placeholder="E-Mail" />
+        <Input type="email" name="email" placeholder="E-Mail" required/>
       </div>
 
       <div className={tableDivStyling}>
