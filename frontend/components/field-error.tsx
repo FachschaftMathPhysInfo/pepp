@@ -1,14 +1,7 @@
-import { FormState } from '@/lib/to-form-state';
-
-type FieldErrorProps = {
-  formState: FormState;
-  name: string;
-};
-
-const FieldError = ({ formState, name }: FieldErrorProps) => {
+const FieldError = ({message}: {message: string}) => {
   return (
     <span className="text-xs text-red-400">
-      {formState.fieldErrors[name]?.[0]}
+      {message}
     </span>
   );
 };

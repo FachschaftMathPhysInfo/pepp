@@ -1,8 +1,3 @@
-import {
-  FormState,
-  fromErrorToFormState,
-  toFormState,
-} from "@/lib/to-form-state";
 import { client } from "@/lib/graphClient";
 import {
   AddTutorDocument,
@@ -23,11 +18,11 @@ export const getEvents = async (): Promise<TutorFormEventsQuery> => {
   return Promise.resolve(data);
 };
 
-export const addTutor = async (formState: FormState, formData: FormData) => {
+export const addTutor = async (formData: FormData) => {
   await new Promise((resolve) => setTimeout(resolve, 250));
 
-  const firstName = formData.get("fn")?.toString() || "";
-  const lastName = formData.get("sn")?.toString() || "";
+  const firstName = formData.get("firstName")?.toString() || "";
+  const lastName = formData.get("lastName")?.toString() || "";
   const email = formData.get("email")?.toString() || "";
   const eventsAvailable = eventBroker.getEvents();
 
@@ -41,8 +36,8 @@ export const addTutor = async (formState: FormState, formData: FormData) => {
   try {
     await client.request<AddTutorMutation>(AddTutorDocument, vars);
   } catch (err) {
-    return fromErrorToFormState(err);
+    return ['FAILURE', 'Beim Absenden des Formulares, ist ein Fehler aufgetreten, versuche es später erneut'];
   }
 
-  return toFormState("SUCCESS", "Anmeldung erfolgreich");
+  return ['SUCCESS', 'Anmeldung erfolgreich!'];
 };
