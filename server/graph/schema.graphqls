@@ -18,6 +18,7 @@ type User {
   eventsRegistered: [Event!]
   eventsAvailable: [Event!]
   eventsAssigned: [Event!]
+  applications: [Application!]
 }
 
 enum LabelKind {
@@ -104,6 +105,25 @@ type Setting {
   type: ScalarType!
 }
 
+type AnswerValuePair {
+  answer: Answer
+  value: String
+}
+
+type QuestionAnswersPair {
+  question: Question!
+  answers: [AnswerValuePair!]!
+}
+
+type Application {
+  event: Event!
+  student: User!
+  score: Int!
+  accepted: Boolean
+  form: Form!
+  responses: [QuestionAnswersPair!]
+}
+
 type Query {
   events(id: [Int!], umbrellaID: [Int!], label: [String!], needsTutors: Boolean, onlyFuture: Boolean, userMail: [String!]): [Event!]!
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
@@ -113,6 +133,7 @@ type Query {
   settings(key: [String!], type: [ScalarType!]): [Setting!]!
   users(mail: [String!]): [User!]!
   forms(id: [Int!]): [Form!]!
+  applications(eventID: Int, studentMail: [String!]): [Application!]!
 }
 
 input NewUser {
@@ -205,11 +226,24 @@ input UserToEventRegistration {
   buildingID: Int!
 }
 
+input NewQuestionResponsePair {
+  questionID: Int!
+  answerID: Int
+  value: String
+}
+
+input NewUserToEventApplication {
+  userMail: String!
+  eventID: Int!
+  answers: [NewQuestionResponsePair!]
+}
+
 type Mutation {
   addUser(user: NewUser!): User!
   updateUser(user: NewUser!): User!
   deleteUser(mail: [String!]!): Int!
   addTutor(tutor: NewUser!, availability: NewUserToEventAvailability!): User!
+  addStudent(student: NewUser!, application: NewUserToEventApplication!): User!
   addEvent(event: NewEvent!): Event!
   updateEvent(id: Int!, event: NewEvent!): Event!
   deleteEvent(id: [Int!]!): Int!
@@ -237,4 +271,6 @@ type Mutation {
   deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
   addStudentRegistrationForEvent(registration: UserToEventRegistration!): User!
   deleteStudentRegistrationForEvent(registration: UserToEventRegistration!): User!
+  addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
+  deleteStudentApplicationForEvent(mail: String!, eventID: Int!): User!
 }

@@ -13,9 +13,10 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
+    "mutation addStudentApplicationForEvent($application: NewUserToEventApplication!) {\n  addStudentApplicationForEvent(application: $application) {\n    fn\n  }\n}": types.AddStudentApplicationForEventDocument,
     "mutation addTutor($firstName: String!, $lastName: String!, $email: String!, $eventsAvailable: [Int!]!) {\n  addTutor(\n    tutor: {fn: $firstName, sn: $lastName, mail: $email}\n    availability: {userMail: $email, eventID: $eventsAvailable}\n  ) {\n    fn\n  }\n}": types.AddTutorDocument,
     "query tutorFormEvents {\n  events(needsTutors: true, onlyFuture: true) {\n    ID\n    title\n    from\n    to\n    topic {\n      name\n      color\n    }\n    type {\n      name\n      color\n    }\n  }\n}": types.TutorFormEventsDocument,
-    "query registrationForm($eventID: Int!) {\n  forms(id: [$eventID]) {\n    title\n    description\n    questions {\n      title\n      type\n      required\n      answers {\n        ID\n        title\n        points\n      }\n    }\n  }\n}": types.RegistrationFormDocument,
+    "query registrationForm($eventID: Int!) {\n  forms(id: [$eventID]) {\n    title\n    description\n    questions {\n      ID\n      title\n      type\n      required\n      answers {\n        ID\n        title\n        points\n      }\n    }\n  }\n}": types.RegistrationFormDocument,
 };
 
 /**
@@ -35,6 +36,10 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "mutation addStudentApplicationForEvent($application: NewUserToEventApplication!) {\n  addStudentApplicationForEvent(application: $application) {\n    fn\n  }\n}"): (typeof documents)["mutation addStudentApplicationForEvent($application: NewUserToEventApplication!) {\n  addStudentApplicationForEvent(application: $application) {\n    fn\n  }\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "mutation addTutor($firstName: String!, $lastName: String!, $email: String!, $eventsAvailable: [Int!]!) {\n  addTutor(\n    tutor: {fn: $firstName, sn: $lastName, mail: $email}\n    availability: {userMail: $email, eventID: $eventsAvailable}\n  ) {\n    fn\n  }\n}"): (typeof documents)["mutation addTutor($firstName: String!, $lastName: String!, $email: String!, $eventsAvailable: [Int!]!) {\n  addTutor(\n    tutor: {fn: $firstName, sn: $lastName, mail: $email}\n    availability: {userMail: $email, eventID: $eventsAvailable}\n  ) {\n    fn\n  }\n}"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -43,7 +48,7 @@ export function graphql(source: "query tutorFormEvents {\n  events(needsTutors: 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query registrationForm($eventID: Int!) {\n  forms(id: [$eventID]) {\n    title\n    description\n    questions {\n      title\n      type\n      required\n      answers {\n        ID\n        title\n        points\n      }\n    }\n  }\n}"): (typeof documents)["query registrationForm($eventID: Int!) {\n  forms(id: [$eventID]) {\n    title\n    description\n    questions {\n      title\n      type\n      required\n      answers {\n        ID\n        title\n        points\n      }\n    }\n  }\n}"];
+export function graphql(source: "query registrationForm($eventID: Int!) {\n  forms(id: [$eventID]) {\n    title\n    description\n    questions {\n      ID\n      title\n      type\n      required\n      answers {\n        ID\n        title\n        points\n      }\n    }\n  }\n}"): (typeof documents)["query registrationForm($eventID: Int!) {\n  forms(id: [$eventID]) {\n    title\n    description\n    questions {\n      ID\n      title\n      type\n      required\n      answers {\n        ID\n        title\n        points\n      }\n    }\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

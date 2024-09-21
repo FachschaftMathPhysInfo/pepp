@@ -19,9 +19,10 @@ type User struct {
 	Password  string    `bun:"type:varchar(64)"`
 	CreatedAt time.Time `bun:",default:current_timestamp"`
 
-	EventsAvailable  []Event `bun:"m2m:user_to_event_availabilitys,join:User=Event"`
-	EventsAssigned   []Event `bun:"m2m:event_to_user_assignments,join:User=Event"`
-	EventsRegistered []Event `bun:"m2m:user_to_event_registrations,join:User=Event"`
+	EventsAvailable  []Event        `bun:"m2m:user_to_event_availabilitys,join:User=Event"`
+	EventsAssigned   []Event        `bun:"m2m:event_to_user_assignments,join:User=Event"`
+	EventsRegistered []Event        `bun:"m2m:user_to_event_registrations,join:User=Event"`
+	Applications     []*Application `bun:"rel:has-many,join:mail=student_mail"`
 }
 
 type UserToEventAvailability struct {

@@ -1,0 +1,5 @@
+mutation addStudentApplicationForEvent($application:NewUserToEventApplication!) {
+  addStudentApplicationForEvent(application: $application) {
+    fn
+  }
+}

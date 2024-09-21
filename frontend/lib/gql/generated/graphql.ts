@@ -25,6 +25,22 @@ export type Answer = {
   title: Scalars['String']['output'];
 };
 
+export type AnswerValuePair = {
+  __typename?: 'AnswerValuePair';
+  answer?: Maybe<Answer>;
+  value?: Maybe<Scalars['String']['output']>;
+};
+
+export type Application = {
+  __typename?: 'Application';
+  accepted?: Maybe<Scalars['Boolean']['output']>;
+  event: Event;
+  form: Form;
+  responses?: Maybe<Array<QuestionAnswersPair>>;
+  score: Scalars['Int']['output'];
+  student: User;
+};
+
 export type Building = {
   __typename?: 'Building';
   ID: Scalars['Int']['output'];
@@ -96,6 +112,8 @@ export type Mutation = {
   addRoom: Room;
   addRoomAvailabilityForEvent: Room;
   addSetting: Setting;
+  addStudent: User;
+  addStudentApplicationForEvent: User;
   addStudentRegistrationForEvent: User;
   addTutor: User;
   addTutorAvailabilityForEvent: User;
@@ -108,6 +126,7 @@ export type Mutation = {
   deleteRoom: Scalars['Int']['output'];
   deleteRoomAvailabilityForEvent: Room;
   deleteSetting: Scalars['Int']['output'];
+  deleteStudentApplicationForEvent: User;
   deleteStudentRegistrationForEvent: User;
   deleteTutorAvailabilityForEvent: User;
   deleteUser: Scalars['Int']['output'];
@@ -158,6 +177,17 @@ export type MutationAddRoomAvailabilityForEventArgs = {
 
 export type MutationAddSettingArgs = {
   setting: NewSetting;
+};
+
+
+export type MutationAddStudentArgs = {
+  application: NewUserToEventApplication;
+  student: NewUser;
+};
+
+
+export type MutationAddStudentApplicationForEventArgs = {
+  application: NewUserToEventApplication;
 };
 
 
@@ -220,6 +250,12 @@ export type MutationDeleteRoomAvailabilityForEventArgs = {
 
 export type MutationDeleteSettingArgs = {
   key: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationDeleteStudentApplicationForEventArgs = {
+  eventID: Scalars['Int']['input'];
+  mail: Scalars['String']['input'];
 };
 
 
@@ -314,9 +350,15 @@ export type NewLabel = {
 
 export type NewQuestion = {
   answers: Array<NewAnswer>;
-  required?: InputMaybe<Scalars['Boolean']['input']>;
+  required: Scalars['Boolean']['input'];
   title: Scalars['String']['input'];
   type: QuestionType;
+};
+
+export type NewQuestionResponsePair = {
+  answerID?: InputMaybe<Scalars['Int']['input']>;
+  questionID: Scalars['Int']['input'];
+  value?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type NewRoom = {
@@ -340,6 +382,12 @@ export type NewUser = {
   sn?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type NewUserToEventApplication = {
+  answers?: InputMaybe<Array<NewQuestionResponsePair>>;
+  eventID: Scalars['Int']['input'];
+  userMail: Scalars['String']['input'];
+};
+
 export type NewUserToEventAvailability = {
   eventID: Array<Scalars['Int']['input']>;
   userMail: Scalars['String']['input'];
@@ -347,6 +395,7 @@ export type NewUserToEventAvailability = {
 
 export type Query = {
   __typename?: 'Query';
+  applications: Array<Application>;
   buildings: Array<Building>;
   events: Array<Event>;
   forms: Array<Form>;
@@ -355,6 +404,12 @@ export type Query = {
   settings: Array<Setting>;
   umbrellas: Array<Event>;
   users: Array<User>;
+};
+
+
+export type QueryApplicationsArgs = {
+  eventID?: InputMaybe<Scalars['Int']['input']>;
+  studentMail?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
@@ -415,6 +470,12 @@ export type Question = {
   type: QuestionType;
 };
 
+export type QuestionAnswersPair = {
+  __typename?: 'QuestionAnswersPair';
+  answers: Array<AnswerValuePair>;
+  question: Question;
+};
+
 export enum QuestionType {
   MultipleChoice = 'MULTIPLE_CHOICE',
   Scale = 'SCALE',
@@ -455,6 +516,7 @@ export type Setting = {
 
 export type User = {
   __typename?: 'User';
+  applications?: Maybe<Array<Application>>;
   confirmed: Scalars['Boolean']['output'];
   eventsAssigned?: Maybe<Array<Event>>;
   eventsAvailable?: Maybe<Array<Event>>;
@@ -470,6 +532,13 @@ export type UserToEventRegistration = {
   roomNumber: Scalars['String']['input'];
   userMail: Scalars['String']['input'];
 };
+
+export type AddStudentApplicationForEventMutationVariables = Exact<{
+  application: NewUserToEventApplication;
+}>;
+
+
+export type AddStudentApplicationForEventMutation = { __typename?: 'Mutation', addStudentApplicationForEvent: { __typename?: 'User', fn: string } };
 
 export type AddTutorMutationVariables = Exact<{
   firstName: Scalars['String']['input'];
@@ -491,9 +560,10 @@ export type RegistrationFormQueryVariables = Exact<{
 }>;
 
 
-export type RegistrationFormQuery = { __typename?: 'Query', forms: Array<{ __typename?: 'Form', title: string, description?: string | null, questions: Array<{ __typename?: 'Question', title: string, type: QuestionType, required: boolean, answers: Array<{ __typename?: 'Answer', ID: number, title: string, points: number }> }> }> };
+export type RegistrationFormQuery = { __typename?: 'Query', forms: Array<{ __typename?: 'Form', title: string, description?: string | null, questions: Array<{ __typename?: 'Question', ID: number, title: string, type: QuestionType, required: boolean, answers: Array<{ __typename?: 'Answer', ID: number, title: string, points: number }> }> }> };
 
 
+export const AddStudentApplicationForEventDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"addStudentApplicationForEvent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"application"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NewUserToEventApplication"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addStudentApplicationForEvent"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"application"},"value":{"kind":"Variable","name":{"kind":"Name","value":"application"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}}]}}]}}]} as unknown as DocumentNode<AddStudentApplicationForEventMutation, AddStudentApplicationForEventMutationVariables>;
 export const AddTutorDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"addTutor"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"firstName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lastName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"eventsAvailable"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addTutor"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"tutor"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"fn"},"value":{"kind":"Variable","name":{"kind":"Name","value":"firstName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"sn"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lastName"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"mail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}}]}},{"kind":"Argument","name":{"kind":"Name","value":"availability"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"userMail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"eventID"},"value":{"kind":"Variable","name":{"kind":"Name","value":"eventsAvailable"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}}]}}]}}]} as unknown as DocumentNode<AddTutorMutation, AddTutorMutationVariables>;
 export const TutorFormEventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"tutorFormEvents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"needsTutors"},"value":{"kind":"BooleanValue","value":true}},{"kind":"Argument","name":{"kind":"Name","value":"onlyFuture"},"value":{"kind":"BooleanValue","value":true}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"from"}},{"kind":"Field","name":{"kind":"Name","value":"to"}},{"kind":"Field","name":{"kind":"Name","value":"topic"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}},{"kind":"Field","name":{"kind":"Name","value":"type"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}}]}}]}}]} as unknown as DocumentNode<TutorFormEventsQuery, TutorFormEventsQueryVariables>;
-export const RegistrationFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"registrationForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"eventID"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"forms"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"eventID"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"questions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"answers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}}]}}]}}]} as unknown as DocumentNode<RegistrationFormQuery, RegistrationFormQueryVariables>;
+export const RegistrationFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"registrationForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"eventID"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"forms"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"eventID"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"questions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"answers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}}]}}]}}]} as unknown as DocumentNode<RegistrationFormQuery, RegistrationFormQueryVariables>;

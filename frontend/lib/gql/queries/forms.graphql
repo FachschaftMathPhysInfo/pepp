@@ -3,6 +3,7 @@ query registrationForm($eventID:Int!) {
     title
     description
     questions {
+      ID
       title
       type
       required

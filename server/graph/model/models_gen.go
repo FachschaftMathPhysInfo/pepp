@@ -10,6 +10,11 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 )
 
+type AnswerValuePair struct {
+	Answer *models.Answer `json:"answer,omitempty"`
+	Value  *string        `json:"value,omitempty"`
+}
+
 type EventTutorRoomPair struct {
 	Tutors        []*models.User `json:"tutors,omitempty"`
 	Room          *models.Room   `json:"room,omitempty"`
@@ -19,12 +24,29 @@ type EventTutorRoomPair struct {
 type Mutation struct {
 }
 
+type NewQuestionResponsePair struct {
+	QuestionID int     `json:"questionID"`
+	AnswerID   *int    `json:"answerID,omitempty"`
+	Value      *string `json:"value,omitempty"`
+}
+
+type NewUserToEventApplication struct {
+	UserMail string                     `json:"userMail"`
+	EventID  int                        `json:"eventID"`
+	Answers  []*NewQuestionResponsePair `json:"answers,omitempty"`
+}
+
 type NewUserToEventAvailability struct {
 	UserMail string `json:"userMail"`
 	EventID  []int  `json:"eventID"`
 }
 
 type Query struct {
+}
+
+type QuestionAnswersPair struct {
+	Question *models.Question   `json:"question"`
+	Answers  []*AnswerValuePair `json:"answers"`
 }
 
 type LabelKind string

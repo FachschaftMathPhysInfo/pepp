@@ -25,6 +25,51 @@ func (r *answerResolver) Points(ctx context.Context, obj *models.Answer) (int, e
 	return int(obj.Points), nil
 }
 
+// Score is the resolver for the score field.
+func (r *applicationResolver) Score(ctx context.Context, obj *models.Application) (int, error) {
+	return int(obj.Score), nil
+}
+
+// Responses is the resolver for the responses field.
+func (r *applicationResolver) Responses(ctx context.Context, obj *models.Application) ([]*model.QuestionAnswersPair, error) {
+	form, err := r.Query().Forms(ctx, []int{int(obj.EventID)})
+	if err != nil {
+		return nil, err
+	}
+
+	qas := []*model.QuestionAnswersPair{}
+
+	for _, question := range form[0].Questions {
+		var aqs []*models.ApplicationToQuestion
+		if err := r.DB.NewSelect().
+			Model(&aqs).
+			Relation("Answer").
+			Where(`"aq"."question_id" = ?`, question.ID).
+			Scan(ctx); err != nil {
+			return nil, err
+		}
+
+		avs := []*model.AnswerValuePair{}
+		for _, answer := range aqs {
+			av := &model.AnswerValuePair{
+				Answer: answer.Answer,
+				Value:  &answer.Value,
+			}
+
+			avs = append(avs, av)
+		}
+
+		qa := &model.QuestionAnswersPair{
+			Question: question,
+			Answers:  avs,
+		}
+
+		qas = append(qas, qa)
+	}
+
+	return qas, nil
+}
+
 // TutorsAssigned is the resolver for the tutorsAssigned field.
 func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error) {
 	var eventToTutorRelations []*models.EventToUserAssignment
@@ -141,6 +186,20 @@ func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.User, avai
 	}
 
 	return user, nil
+}
+
+// AddStudent is the resolver for the addStudent field.
+func (r *mutationResolver) AddStudent(ctx context.Context, student models.User, application model.NewUserToEventApplication) (*models.User, error) {
+	if _, err := r.Mutation().AddUser(ctx, student); err != nil {
+		return nil, err
+	}
+
+	newUser, err := r.Mutation().AddStudentApplicationForEvent(ctx, application)
+	if err != nil {
+		return nil, err
+	}
+
+	return newUser, nil
 }
 
 // AddEvent is the resolver for the addEvent field.
@@ -637,6 +696,88 @@ func (r *mutationResolver) DeleteStudentRegistrationForEvent(ctx context.Context
 	return user[0], nil
 }
 
+// AddStudentApplicationForEvent is the resolver for the addStudentApplicationForEvent field.
+func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, application model.NewUserToEventApplication) (*models.User, error) {
+	score := 0
+
+	aqs := []models.ApplicationToQuestion{}
+	for _, a := range application.Answers {
+		var points int
+
+		aq := &models.ApplicationToQuestion{
+			StudentMail: application.UserMail,
+			EventID:     int32(application.EventID),
+			QuestionID:  int32(a.QuestionID),
+		}
+
+		if a.AnswerID != nil {
+			aq.AnswerID = int32(*a.AnswerID)
+			if err := r.DB.NewSelect().
+				Model((*models.Answer)(nil)).
+				Column("points").
+				Where("id = ?", *a.AnswerID).
+				Scan(ctx, &points); err != nil {
+				return nil, err
+			}
+		} else {
+			p, err := strconv.Atoi(*a.Value)
+			if err != nil {
+				return nil, fmt.Errorf("when no answer id provided, value must be a number")
+			}
+
+			aq.Value = *a.Value
+			points = p
+		}
+
+		aqs = append(aqs, *aq)
+
+		score += points
+	}
+
+	a := &models.Application{
+		EventID:     int32(application.EventID),
+		StudentMail: application.UserMail,
+		Score:       int16(score),
+	}
+
+	if _, err := r.DB.NewInsert().
+		Model(a).
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	if _, err := r.DB.NewInsert().
+		Model(&aqs).
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	user, err := r.Query().Users(ctx, []string{application.UserMail})
+	if err != nil {
+		return nil, err
+	}
+
+	return user[0], nil
+}
+
+// DeleteStudentApplicationForEvent is the resolver for the deleteStudentApplicationForEvent field.
+func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context, mail string, eventID int) (*models.User, error) {
+	if _, err := r.DB.NewDelete().
+		Model((*models.Application)(nil)).
+		Where("student_mail = ?", mail).
+		Where("event_id = ?", mail).
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	user, err := r.Query().Users(ctx, []string{mail})
+	if err != nil {
+		return nil, err
+	}
+
+	return user[0], nil
+}
+
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, label []string, needsTutors *bool, onlyFuture *bool, userMail []string) ([]*models.Event, error) {
 	var events []*models.Event
@@ -802,7 +943,8 @@ func (r *queryResolver) Users(ctx context.Context, mail []string) ([]*models.Use
 		Model(&users).
 		Relation("EventsAssigned").
 		Relation("EventsAvailable").
-		Relation("EventsRegistered")
+		Relation("EventsRegistered").
+		Relation("Applications")
 
 	if mail != nil {
 		query = query.Where("mail IN (?)", bun.In(mail))
@@ -833,6 +975,31 @@ func (r *queryResolver) Forms(ctx context.Context, id []int) ([]*models.Form, er
 	}
 
 	return forms, nil
+}
+
+// Applications is the resolver for the applications field.
+func (r *queryResolver) Applications(ctx context.Context, eventID *int, studentMail []string) ([]*models.Application, error) {
+	var applications []*models.Application
+
+	query := r.DB.NewSelect().
+		Model(&applications).
+		Relation("Event").
+		Relation("Student").
+		Relation("Form")
+
+	if eventID != nil {
+		query = query.Where("event_id = ?", *eventID)
+	}
+
+	if studentMail != nil {
+		query = query.Where("student_mail IN (?)", bun.In(studentMail))
+	}
+
+	if err := query.Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	return applications, nil
 }
 
 // Type is the resolver for the type field.
@@ -930,6 +1097,9 @@ func (r *newSettingResolver) Type(ctx context.Context, obj *models.Setting, data
 // Answer returns AnswerResolver implementation.
 func (r *Resolver) Answer() AnswerResolver { return &answerResolver{r} }
 
+// Application returns ApplicationResolver implementation.
+func (r *Resolver) Application() ApplicationResolver { return &applicationResolver{r} }
+
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
 
@@ -967,6 +1137,7 @@ func (r *Resolver) NewRoom() NewRoomResolver { return &newRoomResolver{r} }
 func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{r} }
 
 type answerResolver struct{ *Resolver }
+type applicationResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

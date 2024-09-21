@@ -31,6 +31,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 	))
 
 	relations := []interface{}{
+		(*models.ApplicationToQuestion)(nil),
 		(*models.EventToUserAssignment)(nil),
 		(*models.UserToEventAvailability)(nil),
 		(*models.UserToEventRegistration)(nil),
@@ -45,6 +46,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		(*models.Form)(nil),
 		(*models.Question)(nil),
 		(*models.Answer)(nil),
+		(*models.Application)(nil),
 		(*models.Setting)(nil)}
 
 	for _, relation := range relations {

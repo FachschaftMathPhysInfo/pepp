@@ -2,6 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import {
+  AddStudentApplicationForEventDocument,
+  AddStudentApplicationForEventMutation,
+  AddStudentApplicationForEventMutationVariables,
+  NewQuestionResponsePair,
+  NewUserToEventApplication,
   QuestionType,
   RegistrationFormDocument,
   RegistrationFormQuery,
@@ -32,6 +37,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { Toaster, toast } from "sonner";
 
 type Props = {
   searchParams: {
@@ -66,11 +72,17 @@ const Home = ({ searchParams }: Props) => {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [responses, setResponses] = useState<NewQuestionResponsePair[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const eventID = searchParams.e;
+    if (responses.length > 0) {
+      onSubmit();
+    }
+  }, [responses]);
 
+  const eventID = searchParams.e;
+  useEffect(() => {
+    const fetchData = async () => {
       const vars: RegistrationFormQueryVariables = {
         eventID: parseInt(eventID),
       };
@@ -92,7 +104,7 @@ const Home = ({ searchParams }: Props) => {
     };
 
     fetchData();
-  }, [searchParams.e, router]);
+  }, [router]);
 
   useEffect(() => {
     if (regForm) {
@@ -101,14 +113,18 @@ const Home = ({ searchParams }: Props) => {
   }, [index, regForm]);
 
   const mcForm = useForm<z.infer<ReturnType<typeof MultipleChoiceFormSchema>>>({
-    resolver: zodResolver(MultipleChoiceFormSchema(regForm?.questions[index].required!)),
+    resolver: zodResolver(
+      MultipleChoiceFormSchema(regForm?.questions[index].required!)
+    ),
     defaultValues: {
       multipleChoice: [],
     },
   });
 
   const scForm = useForm<z.infer<ReturnType<typeof SingleChoiceFormSchema>>>({
-    resolver: zodResolver(SingleChoiceFormSchema(regForm?.questions[index].required!)),
+    resolver: zodResolver(
+      SingleChoiceFormSchema(regForm?.questions[index].required!)
+    ),
     defaultValues: {
       singleChoice: undefined,
     },
@@ -116,6 +132,68 @@ const Home = ({ searchParams }: Props) => {
 
   function handleQuit() {
     router.push("/");
+  }
+
+  const onSubmit = async () => {
+    if (regForm?.questions.length !== index + 1) {
+      setIndex((prevIndex) => prevIndex + 1);
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    const application: NewUserToEventApplication = {
+      // TODO
+      userMail: "tutor1@example.de",
+      eventID: +eventID,
+      answers: responses,
+    };
+
+    const vars: AddStudentApplicationForEventMutationVariables = {
+      application: application,
+    };
+
+    try {
+      await client.request<AddStudentApplicationForEventMutation>(
+        AddStudentApplicationForEventDocument,
+        vars
+      );
+      toast("Anmeldung abgeschickt!");
+      handleQuit();
+    } catch (err) {
+      toast("Ein Fehler ist aufgetreten");
+      console.error(err)
+    }
+  };
+
+  function onScaleSubmit() {
+    const res: NewQuestionResponsePair = {
+      questionID: regForm?.questions[index].ID || 0,
+      value: String(sliderValue),
+    };
+    setResponses((prevResponses) => [...prevResponses, res]);
+
+    setSliderValue(0);
+  }
+
+  function onMCSubmit(
+    data: z.infer<ReturnType<typeof MultipleChoiceFormSchema>>
+  ) {
+    const newResponses = data.multipleChoice!.map((id) => ({
+      questionID: regForm?.questions[index].ID || 0,
+      answerID: id,
+    }));
+    setResponses((prevResponses) => [...prevResponses, ...newResponses]);
+  }
+
+  function onSCSubmit(
+    data: z.infer<ReturnType<typeof SingleChoiceFormSchema>>
+  ) {
+    const res: NewQuestionResponsePair = {
+      questionID: regForm?.questions[index].ID || 0,
+      answerID: data.singleChoice!,
+    };
+    setResponses((prevResponses) => [...prevResponses, res]);
   }
 
   const FooterButtons = () => (
@@ -128,25 +206,6 @@ const Home = ({ searchParams }: Props) => {
       </Button>
     </div>
   );
-
-  function onSubmit() {
-    if (regForm?.questions.length !== index + 1) {
-      setIndex((prevIndex) => prevIndex + 1);
-    }
-  }
-
-  function onScaleSubmit() {
-    onSubmit();
-    setSliderValue(0);
-  }
-
-  function onMCSubmit(data: z.infer<ReturnType<typeof MultipleChoiceFormSchema>>) {
-    onSubmit();
-  }
-
-  function onSCSubmit(data: z.infer<ReturnType<typeof SingleChoiceFormSchema>>) {
-    onSubmit();
-  }
 
   if (loading) {
     return <div>Loading...</div>;
@@ -195,7 +254,7 @@ const Home = ({ searchParams }: Props) => {
                                         onCheckedChange={(checked) => {
                                           return checked
                                             ? field.onChange([
-                                                ...field.value || [],
+                                                ...(field.value || []),
                                                 answer.ID,
                                               ])
                                             : field.onChange(
