@@ -1,0 +1,6 @@
+query umbrellas {
+  umbrellas {
+    ID
+    title
+  }
+}

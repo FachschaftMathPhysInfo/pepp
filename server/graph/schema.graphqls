@@ -129,7 +129,7 @@ type Query {
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: Int!): [Room!]!
-  labels(name: [String!], kind: [LabelKind!]): [Label!]!
+  labels(name: [String!], kind: [LabelKind!], umbrellaID: [Int!]): [Label!]!
   settings(key: [String!], type: [ScalarType!]): [Setting!]!
   users(mail: [String!]): [User!]!
   forms(id: [Int!]): [Form!]!

@@ -165,7 +165,7 @@ type ComplexityRoot struct {
 		Buildings    func(childComplexity int, id []int) int
 		Events       func(childComplexity int, id []int, umbrellaID []int, label []string, needsTutors *bool, onlyFuture *bool, userMail []string) int
 		Forms        func(childComplexity int, id []int) int
-		Labels       func(childComplexity int, name []string, kind []model.LabelKind) int
+		Labels       func(childComplexity int, name []string, kind []model.LabelKind, umbrellaID []int) int
 		Rooms        func(childComplexity int, number []string, buildingID int) int
 		Settings     func(childComplexity int, key []string, typeArg []model.ScalarType) int
 		Umbrellas    func(childComplexity int, id []int, onlyFuture *bool) int
@@ -265,7 +265,7 @@ type QueryResolver interface {
 	Umbrellas(ctx context.Context, id []int, onlyFuture *bool) ([]*models.Event, error)
 	Buildings(ctx context.Context, id []int) ([]*models.Building, error)
 	Rooms(ctx context.Context, number []string, buildingID int) ([]*models.Room, error)
-	Labels(ctx context.Context, name []string, kind []model.LabelKind) ([]*models.Label, error)
+	Labels(ctx context.Context, name []string, kind []model.LabelKind, umbrellaID []int) ([]*models.Label, error)
 	Settings(ctx context.Context, key []string, typeArg []model.ScalarType) ([]*models.Setting, error)
 	Users(ctx context.Context, mail []string) ([]*models.User, error)
 	Forms(ctx context.Context, id []int) ([]*models.Form, error)
@@ -1056,7 +1056,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Labels(childComplexity, args["name"].([]string), args["kind"].([]model.LabelKind)), true
+		return e.complexity.Query.Labels(childComplexity, args["name"].([]string), args["kind"].([]model.LabelKind), args["umbrellaID"].([]int)), true
 
 	case "Query.rooms":
 		if e.complexity.Query.Rooms == nil {
@@ -2114,6 +2114,15 @@ func (ec *executionContext) field_Query_labels_args(ctx context.Context, rawArgs
 		}
 	}
 	args["kind"] = arg1
+	var arg2 []int
+	if tmp, ok := rawArgs["umbrellaID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("umbrellaID"))
+		arg2, err = ec.unmarshalOInt2ᚕintᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["umbrellaID"] = arg2
 	return args, nil
 }
 
@@ -6702,7 +6711,7 @@ func (ec *executionContext) _Query_labels(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Labels(rctx, fc.Args["name"].([]string), fc.Args["kind"].([]model.LabelKind))
+		return ec.resolvers.Query().Labels(rctx, fc.Args["name"].([]string), fc.Args["kind"].([]model.LabelKind), fc.Args["umbrellaID"].([]int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

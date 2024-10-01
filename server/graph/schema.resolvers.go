@@ -353,7 +353,7 @@ func (r *mutationResolver) UpdateLabel(ctx context.Context, label models.Label) 
 		return nil, err
 	}
 
-	updatedLabel, err := r.Query().Labels(ctx, []string{label.Name}, nil)
+	updatedLabel, err := r.Query().Labels(ctx, []string{label.Name}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -790,7 +790,8 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("TutorsAvailable").
 		Relation("RoomsAvailable").
 		Relation("Umbrella").
-		Where(`"e"."umbrella_id" IS NOT NULL`)
+		Where(`"e"."umbrella_id" IS NOT NULL`).
+		Order("from ASC")
 
 	if umbrellaID != nil {
 		query = query.Where(`"e"."umbrella_id" IN (?)`, bun.In(umbrellaID))
@@ -837,7 +838,7 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 		Where("umbrella_id IS NULL")
 
 	if id != nil {
-		query = query.Where("id IN (?)", id)
+		query = query.Where("id IN (?)", bun.In(id))
 	}
 
 	if onlyFuture != nil && *onlyFuture == true {
@@ -891,7 +892,7 @@ func (r *queryResolver) Rooms(ctx context.Context, number []string, buildingID i
 }
 
 // Labels is the resolver for the labels field.
-func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.LabelKind) ([]*models.Label, error) {
+func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.LabelKind, umbrellaID []int) ([]*models.Label, error) {
 	var labels []*models.Label
 
 	query := r.DB.NewSelect().
@@ -899,6 +900,21 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 
 	if name != nil {
 		query = query.Where("name IN (?)", bun.In(name))
+	}
+
+	if kind != nil {
+		var kinds []string
+		for _, k := range kind {
+			kinds = append(kinds, k.String())
+		}
+
+		query = query.Where("kind IN (?)", bun.In(kinds))
+	}
+
+	if umbrellaID != nil {
+		query = query.
+			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_name = l.name OR e.type_name = l.name))",
+				bun.In(umbrellaID))
 	}
 
 	if err := query.Scan(ctx); err != nil {

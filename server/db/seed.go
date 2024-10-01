@@ -45,6 +45,7 @@ func seedData(ctx context.Context, db *bun.DB) error {
 
 	labels := []*models.Label{
 		{Name: "Mathe", Color: "#87cefa", Kind: "TOPIC"},
+		{Name: "Informatik", Color: "#33ff33", Kind: "TOPIC"},
 		{Name: "Tutorium", Color: "#00ff80", Kind: "EVENT_TYPE"},
 		{Name: "Vorlesung", Color: "#ffbf00", Kind: "EVENT_TYPE"},
 	}
@@ -59,6 +60,26 @@ func seedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum",
 			From:        time.Now(),
 			To:          time.Now().Add(3 * (time.Hour * 24)),
+		},
+		{
+			Title:       "Algorithmen und Datenstrukturen",
+			Description: "Lorem Ipsum dolor sit amed",
+			TopicName:   "Informatik",
+			TypeName:    "Tutorium",
+			NeedsTutors: true,
+			From:        time.Now().Add(6 * time.Hour),
+			To:          time.Now().Add(7 * time.Hour),
+			UmbrellaID:  &umbrellaID,
+		},
+		{
+			Title:       "Analysis",
+			Description: "Lorem Ipsum dolor sit amed",
+			TopicName:   "Mathe",
+			TypeName:    "Vorlesung",
+			NeedsTutors: true,
+			From:        time.Now().Add(20 * time.Hour),
+			To:          time.Now().Add(22 * time.Hour),
+			UmbrellaID:  &umbrellaID,
 		},
 		{
 			Title:       "Lineare Algebra",

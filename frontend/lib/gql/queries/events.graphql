@@ -14,3 +14,24 @@ query tutorFormEvents {
     }
   }
 }
+
+query plannerEvents($umbrellaID: Int!, $filter: [String!]) {
+  umbrellas(id: [$umbrellaID]) {
+    title
+  }
+  typeLabels: labels(kind: EVENT_TYPE, umbrellaID: [$umbrellaID]) {
+    name
+  }
+  topicLabels: labels(kind: TOPIC, umbrellaID: [$umbrellaID]) {
+    name
+  }
+  events(umbrellaID: [$umbrellaID], label: $filter) {
+    ID
+    title
+    from
+    to
+    topic {
+      color
+    }
+  }
+}
