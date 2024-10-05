@@ -95,6 +95,16 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
+	eventID := int32(2)
+	buildingID := int32(1)
+	assignments := []*models.EventToUserAssignment{
+		{EventID: eventID, UserMail: "tutor1@example.de", RoomNumber: "101", BuildingID: buildingID},
+		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "101", BuildingID: buildingID},
+	}
+	if err := insertData(ctx, db, (*models.EventToUserAssignment)(nil), assignments, "Event to User assignments"); err != nil {
+		return err
+	}
+
 	form := []*models.Form{{
 		Title:       "Beispielregistrierung",
 		Description: "Lorem Ipsum dolor sit amed",

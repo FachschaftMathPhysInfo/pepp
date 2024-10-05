@@ -77,7 +77,7 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 		Model(&eventToTutorRelations).
 		Relation("Room").
 		Relation("Room.Building").
-		Relation("Tutor").
+		Relation("User").
 		Where("event_id = ?", obj.ID).
 		Scan(ctx); err != nil {
 		return nil, err

@@ -35,3 +35,41 @@ query plannerEvents($umbrellaID: Int!, $filter: [String!]) {
     }
   }
 }
+
+query eventCloseup($id: Int!) {
+  events(id: [$id]) {
+    ID
+    title
+    description
+    from
+    to
+    topic {
+      name
+      color
+    }
+    type {
+      name
+      color
+    }
+    tutorsAssigned {
+      tutors {
+        fn
+        sn
+        mail
+      }
+      room {
+        capacity
+        floor
+        name
+        number
+        building {
+          name
+          street
+          number
+          osm
+        }
+      }
+      registrations
+    }
+  }
+}
