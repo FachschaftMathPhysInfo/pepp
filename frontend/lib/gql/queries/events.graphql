@@ -66,6 +66,8 @@ query eventCloseup($id: Int!) {
           name
           street
           number
+          city
+          zip
           osm
         }
       }

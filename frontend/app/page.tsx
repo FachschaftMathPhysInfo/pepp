@@ -20,8 +20,14 @@ import {
   UmbrellasQuery,
 } from "@/lib/gql/generated/graphql";
 import { client } from "@/lib/graphClient";
-import { useEffect, useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import {
+  Check,
+  ChevronsUpDown,
+  Mail,
+  Building2,
+  ArrowDownToDot,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -48,8 +54,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCaption, TableCell, TableRow } from "@/components/ui/table";
-import {Progress} from "@/components/ui/progress";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import {
+  HoverCard,
+  HoverCardTrigger,
+  HoverCardContent,
+} from "@/components/ui/hover-card";
 
 type GroupedEvents = {
   [week: number]: {
@@ -149,14 +159,6 @@ export default function Home() {
     fetchData();
   }, [filter, umbrella]);
 
-  const handleFilterChange = (f: string) => {
-    setFilter((prevSelected) =>
-      prevSelected.includes(f)
-        ? prevSelected.filter((t) => t !== f)
-        : [...prevSelected, f]
-    );
-  };
-
   const groupedEvents = groupEvents(events);
 
   const calculateEventDurationInHours = (from: string, to: string) => {
@@ -219,45 +221,22 @@ export default function Home() {
           </PopoverContent>
         </Popover>
 
-        <table className="table-auto">
-          <tbody>
-            <tr>
-              <td className="font-bold">Thema</td>
-              <td className="flex flex-row space-x-4 ml-4">
-                {topics.map((topic) => (
-                  <label
-                    key={topic.name}
-                    className="flex items-center space-x-2"
-                  >
-                    <Checkbox
-                      checked={filter.includes(topic.name)}
-                      onCheckedChange={() => handleFilterChange(topic.name)}
-                    />
-                    <p>{topic.name}</p>
-                  </label>
-                ))}
-              </td>
-            </tr>
-
-            <tr>
-              <td className="font-bold">Veranstaltungsart</td>
-              <td className="flex flex-row space-x-4 ml-4">
-                {types.map((type) => (
-                  <label
-                    key={type.name}
-                    className="flex items-center space-x-2"
-                  >
-                    <Checkbox
-                      checked={filter.includes(type.name)}
-                      onCheckedChange={() => handleFilterChange(type.name)}
-                    />
-                    <p>{type.name}</p>
-                  </label>
-                ))}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        {events.length > 0 && (
+          <div className="space-y-2">
+            <Filter
+              title="Thema"
+              options={topics.map((t) => t.name)}
+              filter={filter}
+              setFilter={setFilter}
+            />
+            <Filter
+              title="Veranstaltungsart"
+              options={types.map((t) => t.name)}
+              filter={filter}
+              setFilter={setFilter}
+            />
+          </div>
+        )}
 
         {loading ? (
           <div className="flex flex-col space-y-3">
@@ -388,6 +367,43 @@ export default function Home() {
   );
 }
 
+function Filter({
+  title,
+  options,
+  filter,
+  setFilter,
+}: {
+  title: string;
+  options: string[];
+  filter: string[];
+  setFilter: React.Dispatch<React.SetStateAction<string[]>>;
+}) {
+  const handleFilterChange = (f: string) => {
+    setFilter((prevSelected) =>
+      prevSelected.includes(f)
+        ? prevSelected.filter((t) => t !== f)
+        : [...prevSelected, f]
+    );
+  };
+
+  return (
+    <div>
+      <p className="font-bold text-xs">{title}</p>
+      <div className="flex flex-row space-x-4">
+        {options.map((o) => (
+          <label key={o} className="flex items-center space-x-2">
+            <Checkbox
+              checked={filter.includes(o)}
+              onCheckedChange={() => handleFilterChange(o)}
+            />
+            <p>{o}</p>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function EventDialog({ id }: { id: number }) {
   const [loading, setLoading] = useState(true);
   const [event, setEvent] = useState<EventCloseupQuery["events"][0] | null>(
@@ -434,39 +450,131 @@ function EventDialog({ id }: { id: number }) {
             <DialogDescription>
               {event?.description}
               <div className="space-x-2 mt-2">
-                <Badge color={event?.topic.color}>{event?.topic.name}</Badge>
-                <Badge color={event?.type.color}>{event?.type.name}</Badge>
+                <Badge variant="event" color={event?.topic.color}>
+                  {event?.topic.name}
+                </Badge>
+                <Badge variant="event" color={event?.type.color}>
+                  {event?.type.name}
+                </Badge>
               </div>
             </DialogDescription>
           </DialogHeader>
           <div className="rounded-md border">
-          <Table>
-            <TableBody>
-              {event?.tutorsAssigned?.map((e) => (
-                <TableRow key={e.room?.number}>
-                  <TableCell>
-                    {e.tutors?.map((t) => (
-                      <div key={t.mail} className="space-x-1 flex flex-row">
-                        <p>{t.fn}</p>
-                        <p>{t.sn}</p>
-                      </div>
-                    ))}
-                  </TableCell>
-                  <TableCell>
-                  <Progress value={e.registrations == null ? 0 : e.registrations} className="w-[200px]" />
-                  <div className="text-xs text-muted-foreground">
-                    <span>{e.registrations == null ? 0 : e.registrations}</span>
-                    <span>/</span>
-                    <span>{e.room?.capacity}</span>
-                  </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="outline">Eintragen</Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            <Table>
+              <TableBody>
+                {event?.tutorsAssigned?.map((e) => {
+                  const registrations = e.registrations ?? 0;
+                  const capacity = e.room?.capacity ?? 1;
+                  const utilization = (registrations / capacity) * 100;
+
+                  return (
+                    <TableRow key={e.room?.number}>
+                      <div
+                        className={
+                          "absolute inset-0 z-0 rounded-md bg-" +
+                          (utilization < 100 ? "green" : "red") +
+                          "-200"
+                        }
+                        style={{
+                          width: `${utilization}%`,
+                        }}
+                      />
+                      <TableCell className="relative z-10">
+                        {e.tutors?.map((t) => (
+                          <HoverCard key={t.mail}>
+                            <HoverCardTrigger asChild>
+                              <p className="hover:underline">
+                                {t.fn + " " + t.sn[0] + "."}
+                              </p>
+                            </HoverCardTrigger>
+                            <HoverCardContent>
+                              <p className="mb-1 text-xs text-muted-foreground">
+                                {t.fn + " " + t.sn}
+                              </p>
+                              <div className="flex flex-row items-center">
+                                <Mail className="mr-2 h-4 w-4 opacity-70" />
+                                <a
+                                  href={"mailto:" + t.mail}
+                                  className="hover:underline text-blue-500"
+                                >
+                                  {t.mail}
+                                </a>
+                              </div>
+                            </HoverCardContent>
+                          </HoverCard>
+                        ))}
+                      </TableCell>
+                      <TableCell className="relative z-2">
+                        <HoverCard>
+                          <HoverCardTrigger asChild>
+                            <div className="hover:undeline">
+                              <p className="text-xs text-muted-foreground">
+                                {e.room?.building.name}
+                              </p>
+                              <p>
+                                {e.room?.name ? e.room.name : e.room?.number}
+                              </p>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent className="min-w-[400px] p-0 flex flex-row">
+                            <div className="p-4 space-y-4">
+                              <div className="flex flex-row space-x-2">
+                                <Building2 className="h-5 w-5" />
+                                <div>
+                                  <p className="font-bold">
+                                    {e.room?.building.name}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {e.room?.building.street +
+                                      " " +
+                                      e.room?.building.number}
+                                  </p>
+                                  <div className="flex flex-row space-x-1 text-xs text-muted-foreground">
+                                    <p>{e.room?.building.zip},</p>
+                                    <p>{e.room?.building.city}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-row space-x-2">
+                                <ArrowDownToDot className="h-5 w-5" />
+                                <div>
+                                  <p className="font-bold">
+                                    {e.room?.name
+                                      ? e.room.name
+                                      : e.room?.number}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Ebene {e.room?.floor}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <iframe
+                              className="rounded-tr-lg rounded-br-lg"
+                              height="100%"
+                              width="100%"
+                              src="https://www.openstreetmap.org/export/embed.html?bbox=8.674038648605348%2C49.41641767965658%2C8.675851821899416%2C49.41860402680603&amp;layer=mapnik"
+                            ></iframe>
+                          </HoverCardContent>
+                        </HoverCard>
+                      </TableCell>
+                      <TableCell className="relative z-10">
+                        <div>
+                          <span>{registrations}</span>
+                          <span>/</span>
+                          <span>{e.room?.capacity}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="relative z-10">
+                        <Button disabled={utilization == 100} variant="outline">
+                          Eintragen
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}
