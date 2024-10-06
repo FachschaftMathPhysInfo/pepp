@@ -70,6 +70,11 @@ func (r *applicationResolver) Responses(ctx context.Context, obj *models.Applica
 	return qas, nil
 }
 
+// ZoomLevel is the resolver for the zoomLevel field.
+func (r *buildingResolver) ZoomLevel(ctx context.Context, obj *models.Building) (int, error) {
+	return int(obj.ZoomLevel), nil
+}
+
 // TutorsAssigned is the resolver for the tutorsAssigned field.
 func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error) {
 	var eventToTutorRelations []*models.EventToUserAssignment
@@ -1058,6 +1063,12 @@ func (r *newAnswerResolver) Points(ctx context.Context, obj *models.Answer, data
 	return nil
 }
 
+// ZoomLevel is the resolver for the zoomLevel field.
+func (r *newBuildingResolver) ZoomLevel(ctx context.Context, obj *models.Building, data *int) error {
+	obj.ZoomLevel = int8(*data)
+	return nil
+}
+
 // From is the resolver for the from field.
 func (r *newEventResolver) From(ctx context.Context, obj *models.Event, data string) error {
 	from, err := time.Parse(time.RFC3339, data)
@@ -1116,6 +1127,9 @@ func (r *Resolver) Answer() AnswerResolver { return &answerResolver{r} }
 // Application returns ApplicationResolver implementation.
 func (r *Resolver) Application() ApplicationResolver { return &applicationResolver{r} }
 
+// Building returns BuildingResolver implementation.
+func (r *Resolver) Building() BuildingResolver { return &buildingResolver{r} }
+
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
 
@@ -1137,6 +1151,9 @@ func (r *Resolver) Setting() SettingResolver { return &settingResolver{r} }
 // NewAnswer returns NewAnswerResolver implementation.
 func (r *Resolver) NewAnswer() NewAnswerResolver { return &newAnswerResolver{r} }
 
+// NewBuilding returns NewBuildingResolver implementation.
+func (r *Resolver) NewBuilding() NewBuildingResolver { return &newBuildingResolver{r} }
+
 // NewEvent returns NewEventResolver implementation.
 func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
 
@@ -1154,6 +1171,7 @@ func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{
 
 type answerResolver struct{ *Resolver }
 type applicationResolver struct{ *Resolver }
+type buildingResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
@@ -1161,6 +1179,7 @@ type questionResolver struct{ *Resolver }
 type roomResolver struct{ *Resolver }
 type settingResolver struct{ *Resolver }
 type newAnswerResolver struct{ *Resolver }
+type newBuildingResolver struct{ *Resolver }
 type newEventResolver struct{ *Resolver }
 type newLabelResolver struct{ *Resolver }
 type newQuestionResolver struct{ *Resolver }

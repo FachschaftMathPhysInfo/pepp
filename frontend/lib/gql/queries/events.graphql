@@ -68,7 +68,9 @@ query eventCloseup($id: Int!) {
           number
           city
           zip
-          osm
+          latitude
+          longitude
+          zoomLevel
         }
       }
       registrations

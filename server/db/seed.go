@@ -21,12 +21,14 @@ func seedData(ctx context.Context, db *bun.DB) error {
 	}
 
 	buildings := []*models.Building{{
-		Name:   "Mathematikon",
-		Street: "Beispielstr.",
-		Number: "1",
-		City:   "Heidelberg",
-		Zip:    69115,
-		Osm:    "https://www.openstreetmap.org/#map=6/40.355/124.739",
+		Name:      "Mathematikon",
+		Street:    "INF",
+		Number:    "205",
+		City:      "Heidelberg",
+		Zip:       69115,
+		Latitude:  49.417493,
+		Longitude: 8.675197,
+		ZoomLevel: 19,
 	}}
 	if err := insertData(ctx, db, (*models.Building)(nil), buildings, "Buildings"); err != nil {
 		return err

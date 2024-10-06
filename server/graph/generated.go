@@ -42,6 +42,7 @@ type Config struct {
 type ResolverRoot interface {
 	Answer() AnswerResolver
 	Application() ApplicationResolver
+	Building() BuildingResolver
 	Event() EventResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
@@ -49,6 +50,7 @@ type ResolverRoot interface {
 	Room() RoomResolver
 	Setting() SettingResolver
 	NewAnswer() NewAnswerResolver
+	NewBuilding() NewBuildingResolver
 	NewEvent() NewEventResolver
 	NewLabel() NewLabelResolver
 	NewQuestion() NewQuestionResolver
@@ -81,14 +83,16 @@ type ComplexityRoot struct {
 	}
 
 	Building struct {
-		City   func(childComplexity int) int
-		ID     func(childComplexity int) int
-		Name   func(childComplexity int) int
-		Number func(childComplexity int) int
-		Osm    func(childComplexity int) int
-		Rooms  func(childComplexity int) int
-		Street func(childComplexity int) int
-		Zip    func(childComplexity int) int
+		City      func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Latitude  func(childComplexity int) int
+		Longitude func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Number    func(childComplexity int) int
+		Rooms     func(childComplexity int) int
+		Street    func(childComplexity int) int
+		Zip       func(childComplexity int) int
+		ZoomLevel func(childComplexity int) int
 	}
 
 	Event struct {
@@ -219,6 +223,9 @@ type ApplicationResolver interface {
 
 	Responses(ctx context.Context, obj *models.Application) ([]*model.QuestionAnswersPair, error)
 }
+type BuildingResolver interface {
+	ZoomLevel(ctx context.Context, obj *models.Building) (int, error)
+}
 type EventResolver interface {
 	TutorsAssigned(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error)
 
@@ -284,6 +291,9 @@ type SettingResolver interface {
 
 type NewAnswerResolver interface {
 	Points(ctx context.Context, obj *models.Answer, data int) error
+}
+type NewBuildingResolver interface {
+	ZoomLevel(ctx context.Context, obj *models.Building, data *int) error
 }
 type NewEventResolver interface {
 	From(ctx context.Context, obj *models.Event, data string) error
@@ -413,6 +423,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Building.ID(childComplexity), true
 
+	case "Building.latitude":
+		if e.complexity.Building.Latitude == nil {
+			break
+		}
+
+		return e.complexity.Building.Latitude(childComplexity), true
+
+	case "Building.longitude":
+		if e.complexity.Building.Longitude == nil {
+			break
+		}
+
+		return e.complexity.Building.Longitude(childComplexity), true
+
 	case "Building.name":
 		if e.complexity.Building.Name == nil {
 			break
@@ -426,13 +450,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Building.Number(childComplexity), true
-
-	case "Building.osm":
-		if e.complexity.Building.Osm == nil {
-			break
-		}
-
-		return e.complexity.Building.Osm(childComplexity), true
 
 	case "Building.rooms":
 		if e.complexity.Building.Rooms == nil {
@@ -454,6 +471,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Building.Zip(childComplexity), true
+
+	case "Building.zoomLevel":
+		if e.complexity.Building.ZoomLevel == nil {
+			break
+		}
+
+		return e.complexity.Building.ZoomLevel(childComplexity), true
 
 	case "Event.description":
 		if e.complexity.Event.Description == nil {
@@ -3055,8 +3079,8 @@ func (ec *executionContext) fieldContext_Building_zip(_ context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Building_osm(ctx context.Context, field graphql.CollectedField, obj *models.Building) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Building_osm(ctx, field)
+func (ec *executionContext) _Building_latitude(ctx context.Context, field graphql.CollectedField, obj *models.Building) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Building_latitude(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -3069,7 +3093,7 @@ func (ec *executionContext) _Building_osm(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Osm, nil
+		return obj.Latitude, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3081,19 +3105,107 @@ func (ec *executionContext) _Building_osm(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Building_osm(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Building_latitude(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Building",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Building_longitude(ctx context.Context, field graphql.CollectedField, obj *models.Building) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Building_longitude(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Longitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Building_longitude(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Building",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Building_zoomLevel(ctx context.Context, field graphql.CollectedField, obj *models.Building) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Building_zoomLevel(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Building().ZoomLevel(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Building_zoomLevel(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Building",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4779,8 +4891,12 @@ func (ec *executionContext) fieldContext_Mutation_addBuilding(ctx context.Contex
 				return ec.fieldContext_Building_city(ctx, field)
 			case "zip":
 				return ec.fieldContext_Building_zip(ctx, field)
-			case "osm":
-				return ec.fieldContext_Building_osm(ctx, field)
+			case "latitude":
+				return ec.fieldContext_Building_latitude(ctx, field)
+			case "longitude":
+				return ec.fieldContext_Building_longitude(ctx, field)
+			case "zoomLevel":
+				return ec.fieldContext_Building_zoomLevel(ctx, field)
 			case "rooms":
 				return ec.fieldContext_Building_rooms(ctx, field)
 			}
@@ -4852,8 +4968,12 @@ func (ec *executionContext) fieldContext_Mutation_updateBuilding(ctx context.Con
 				return ec.fieldContext_Building_city(ctx, field)
 			case "zip":
 				return ec.fieldContext_Building_zip(ctx, field)
-			case "osm":
-				return ec.fieldContext_Building_osm(ctx, field)
+			case "latitude":
+				return ec.fieldContext_Building_latitude(ctx, field)
+			case "longitude":
+				return ec.fieldContext_Building_longitude(ctx, field)
+			case "zoomLevel":
+				return ec.fieldContext_Building_zoomLevel(ctx, field)
 			case "rooms":
 				return ec.fieldContext_Building_rooms(ctx, field)
 			}
@@ -6608,8 +6728,12 @@ func (ec *executionContext) fieldContext_Query_buildings(ctx context.Context, fi
 				return ec.fieldContext_Building_city(ctx, field)
 			case "zip":
 				return ec.fieldContext_Building_zip(ctx, field)
-			case "osm":
-				return ec.fieldContext_Building_osm(ctx, field)
+			case "latitude":
+				return ec.fieldContext_Building_latitude(ctx, field)
+			case "longitude":
+				return ec.fieldContext_Building_longitude(ctx, field)
+			case "zoomLevel":
+				return ec.fieldContext_Building_zoomLevel(ctx, field)
 			case "rooms":
 				return ec.fieldContext_Building_rooms(ctx, field)
 			}
@@ -7709,8 +7833,12 @@ func (ec *executionContext) fieldContext_Room_building(_ context.Context, field 
 				return ec.fieldContext_Building_city(ctx, field)
 			case "zip":
 				return ec.fieldContext_Building_zip(ctx, field)
-			case "osm":
-				return ec.fieldContext_Building_osm(ctx, field)
+			case "latitude":
+				return ec.fieldContext_Building_latitude(ctx, field)
+			case "longitude":
+				return ec.fieldContext_Building_longitude(ctx, field)
+			case "zoomLevel":
+				return ec.fieldContext_Building_zoomLevel(ctx, field)
 			case "rooms":
 				return ec.fieldContext_Building_rooms(ctx, field)
 			}
@@ -10148,7 +10276,7 @@ func (ec *executionContext) unmarshalInputNewBuilding(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"name", "street", "number", "city", "zip", "osm"}
+	fieldsInOrder := [...]string{"name", "street", "number", "city", "zip", "latitude", "longitude", "zoomLevel"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -10190,13 +10318,29 @@ func (ec *executionContext) unmarshalInputNewBuilding(ctx context.Context, obj i
 				return it, err
 			}
 			it.Zip = data
-		case "osm":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("osm"))
-			data, err := ec.unmarshalNString2string(ctx, v)
+		case "latitude":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("latitude"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Osm = data
+			it.Latitude = data
+		case "longitude":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("longitude"))
+			data, err := ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Longitude = data
+		case "zoomLevel":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("zoomLevel"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			if err = ec.resolvers.NewBuilding().ZoomLevel(ctx, &it, data); err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -11032,38 +11176,79 @@ func (ec *executionContext) _Building(ctx context.Context, sel ast.SelectionSet,
 		case "ID":
 			out.Values[i] = ec._Building_ID(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Building_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "street":
 			out.Values[i] = ec._Building_street(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "number":
 			out.Values[i] = ec._Building_number(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "city":
 			out.Values[i] = ec._Building_city(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "zip":
 			out.Values[i] = ec._Building_zip(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
-		case "osm":
-			out.Values[i] = ec._Building_osm(ctx, field, obj)
+		case "latitude":
+			out.Values[i] = ec._Building_latitude(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "longitude":
+			out.Values[i] = ec._Building_longitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "zoomLevel":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Building_zoomLevel(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "rooms":
 			out.Values[i] = ec._Building_rooms(ctx, field, obj)
 		default:
@@ -12934,6 +13119,21 @@ func (ec *executionContext) marshalNEventTutorRoomPair2ᚖgithubᚗcomᚋFachsch
 		return graphql.Null
 	}
 	return ec._EventTutorRoomPair(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloatContext(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) marshalNForm2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐForm(ctx context.Context, sel ast.SelectionSet, v models.Form) graphql.Marshaler {

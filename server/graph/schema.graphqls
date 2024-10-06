@@ -67,7 +67,9 @@ type Building {
   number: String!
   city: String!
   zip: Int!
-  osm: String!
+  latitude: Float!
+  longitude: Float!
+  zoomLevel: Int!
   rooms: [Room!]
 }
 
@@ -160,7 +162,9 @@ input NewBuilding {
   number: String!
   city: String!
   zip: Int!
-  osm: String!
+  latitude: Float!
+  longitude: Float!
+  zoomLevel: Int
 }
 
 input NewRoom {
