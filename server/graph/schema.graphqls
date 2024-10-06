@@ -127,7 +127,7 @@ type Application {
 }
 
 type Query {
-  events(id: [Int!], umbrellaID: [Int!], label: [String!], needsTutors: Boolean, onlyFuture: Boolean, userMail: [String!]): [Event!]!
+  events(id: [Int!], umbrellaID: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, onlyFuture: Boolean, userMail: [String!]): [Event!]!
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: Int!): [Room!]!

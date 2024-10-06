@@ -7,10 +7,9 @@
 3. `docker compose up -d && docker compose logs -f`
 
 - Frontend: [localhost:8080](http://localhost:8080)
-- ICal Calendar: [localhost:8080/ical?u=1&l=Tutorium](http://localhost:8080/ical?u=1&l=Tutorium)
+- ICal Calendar: [localhost:8080/ical?e=1&ty=Tutorium&to=Informatik](http://localhost:8080/ical?e=1&ty=Tutorium&to=Informatik)
 - API: [localhost:8080/api](http://localhost:8080/api)
 - GraphQL Playground: [localhost:8080/playground](http://localhost:8080/playground)
-  - Documentation for all endpoints can be found in the [`server/README.md`](server/README.md)
 
 ### dev
 #### frontend

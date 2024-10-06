@@ -167,7 +167,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Applications func(childComplexity int, eventID *int, studentMail []string) int
 		Buildings    func(childComplexity int, id []int) int
-		Events       func(childComplexity int, id []int, umbrellaID []int, label []string, needsTutors *bool, onlyFuture *bool, userMail []string) int
+		Events       func(childComplexity int, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userMail []string) int
 		Forms        func(childComplexity int, id []int) int
 		Labels       func(childComplexity int, name []string, kind []model.LabelKind, umbrellaID []int) int
 		Rooms        func(childComplexity int, number []string, buildingID int) int
@@ -268,7 +268,7 @@ type MutationResolver interface {
 	DeleteStudentApplicationForEvent(ctx context.Context, mail string, eventID int) (*models.User, error)
 }
 type QueryResolver interface {
-	Events(ctx context.Context, id []int, umbrellaID []int, label []string, needsTutors *bool, onlyFuture *bool, userMail []string) ([]*models.Event, error)
+	Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userMail []string) ([]*models.Event, error)
 	Umbrellas(ctx context.Context, id []int, onlyFuture *bool) ([]*models.Event, error)
 	Buildings(ctx context.Context, id []int) ([]*models.Building, error)
 	Rooms(ctx context.Context, number []string, buildingID int) ([]*models.Room, error)
@@ -1056,7 +1056,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Events(childComplexity, args["id"].([]int), args["umbrellaID"].([]int), args["label"].([]string), args["needsTutors"].(*bool), args["onlyFuture"].(*bool), args["userMail"].([]string)), true
+		return e.complexity.Query.Events(childComplexity, args["id"].([]int), args["umbrellaID"].([]int), args["topic"].([]string), args["type"].([]string), args["needsTutors"].(*bool), args["onlyFuture"].(*bool), args["userMail"].([]string)), true
 
 	case "Query.forms":
 		if e.complexity.Query.Forms == nil {
@@ -2064,41 +2064,50 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 	}
 	args["umbrellaID"] = arg1
 	var arg2 []string
-	if tmp, ok := rawArgs["label"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("label"))
+	if tmp, ok := rawArgs["topic"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topic"))
 		arg2, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["label"] = arg2
-	var arg3 *bool
-	if tmp, ok := rawArgs["needsTutors"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("needsTutors"))
-		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	args["topic"] = arg2
+	var arg3 []string
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg3, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["needsTutors"] = arg3
+	args["type"] = arg3
 	var arg4 *bool
-	if tmp, ok := rawArgs["onlyFuture"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onlyFuture"))
+	if tmp, ok := rawArgs["needsTutors"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("needsTutors"))
 		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["onlyFuture"] = arg4
-	var arg5 []string
-	if tmp, ok := rawArgs["userMail"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userMail"))
-		arg5, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+	args["needsTutors"] = arg4
+	var arg5 *bool
+	if tmp, ok := rawArgs["onlyFuture"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("onlyFuture"))
+		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["userMail"] = arg5
+	args["onlyFuture"] = arg5
+	var arg6 []string
+	if tmp, ok := rawArgs["userMail"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userMail"))
+		arg6, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userMail"] = arg6
 	return args, nil
 }
 
@@ -6529,7 +6538,7 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Events(rctx, fc.Args["id"].([]int), fc.Args["umbrellaID"].([]int), fc.Args["label"].([]string), fc.Args["needsTutors"].(*bool), fc.Args["onlyFuture"].(*bool), fc.Args["userMail"].([]string))
+		return ec.resolvers.Query().Events(rctx, fc.Args["id"].([]int), fc.Args["umbrellaID"].([]int), fc.Args["topic"].([]string), fc.Args["type"].([]string), fc.Args["needsTutors"].(*bool), fc.Args["onlyFuture"].(*bool), fc.Args["userMail"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

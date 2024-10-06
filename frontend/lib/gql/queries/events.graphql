@@ -15,7 +15,7 @@ query tutorFormEvents {
   }
 }
 
-query plannerEvents($umbrellaID: Int!, $filter: [String!]) {
+query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
   umbrellas(id: [$umbrellaID]) {
     title
   }
@@ -25,7 +25,7 @@ query plannerEvents($umbrellaID: Int!, $filter: [String!]) {
   topicLabels: labels(kind: TOPIC, umbrellaID: [$umbrellaID]) {
     name
   }
-  events(umbrellaID: [$umbrellaID], label: $filter) {
+  events(umbrellaID: [$umbrellaID], type: $type, topic: $topic) {
     ID
     title
     from

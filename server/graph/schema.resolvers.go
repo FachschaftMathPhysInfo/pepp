@@ -227,7 +227,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 		return nil, err
 	}
 
-	updatedEvent, err := r.Query().Events(ctx, []int{id}, nil, nil, nil, nil, nil)
+	updatedEvent, err := r.Query().Events(ctx, []int{id}, nil, nil, nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -560,7 +560,7 @@ func (r *mutationResolver) DeleteEventAssignmentForTutor(ctx context.Context, as
 		return nil, err
 	}
 
-	event, err := r.Query().Events(ctx, []int{int(assignment.EventID)}, nil, nil, nil, nil, nil)
+	event, err := r.Query().Events(ctx, []int{int(assignment.EventID)}, nil, nil, nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -784,7 +784,7 @@ func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context,
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, label []string, needsTutors *bool, onlyFuture *bool, userMail []string) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userMail []string) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
@@ -802,10 +802,12 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		query = query.Where(`"e"."umbrella_id" IN (?)`, bun.In(umbrellaID))
 	}
 
-	if label != nil {
-		query = query.
-			Where(`"e"."topic_name" IN (?)`, bun.In(label)).
-			WhereOr(`"e"."type_name" IN (?)`, bun.In(label))
+	if typeArg != nil {
+		query = query.Where(`"e"."type_name" IN (?)`, bun.In(typeArg))
+	}
+
+	if topic != nil {
+		query = query.Where(`"e"."topic_name" IN (?)`, bun.In(topic))
 	}
 
 	if needsTutors != nil {

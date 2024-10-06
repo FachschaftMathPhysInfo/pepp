@@ -91,7 +91,8 @@ export default function Home() {
   const [types, setTypes] = useState<PlannerEventsQuery["typeLabels"]>([]);
   const [topics, setTopics] = useState<PlannerEventsQuery["topicLabels"]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string[]>([]);
+  const [toFilter, setToFilter] = useState<string[]>([]);
+  const [tyFilter, setTyFilter] = useState<string[]>([]);
   const [umbrellaSelectionOpen, setUmbrellaSelectionOpen] = useState(false);
   const [popupId, setPopupId] = useState(0);
 
@@ -101,7 +102,8 @@ export default function Home() {
 
       const vars: PlannerEventsQueryVariables = {
         umbrellaID: umbrella,
-        filter: filter.length == 0 ? undefined : filter,
+        topic: toFilter.length == 0 ? undefined : toFilter,
+        type: tyFilter.length == 0 ? undefined : tyFilter,
       };
 
       await new Promise((resolve) => setTimeout(resolve, 250));
@@ -135,7 +137,7 @@ export default function Home() {
 
     getUmbrellas();
     fetchData();
-  }, [filter, umbrella]);
+  }, [toFilter, tyFilter, umbrella]);
 
   const groupedEvents = groupEvents(events);
 
@@ -204,14 +206,14 @@ export default function Home() {
             <Filter
               title="Thema"
               options={topics.map((t) => t.name)}
-              filter={filter}
-              setFilter={setFilter}
+              filter={toFilter}
+              setFilter={setToFilter}
             />
             <Filter
               title="Veranstaltungsart"
               options={types.map((t) => t.name)}
-              filter={filter}
-              setFilter={setFilter}
+              filter={tyFilter}
+              setFilter={setTyFilter}
             />
           </div>
         )}

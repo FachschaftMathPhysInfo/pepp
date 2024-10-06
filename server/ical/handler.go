@@ -27,22 +27,28 @@ func createCalendar(events []*models.Event) string {
 
 func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, re *graph.Resolver) {
 	var events []*models.Event
-	var labels []string
+	var topics []string
+	var types []string
 	var umbrellaID int
 
-	u := r.URL.Query().Get("u")
-	umbrellaID, err := strconv.Atoi(u)
-	if u == "" || err != nil {
+	e := r.URL.Query().Get("e")
+	umbrellaID, err := strconv.Atoi(e)
+	if e == "" || err != nil {
 		http.Error(w, "Calendar needs a valid umbrella id", http.StatusBadRequest)
 		return
 	}
 
-	l := r.URL.Query().Get("l")
-	if l != "" {
-		labels = strings.Split(l, ",")
+	to := r.URL.Query().Get("to")
+	if to != "" {
+		topics = strings.Split(to, ",")
 	}
 
-	events, err = re.Query().Events(ctx, nil, []int{umbrellaID}, labels, nil, nil, nil)
+	ty := r.URL.Query().Get("ty")
+	if ty != "" {
+		types = strings.Split(ty, ",")
+	}
+
+	events, err = re.Query().Events(ctx, nil, []int{umbrellaID}, topics, types, nil, nil, nil)
 	if err != nil || len(events) == 0 {
 		http.Error(w, "No events found", http.StatusBadRequest)
 		return
