@@ -1,5 +1,5 @@
-query umbrellas {
-  umbrellas {
+query umbrellas($onlyFuture: Boolean) {
+  umbrellas(onlyFuture: $onlyFuture) {
     ID
     title
   }

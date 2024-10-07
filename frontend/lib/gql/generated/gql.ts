@@ -17,7 +17,7 @@ const documents = {
     "mutation addTutor($firstName: String!, $lastName: String!, $email: String!, $eventsAvailable: [Int!]!) {\n  addTutor(\n    tutor: {fn: $firstName, sn: $lastName, mail: $email}\n    availability: {userMail: $email, eventID: $eventsAvailable}\n  ) {\n    fn\n  }\n}": types.AddTutorDocument,
     "query tutorFormEvents {\n  events(needsTutors: true, onlyFuture: true) {\n    ID\n    title\n    from\n    to\n    topic {\n      name\n      color\n    }\n    type {\n      name\n      color\n    }\n  }\n}\n\nquery plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {\n  umbrellas(id: [$umbrellaID]) {\n    title\n  }\n  typeLabels: labels(kind: EVENT_TYPE, umbrellaID: [$umbrellaID]) {\n    name\n  }\n  topicLabels: labels(kind: TOPIC, umbrellaID: [$umbrellaID]) {\n    name\n  }\n  events(umbrellaID: [$umbrellaID], type: $type, topic: $topic) {\n    ID\n    title\n    from\n    to\n    topic {\n      color\n    }\n  }\n}\n\nquery eventCloseup($id: Int!) {\n  events(id: [$id]) {\n    ID\n    title\n    description\n    from\n    to\n    topic {\n      name\n      color\n    }\n    type {\n      name\n      color\n    }\n    tutorsAssigned {\n      tutors {\n        fn\n        sn\n        mail\n      }\n      room {\n        capacity\n        floor\n        name\n        number\n        building {\n          name\n          street\n          number\n          city\n          zip\n          latitude\n          longitude\n          zoomLevel\n        }\n      }\n      registrations\n    }\n  }\n}": types.TutorFormEventsDocument,
     "query registrationForm($eventID: Int!) {\n  forms(id: [$eventID]) {\n    title\n    description\n    questions {\n      ID\n      title\n      type\n      required\n      answers {\n        ID\n        title\n        points\n      }\n    }\n  }\n}": types.RegistrationFormDocument,
-    "query umbrellas {\n  umbrellas {\n    ID\n    title\n  }\n}": types.UmbrellasDocument,
+    "query umbrellas($onlyFuture: Boolean) {\n  umbrellas(onlyFuture: $onlyFuture) {\n    ID\n    title\n  }\n}": types.UmbrellasDocument,
 };
 
 /**
@@ -53,7 +53,7 @@ export function graphql(source: "query registrationForm($eventID: Int!) {\n  for
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "query umbrellas {\n  umbrellas {\n    ID\n    title\n  }\n}"): (typeof documents)["query umbrellas {\n  umbrellas {\n    ID\n    title\n  }\n}"];
+export function graphql(source: "query umbrellas($onlyFuture: Boolean) {\n  umbrellas(onlyFuture: $onlyFuture) {\n    ID\n    title\n  }\n}"): (typeof documents)["query umbrellas($onlyFuture: Boolean) {\n  umbrellas(onlyFuture: $onlyFuture) {\n    ID\n    title\n  }\n}"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

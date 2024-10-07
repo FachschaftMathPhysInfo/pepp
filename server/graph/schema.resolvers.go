@@ -842,7 +842,8 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 	query := r.DB.NewSelect().
 		Model(&umbrellas).
 		Relation("Topic").
-		Where("umbrella_id IS NULL")
+		Where("umbrella_id IS NULL").
+		Order("from ASC")
 
 	if id != nil {
 		query = query.Where("id IN (?)", bun.In(id))
