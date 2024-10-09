@@ -7,7 +7,6 @@ package graph
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"os"
 	"regexp"
 	"strconv"
@@ -16,6 +15,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/password"
 	hermes "github.com/matcornic/hermes/v2"
 	"github.com/uptrace/bun"
 )
@@ -98,7 +98,7 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 			registrationsCount, err := r.DB.NewSelect().
 				Model((*models.UserToEventRegistration)(nil)).
 				Where("event_id = ?", obj.ID).
-				Where("room_number = ?", eventToTutorRelation.Room.Name).
+				Where("room_number = ?", eventToTutorRelation.Room.Number).
 				Where("building_id = ?", eventToTutorRelation.BuildingID).
 				Count(ctx)
 
@@ -134,7 +134,27 @@ func (r *eventResolver) To(ctx context.Context, obj *models.Event) (string, erro
 
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (*models.User, error) {
-	user.SessionID = rand.Int31n(9999999-1000000+1) + 1000000
+	sessionID, err := password.GenerateSalt(8)
+	if err != nil {
+		return nil, err
+	}
+
+	user.SessionID = sessionID
+
+	passwordSalt, err := password.GenerateSalt(16)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Salt = passwordSalt
+
+	password, err := password.Hash(user.Password, passwordSalt)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Password = password
+
 	if _, err := r.DB.NewInsert().
 		Model(&user).
 		Exec(ctx); err != nil {
@@ -144,7 +164,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (*mode
 	m := r.MailConfig.Confirmation
 
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
-		os.Getenv("PUBLIC_URL"), strconv.Itoa(int(user.SessionID)))
+		os.Getenv("PUBLIC_URL"), user.SessionID)
 
 	if err := email.Send(user, m, r.MailConfig); err != nil {
 		return nil, err
@@ -605,7 +625,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 		m.Table.Data = append(m.Table.Data, e)
 	}
 
-	user, err := r.Query().Users(ctx, []string{availability.UserMail})
+	user, err := r.Query().Users(ctx, []string{availability.UserMail}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -627,7 +647,7 @@ func (r *mutationResolver) DeleteTutorAvailabilityForEvent(ctx context.Context, 
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{availability.UserMail})
+	user, err := r.Query().Users(ctx, []string{availability.UserMail}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -669,19 +689,20 @@ func (r *mutationResolver) DeleteRoomAvailabilityForEvent(ctx context.Context, a
 }
 
 // AddStudentRegistrationForEvent is the resolver for the addStudentRegistrationForEvent field.
-func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*models.User, error) {
+func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*models.UserToEventRegistration, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&registration).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{registration.UserMail})
+	id := int(registration.EventID)
+	reg, err := r.Query().Registrations(ctx, &id, []string{registration.UserMail})
 	if err != nil {
 		return nil, err
 	}
 
-	return user[0], nil
+	return reg[0], nil
 }
 
 // DeleteStudentRegistrationForEvent is the resolver for the deleteStudentRegistrationForEvent field.
@@ -693,7 +714,7 @@ func (r *mutationResolver) DeleteStudentRegistrationForEvent(ctx context.Context
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{registration.UserMail})
+	user, err := r.Query().Users(ctx, []string{registration.UserMail}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -757,7 +778,7 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{application.UserMail})
+	user, err := r.Query().Users(ctx, []string{application.UserMail}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -775,7 +796,7 @@ func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context,
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{mail})
+	user, err := r.Query().Users(ctx, []string{mail}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -960,7 +981,7 @@ func (r *queryResolver) Settings(ctx context.Context, key []string, typeArg []mo
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context, mail []string) ([]*models.User, error) {
+func (r *queryResolver) Users(ctx context.Context, mail []string, sessionID []string) ([]*models.User, error) {
 	var users []*models.User
 
 	query := r.DB.NewSelect().
@@ -972,6 +993,10 @@ func (r *queryResolver) Users(ctx context.Context, mail []string) ([]*models.Use
 
 	if mail != nil {
 		query = query.Where("mail IN (?)", bun.In(mail))
+	}
+
+	if sessionID != nil {
+		query = query.Where("session_id IN (?)", bun.In(sessionID))
 	}
 
 	if err := query.Scan(ctx); err != nil {
@@ -1024,6 +1049,61 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, studentM
 	}
 
 	return applications, nil
+}
+
+// Registrations is the resolver for the registrations field.
+func (r *queryResolver) Registrations(ctx context.Context, eventID *int, studentMail []string) ([]*models.UserToEventRegistration, error) {
+	var registrations []*models.UserToEventRegistration
+
+	query := r.DB.NewSelect().
+		Model(&registrations).
+		Relation("User").
+		Relation("Event").
+		Relation("Room").
+		Relation("Room.Building")
+
+	if eventID != nil {
+		query = query.Where("event_id = ?", *eventID)
+	}
+
+	if studentMail != nil {
+		query = query.Where("user_mail IN (?)", bun.In(studentMail))
+	}
+
+	if err := query.Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	return registrations, nil
+}
+
+// Login is the resolver for the login field.
+func (r *queryResolver) Login(ctx context.Context, credentials *model.EmailPassword, sessionID *string) (*model.AuthPayload, error) {
+	var email []string
+	var sID []string
+	if sessionID != nil {
+		sID = append(sID, *sessionID)
+	} else {
+		email = append(email, credentials.Email)
+	}
+
+	user, err := r.Query().Users(ctx, email, sID)
+	if err != nil || len(user) == 0 {
+		return nil, err
+	}
+
+	if credentials != nil {
+		if err := password.VerifyPassword(user[0].Password, credentials.Password, user[0].Salt); err != nil {
+			return nil, err
+		}
+	}
+
+	payload := &model.AuthPayload{
+		SessionID: user[0].SessionID,
+		User:      user[0],
+	}
+
+	return payload, nil
 }
 
 // Type is the resolver for the type field.

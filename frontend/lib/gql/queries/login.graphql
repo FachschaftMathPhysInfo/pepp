@@ -1,0 +1,11 @@
+query emailPasswordLogin($email: String!, $password: String!) {
+  login(credentials: {email: $email, password: $password}) {
+    sessionID
+    user {
+      fn
+      sn
+      mail
+      confirmed
+    }
+  }
+}

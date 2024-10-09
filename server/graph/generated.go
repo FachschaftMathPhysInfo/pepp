@@ -82,6 +82,11 @@ type ComplexityRoot struct {
 		Student   func(childComplexity int) int
 	}
 
+	AuthPayload struct {
+		SessionID func(childComplexity int) int
+		User      func(childComplexity int) int
+	}
+
 	Building struct {
 		City      func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -165,15 +170,17 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Applications func(childComplexity int, eventID *int, studentMail []string) int
-		Buildings    func(childComplexity int, id []int) int
-		Events       func(childComplexity int, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userMail []string) int
-		Forms        func(childComplexity int, id []int) int
-		Labels       func(childComplexity int, name []string, kind []model.LabelKind, umbrellaID []int) int
-		Rooms        func(childComplexity int, number []string, buildingID int) int
-		Settings     func(childComplexity int, key []string, typeArg []model.ScalarType) int
-		Umbrellas    func(childComplexity int, id []int, onlyFuture *bool) int
-		Users        func(childComplexity int, mail []string) int
+		Applications  func(childComplexity int, eventID *int, studentMail []string) int
+		Buildings     func(childComplexity int, id []int) int
+		Events        func(childComplexity int, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userMail []string) int
+		Forms         func(childComplexity int, id []int) int
+		Labels        func(childComplexity int, name []string, kind []model.LabelKind, umbrellaID []int) int
+		Login         func(childComplexity int, credentials *model.EmailPassword, sessionID *string) int
+		Registrations func(childComplexity int, eventID *int, studentMail []string) int
+		Rooms         func(childComplexity int, number []string, buildingID int) int
+		Settings      func(childComplexity int, key []string, typeArg []model.ScalarType) int
+		Umbrellas     func(childComplexity int, id []int, onlyFuture *bool) int
+		Users         func(childComplexity int, mail []string, sessionID []string) int
 	}
 
 	Question struct {
@@ -212,6 +219,12 @@ type ComplexityRoot struct {
 		Fn               func(childComplexity int) int
 		Mail             func(childComplexity int) int
 		Sn               func(childComplexity int) int
+	}
+
+	UserToEventRegistration struct {
+		Event func(childComplexity int) int
+		Room  func(childComplexity int) int
+		User  func(childComplexity int) int
 	}
 }
 
@@ -262,7 +275,7 @@ type MutationResolver interface {
 	DeleteTutorAvailabilityForEvent(ctx context.Context, availability model.NewUserToEventAvailability) (*models.User, error)
 	AddRoomAvailabilityForEvent(ctx context.Context, availability models.RoomToEventAvailability) (*models.Room, error)
 	DeleteRoomAvailabilityForEvent(ctx context.Context, availability models.RoomToEventAvailability) (*models.Room, error)
-	AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*models.User, error)
+	AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*models.UserToEventRegistration, error)
 	DeleteStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*models.User, error)
 	AddStudentApplicationForEvent(ctx context.Context, application model.NewUserToEventApplication) (*models.User, error)
 	DeleteStudentApplicationForEvent(ctx context.Context, mail string, eventID int) (*models.User, error)
@@ -274,9 +287,11 @@ type QueryResolver interface {
 	Rooms(ctx context.Context, number []string, buildingID int) ([]*models.Room, error)
 	Labels(ctx context.Context, name []string, kind []model.LabelKind, umbrellaID []int) ([]*models.Label, error)
 	Settings(ctx context.Context, key []string, typeArg []model.ScalarType) ([]*models.Setting, error)
-	Users(ctx context.Context, mail []string) ([]*models.User, error)
+	Users(ctx context.Context, mail []string, sessionID []string) ([]*models.User, error)
 	Forms(ctx context.Context, id []int) ([]*models.Form, error)
 	Applications(ctx context.Context, eventID *int, studentMail []string) ([]*models.Application, error)
+	Registrations(ctx context.Context, eventID *int, studentMail []string) ([]*models.UserToEventRegistration, error)
+	Login(ctx context.Context, credentials *model.EmailPassword, sessionID *string) (*model.AuthPayload, error)
 }
 type QuestionResolver interface {
 	Type(ctx context.Context, obj *models.Question) (model.QuestionType, error)
@@ -408,6 +423,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Application.Student(childComplexity), true
+
+	case "AuthPayload.sessionID":
+		if e.complexity.AuthPayload.SessionID == nil {
+			break
+		}
+
+		return e.complexity.AuthPayload.SessionID(childComplexity), true
+
+	case "AuthPayload.user":
+		if e.complexity.AuthPayload.User == nil {
+			break
+		}
+
+		return e.complexity.AuthPayload.User(childComplexity), true
 
 	case "Building.city":
 		if e.complexity.Building.City == nil {
@@ -1082,6 +1111,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Labels(childComplexity, args["name"].([]string), args["kind"].([]model.LabelKind), args["umbrellaID"].([]int)), true
 
+	case "Query.login":
+		if e.complexity.Query.Login == nil {
+			break
+		}
+
+		args, err := ec.field_Query_login_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Login(childComplexity, args["credentials"].(*model.EmailPassword), args["sessionID"].(*string)), true
+
+	case "Query.registrations":
+		if e.complexity.Query.Registrations == nil {
+			break
+		}
+
+		args, err := ec.field_Query_registrations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Registrations(childComplexity, args["eventId"].(*int), args["studentMail"].([]string)), true
+
 	case "Query.rooms":
 		if e.complexity.Query.Rooms == nil {
 			break
@@ -1128,7 +1181,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Users(childComplexity, args["mail"].([]string)), true
+		return e.complexity.Query.Users(childComplexity, args["mail"].([]string), args["sessionID"].([]string)), true
 
 	case "Question.answers":
 		if e.complexity.Question.Answers == nil {
@@ -1291,6 +1344,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Sn(childComplexity), true
 
+	case "UserToEventRegistration.event":
+		if e.complexity.UserToEventRegistration.Event == nil {
+			break
+		}
+
+		return e.complexity.UserToEventRegistration.Event(childComplexity), true
+
+	case "UserToEventRegistration.room":
+		if e.complexity.UserToEventRegistration.Room == nil {
+			break
+		}
+
+		return e.complexity.UserToEventRegistration.Room(childComplexity), true
+
+	case "UserToEventRegistration.user":
+		if e.complexity.UserToEventRegistration.User == nil {
+			break
+		}
+
+		return e.complexity.UserToEventRegistration.User(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -1299,6 +1373,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	rc := graphql.GetOperationContext(ctx)
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputEmailPassword,
 		ec.unmarshalInputEventToUserAssignment,
 		ec.unmarshalInputNewAnswer,
 		ec.unmarshalInputNewBuilding,
@@ -1312,8 +1387,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputNewUser,
 		ec.unmarshalInputNewUserToEventApplication,
 		ec.unmarshalInputNewUserToEventAvailability,
+		ec.unmarshalInputNewUserToEventRegistration,
 		ec.unmarshalInputRoomToEventAvailability,
-		ec.unmarshalInputUserToEventRegistration,
 	)
 	first := true
 
@@ -1571,7 +1646,7 @@ func (ec *executionContext) field_Mutation_addStudentRegistrationForEvent_args(c
 	var arg0 models.UserToEventRegistration
 	if tmp, ok := rawArgs["registration"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registration"))
-		arg0, err = ec.unmarshalNUserToEventRegistration2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx, tmp)
+		arg0, err = ec.unmarshalNNewUserToEventRegistration2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1817,7 +1892,7 @@ func (ec *executionContext) field_Mutation_deleteStudentRegistrationForEvent_arg
 	var arg0 models.UserToEventRegistration
 	if tmp, ok := rawArgs["registration"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("registration"))
-		arg0, err = ec.unmarshalNUserToEventRegistration2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx, tmp)
+		arg0, err = ec.unmarshalNNewUserToEventRegistration2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2159,6 +2234,54 @@ func (ec *executionContext) field_Query_labels_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_login_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.EmailPassword
+	if tmp, ok := rawArgs["credentials"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("credentials"))
+		arg0, err = ec.unmarshalOEmailPassword2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋgraphᚋmodelᚐEmailPassword(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["credentials"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["sessionID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionID"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sessionID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_registrations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["eventId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventId"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["eventId"] = arg0
+	var arg1 []string
+	if tmp, ok := rawArgs["studentMail"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("studentMail"))
+		arg1, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["studentMail"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_rooms_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2243,6 +2366,15 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["mail"] = arg0
+	var arg1 []string
+	if tmp, ok := rawArgs["sessionID"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionID"))
+		arg1, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sessionID"] = arg1
 	return args, nil
 }
 
@@ -2819,6 +2951,112 @@ func (ec *executionContext) fieldContext_Application_responses(_ context.Context
 				return ec.fieldContext_QuestionAnswersPair_answers(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type QuestionAnswersPair", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthPayload_sessionID(ctx context.Context, field graphql.CollectedField, obj *model.AuthPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthPayload_sessionID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthPayload_sessionID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AuthPayload_user(ctx context.Context, field graphql.CollectedField, obj *model.AuthPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AuthPayload_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AuthPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "fn":
+				return ec.fieldContext_User_fn(ctx, field)
+			case "sn":
+				return ec.fieldContext_User_sn(ctx, field)
+			case "mail":
+				return ec.fieldContext_User_mail(ctx, field)
+			case "confirmed":
+				return ec.fieldContext_User_confirmed(ctx, field)
+			case "eventsRegistered":
+				return ec.fieldContext_User_eventsRegistered(ctx, field)
+			case "eventsAvailable":
+				return ec.fieldContext_User_eventsAvailable(ctx, field)
+			case "eventsAssigned":
+				return ec.fieldContext_User_eventsAssigned(ctx, field)
+			case "applications":
+				return ec.fieldContext_User_applications(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	return fc, nil
@@ -6258,9 +6496,9 @@ func (ec *executionContext) _Mutation_addStudentRegistrationForEvent(ctx context
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.User)
+	res := resTmp.(*models.UserToEventRegistration)
 	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUserToEventRegistration2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addStudentRegistrationForEvent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -6271,24 +6509,14 @@ func (ec *executionContext) fieldContext_Mutation_addStudentRegistrationForEvent
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "fn":
-				return ec.fieldContext_User_fn(ctx, field)
-			case "sn":
-				return ec.fieldContext_User_sn(ctx, field)
-			case "mail":
-				return ec.fieldContext_User_mail(ctx, field)
-			case "confirmed":
-				return ec.fieldContext_User_confirmed(ctx, field)
-			case "eventsRegistered":
-				return ec.fieldContext_User_eventsRegistered(ctx, field)
-			case "eventsAvailable":
-				return ec.fieldContext_User_eventsAvailable(ctx, field)
-			case "eventsAssigned":
-				return ec.fieldContext_User_eventsAssigned(ctx, field)
-			case "applications":
-				return ec.fieldContext_User_applications(ctx, field)
+			case "event":
+				return ec.fieldContext_UserToEventRegistration_event(ctx, field)
+			case "user":
+				return ec.fieldContext_UserToEventRegistration_user(ctx, field)
+			case "room":
+				return ec.fieldContext_UserToEventRegistration_room(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UserToEventRegistration", field.Name)
 		},
 	}
 	defer func() {
@@ -6968,7 +7196,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx, fc.Args["mail"].([]string))
+		return ec.resolvers.Query().Users(rctx, fc.Args["mail"].([]string), fc.Args["sessionID"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7155,6 +7383,130 @@ func (ec *executionContext) fieldContext_Query_applications(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_applications_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_registrations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_registrations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Registrations(rctx, fc.Args["eventId"].(*int), fc.Args["studentMail"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.UserToEventRegistration)
+	fc.Result = res
+	return ec.marshalNUserToEventRegistration2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistrationᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_registrations(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "event":
+				return ec.fieldContext_UserToEventRegistration_event(ctx, field)
+			case "user":
+				return ec.fieldContext_UserToEventRegistration_user(ctx, field)
+			case "room":
+				return ec.fieldContext_UserToEventRegistration_room(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserToEventRegistration", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_registrations_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_login(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Login(rctx, fc.Args["credentials"].(*model.EmailPassword), fc.Args["sessionID"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AuthPayload)
+	fc.Result = res
+	return ec.marshalNAuthPayload2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋgraphᚋmodelᚐAuthPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_login(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "sessionID":
+				return ec.fieldContext_AuthPayload_sessionID(ctx, field)
+			case "user":
+				return ec.fieldContext_AuthPayload_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AuthPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_login_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -8416,6 +8768,194 @@ func (ec *executionContext) fieldContext_User_applications(_ context.Context, fi
 				return ec.fieldContext_Application_responses(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Application", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserToEventRegistration_event(ctx context.Context, field graphql.CollectedField, obj *models.UserToEventRegistration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserToEventRegistration_event(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Event, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Event)
+	fc.Result = res
+	return ec.marshalNEvent2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEvent(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserToEventRegistration_event(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserToEventRegistration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_Event_ID(ctx, field)
+			case "tutorsAssigned":
+				return ec.fieldContext_Event_tutorsAssigned(ctx, field)
+			case "tutorsAvailable":
+				return ec.fieldContext_Event_tutorsAvailable(ctx, field)
+			case "roomsAvailable":
+				return ec.fieldContext_Event_roomsAvailable(ctx, field)
+			case "umbrella":
+				return ec.fieldContext_Event_umbrella(ctx, field)
+			case "needsTutors":
+				return ec.fieldContext_Event_needsTutors(ctx, field)
+			case "title":
+				return ec.fieldContext_Event_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Event_description(ctx, field)
+			case "topic":
+				return ec.fieldContext_Event_topic(ctx, field)
+			case "type":
+				return ec.fieldContext_Event_type(ctx, field)
+			case "from":
+				return ec.fieldContext_Event_from(ctx, field)
+			case "to":
+				return ec.fieldContext_Event_to(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserToEventRegistration_user(ctx context.Context, field graphql.CollectedField, obj *models.UserToEventRegistration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserToEventRegistration_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserToEventRegistration_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserToEventRegistration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "fn":
+				return ec.fieldContext_User_fn(ctx, field)
+			case "sn":
+				return ec.fieldContext_User_sn(ctx, field)
+			case "mail":
+				return ec.fieldContext_User_mail(ctx, field)
+			case "confirmed":
+				return ec.fieldContext_User_confirmed(ctx, field)
+			case "eventsRegistered":
+				return ec.fieldContext_User_eventsRegistered(ctx, field)
+			case "eventsAvailable":
+				return ec.fieldContext_User_eventsAvailable(ctx, field)
+			case "eventsAssigned":
+				return ec.fieldContext_User_eventsAssigned(ctx, field)
+			case "applications":
+				return ec.fieldContext_User_applications(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserToEventRegistration_room(ctx context.Context, field graphql.CollectedField, obj *models.UserToEventRegistration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserToEventRegistration_room(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Room, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.Room)
+	fc.Result = res
+	return ec.marshalNRoom2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐRoom(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserToEventRegistration_room(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserToEventRegistration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_Room_name(ctx, field)
+			case "number":
+				return ec.fieldContext_Room_number(ctx, field)
+			case "capacity":
+				return ec.fieldContext_Room_capacity(ctx, field)
+			case "floor":
+				return ec.fieldContext_Room_floor(ctx, field)
+			case "building":
+				return ec.fieldContext_Room_building(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Room", field.Name)
 		},
 	}
 	return fc, nil
@@ -10194,6 +10734,40 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(_ context.Context
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputEmailPassword(ctx context.Context, obj interface{}) (model.EmailPassword, error) {
+	var it model.EmailPassword
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"email", "password"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "email":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Email = data
+		case "password":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Password = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputEventToUserAssignment(ctx context.Context, obj interface{}) (models.EventToUserAssignment, error) {
 	var it models.EventToUserAssignment
 	asMap := map[string]interface{}{}
@@ -10836,48 +11410,7 @@ func (ec *executionContext) unmarshalInputNewUserToEventAvailability(ctx context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputRoomToEventAvailability(ctx context.Context, obj interface{}) (models.RoomToEventAvailability, error) {
-	var it models.RoomToEventAvailability
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"roomNumber", "buildingID", "eventID"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "roomNumber":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomNumber"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.RoomNumber = data
-		case "buildingID":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildingID"))
-			data, err := ec.unmarshalNInt2int32(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.BuildingID = data
-		case "eventID":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventID"))
-			data, err := ec.unmarshalNInt2int32(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.EventID = data
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputUserToEventRegistration(ctx context.Context, obj interface{}) (models.UserToEventRegistration, error) {
+func (ec *executionContext) unmarshalInputNewUserToEventRegistration(ctx context.Context, obj interface{}) (models.UserToEventRegistration, error) {
 	var it models.UserToEventRegistration
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
@@ -10919,6 +11452,47 @@ func (ec *executionContext) unmarshalInputUserToEventRegistration(ctx context.Co
 				return it, err
 			}
 			it.BuildingID = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputRoomToEventAvailability(ctx context.Context, obj interface{}) (models.RoomToEventAvailability, error) {
+	var it models.RoomToEventAvailability
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"roomNumber", "buildingID", "eventID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "roomNumber":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomNumber"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RoomNumber = data
+		case "buildingID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("buildingID"))
+			data, err := ec.unmarshalNInt2int32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BuildingID = data
+		case "eventID":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("eventID"))
+			data, err := ec.unmarshalNInt2int32(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EventID = data
 		}
 	}
 
@@ -11148,6 +11722,50 @@ func (ec *executionContext) _Application(ctx context.Context, sel ast.SelectionS
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var authPayloadImplementors = []string{"AuthPayload"}
+
+func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionSet, obj *model.AuthPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, authPayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AuthPayload")
+		case "sessionID":
+			out.Values[i] = ec._AuthPayload_sessionID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "user":
+			out.Values[i] = ec._AuthPayload_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12077,6 +12695,50 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "registrations":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_registrations(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "login":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_login(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "__type":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___type(ctx, field)
@@ -12473,6 +13135,55 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._User_eventsAssigned(ctx, field, obj)
 		case "applications":
 			out.Values[i] = ec._User_applications(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var userToEventRegistrationImplementors = []string{"UserToEventRegistration"}
+
+func (ec *executionContext) _UserToEventRegistration(ctx context.Context, sel ast.SelectionSet, obj *models.UserToEventRegistration) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userToEventRegistrationImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserToEventRegistration")
+		case "event":
+			out.Values[i] = ec._UserToEventRegistration_event(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "user":
+			out.Values[i] = ec._UserToEventRegistration_user(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "room":
+			out.Values[i] = ec._UserToEventRegistration_room(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12984,6 +13695,20 @@ func (ec *executionContext) marshalNApplication2ᚖgithubᚗcomᚋFachschaftMath
 	return ec._Application(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNAuthPayload2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋgraphᚋmodelᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v model.AuthPayload) graphql.Marshaler {
+	return ec._AuthPayload(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthPayload2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋgraphᚋmodelᚐAuthPayload(ctx context.Context, sel ast.SelectionSet, v *model.AuthPayload) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._AuthPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -13427,6 +14152,11 @@ func (ec *executionContext) unmarshalNNewUserToEventAvailability2githubᚗcomᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNNewUserToEventRegistration2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx context.Context, v interface{}) (models.UserToEventRegistration, error) {
+	res, err := ec.unmarshalInputNewUserToEventRegistration(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNQuestion2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Question) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -13737,9 +14467,62 @@ func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋFachschaftMathPhysInf
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserToEventRegistration2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx context.Context, v interface{}) (models.UserToEventRegistration, error) {
-	res, err := ec.unmarshalInputUserToEventRegistration(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) marshalNUserToEventRegistration2githubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx context.Context, sel ast.SelectionSet, v models.UserToEventRegistration) graphql.Marshaler {
+	return ec._UserToEventRegistration(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserToEventRegistration2ᚕᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistrationᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.UserToEventRegistration) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserToEventRegistration2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNUserToEventRegistration2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐUserToEventRegistration(ctx context.Context, sel ast.SelectionSet, v *models.UserToEventRegistration) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UserToEventRegistration(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -14088,6 +14871,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOEmailPassword2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋgraphᚋmodelᚐEmailPassword(ctx context.Context, v interface{}) (*model.EmailPassword, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputEmailPassword(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOEvent2ᚕgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐEventᚄ(ctx context.Context, sel ast.SelectionSet, v []models.Event) graphql.Marshaler {

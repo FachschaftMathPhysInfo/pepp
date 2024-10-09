@@ -1,0 +1,10 @@
+mutation addStudentRegistrationForEvent($registration:NewUserToEventRegistration!) {
+  addStudentRegistrationForEvent(registration: $registration) {
+    room {
+      number
+      building {
+       ID
+      }
+    }
+  }
+}

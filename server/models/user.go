@@ -10,13 +10,14 @@ import (
 type User struct {
 	bun.BaseModel `bun:",alias:u"`
 
-	Mail      string `bun:",pk,notnull,type:varchar(255)"`
-	Fn        string `bun:",notnull,type:varchar(255)"`
-	Sn        string `bun:"type:varchar(255)"`
-	Confirmed bool   `bun:"confirmed,notnull"`
-	SessionID int32
+	Mail      string    `bun:",pk,notnull,type:varchar(255)"`
+	Fn        string    `bun:",notnull,type:varchar(255)"`
+	Sn        string    `bun:"type:varchar(255)"`
+	Confirmed bool      `bun:"confirmed,notnull"`
+	SessionID string    `bun:"type:varchar(11)"`
 	LastLogin time.Time `bun:",default:current_timestamp"`
 	Password  string    `bun:"type:varchar(64)"`
+	Salt      string    `bun:"type:varchar(22)"`
 	CreatedAt time.Time `bun:",default:current_timestamp"`
 
 	EventsAvailable  []Event        `bun:"m2m:user_to_event_availabilitys,join:User=Event"`

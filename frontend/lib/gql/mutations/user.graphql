@@ -1,0 +1,8 @@
+mutation registration($fn: String!, $sn: String, $mail: String!, $password: String!) {
+  addUser(user: {fn: $fn, sn: $sn, mail: $mail, password: $password}) {
+    fn
+    sn
+    mail
+    confirmed
+  }
+}

@@ -105,3 +105,5 @@ models:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Room
   NewSetting:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Setting
+  NewUserToEventRegistration:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.UserToEventRegistration

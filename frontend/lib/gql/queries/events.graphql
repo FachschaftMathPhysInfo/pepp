@@ -63,6 +63,7 @@ query eventCloseup($id: Int!) {
         name
         number
         building {
+          ID
           name
           street
           number

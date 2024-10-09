@@ -15,6 +15,16 @@ type AnswerValuePair struct {
 	Value  *string        `json:"value,omitempty"`
 }
 
+type AuthPayload struct {
+	SessionID string       `json:"sessionID"`
+	User      *models.User `json:"user"`
+}
+
+type EmailPassword struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type EventTutorRoomPair struct {
 	Tutors        []*models.User `json:"tutors,omitempty"`
 	Room          *models.Room   `json:"room,omitempty"`

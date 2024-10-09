@@ -126,6 +126,17 @@ type Application {
   responses: [QuestionAnswersPair!]
 }
 
+type AuthPayload {
+  sessionID: String!
+  user: User!
+}
+
+type UserToEventRegistration {
+  event: Event!
+  user: User!
+  room: Room!
+}
+
 type Query {
   events(id: [Int!], umbrellaID: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, onlyFuture: Boolean, userMail: [String!]): [Event!]!
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
@@ -133,9 +144,16 @@ type Query {
   rooms(number: [String!], buildingID: Int!): [Room!]!
   labels(name: [String!], kind: [LabelKind!], umbrellaID: [Int!]): [Label!]!
   settings(key: [String!], type: [ScalarType!]): [Setting!]!
-  users(mail: [String!]): [User!]!
+  users(mail: [String!], sessionID: [String!]): [User!]!
   forms(id: [Int!]): [Form!]!
   applications(eventID: Int, studentMail: [String!]): [Application!]!
+  registrations(eventId: Int, studentMail: [String!]): [UserToEventRegistration!]!
+  login(credentials: EmailPassword, sessionID: String): AuthPayload!
+}
+
+input EmailPassword {
+  email: String!
+  password: String!
 }
 
 input NewUser {
@@ -223,7 +241,7 @@ input RoomToEventAvailability {
   eventID: Int!
 }
 
-input UserToEventRegistration {
+input NewUserToEventRegistration {
   eventID: Int!
   userMail: String!
   roomNumber: String!
@@ -273,8 +291,8 @@ type Mutation {
   deleteTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
   addRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
   deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
-  addStudentRegistrationForEvent(registration: UserToEventRegistration!): User!
-  deleteStudentRegistrationForEvent(registration: UserToEventRegistration!): User!
+  addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): UserToEventRegistration!
+  deleteStudentRegistrationForEvent(registration: NewUserToEventRegistration!): User!
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
   deleteStudentApplicationForEvent(mail: String!, eventID: Int!): User!
 }

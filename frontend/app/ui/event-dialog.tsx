@@ -1,13 +1,22 @@
 "use client";
 
 import {
+  AddStudentApplicationForEventMutationVariables,
+  AddStudentRegistrationForEventDocument,
+  AddStudentRegistrationForEventMutation,
+  AddStudentRegistrationForEventMutationVariables,
   EventCloseupDocument,
   EventCloseupQuery,
   EventCloseupQueryVariables,
+  NewUserToEventRegistration,
+  UserEventRegistrationDocument,
+  UserEventRegistrationQuery,
+  UserEventRegistrationQueryVariables,
+  UserToEventRegistration,
 } from "@/lib/gql/generated/graphql";
 import { client } from "@/lib/graphClient";
 import React, { useEffect, useState } from "react";
-import { Mail, Building2, ArrowDownToDot } from "lucide-react";
+import { Mail, Building2, ArrowDownToDot, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +25,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
+  Dialog,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -25,12 +35,21 @@ import {
   HoverCardContent,
 } from "@/components/ui/hover-card";
 import MapPreview from "@/components/map-preview";
+import { useUser } from "../providers";
+import { SignInDialog } from "@/components/sign-in-dialog";
+import { DialogTrigger } from "@radix-ui/react-dialog";
 
 export default function EventDialog({ id }: { id: number }) {
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
+  const [regLoading, setRegLoading] = useState(false);
+  const [registration, setRegistration] = useState<
+    UserEventRegistrationQuery["registrations"][0] | null
+  >(null);
   const [event, setEvent] = useState<EventCloseupQuery["events"][0] | null>(
     null
   );
+  const [registrations, setRegistrations] = useState<number[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -50,12 +69,69 @@ export default function EventDialog({ id }: { id: number }) {
 
       if (eventData.events.length) {
         setEvent(eventData.events[0]);
+        setRegistrations(
+          eventData.events[0].tutorsAssigned?.map(
+            (t) => t.registrations ?? 0
+          ) || []
+        );
         setLoading(false);
       }
     };
 
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchData = async () => {
+      setRegLoading(true);
+
+      const vars: UserEventRegistrationQueryVariables = {
+        id: id,
+        email: user.mail,
+      };
+
+      await new Promise((resolve) => setTimeout(resolve, 250));
+
+      const regData = await client.request<UserEventRegistrationQuery>(
+        UserEventRegistrationDocument,
+        vars
+      );
+
+      if (regData.registrations.length) {
+        setRegistration(regData.registrations[0]);
+      }
+
+      setRegLoading(false);
+    };
+
+    fetchData();
+  }, [user, id]);
+
+  const registerForEvent = async (reg: NewUserToEventRegistration) => {
+    setRegLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    const vars: AddStudentRegistrationForEventMutationVariables = {
+      registration: reg,
+    };
+
+    const regData =
+      await client.request<AddStudentRegistrationForEventMutation>(
+        AddStudentRegistrationForEventDocument,
+        vars
+      );
+
+    setRegistration(regData.addStudentRegistrationForEvent);
+    setRegLoading(false);
+  };
+
+  const increaseRegistration = (index: number) => {
+    setRegistrations((prevRegistrations) =>
+      prevRegistrations.map((reg, i) => (i === index ? reg + 1 : reg))
+    );
+  };
 
   return (
     <DialogContent className="sm:max-w-[550px]">
@@ -81,24 +157,35 @@ export default function EventDialog({ id }: { id: number }) {
               </div>
             </DialogDescription>
           </DialogHeader>
+
+          {!user && (
+            <div>
+              <span>Bitte </span>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <span className="cursor-pointer text-blue-500 hover:underline">anmelden</span>
+                </DialogTrigger>
+                <SignInDialog />
+              </Dialog>
+              <span>, um dich eintragen zu können.</span>
+            </div>
+          )}
           <div className="rounded-md border">
             <Table>
               <TableBody>
-                {event?.tutorsAssigned?.map((e) => {
-                  const registrations = e.registrations ?? 0;
+                {event?.tutorsAssigned?.map((e, i) => {
                   const capacity = e.room?.capacity ?? 1;
-                  const utilization = (registrations / capacity) * 100;
+                  const utilization = (registrations[i] / capacity) * 100;
 
                   return (
                     <TableRow key={e.room?.number}>
                       <div
-                        className={
-                          "absolute inset-0 z-0 rounded-md bg-" +
-                          (utilization < 100 ? "green" : "red") +
-                          "-200"
-                        }
+                        className="absolute inset-0 z-0 rounded-md"
                         style={{
                           width: `${utilization}%`,
+                          backgroundColor: `${
+                            utilization < 100 ? "#BBF7D0" : "#FECACA"
+                          }`,
                         }}
                       />
                       <TableCell className="relative z-10">
@@ -195,8 +282,29 @@ export default function EventDialog({ id }: { id: number }) {
                         </p>
                       </TableCell>
                       <TableCell className="relative z-10">
-                        <Button disabled={utilization == 100} variant="outline">
-                          Eintragen
+                        <Button
+                          disabled={utilization == 100 || !user || regLoading}
+                          variant="outline"
+                          onClick={() => {
+                            registerForEvent({
+                              userMail: user?.mail ?? "",
+                              eventID: event.ID,
+                              roomNumber: e.room?.number ?? "",
+                              buildingID: e.room?.building.ID ?? 0,
+                            });
+                            increaseRegistration(i);
+                          }}
+                        >
+                          {regLoading && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          {registration
+                            ? registration.room.number === e.room?.number &&
+                              registration.room.building.ID ===
+                                e.room.building.ID
+                              ? "Abmelden"
+                              : "Wechseln"
+                            : "Anmelden"}
                         </Button>
                       </TableCell>
                     </TableRow>
