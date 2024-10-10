@@ -321,7 +321,7 @@ type NewQuestionResolver interface {
 	Type(ctx context.Context, obj *models.Question, data model.QuestionType) error
 }
 type NewRoomResolver interface {
-	Capacity(ctx context.Context, obj *models.Room, data *int) error
+	Capacity(ctx context.Context, obj *models.Room, data int) error
 	Floor(ctx context.Context, obj *models.Room, data *int) error
 }
 type NewSettingResolver interface {
@@ -11215,7 +11215,7 @@ func (ec *executionContext) unmarshalInputNewRoom(ctx context.Context, obj inter
 			it.Name = data
 		case "capacity":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("capacity"))
-			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			data, err := ec.unmarshalNInt2int(ctx, v)
 			if err != nil {
 				return it, err
 			}

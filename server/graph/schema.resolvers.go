@@ -1187,8 +1187,8 @@ func (r *newQuestionResolver) Type(ctx context.Context, obj *models.Question, da
 }
 
 // Capacity is the resolver for the capacity field.
-func (r *newRoomResolver) Capacity(ctx context.Context, obj *models.Room, data *int) error {
-	obj.Capacity = int16(*data)
+func (r *newRoomResolver) Capacity(ctx context.Context, obj *models.Room, data int) error {
+	obj.Capacity = int16(data)
 	return nil
 }
 

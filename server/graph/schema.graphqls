@@ -188,7 +188,7 @@ input NewBuilding {
 input NewRoom {
   number: String!
   name: String
-  capacity: Int
+  capacity: Int!
   floor: Int
   buildingID: Int!
 }

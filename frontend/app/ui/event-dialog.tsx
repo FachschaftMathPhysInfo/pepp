@@ -5,6 +5,9 @@ import {
   AddStudentRegistrationForEventDocument,
   AddStudentRegistrationForEventMutation,
   AddStudentRegistrationForEventMutationVariables,
+  DeleteStudentRegistrationForEventDocument,
+  DeleteStudentRegistrationForEventMutation,
+  DeleteStudentRegistrationForEventMutationVariables,
   EventCloseupDocument,
   EventCloseupQuery,
   EventCloseupQueryVariables,
@@ -109,8 +112,10 @@ export default function EventDialog({ id }: { id: number }) {
     fetchData();
   }, [user, id]);
 
-  const registerForEvent = async (reg: NewUserToEventRegistration) => {
-    setRegLoading(true);
+  const registerForEvent = async (
+    reg: NewUserToEventRegistration,
+    i: number
+  ) => {
     await new Promise((resolve) => setTimeout(resolve, 250));
 
     const vars: AddStudentRegistrationForEventMutationVariables = {
@@ -123,14 +128,60 @@ export default function EventDialog({ id }: { id: number }) {
         vars
       );
 
+    changeRegistrationCount(i, 1);
     setRegistration(regData.addStudentRegistrationForEvent);
-    setRegLoading(false);
   };
 
-  const increaseRegistration = (index: number) => {
-    setRegistrations((prevRegistrations) =>
-      prevRegistrations.map((reg, i) => (i === index ? reg + 1 : reg))
+  const unregisterFromEvent = async (reg: NewUserToEventRegistration) => {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    const vars: DeleteStudentRegistrationForEventMutationVariables = {
+      registration: reg,
+    };
+
+    await client.request<DeleteStudentRegistrationForEventMutation>(
+      DeleteStudentRegistrationForEventDocument,
+      vars
     );
+
+    event?.tutorsAssigned?.forEach((e, i) => {
+      if (e.room?.number === registration?.room.number && e.room?.building.ID) {
+        changeRegistrationCount(i, -1);
+      }
+    });
+  };
+
+  const changeRegistrationCount = (index: number, value: number) => {
+    setRegistrations((prevRegistrations) =>
+      prevRegistrations.map((reg, i) => (i === index ? reg + value : reg))
+    );
+  };
+
+  const handleRegistrationChange = async (
+    reg: NewUserToEventRegistration,
+    i: number
+  ) => {
+    setRegLoading(true);
+    if (registration) {
+      if (
+        reg.roomNumber === registration.room.number &&
+        reg.buildingID === registration.room.building.ID
+      ) {
+        await unregisterFromEvent(reg);
+        setRegistration(null);
+      } else {
+        await unregisterFromEvent({
+          eventID: event?.ID ?? 0,
+          roomNumber: registration.room.number,
+          buildingID: registration.room.building.ID,
+          userMail: user?.mail ?? "",
+        });
+        await registerForEvent(reg, i);
+      }
+    } else {
+      await registerForEvent(reg, i);
+    }
+    setRegLoading(false);
   };
 
   return (
@@ -163,14 +214,16 @@ export default function EventDialog({ id }: { id: number }) {
               <span>Bitte </span>
               <Dialog>
                 <DialogTrigger asChild>
-                  <span className="cursor-pointer text-blue-500 hover:underline">anmelden</span>
+                  <span className="cursor-pointer text-blue-500 hover:underline">
+                    anmelden
+                  </span>
                 </DialogTrigger>
                 <SignInDialog />
               </Dialog>
               <span>, um dich eintragen zu können.</span>
             </div>
           )}
-          <div className="rounded-md border">
+          <div className="rounded-md border overflow-hidden">
             <Table>
               <TableBody>
                 {event?.tutorsAssigned?.map((e, i) => {
@@ -178,9 +231,9 @@ export default function EventDialog({ id }: { id: number }) {
                   const utilization = (registrations[i] / capacity) * 100;
 
                   return (
-                    <TableRow key={e.room?.number}>
+                    <TableRow key={e.room?.number} className="relative">
                       <div
-                        className="absolute inset-0 z-0 rounded-md"
+                        className="absolute inset-0 z-0"
                         style={{
                           width: `${utilization}%`,
                           backgroundColor: `${
@@ -188,7 +241,7 @@ export default function EventDialog({ id }: { id: number }) {
                           }`,
                         }}
                       />
-                      <TableCell className="relative z-10">
+                      <TableCell className="relative z-1">
                         {e.tutors?.map((t) => (
                           <HoverCard key={t.mail}>
                             <HoverCardTrigger asChild>
@@ -213,7 +266,7 @@ export default function EventDialog({ id }: { id: number }) {
                           </HoverCard>
                         ))}
                       </TableCell>
-                      <TableCell className="relative z-2">
+                      <TableCell className="relative z-1">
                         <HoverCard>
                           <HoverCardTrigger asChild>
                             <div className="group">
@@ -276,32 +329,34 @@ export default function EventDialog({ id }: { id: number }) {
                           </HoverCardContent>
                         </HoverCard>
                       </TableCell>
-                      <TableCell className="relative z-10">
+                      <TableCell className="relative z-1">
                         <p>
-                          {registrations}/{capacity}
+                          {registrations[i]}/{capacity}
                         </p>
                       </TableCell>
-                      <TableCell className="relative z-10">
+                      <TableCell className="relative z-1">
                         <Button
                           disabled={utilization == 100 || !user || regLoading}
                           variant="outline"
                           onClick={() => {
-                            registerForEvent({
-                              userMail: user?.mail ?? "",
-                              eventID: event.ID,
-                              roomNumber: e.room?.number ?? "",
-                              buildingID: e.room?.building.ID ?? 0,
-                            });
-                            increaseRegistration(i);
+                            handleRegistrationChange(
+                              {
+                                userMail: user?.mail ?? "",
+                                eventID: event.ID,
+                                roomNumber: e.room?.number ?? "",
+                                buildingID: e.room?.building.ID ?? 0,
+                              },
+                              i
+                            );
                           }}
                         >
                           {regLoading && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           )}
                           {registration
-                            ? registration.room.number === e.room?.number &&
-                              registration.room.building.ID ===
-                                e.room.building.ID
+                            ? e.room?.number === registration.room.number &&
+                              e.room.building.ID ===
+                                registration.room.building.ID
                               ? "Abmelden"
                               : "Wechseln"
                             : "Anmelden"}

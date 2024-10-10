@@ -40,6 +40,10 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		Capacity:   20,
 		Floor:      2,
 		BuildingID: 1,
+	}, {
+		Number:     "2.141",
+		Capacity:   35,
+		BuildingID: 1,
 	}}
 	if err := insertData(ctx, db, (*models.Room)(nil), rooms, "Rooms"); err != nil {
 		return err
@@ -102,6 +106,7 @@ func seedData(ctx context.Context, db *bun.DB) error {
 	assignments := []*models.EventToUserAssignment{
 		{EventID: eventID, UserMail: "tutor1@example.de", RoomNumber: "101", BuildingID: buildingID},
 		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "101", BuildingID: buildingID},
+		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "2.141", BuildingID: buildingID},
 	}
 	if err := insertData(ctx, db, (*models.EventToUserAssignment)(nil), assignments, "Event to User assignments"); err != nil {
 		return err
