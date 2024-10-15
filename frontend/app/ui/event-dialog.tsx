@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  AddStudentApplicationForEventMutationVariables,
   AddStudentRegistrationForEventDocument,
   AddStudentRegistrationForEventMutation,
   AddStudentRegistrationForEventMutationVariables,
@@ -15,7 +14,6 @@ import {
   UserEventRegistrationDocument,
   UserEventRegistrationQuery,
   UserEventRegistrationQueryVariables,
-  UserToEventRegistration,
 } from "@/lib/gql/generated/graphql";
 import { client } from "@/lib/graphClient";
 import React, { useEffect, useState } from "react";
@@ -41,6 +39,7 @@ import MapPreview from "@/components/map-preview";
 import { useUser } from "../providers";
 import { SignInDialog } from "@/components/sign-in-dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
+import { MailLinkWithLabel } from "@/components/links/email";
 
 export default function EventDialog({ id }: { id: number }) {
   const { user } = useUser();
@@ -229,6 +228,9 @@ export default function EventDialog({ id }: { id: number }) {
                 {event?.tutorsAssigned?.map((e, i) => {
                   const capacity = e.room?.capacity ?? 1;
                   const utilization = (registrations[i] / capacity) * 100;
+                  const isRegisteredEvent =
+                    e.room?.number === registration?.room.number &&
+                    e.room?.building.ID === registration?.room.building.ID;
 
                   return (
                     <TableRow key={e.room?.number} className="relative">
@@ -250,18 +252,10 @@ export default function EventDialog({ id }: { id: number }) {
                               </p>
                             </HoverCardTrigger>
                             <HoverCardContent>
-                              <p className="mb-1 text-xs text-muted-foreground">
-                                {t.fn + " " + t.sn}
-                              </p>
-                              <div className="flex flex-row items-center">
-                                <Mail className="mr-2 h-4 w-4 opacity-70" />
-                                <a
-                                  href={"mailto:" + t.mail}
-                                  className="hover:underline text-blue-500"
-                                >
-                                  {t.mail}
-                                </a>
-                              </div>
+                              <MailLinkWithLabel
+                                mail={t.mail}
+                                label={t.fn + " " + t.sn}
+                              />
                             </HoverCardContent>
                           </HoverCard>
                         ))}
@@ -337,7 +331,9 @@ export default function EventDialog({ id }: { id: number }) {
                       <TableCell className="relative z-1">
                         <Button
                           disabled={utilization == 100 || !user || regLoading}
-                          variant="outline"
+                          variant={
+                            isRegisteredEvent && user ? "destructive" : "outline"
+                          }
                           onClick={() => {
                             handleRegistrationChange(
                               {
@@ -353,10 +349,8 @@ export default function EventDialog({ id }: { id: number }) {
                           {regLoading && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           )}
-                          {registration
-                            ? e.room?.number === registration.room.number &&
-                              e.room.building.ID ===
-                                registration.room.building.ID
+                          {registration && user
+                            ? isRegisteredEvent
                               ? "Abmelden"
                               : "Wechseln"
                             : "Anmelden"}

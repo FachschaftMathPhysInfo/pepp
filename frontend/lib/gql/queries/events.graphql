@@ -15,6 +15,17 @@ query tutorFormEvents {
   }
 }
 
+query futureEvents {
+  events(onlyFuture: true) {
+    ID
+    title
+    umbrella {
+      ID
+      title
+    }
+  }
+}
+
 query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
   umbrellas(id: [$umbrellaID]) {
     title

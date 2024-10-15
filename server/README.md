@@ -1,7 +1,7 @@
 # Welcome to the backend.
 
 ## api
-See [https://fachschaftmathphysinfo.github.io/pepp](https://fachschaftmathphysinfo.github.io/pepp) for documentation on the API.
+See the [documentation](https://fachschaftmathphysinfo.github.io/pepp).
 
 ## database er-diagram
-![ER-Diagram](pepp-er.jpg)
+![ER-Diagram](models/pepp-er.svg)

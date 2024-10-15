@@ -64,7 +64,7 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       fmt.Sprintf("Vorkurs %s", strconv.Itoa(time.Now().Year())),
 			Description: "Lorem Ipsum",
-			From:        time.Now(),
+			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(3 * (time.Hour * 24)),
 		},
 		{
@@ -73,8 +73,8 @@ func seedData(ctx context.Context, db *bun.DB) error {
 			TopicName:   "Informatik",
 			TypeName:    "Tutorium",
 			NeedsTutors: true,
-			From:        time.Now().Add(6 * time.Hour),
-			To:          time.Now().Add(7 * time.Hour),
+			From:        time.Now().Add(-time.Hour),
+			To:          time.Now().Add(time.Hour),
 			UmbrellaID:  &umbrellaID,
 		},
 		{
@@ -83,8 +83,8 @@ func seedData(ctx context.Context, db *bun.DB) error {
 			TopicName:   "Mathe",
 			TypeName:    "Vorlesung",
 			NeedsTutors: true,
-			From:        time.Now().Add(20 * time.Hour),
-			To:          time.Now().Add(22 * time.Hour),
+			From:        time.Now().Add((24 * time.Hour) * 7),
+			To:          time.Now().Add((24*time.Hour)*7 + 2*time.Hour),
 			UmbrellaID:  &umbrellaID,
 		},
 		{
@@ -93,8 +93,8 @@ func seedData(ctx context.Context, db *bun.DB) error {
 			TopicName:   "Mathe",
 			TypeName:    "Tutorium",
 			NeedsTutors: true,
-			From:        time.Now().Add(4 * time.Hour),
-			To:          time.Now().Add(5 * time.Hour),
+			From:        time.Now().Add(2 * time.Hour),
+			To:          time.Now().Add(3 * time.Hour),
 			UmbrellaID:  &umbrellaID,
 		}}
 	if err := insertData(ctx, db, (*models.Event)(nil), events, "Events"); err != nil {
