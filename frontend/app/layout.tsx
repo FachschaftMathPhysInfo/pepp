@@ -1,31 +1,74 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import { Inter as FontSans } from "next/font/google";
+import localFont from "next/font/local";
+
+import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
+import { siteConfig } from "@/config/site";
+import { TailwindIndicator } from "@/components/tailwind-indicator";
+import {
+  UserProvider,
+  ThemeProvider,
+  UmbrellaProvider,
+} from "@/components/providers";
 import Header from "@/components/header";
-import { Providers } from "./providers";
-import {Footer} from "@/components/footer";
+import { Suspense } from "react";
 
-const inter = Inter({ subsets: ["latin"] });
+const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
-export const metadata: Metadata = {
-  title: "Vorkurs",
-  description: "Dashboard und Infoseite des Vorkurses",
+const fontHeading = localFont({
+  src: "../assets/fonts/CalSans-SemiBold.woff2",
+  variable: "--font-heading",
+});
+
+export const metadata = {
+  title: {
+    default: siteConfig.name,
+  },
+  description: siteConfig.description,
+  keywords: ["pepp"],
+  creator: "Fachschaft MathPhysInfo",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteConfig.url,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+  },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+interface RootLayoutProps {
   children: React.ReactNode;
-}>) {
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
-      <Providers>
-        <Header />
-        <body className={inter.className}><div className="mt-[60px]">{children}</div></body>
-        <Toaster />
-      </Providers>
-      <Footer />
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased max-w-xm",
+          fontSans.variable,
+          fontHeading.variable
+        )}
+      >
+        <Suspense>
+          <UserProvider>
+            <ThemeProvider>
+              <UmbrellaProvider>
+                <Header />
+                {children}
+                <Toaster />
+                <TailwindIndicator />
+              </UmbrellaProvider>
+            </ThemeProvider>
+          </UserProvider>
+        </Suspense>
+      </body>
     </html>
   );
 }

@@ -3,8 +3,12 @@ receivers:
     protocols:
       grpc:
         endpoint: "0.0.0.0:4317"
+        
 processors:
+
 exporters:
+  otlphttp:
+    endpoint: <monitoring service>:4318
   debug:
     verbosity: detailed
     sampling_initial: 5
@@ -15,4 +19,4 @@ service:
     traces:
       receivers: [otlp]
       processors: []
-      exporters: [debug]
+      exporters: [otlphttp]

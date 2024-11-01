@@ -18,7 +18,7 @@ export function Footer() {
         <a className="cursor-pointer underline" href="https://mathphys.info">
           Fachschaft MathPhysInfo
         </a>{" "}
-        at Heidelberg University.
+        at Heidelberg University.{" "}
       </span>
       <span>
         The source code is available on{" "}

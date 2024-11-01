@@ -23,15 +23,14 @@ import {
 import { Dialog } from "./ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { SignInDialog } from "./sign-in-dialog";
-import { useUser } from "@/app/providers";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Separator } from "./ui/separator";
-import { client } from "@/lib/graphClient";
 import {
   FutureEventsDocument,
   FutureEventsQuery,
 } from "@/lib/gql/generated/graphql";
-import EventDialog from "@/app/ui/event-dialog";
+import { useUmbrella, useUser } from "./providers";
+import { client } from "@/lib/graphql";
 
 export default function Header() {
   const [isClient, setIsClient] = useState(false);
@@ -39,14 +38,13 @@ export default function Header() {
   const [events, setEvents] = useState<FutureEventsQuery["events"] | null>(
     null
   );
+
+  const { setCloseupID } = useUmbrella();
   const { setTheme } = useTheme();
   const { user, setUser } = useUser();
-  const [popupId, setPopupId] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 250));
-
       const eventData = await client.request<FutureEventsQuery>(
         FutureEventsDocument
       );
@@ -123,16 +121,15 @@ export default function Header() {
                 >
                   {groupedEvents
                     ? groupedEvents[uID].map((e) => (
-                        <Dialog key={e.ID}>
-                          <DialogTrigger asChild>
-                            <CommandItem
-                              onClick={() => setPopupId(e.ID)}
-                            >
-                              {e.title}
-                            </CommandItem>
-                          </DialogTrigger>
-                          <EventDialog id={popupId} />
-                        </Dialog>
+                        <CommandItem
+                          key={e.ID}
+                          onSelect={() => {
+                            setSearchOpen(false);
+                            setCloseupID(e.ID);
+                          }}
+                        >
+                          {e.title}
+                        </CommandItem>
                       ))
                     : ""}
                 </CommandGroup>

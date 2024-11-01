@@ -1,14 +1,9 @@
-import {
-  Dialog,
-  DialogDescription,
-  DialogHeader,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { DialogDescription, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -17,27 +12,33 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { useUser } from "@/app/providers";
 import {
   EmailPasswordLoginDocument,
   EmailPasswordLoginQuery,
   EmailPasswordLoginQueryVariables,
   RegistrationDocument,
-  RegistrationFormDocument,
   RegistrationMutation,
   RegistrationMutationVariables,
 } from "@/lib/gql/generated/graphql";
-import { client } from "@/lib/graphClient";
-import { act, useState } from "react";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { client } from "@/lib/graphql";
+import { useUser } from "./providers";
 
 const SignInFormSchema = z.object({
   email: z.string().min(4, {
     message: "Bitte gib deine E-Mail Adresse an.",
   }),
-  password: z.string().min(6, {
-    message: "Passwort muss mindestens 6 Zeichen lang sein.",
-  }),
+  password: z
+    .string()
+    .min(8, { message: "Muss mindestens 8 Zeichen lang sein." })
+    .regex(new RegExp(".*[A-Z].*"), {
+      message: "Muss einen Großbuchstaben enthalten.",
+    })
+    .regex(new RegExp(".*\\d.*"), { message: "Muss eine Nummer enthalten." })
+    .regex(new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"), {
+      message: "Muss ein Sonderzeichen enthalten.",
+    }),
 });
 
 const RegisterFormSchema = SignInFormSchema.extend({
@@ -61,24 +62,23 @@ export const SignInDialog = () => {
 
   const onSubmit = async (data: z.infer<typeof activeSchema>) => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 250));
 
     if (isRegistering && "fn" in data && "sn" in data && "password" in data) {
       const details: RegistrationMutationVariables = {
         mail: data.email,
         password: data.password,
         fn: data.fn,
-        sn: data.sn
-      }
+        sn: data.sn,
+      };
 
       try {
         const userData = await client.request<RegistrationMutation>(
           RegistrationDocument,
-          details,
-        )
-        setUser(userData.addUser)
+          details
+        );
+        setUser(userData.addUser);
       } catch {
-        console.log("ne")
+        console.log("ne");
       }
     }
 

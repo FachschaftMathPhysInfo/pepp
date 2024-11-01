@@ -1,9 +1,10 @@
-query tutorFormEvents {
-  events(needsTutors: true, onlyFuture: true) {
+query tableEvents($needsTutors: Boolean, $onlyFuture: Boolean, $umbrellaID: [Int!]) {
+  events(needsTutors: $needsTutors, onlyFuture: $onlyFuture, umbrellaID: $umbrellaID) {
     ID
     title
     from
     to
+    needsTutors
     topic {
        name
        color
@@ -43,6 +44,14 @@ query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
     to
     topic {
       color
+    }
+  }
+}
+
+query umbrellaOfEvent($id: Int!) {
+  events(id: [$id]) {
+    umbrella {
+      ID
     }
   }
 }
