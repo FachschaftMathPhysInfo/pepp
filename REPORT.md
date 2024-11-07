@@ -67,7 +67,7 @@ Ein zentrales Feature der Software ist die Verwaltung der Anmeldungen. Hierbei w
 ### 1.1.5 Benutzerfreundlichkeit und Datensicherheit
 
 - **Intuitive** Benutzeroberfläche: Die Software muss eine benutzerfreundliche Oberfläche bieten, die für alle Beteiligten (Administratoren, Dozenten, Tutoren, Studenten) einfach zu bedienen ist.
-- **Datenschutz und Sicherheit**: Die Software muss datenschutzkonform sein und den Schutz personenbezogener Daten gewährleisten. Dies beinhaltet eine sichere Anmeldung und verschlüsselte Datenspeicherung. Darüber hinaus die Löschung studentischer Accounts nach Abschluss des Vorkurses.
+- **Datenschutz und Sicherheit**: Die Software muss datenschutzkonform sein und den Schutz personenbezogener Daten gewährleisten. Dies beinhaltet eine sichere Anmeldung und verschlüsselte Datenspeicherung. Zur Umsetzung sollte die Architektur auf Basis des *Zero Trust* Prinzips gebaut werden (mindestens *TLS*, wenn möglich *mTLS* zur Kommunikation, auch im serverseitigen *Docker-Netzwerk*).
 - **Mobiler Zugriff**: Idealerweise sollte die Software auch auf mobilen Geräten zugänglich sein
 
 # 2. Architektur
@@ -112,13 +112,61 @@ frontend
 └── types # Typen für TypeScript-Objekte
 ```
 
+#### 2.2.1.2 Backend-Kommunikation
+Die Kommunikation zum API-Endpunkt erfolgt über eine Kombination der Bibliotheken [`graphql-request`](https://www.npmjs.com/package/graphql-request) und [`graphql-codegen`](https://the-guild.dev/graphql/codegen/docs/getting-started). Erstere übernimmt dabei die Kommunikation an sich, das Setup der `client`-Komponente findet sich in `frontend/lib/graphql.ts`. `graphql-codegen` generiert zum Einen aus dem GraphQL-Schema in `server/graph/schema.graphqls` alle für die Frontend-Entwicklung relevanten Typen wie `Event` oder `Room`. Und zum Anderen alle *Queries* und *Mutations* definiert in `frontend/lib/gql/queries`, bzw. `.../mutations`.
+
+Das Erstellen einer *Query* wird nun beispielhaft gezeigt:
+1. Definition
+
+    `frontend/lib/gql/queries/events.graphql`
+    ```typescript
+    query eventTopic($id: Int!) {
+        events(id: [$id]) {
+            topic {
+                name
+                color
+            }
+        }
+    }
+    ```
+2. Generierung
+    ```bash
+    cd frontend
+    npm run codegen
+    ```
+3. Verwendung in Next.js
+    ```typescript
+    import {
+        Label,
+        EventTopicDocument,
+        EventsTopicQuery,
+        EventTopicQueryVariables,
+    } from "@/lib/gql/generated/graphql";
+    import { useState } from "react";
+
+    // event topic is a Label
+    const [label, setLabel] = useState<Label>();
+
+    const fetchData = async () => {
+        const vars: EventTopicQueryVariables = {
+            id: 1,
+        };
+
+        const eventData = await client.request<EventTopicQuery>(
+            EventTopicDocument,
+            vars
+        );
+
+        if (eventData.events.length) {
+            setLabel(eventData.events[0].topic)
+        }
+    }
+    ```
+
 ### 2.2.2 Backend: GraphQL (gqlgen)
 GraphQL ermöglicht es, genau die Daten abzufragen, die für die jeweilige Ansicht benötigt werden, was die Netzwerkbelastung reduziert und die Client-Performance steigert. Mit gqlgen in Go kann man ein performantes Backend entwickeln, das typsicher, leicht und skalierbar ist.
 
-#### 2.2.2.1 ER-Diagram
-![Datenbankmodell](diagrams/pepp-er.jpg)
-
-#### 2.2.2.2 Ordnerstruktur
+#### 2.2.2.1 Ordnerstruktur
 ```bash
 server
 ├── db # Initialisierung von Postgres
@@ -132,14 +180,27 @@ server
 └── tracing # OpenTelemetry-Anbindung
 ```
 
-### 2.2.3 PostgreSQL
+### 2.2.3 Datenbank: PostgreSQL
 PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksystem mit Unterstützung für erweiterte Funktionen wie JSON-Speicherung und Volltextsuche, was Flexibilität bei der Datenmodellierung ermöglicht.
+
+#### 2.2.3.1 ER-Diagram
+![Datenbankmodell](diagrams/pepp-er.jpg)
 
 # 3. Entwicklungsprozess
 
 # 4. Funktionen und Features
 
 ## 4.1 Hauptfunktionen
+
+### 4.1.1 Stundenplan
+
+### 4.1.2 Verwaltung einzelner Veranstaltungen
+
+### 4.1.3 An-/Abmeldung von Tutorien
+
+### 4.1.4 Registration mit automatisiertem Anmeldeformular zu Vorkursen
+
+### 4.1.2 ICS-Kalender
 
 ## 4.2 UX/UI
 
