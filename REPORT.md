@@ -88,7 +88,7 @@ frontend
 ├── app # Alle Unterordner (ausg. (*)) sind Routing-Einheiten
 │   ├── (form-tutor)
 │   │   └── form-tutor # Formular zur Eintragung von Verfügbarkeiten für Tutorien
-│   ├── (planner) # In der Wurzel der Landingpage Studenplan mit weiteren Administrationsmöglichkeiten
+│   ├── (planner) # Landingpage Studenplan mit weiteren Administrationsmöglichkeiten
 │   │   ├── applications
 │   │   ├── events
 │   │   ├── overview
@@ -161,6 +161,26 @@ Das Erstellen einer *Query* wird nun beispielhaft gezeigt:
             setLabel(eventData.events[0].topic)
         }
     }
+    ```
+
+#### 2.2.1.3 Provider
+Provider dienen der Bereitstellung komponentenübergreifender Daten in einem Kontext.
+
+- `UserProvider`: Sobald ein User angemeldet ist, wird ein Objekt vom Typ `User` mit den Nutzerdaten in den Kontext gesetzt. Dieses gibt der Software Auskunft über Zugriffsrechte, bzw. Zuweisungen oder Anmeldungen.
+    ```typescript
+    type UserContextType = {
+      user: User | null;
+      setUser: (user: User | null) => void;
+    };
+    ```
+- `UmbrellaProvider`: Wird beim Laden der Seite gesetzt. Enthält die ID des *Umbrella-Events*, ein übergeordnetes `Event`, welche einen Vorkurs an `Event`s als Parent unter sich vereint. Die ID wird aus dem Suchparameter `e` geladen. Ist dieses nicht gegeben, wird das in nächster Zukunft liegende *Umbrella-Event* gewählt und als Suchparameter gesetzt. `e` kann optional auch die ID einer Veranstaltung innerhalb eines Vorkurses haben. Dadurch wird neben dem Parent *Umbrella-Event* auch eine `closeupID` gesetzt und die Veranstaltung im Popup geöffnet (*Randnotiz*: Das *Veranstaltungspopup* lässt sich alleine durch das Setzen, bzw. Entfernen der `closeupID` steuern).
+    ```typescript
+    type UmbrellaContextType = {
+      umbrellaID: number | null;
+      setUmbrellaID: (id: number | null) => void;
+      closeupID: number | null;
+      setCloseupID: (id: number | null) => void;
+    };
     ```
 
 ### 2.2.2 Backend: GraphQL (gqlgen)
