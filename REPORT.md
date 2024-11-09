@@ -164,7 +164,7 @@ Das Erstellen einer *Query* wird nun beispielhaft gezeigt:
     ```
 
 #### 2.2.1.3 Provider
-Provider dienen der Bereitstellung komponentenübergreifender Daten in einem Kontext.
+Provider dienen der Bereitstellung komponentenübergreifender Daten in einem Kontext. Alle in dieser Anwendung essenziellen Provider werden nun in ihrer Funktion erläutert.
 
 - `UserProvider`: Sobald ein User angemeldet ist, wird ein Objekt vom Typ `User` mit den Nutzerdaten in den Kontext gesetzt. Dieses gibt der Software Auskunft über Zugriffsrechte, bzw. Zuweisungen oder Anmeldungen.
     ```typescript
@@ -173,7 +173,7 @@ Provider dienen der Bereitstellung komponentenübergreifender Daten in einem Kon
       setUser: (user: User | null) => void;
     };
     ```
-- `UmbrellaProvider`: Wird beim Laden der Seite gesetzt. Enthält die ID des *Umbrella-Events*, ein übergeordnetes `Event`, welche einen Vorkurs an `Event`s als Parent unter sich vereint. Die ID wird aus dem Suchparameter `e` geladen. Ist dieses nicht gegeben, wird das in nächster Zukunft liegende *Umbrella-Event* gewählt und als Suchparameter gesetzt. `e` kann optional auch die ID einer Veranstaltung innerhalb eines Vorkurses haben. Dadurch wird neben dem Parent *Umbrella-Event* auch eine `closeupID` gesetzt und die Veranstaltung im Popup geöffnet (*Randnotiz*: Das *Veranstaltungspopup* lässt sich alleine durch das Setzen, bzw. Entfernen der `closeupID` steuern).
+- `UmbrellaProvider`: Wird beim Laden der Seite gesetzt. Enthält die ID des *Umbrella-Events*, ein übergeordnetes `Event`, welche einen Vorkurs an `Event`s als Parent unter sich vereint. Die ID wird aus dem Suchparameter `e` geladen. Ist dieses nicht gegeben, wird das in nächster Zukunft liegende *Umbrella-Event* gewählt und als Suchparameter gesetzt. `e` kann optional auch die ID einer Veranstaltung innerhalb eines Vorkurses haben. Dadurch wird neben dem Parent *Umbrella-Event* auch eine `closeupID` gesetzt und die Veranstaltung im Popup geöffnet (*Randnotiz*: Das Veranstaltungspopup lässt sich alleine durch das Setzen, bzw. Entfernen der `closeupID` öffnen oder schließen).
     ```typescript
     type UmbrellaContextType = {
       umbrellaID: number | null;
@@ -213,6 +213,7 @@ PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksyst
 ## 4.1 Hauptfunktionen
 
 ### 4.1.1 Stundenplan
+Der Stundenplan ist das zentrale Element dieser Software. Es handelt sich um die Landingpage und ist die Schnittstelle zwischen Organisatoren und Studenten.
 
 ### 4.1.2 Verwaltung einzelner Veranstaltungen
 
@@ -225,6 +226,19 @@ PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksyst
 ## 4.2 UX/UI
 
 ## 4.3 Sicherheit
+
+### 4.3.1 Passwörter
+Die Software implementiert alle standartmäßigen Maßnahmen zur Verwendung sicherer Passwörter und der datenschutzkonformen Speicherung.
+
+- **Passwortanforderungen**: 8 Zeichen, 1 Großbuchstabe, 1 Nummer, 1 Sonderzeichen
+- **Speicherung**: Passwörter werden sowohl mit *Salt* als auch *Pepper* versehen und gehashed gespeichert. Der *Pepper* ist als Umgebungsvariable anzugeben
+
+### 4.3.2 Kommunikation
+Zur Sicherung der öffentlichen Endpunkte muss durch den Systemadministrator ein Zertifikat angefordert werden.
+Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegliche Kommunikation ist demnach via *mTLS* durch self-signed Zertifikate gesichert.
+
+### 4.3.3 Session Management
+
 
 # 5. Herausforderungen und Lösungen
 
