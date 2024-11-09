@@ -3,11 +3,11 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
 
@@ -187,9 +187,9 @@ func insertData[T any](ctx context.Context, db *bun.DB, model T, data []T, descr
 		if _, err := db.NewInsert().Model(&data).Exec(ctx); err != nil {
 			return err
 		}
-		log.Printf("%s seeded successfully\n", description)
+		log.Infof("%s seeded successfully\n", description)
 	} else {
-		log.Printf("%s already exist, skipping seed\n", description)
+		log.Infof("%s already exist, skipping seed\n", description)
 	}
 	return nil
 }

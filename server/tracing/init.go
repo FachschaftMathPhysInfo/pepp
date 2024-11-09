@@ -2,9 +2,9 @@ package tracing
 
 import (
 	"context"
-	"fmt"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -28,7 +28,7 @@ func InitTracing(serviceName string) *sdktrace.TracerProvider {
 		ctx,
 		otlptracegrpc.WithGRPCConn(collectorConn))
 	if err != nil {
-		fmt.Println("failed to create exporter", err)
+		log.Error("failed to create exporter", err)
 	}
 
 	res, err := resource.New(
@@ -39,7 +39,7 @@ func InitTracing(serviceName string) *sdktrace.TracerProvider {
 		resource.WithHost(),
 		resource.WithOSType())
 	if err != nil {
-		fmt.Print("resource creation failed", err)
+		log.Error("resource creation failed", err)
 	}
 
 	tp := sdktrace.NewTracerProvider(
@@ -60,6 +60,6 @@ func mustConnGRPC(ctx context.Context, conn **grpc.ClientConn, addr string) {
 		grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 
 	if err != nil {
-		panic(fmt.Sprintf("grpc: failed to connect %s", addr))
+		log.Fatalf("grpc: failed to connect %s", addr)
 	}
 }

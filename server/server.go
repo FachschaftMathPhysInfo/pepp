@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -22,6 +21,7 @@ import (
 	"github.com/riandyrn/otelchi"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -66,11 +66,11 @@ func main() {
 		hourlyTracer := maintenanceTracer.Tracer("hourly")
 
 		if err := maintenance.DeleteUnconfirmedPeople(ctx, &resolver, hourlyTracer); err != nil {
-			log.Println("Error deleting unconfirmed people:", err)
+			log.Error("Error deleting unconfirmed people:", err)
 		}
 
 		if err := maintenance.CleanSessionIds(ctx, &resolver, hourlyTracer); err != nil {
-			log.Println("Error cleaning session ids:", err)
+			log.Error("Error cleaning session ids:", err)
 		}
 	})
 	c.Start()
@@ -122,6 +122,6 @@ func main() {
 
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/api"))
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
+	log.Infof("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }

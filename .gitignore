@@ -5,3 +5,9 @@
 
 # jetbrains
 .idea/
+
+# certs
+*.crt
+*.key
+*.csr
+*.srl

@@ -7,21 +7,19 @@ import (
 	"os"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bunotel"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, error) {
-	db_user := os.Getenv("POSTGRES_USER")
-	db_pw := os.Getenv("POSTGRES_PASSWORD")
-	db_db := os.Getenv("POSTGRES_DB")
-	dsn := fmt.Sprintf("postgres://%s:%s@postgres:5432/%s?sslmode=disable",
-		db_user, db_pw, db_db)
-
-	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+	sqldb, err := connectTCPSocket()
+	if err != nil {
+		return nil, nil, err
+	}
 
 	db := bun.NewDB(sqldb, pgdialect.New())
 
@@ -79,4 +77,33 @@ func createTables(ctx context.Context, db *bun.DB, tables []interface{}) error {
 	}
 
 	return nil
+}
+
+func connectTCPSocket() (*sql.DB, error) {
+	mustGetenv := func(k string) string {
+		v := os.Getenv(k)
+		if v == "" {
+			log.Fatalf("Fatal Error in init.go: %s environment variable not set.", k)
+		}
+		return v
+	}
+
+	var (
+		dbUser = mustGetenv("POSTGRES_USER")
+		dbPwd  = mustGetenv("POSTGRES_PASSWORD")
+		dbName = mustGetenv("POSTGRES_DB")
+	)
+
+	dbURI := fmt.Sprintf("host=postgres user=%s password=%s database=%s sslmode=verify-full sslrootcert=root.crt sslcert=client.crt sslkey=client.key",
+		dbUser, dbPwd, dbName)
+
+	dbPool, err := sql.Open("postgres", dbURI)
+	if err != nil {
+		return nil, fmt.Errorf("sql.Open: %w", err)
+	}
+	if err = dbPool.Ping(); err != nil {
+		log.Fatalf("DB unreachable: %s", err)
+	}
+
+	return dbPool, nil
 }
