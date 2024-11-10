@@ -139,7 +139,7 @@ Das Erstellen einer *Query* wird nun beispielhaft gezeigt:
     import {
         Label,
         EventTopicDocument,
-        EventsTopicQuery,
+        EventTopicQuery,
         EventTopicQueryVariables,
     } from "@/lib/gql/generated/graphql";
     import { useState } from "react";
@@ -164,7 +164,7 @@ Das Erstellen einer *Query* wird nun beispielhaft gezeigt:
     ```
 
 #### 2.2.1.3 Provider
-Provider dienen der Bereitstellung komponentenübergreifender Daten in einem Kontext. Alle in dieser Anwendung essenziellen Provider werden nun in ihrer Funktion erläutert.
+Provider dienen der Bereitstellung komponentenübergreifender Daten in einem Kontext. Alle in dieser Anwendung essenziellen Provider werden nun in ihrer Funktion erläutert:
 
 - `UserProvider`: Sobald ein User angemeldet ist, wird ein Objekt vom Typ `User` mit den Nutzerdaten in den Kontext gesetzt. Dieses gibt der Software Auskunft über Zugriffsrechte, bzw. Zuweisungen oder Anmeldungen.
     ```typescript
@@ -200,6 +200,47 @@ server
 └── tracing # OpenTelemetry-Anbindung
 ```
 
+`server/server.go` bildet mit der Definition und Implementierung aller Routen (s.o.) die zentrale Schnittstelle der Applikation.
+
+#### 2.2.2.2 API-Implementierung
+Für die Implementierung des *API-Endpunktes* wird `[gqlgen](https://gqlgen.com/)` verwendet. Das Hinzufügen einer *Query* wird nun beispielhaft gezeigt. Ziel ist eine Begrüßung "Hallo, <Name>." zu erhalten:
+
+1. Hinzufügen zu "high level" Konfigurationsdatei
+
+    `server/graph/schema.graphqls`
+    ```bash
+    # ...
+
+    type Query {
+        greet(name: String!): String!
+        # ...
+    }
+
+    # ...
+    ```
+2. Generieren der Typen und Funktion
+    ```bash
+    cd server
+    go run github.com/99designs/gqlgen generate
+    ```
+3. Die zu implementierende Funktion bearbeiten (generiert in 2.)
+
+    `server/graph/schema.resolvers.go`
+    ```go
+    // ...
+
+    func (r *queryResolver) Greet(ctx context.Context, name string) (string, error) {
+        return fmt.Sprintf("Hallo, %s.", name), nil
+    }
+
+    // ...
+    ```
+
+#### 2.2.2.3 Datenbankanbindung
+Zur Anbindung der Datenbank wird das *ORM* [`bun`](https://bun.uptrace.dev/) verwendet. Die Initialisierung findet im Modul `server/db/` statt. Neben der Anbindung werden hier auch Testdaten inseriert.
+
+Bei der Weiterentwicklung sollte sich vom Schema her an bereits implementierte *Queries* und *Mutations* in `server/graph/schema.resolvers.go` gehalten werden, um Flexibilität und Lesbarkeit zu gewährleisten. Genannte Datei sollte darüber hinaus präferiert für Datenbankanfragen verwendet werden. Größere Hilfsfunktionen gilt es daher möglichst in eigene Module auszulagern (siehe bspw. `server/password/`).
+
 ### 2.2.3 Datenbank: PostgreSQL
 PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksystem mit Unterstützung für erweiterte Funktionen wie JSON-Speicherung und Volltextsuche, was Flexibilität bei der Datenmodellierung ermöglicht.
 
@@ -234,7 +275,6 @@ Die Software implementiert alle standartmäßigen Maßnahmen zur Verwendung sich
 - **Speicherung**: Passwörter werden sowohl mit *Salt* als auch *Pepper* versehen und gehashed gespeichert. Der *Pepper* ist als Umgebungsvariable anzugeben
 
 ### 4.3.2 Kommunikation
-Zur Sicherung der öffentlichen Endpunkte muss durch den Systemadministrator ein Zertifikat angefordert werden.
 Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegliche Kommunikation ist demnach via *mTLS* durch self-signed Zertifikate gesichert.
 
 ### 4.3.3 Session Management
@@ -256,8 +296,9 @@ Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegl
     FROM_ADDRESS=vorkurs@example.de
     ```
 2. OpenTelemetry-Collector-Konfiguration `otel-collector-config.yaml` anpassen ([mehr Infos](https://opentelemetry.io/docs/collector/configuration/#basics))
-3. Docker-Image bauen: `docker compose build`
-4. Starten: `docker compose up -d && docker compose logs -f`
+3. mTLS-Zertifikate generieren: `./gen_certs.sh`
+4. Docker-Image bauen: `docker compose build`
+5. Starten: `docker compose up -d && docker compose logs -f`
 
 # 7. Weiterentwicklung und Ausblick
 - Wartelistenmanagement: Automatische Verwaltung von Wartelisten für überbuchte Tutorien und Benachrichtigung von Studenten, wenn Plätze frei werden.
