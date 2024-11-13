@@ -6,12 +6,10 @@
 3. Entwicklungsprozess
     - Projektstruktur
     - Versionierung und Contribution Guideline
-    - CI/CD Pipelines
 4. Funktionen und Features
     - Hauptfunktionen
     - Benutzerfreundlichkeit bzw. UX/UI
     - Sicherheit: Backend-Kommunikation (mTLS), Passwörter
-    - Performance-Optimierungen
 5. Herausforderung und Lösungen
 6. Deployment
     - Docker
@@ -75,11 +73,11 @@ Ein zentrales Feature der Software ist die Verwaltung der Anmeldungen. Hierbei w
 ## 2.1 Überblick
 ![Architekturdiagram](diagrams/pepp-architecture-overview.png)
 
-Die Architektur ist so gestaltet, dass das Backend die zentrale Rolle einnimmt und alle Anfragen verarbeitet. Durch das direkte Reverse Proxying von `/*`-Anfragen an das Frontend wird der Bedarf an einer dedizierten Proxy-Komponente wie *NGINX* umgangen. Somit wird die Komplexität reduziert und Ressourcenbedarf minimiert. Sowohl Backend als auch Frontend senden sog. *Tracing-Daten* an einen internen Collector. Dabei handelt es sich um mit Zeitstempel versehene Logs, welche die Ausführungszeit einzelner Aktionen dokumentiert. Der Collector sammelt diese und schickt sie an einen externen Monitoring-Service wie *Grafana* zur Visualisierung.
+Die Architektur ist so gestaltet, dass das Backend die zentrale Rolle einnimmt und alle Anfragen verarbeitet. Durch das direkte Reverse Proxying von `/*`-Anfragen an das Frontend wird der Bedarf an einer dedizierten Proxy-Komponente wie [*NGINX*](https://nginx.org/en/) umgangen. Somit wird die Komplexität reduziert und Ressourcenbedarf minimiert. Das Backend sendet sog. [*Tracing-Daten*](https://opentelemetry.io/docs/concepts/signals/traces/) an einen internen Collector. Dabei handelt es sich um mit Zeitstempel versehene Logs, welche die Ausführungszeit einzelner Aktionen dokumentiert. Der Collector sammelt diese und schickt sie an einen externen Monitoring-Service wie [*Grafana*](https://grafana.com/) zur Visualisierung.
 
 ## 2.2 Technologien und Tools
 
-### 2.2.1 Frontend: Next.js
+### 2.2.1 Frontend: [Next.js](https://nextjs.org/)
 Next.js bietet serverseitiges Rendering und statische Seiten-Generierung, was zu schneller Ladezeit und besserer SEO führt, ideal für Webanwendungen, die dynamische und gleichzeitig gut indexierte Inhalte benötigen. Die integrierte Routing-Funktion erleichtern die Entwicklung und sorgen für eine performante, einfach wartbare Codebasis.
 
 #### 2.2.1.1 Ordnerstruktur
@@ -183,7 +181,7 @@ Provider dienen der Bereitstellung komponentenübergreifender Daten in einem Kon
     };
     ```
 
-### 2.2.2 Backend: GraphQL (gqlgen)
+### 2.2.2 Backend: [GraphQL](https://graphql.org/) ([gqlgen](https://gqlgen.com/))
 GraphQL ermöglicht es, genau die Daten abzufragen, die für die jeweilige Ansicht benötigt werden, was die Netzwerkbelastung reduziert und die Client-Performance steigert. Mit gqlgen in Go kann man ein performantes Backend entwickeln, das typsicher, leicht und skalierbar ist.
 
 #### 2.2.2.1 Ordnerstruktur
@@ -203,7 +201,7 @@ server
 `server/server.go` bildet mit der Definition und Implementierung aller Routen (s.o.) die zentrale Schnittstelle der Applikation.
 
 #### 2.2.2.2 API-Implementierung
-Für die Implementierung des *API-Endpunktes* wird `[gqlgen](https://gqlgen.com/)` verwendet. Das Hinzufügen einer *Query* wird nun beispielhaft gezeigt. Ziel ist eine Begrüßung "Hallo, <Name>." zu erhalten:
+Für die Implementierung des *API-Endpunktes* wird [`gqlgen`](https://gqlgen.com/) verwendet. Das Hinzufügen einer *Query* wird nun beispielhaft gezeigt. Ziel ist eine Begrüßung "Hallo, `<Name>`." zu erhalten:
 
 1. Hinzufügen zu "high level" Konfigurationsdatei
 
@@ -241,7 +239,7 @@ Zur Anbindung der Datenbank wird das *ORM* [`bun`](https://bun.uptrace.dev/) ver
 
 Bei der Weiterentwicklung sollte sich vom Schema her an bereits implementierte *Queries* und *Mutations* in `server/graph/schema.resolvers.go` gehalten werden, um Flexibilität und Lesbarkeit zu gewährleisten. Genannte Datei sollte darüber hinaus präferiert für Datenbankanfragen verwendet werden. Größere Hilfsfunktionen gilt es daher möglichst in eigene Module auszulagern (siehe bspw. `server/password/`).
 
-### 2.2.3 Datenbank: PostgreSQL
+### 2.2.3 Datenbank: [PostgreSQL](https://www.postgresql.org/)
 PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksystem mit Unterstützung für erweiterte Funktionen wie JSON-Speicherung und Volltextsuche, was Flexibilität bei der Datenmodellierung ermöglicht.
 
 #### 2.2.3.1 ER-Diagram
