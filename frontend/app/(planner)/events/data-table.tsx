@@ -21,14 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {DataTablePagination} from "@/components/data-table-pagination";
 import {DataTableViewOptions} from "@/components/data-table-view-options";
 import {useUmbrella} from "@/components/providers";

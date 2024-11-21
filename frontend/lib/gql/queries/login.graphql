@@ -8,4 +8,26 @@ query emailPasswordLogin($email: String!, $password: String!) {
       confirmed
     }
   }
+  registrations(studentMail: $email) {
+    event {
+      ID
+    }
+    room {
+      capacity
+      floor
+      name
+      number
+      building {
+        ID
+        name
+        street
+        number
+        city
+        zip
+        latitude
+        longitude
+        zoomLevel
+      }
+    }
+  }
 }

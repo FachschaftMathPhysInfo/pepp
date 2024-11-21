@@ -8,7 +8,7 @@ processors:
 
 exporters:
   otlphttp:
-    endpoint: <monitoring service>:4318
+    endpoint: <monitoring-service-url>:4318
   debug:
     verbosity: detailed
     sampling_initial: 5

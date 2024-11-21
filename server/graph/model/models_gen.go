@@ -26,9 +26,9 @@ type EmailPassword struct {
 }
 
 type EventTutorRoomPair struct {
-	Tutors        []*models.User `json:"tutors,omitempty"`
-	Room          *models.Room   `json:"room,omitempty"`
-	Registrations *int           `json:"registrations,omitempty"`
+	Tutors        []*models.User `json:"tutors"`
+	Room          *models.Room   `json:"room"`
+	Registrations int            `json:"registrations"`
 }
 
 type Mutation struct {

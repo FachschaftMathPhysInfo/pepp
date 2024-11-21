@@ -101,14 +101,30 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
-	eventID := int32(2)
 	buildingID := int32(1)
+	eventID := int32(2)
+	availableRooms := []*models.RoomToEventAvailability{
+		{RoomNumber: "101", BuildingID: buildingID, EventID: eventID},
+		{RoomNumber: "2.141", BuildingID: buildingID, EventID: eventID},
+	}
+	if err := insertData(ctx, db, (*models.RoomToEventAvailability)(nil), availableRooms, "Room to Event availabilitys"); err != nil {
+		return err
+	}
+
 	assignments := []*models.EventToUserAssignment{
 		{EventID: eventID, UserMail: "tutor1@example.de", RoomNumber: "101", BuildingID: buildingID},
 		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "101", BuildingID: buildingID},
 		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "2.141", BuildingID: buildingID},
 	}
 	if err := insertData(ctx, db, (*models.EventToUserAssignment)(nil), assignments, "Event to User assignments"); err != nil {
+		return err
+	}
+
+	availabilitys := []*models.UserToEventAvailability{
+		{EventID: eventID, UserMail: "tutor1@example.de"},
+		{EventID: eventID, UserMail: "tutor2@example.de"},
+	}
+	if err := insertData(ctx, db, (*models.UserToEventAvailability)(nil), availabilitys, "User to Event availabilitys"); err != nil {
 		return err
 	}
 

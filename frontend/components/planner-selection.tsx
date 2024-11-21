@@ -14,7 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { client } from "@/lib/graphql";
 import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUmbrella } from "./providers";
+import { useUmbrella, useUser } from "./providers";
 
 type Tab = {
   title: string;
@@ -55,6 +55,7 @@ const tabs: Tab[] = [
 ];
 
 export function PlannerHeader() {
+  const { user } = useUser();
   const { umbrellaID, setUmbrellaID } = useUmbrella();
   const [umbrellas, setUmbrellas] = useState<Event[]>([]);
   const router = useRouter();
@@ -107,27 +108,33 @@ export function PlannerHeader() {
           <ChevronsUpDown className="ml-8 h-7 w-7 shrink-0 opacity-40" />
         </Button>
       </UmbrellaPopoverSelection>
-      <div className="lg:w-full" />
-      <Tabs
-        defaultValue={
-          pathname.length - 1 ? pathname.slice(1, pathname.length) : "planner"
-        }
-        className="md:mt-4"
-      >
-        <TabsList>
-          {tabs.map((t) => (
-            <TabsTrigger
-              key={t.value}
-              value={t.value}
-              onClick={() =>
-                handleTabClick(t.value === "planner" ? "/" : "/" + t.value)
-              }
-            >
-              {t.title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      {user && (
+        <>
+          <div className="lg:w-full" />
+          <Tabs
+            defaultValue={
+              pathname.length - 1
+                ? pathname.slice(1, pathname.length)
+                : "planner"
+            }
+            className="md:mt-4"
+          >
+            <TabsList>
+              {tabs.map((t) => (
+                <TabsTrigger
+                  key={t.value}
+                  value={t.value}
+                  onClick={() =>
+                    handleTabClick(t.value === "planner" ? "/" : "/" + t.value)
+                  }
+                >
+                  {t.title}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </>
+      )}
     </section>
   );
 }

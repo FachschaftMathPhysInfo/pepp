@@ -16,6 +16,7 @@ import {
   EmailPasswordLoginDocument,
   EmailPasswordLoginQuery,
   EmailPasswordLoginQueryVariables,
+  EventRegistration,
   RegistrationDocument,
   RegistrationMutation,
   RegistrationMutationVariables,
@@ -53,7 +54,7 @@ const RegisterFormSchema = SignInFormSchema.extend({
 });
 
 export const SignInDialog = () => {
-  const { setUser } = useUser();
+  const { setUser, setRegistrations } = useUser();
   const [correct, setCorrect] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -93,6 +94,18 @@ export const SignInDialog = () => {
         credentials
       );
       setUser(userData.login.user);
+      setRegistrations(userData.registrations.map(r => ({
+        event: {
+          ID: r.event.ID,
+          title: "",
+          topic: { name: "" },
+          type: { name: "" },
+          from: "",
+          to: "",
+          needsTutors: true,
+        },
+        room: r.room,
+      })))
     } catch {
       setCorrect(false);
     }

@@ -82,6 +82,12 @@ export type Event = {
   umbrella?: Maybe<Event>;
 };
 
+export type EventRegistration = {
+  __typename?: 'EventRegistration';
+  event: Event;
+  room: Room;
+};
+
 export type EventToUserAssignment = {
   buildingID: Scalars['Int']['input'];
   eventID: Scalars['Int']['input'];
@@ -91,9 +97,9 @@ export type EventToUserAssignment = {
 
 export type EventTutorRoomPair = {
   __typename?: 'EventTutorRoomPair';
-  registrations?: Maybe<Scalars['Int']['output']>;
-  room?: Maybe<Room>;
-  tutors?: Maybe<Array<User>>;
+  registrations: Scalars['Int']['output'];
+  room: Room;
+  tutors: Array<User>;
 };
 
 export type Form = {
@@ -127,7 +133,7 @@ export type Mutation = {
   addSetting: Setting;
   addStudent: User;
   addStudentApplicationForEvent: User;
-  addStudentRegistrationForEvent: UserToEventRegistration;
+  addStudentRegistrationForEvent: EventRegistration;
   addTutor: User;
   addTutorAvailabilityForEvent: User;
   addUser: User;
@@ -148,6 +154,7 @@ export type Mutation = {
   updateForm: Form;
   updateLabel: Label;
   updateRoom: Room;
+  updateRoomForTutorial: Event;
   updateSetting: Setting;
   updateUser: User;
 };
@@ -315,6 +322,15 @@ export type MutationUpdateRoomArgs = {
 };
 
 
+export type MutationUpdateRoomForTutorialArgs = {
+  eventID: Scalars['Int']['input'];
+  newBuildingID: Scalars['Int']['input'];
+  newRoomNumber: Scalars['String']['input'];
+  oldBuildingID: Scalars['Int']['input'];
+  oldRoomNumber: Scalars['String']['input'];
+};
+
+
 export type MutationUpdateSettingArgs = {
   setting: NewSetting;
 };
@@ -423,7 +439,7 @@ export type Query = {
   forms: Array<Form>;
   labels: Array<Label>;
   login: AuthPayload;
-  registrations: Array<UserToEventRegistration>;
+  registrations: Array<EventRegistration>;
   rooms: Array<Room>;
   settings: Array<Setting>;
   umbrellas: Array<Event>;
@@ -472,8 +488,7 @@ export type QueryLoginArgs = {
 
 
 export type QueryRegistrationsArgs = {
-  eventId?: InputMaybe<Scalars['Int']['input']>;
-  studentMail?: InputMaybe<Array<Scalars['String']['input']>>;
+  studentMail: Scalars['String']['input'];
 };
 
 
@@ -565,13 +580,6 @@ export type User = {
   sn: Scalars['String']['output'];
 };
 
-export type UserToEventRegistration = {
-  __typename?: 'UserToEventRegistration';
-  event: Event;
-  room: Room;
-  user: User;
-};
-
 export type AddStudentApplicationForEventMutationVariables = Exact<{
   application: NewUserToEventApplication;
 }>;
@@ -592,7 +600,7 @@ export type AddStudentRegistrationForEventMutationVariables = Exact<{
 }>;
 
 
-export type AddStudentRegistrationForEventMutation = { __typename?: 'Mutation', addStudentRegistrationForEvent: { __typename?: 'UserToEventRegistration', room: { __typename?: 'Room', number: string, building: { __typename?: 'Building', ID: number } } } };
+export type AddStudentRegistrationForEventMutation = { __typename?: 'Mutation', addStudentRegistrationForEvent: { __typename?: 'EventRegistration', room: { __typename?: 'Room', number: string, building: { __typename?: 'Building', ID: number } } } };
 
 export type DeleteStudentRegistrationForEventMutationVariables = Exact<{
   registration: NewUserToEventRegistration;
@@ -656,7 +664,14 @@ export type EventCloseupQueryVariables = Exact<{
 }>;
 
 
-export type EventCloseupQuery = { __typename?: 'Query', events: Array<{ __typename?: 'Event', ID: number, title: string, description?: string | null, from: any, to: any, topic: { __typename?: 'Label', name: string, color?: any | null }, type: { __typename?: 'Label', name: string, color?: any | null }, tutorsAssigned?: Array<{ __typename?: 'EventTutorRoomPair', registrations?: number | null, tutors?: Array<{ __typename?: 'User', fn: string, sn: string, mail: string }> | null, room?: { __typename?: 'Room', capacity?: number | null, floor?: number | null, name?: string | null, number: string, building: { __typename?: 'Building', ID: number, name: string, street: string, number: string, city: string, zip: number, latitude: number, longitude: number, zoomLevel: number } } | null }> | null }> };
+export type EventCloseupQuery = { __typename?: 'Query', events: Array<{ __typename?: 'Event', ID: number, title: string, description?: string | null, from: any, to: any, topic: { __typename?: 'Label', name: string, color?: any | null }, type: { __typename?: 'Label', name: string, color?: any | null }, tutorsAssigned?: Array<{ __typename?: 'EventTutorRoomPair', registrations: number, tutors: Array<{ __typename?: 'User', fn: string, sn: string, mail: string, confirmed: boolean }>, room: { __typename?: 'Room', capacity?: number | null, floor?: number | null, name?: string | null, number: string, building: { __typename?: 'Building', ID: number, name: string, street: string, number: string, city: string, zip: number, latitude: number, longitude: number, zoomLevel: number } } }> | null }> };
+
+export type TutorialAvailabilitysQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type TutorialAvailabilitysQuery = { __typename?: 'Query', events: Array<{ __typename?: 'Event', tutorsAvailable?: Array<{ __typename?: 'User', mail: string, fn: string, sn: string }> | null, roomsAvailable?: Array<{ __typename?: 'Room', floor?: number | null, number: string, name?: string | null, capacity?: number | null, building: { __typename?: 'Building', ID: number, number: string, name: string, street: string, zip: number, city: string, latitude: number, longitude: number, zoomLevel: number } }> | null }> };
 
 export type RegistrationFormQueryVariables = Exact<{
   eventID: Scalars['Int']['input'];
@@ -671,15 +686,7 @@ export type EmailPasswordLoginQueryVariables = Exact<{
 }>;
 
 
-export type EmailPasswordLoginQuery = { __typename?: 'Query', login: { __typename?: 'AuthPayload', sessionID: string, user: { __typename?: 'User', fn: string, sn: string, mail: string, confirmed: boolean } } };
-
-export type UserEventRegistrationQueryVariables = Exact<{
-  email: Scalars['String']['input'];
-  id: Scalars['Int']['input'];
-}>;
-
-
-export type UserEventRegistrationQuery = { __typename?: 'Query', registrations: Array<{ __typename?: 'UserToEventRegistration', room: { __typename?: 'Room', number: string, building: { __typename?: 'Building', ID: number } } }> };
+export type EmailPasswordLoginQuery = { __typename?: 'Query', login: { __typename?: 'AuthPayload', sessionID: string, user: { __typename?: 'User', fn: string, sn: string, mail: string, confirmed: boolean } }, registrations: Array<{ __typename?: 'EventRegistration', event: { __typename?: 'Event', ID: number }, room: { __typename?: 'Room', capacity?: number | null, floor?: number | null, name?: string | null, number: string, building: { __typename?: 'Building', ID: number, name: string, street: string, number: string, city: string, zip: number, latitude: number, longitude: number, zoomLevel: number } } }> };
 
 export type UmbrellasQueryVariables = Exact<{
   onlyFuture?: InputMaybe<Scalars['Boolean']['input']>;
@@ -700,8 +707,8 @@ export const TableEventsDocument = {"kind":"Document","definitions":[{"kind":"Op
 export const FutureEventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"futureEvents"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"onlyFuture"},"value":{"kind":"BooleanValue","value":true}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"umbrella"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]}}]} as unknown as DocumentNode<FutureEventsQuery, FutureEventsQueryVariables>;
 export const PlannerEventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"plannerEvents"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"umbrellaID"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"type"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"topic"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"umbrellas"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"umbrellaID"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"typeLabels"},"name":{"kind":"Name","value":"labels"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"kind"},"value":{"kind":"EnumValue","value":"EVENT_TYPE"}},{"kind":"Argument","name":{"kind":"Name","value":"umbrellaID"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"umbrellaID"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"topicLabels"},"name":{"kind":"Name","value":"labels"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"kind"},"value":{"kind":"EnumValue","value":"TOPIC"}},{"kind":"Argument","name":{"kind":"Name","value":"umbrellaID"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"umbrellaID"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"umbrellaID"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"umbrellaID"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"type"}}},{"kind":"Argument","name":{"kind":"Name","value":"topic"},"value":{"kind":"Variable","name":{"kind":"Name","value":"topic"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"from"}},{"kind":"Field","name":{"kind":"Name","value":"to"}},{"kind":"Field","name":{"kind":"Name","value":"topic"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"color"}}]}}]}}]}}]} as unknown as DocumentNode<PlannerEventsQuery, PlannerEventsQueryVariables>;
 export const UmbrellaOfEventDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"umbrellaOfEvent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"id"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"umbrella"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}}]}}]}}]}}]} as unknown as DocumentNode<UmbrellaOfEventQuery, UmbrellaOfEventQueryVariables>;
-export const EventCloseupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"eventCloseup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"id"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"from"}},{"kind":"Field","name":{"kind":"Name","value":"to"}},{"kind":"Field","name":{"kind":"Name","value":"topic"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}},{"kind":"Field","name":{"kind":"Name","value":"type"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tutorsAssigned"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tutors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}},{"kind":"Field","name":{"kind":"Name","value":"sn"}},{"kind":"Field","name":{"kind":"Name","value":"mail"}}]}},{"kind":"Field","name":{"kind":"Name","value":"room"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"floor"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"building"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"street"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"zip"}},{"kind":"Field","name":{"kind":"Name","value":"latitude"}},{"kind":"Field","name":{"kind":"Name","value":"longitude"}},{"kind":"Field","name":{"kind":"Name","value":"zoomLevel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"registrations"}}]}}]}}]}}]} as unknown as DocumentNode<EventCloseupQuery, EventCloseupQueryVariables>;
+export const EventCloseupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"eventCloseup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"id"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"from"}},{"kind":"Field","name":{"kind":"Name","value":"to"}},{"kind":"Field","name":{"kind":"Name","value":"topic"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}},{"kind":"Field","name":{"kind":"Name","value":"type"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"color"}}]}},{"kind":"Field","name":{"kind":"Name","value":"tutorsAssigned"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tutors"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}},{"kind":"Field","name":{"kind":"Name","value":"sn"}},{"kind":"Field","name":{"kind":"Name","value":"mail"}},{"kind":"Field","name":{"kind":"Name","value":"confirmed"}}]}},{"kind":"Field","name":{"kind":"Name","value":"room"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"floor"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"building"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"street"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"zip"}},{"kind":"Field","name":{"kind":"Name","value":"latitude"}},{"kind":"Field","name":{"kind":"Name","value":"longitude"}},{"kind":"Field","name":{"kind":"Name","value":"zoomLevel"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"registrations"}}]}}]}}]}}]} as unknown as DocumentNode<EventCloseupQuery, EventCloseupQueryVariables>;
+export const TutorialAvailabilitysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"tutorialAvailabilitys"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"id"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"tutorsAvailable"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"mail"}},{"kind":"Field","name":{"kind":"Name","value":"fn"}},{"kind":"Field","name":{"kind":"Name","value":"sn"}}]}},{"kind":"Field","name":{"kind":"Name","value":"roomsAvailable"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"floor"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"building"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"street"}},{"kind":"Field","name":{"kind":"Name","value":"zip"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"latitude"}},{"kind":"Field","name":{"kind":"Name","value":"longitude"}},{"kind":"Field","name":{"kind":"Name","value":"zoomLevel"}}]}}]}}]}}]}}]} as unknown as DocumentNode<TutorialAvailabilitysQuery, TutorialAvailabilitysQueryVariables>;
 export const RegistrationFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"registrationForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"eventID"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"forms"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"eventID"}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"questions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"answers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"points"}}]}}]}}]}}]}}]} as unknown as DocumentNode<RegistrationFormQuery, RegistrationFormQueryVariables>;
-export const EmailPasswordLoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"emailPasswordLogin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"credentials"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sessionID"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}},{"kind":"Field","name":{"kind":"Name","value":"sn"}},{"kind":"Field","name":{"kind":"Name","value":"mail"}},{"kind":"Field","name":{"kind":"Name","value":"confirmed"}}]}}]}}]}}]} as unknown as DocumentNode<EmailPasswordLoginQuery, EmailPasswordLoginQueryVariables>;
-export const UserEventRegistrationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"userEventRegistration"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registrations"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"studentMail"},"value":{"kind":"ListValue","values":[{"kind":"Variable","name":{"kind":"Name","value":"email"}}]}},{"kind":"Argument","name":{"kind":"Name","value":"eventId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"room"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"building"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}}]}}]}}]}}]}}]} as unknown as DocumentNode<UserEventRegistrationQuery, UserEventRegistrationQueryVariables>;
+export const EmailPasswordLoginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"emailPasswordLogin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"email"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"password"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"login"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"credentials"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"email"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"password"},"value":{"kind":"Variable","name":{"kind":"Name","value":"password"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sessionID"}},{"kind":"Field","name":{"kind":"Name","value":"user"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fn"}},{"kind":"Field","name":{"kind":"Name","value":"sn"}},{"kind":"Field","name":{"kind":"Name","value":"mail"}},{"kind":"Field","name":{"kind":"Name","value":"confirmed"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"registrations"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"studentMail"},"value":{"kind":"Variable","name":{"kind":"Name","value":"email"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}}]}},{"kind":"Field","name":{"kind":"Name","value":"room"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"capacity"}},{"kind":"Field","name":{"kind":"Name","value":"floor"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"building"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"street"}},{"kind":"Field","name":{"kind":"Name","value":"number"}},{"kind":"Field","name":{"kind":"Name","value":"city"}},{"kind":"Field","name":{"kind":"Name","value":"zip"}},{"kind":"Field","name":{"kind":"Name","value":"latitude"}},{"kind":"Field","name":{"kind":"Name","value":"longitude"}},{"kind":"Field","name":{"kind":"Name","value":"zoomLevel"}}]}}]}}]}}]}}]} as unknown as DocumentNode<EmailPasswordLoginQuery, EmailPasswordLoginQueryVariables>;
 export const UmbrellasDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"umbrellas"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"onlyFuture"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"umbrellas"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"onlyFuture"},"value":{"kind":"Variable","name":{"kind":"Name","value":"onlyFuture"}}},{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ID"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<UmbrellasQuery, UmbrellasQueryVariables>;

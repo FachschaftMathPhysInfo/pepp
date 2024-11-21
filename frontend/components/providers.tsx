@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import {
+  EventRegistration,
   UmbrellaOfEventDocument,
   UmbrellaOfEventQuery,
   UmbrellaOfEventQueryVariables,
@@ -25,6 +26,8 @@ import { client } from "@/lib/graphql";
 type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
+  registrations: EventRegistration[];
+  setRegistrations: (registrations: EventRegistration[]) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -39,9 +42,10 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [registrations, setRegistrations] = useState<EventRegistration[]>([])
 
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, setUser, registrations, setRegistrations }}>
       {children}
     </UserContext.Provider>
   );
@@ -76,7 +80,6 @@ export const UmbrellaProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const isUmbrella = async (id: number): Promise<Boolean> => {
-      console.log("checking for: ", id);
       const vars: UmbrellasQueryVariables = {
         id: id,
       };
@@ -84,12 +87,10 @@ export const UmbrellaProvider = ({ children }: { children: ReactNode }) => {
         UmbrellasDocument,
         vars
       );
-      console.log(umbrellaData.umbrellas.length);
       return umbrellaData.umbrellas.length ? true : false;
     };
 
     const getEventsUmbrellaID = async (id: number): Promise<number | null> => {
-      console.log("getting u for: ", id);
       const vars: UmbrellaOfEventQueryVariables = {
         id: id,
       };

@@ -13,14 +13,17 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import {useUmbrella} from "./providers";
+import { useUmbrella, useUser } from "./providers";
+import { SquareCheckBig } from "lucide-react";
+import {RoomHoverCard} from "./room-hover-card";
 
 interface PlannerProps {
   events: Event[];
 }
 
 export function Planner({ events }: PlannerProps) {
-  const {setCloseupID} = useUmbrella()
+  const { setCloseupID } = useUmbrella();
+  const { registrations } = useUser();
 
   const groupedEvents = groupEvents(events);
   const [currentMinutes, setCurrentMinutes] = useState(0);
@@ -96,6 +99,7 @@ export function Planner({ events }: PlannerProps) {
                         event.from,
                         event.to
                       );
+                      const registration = registrations.find(r => r.event.ID === event.ID)
 
                       return (
                         <div key={event.ID}>
@@ -103,30 +107,36 @@ export function Planner({ events }: PlannerProps) {
                             className="bg-transparent"
                             style={{ height: `${gap * 100}px` }}
                           ></div>
-                            <li
-                              key={event.ID}
-                              className={`rounded-lg p-4 text-white cursor-pointer hover:opacity-90 transition-opacity`}
-                              style={{
-                                backgroundColor: event.topic.color,
-                                height: `${eventDurationHours * 100}px`,
-                              }}
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => setCloseupID(event.ID)}
-                            >
-                              <p className="text-sm font-bold">{event.title}</p>
-                              <p className="text-sm">
-                                {new Date(event.from).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}{" "}
-                                -{" "}
-                                {new Date(event.to).toLocaleTimeString([], {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                              </p>
-                            </li>
+                          <li
+                            key={event.ID}
+                            className={`rounded-lg p-4 text-white cursor-pointer hover:opacity-90 transition-opacity`}
+                            style={{
+                              backgroundColor: event.topic.color,
+                              height: `${eventDurationHours * 100}px`,
+                            }}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setCloseupID(event.ID)}
+                          >
+                            <p className="text-sm font-bold">{event.title}</p>
+                            <p className="text-sm">
+                              {new Date(event.from).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}{" "}
+                              -{" "}
+                              {new Date(event.to).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                            {registration && (
+                              <div className="flex flex-row space-x-2 mt-2 w-fit p-2 rounded-lg text-black bg-white border-l-4 border-green-300">
+                                <SquareCheckBig className="w-4 h-4 opacity-50"/>
+                                <RoomHoverCard room={registration.room} />
+                              </div>
+                            )}
+                          </li>
                         </div>
                       );
                     })}

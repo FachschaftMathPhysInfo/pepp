@@ -1,4 +1,4 @@
-import EventDialog from "@/components/event-dialog";
+import EventDialog from "@/components/event-dialog/event-dialog";
 import { Footer } from "@/components/footer";
 import { PlannerHeader } from "@/components/planner-selection";
 

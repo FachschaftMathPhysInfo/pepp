@@ -32,9 +32,9 @@ type Label {
 }
 
 type EventTutorRoomPair {
-  tutors: [User!]
-  room: Room
-  registrations: Int
+  tutors: [User!]!
+  room: Room!
+  registrations: Int!
 }
 
 type Event {
@@ -131,9 +131,8 @@ type AuthPayload {
   user: User!
 }
 
-type UserToEventRegistration {
+type EventRegistration {
   event: Event!
-  user: User!
   room: Room!
 }
 
@@ -147,7 +146,7 @@ type Query {
   users(mail: [String!], sessionID: [String!]): [User!]!
   forms(id: [Int!]): [Form!]!
   applications(eventID: Int, studentMail: [String!]): [Application!]!
-  registrations(eventId: Int, studentMail: [String!]): [UserToEventRegistration!]!
+  registrations(studentMail: String!): [EventRegistration!]!
   login(credentials: EmailPassword, sessionID: String): AuthPayload!
 }
 
@@ -290,8 +289,9 @@ type Mutation {
   addTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
   deleteTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
   addRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
+  updateRoomForTutorial(newRoomNumber: String!, newBuildingID: Int!, eventID: Int!, oldRoomNumber: String!, oldBuildingID: Int!): Event!
   deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
-  addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): UserToEventRegistration!
+  addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): EventRegistration!
   deleteStudentRegistrationForEvent(registration: NewUserToEventRegistration!): User!
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
   deleteStudentApplicationForEvent(mail: String!, eventID: Int!): User!

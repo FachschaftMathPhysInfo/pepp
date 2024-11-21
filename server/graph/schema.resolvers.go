@@ -109,7 +109,7 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 			roomMap[roomKey] = &model.EventTutorRoomPair{
 				Tutors:        []*models.User{eventToTutorRelation.User},
 				Room:          eventToTutorRelation.Room,
-				Registrations: &registrationsCount,
+				Registrations: registrationsCount,
 			}
 		}
 	}
@@ -492,20 +492,6 @@ func (r *mutationResolver) DeleteForm(ctx context.Context, id []int) (int, error
 
 // AddEventAssignmentForTutor is the resolver for the addEventAssignmentForTutor field.
 func (r *mutationResolver) AddEventAssignmentForTutor(ctx context.Context, assignment models.EventToUserAssignment) (*models.Event, error) {
-	res, err := r.DB.NewDelete().
-		Model((*models.UserToEventAvailability)(nil)).
-		Where("user_mail = ?", assignment.UserMail).
-		Where("event_id = ?", assignment.EventID).
-		Exec(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	rowsAffected, _ := res.RowsAffected()
-	if rowsAffected == 0 {
-		return nil, fmt.Errorf("Tutor is not available for this event")
-	}
-
 	if _, err := r.DB.NewInsert().
 		Model(&assignment).
 		Exec(ctx); err != nil {
@@ -671,6 +657,11 @@ func (r *mutationResolver) AddRoomAvailabilityForEvent(ctx context.Context, avai
 	return room[0], nil
 }
 
+// UpdateRoomForTutorial is the resolver for the updateRoomForTutorial field.
+func (r *mutationResolver) UpdateRoomForTutorial(ctx context.Context, newRoomNumber string, newBuildingID int, eventID int, oldRoomNumber string, oldBuildingID int) (*models.Event, error) {
+	panic(fmt.Errorf("not implemented: UpdateRoomForTutorial - updateRoomForTutorial"))
+}
+
 // DeleteRoomAvailabilityForEvent is the resolver for the deleteRoomAvailabilityForEvent field.
 func (r *mutationResolver) DeleteRoomAvailabilityForEvent(ctx context.Context, availability models.RoomToEventAvailability) (*models.Room, error) {
 	if _, err := r.DB.NewDelete().
@@ -696,8 +687,7 @@ func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, r
 		return nil, err
 	}
 
-	id := int(registration.EventID)
-	reg, err := r.Query().Registrations(ctx, &id, []string{registration.UserMail})
+	reg, err := r.Query().Registrations(ctx, registration.UserMail)
 	if err != nil {
 		return nil, err
 	}
@@ -815,6 +805,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("TutorsAssigned").
 		Relation("TutorsAvailable").
 		Relation("RoomsAvailable").
+		Relation("RoomsAvailable.Building").
 		Relation("Umbrella").
 		Where(`"e"."umbrella_id" IS NOT NULL`).
 		Order("from ASC")
@@ -1052,23 +1043,15 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, studentM
 }
 
 // Registrations is the resolver for the registrations field.
-func (r *queryResolver) Registrations(ctx context.Context, eventID *int, studentMail []string) ([]*models.UserToEventRegistration, error) {
+func (r *queryResolver) Registrations(ctx context.Context, studentMail string) ([]*models.UserToEventRegistration, error) {
 	var registrations []*models.UserToEventRegistration
 
 	query := r.DB.NewSelect().
 		Model(&registrations).
-		Relation("User").
 		Relation("Event").
 		Relation("Room").
-		Relation("Room.Building")
-
-	if eventID != nil {
-		query = query.Where("event_id = ?", *eventID)
-	}
-
-	if studentMail != nil {
-		query = query.Where("user_mail IN (?)", bun.In(studentMail))
-	}
+		Relation("Room.Building").
+		Where("user_mail = ?", studentMail)
 
 	if err := query.Scan(ctx); err != nil {
 		return nil, err
