@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, Moon, Sun } from "lucide-react";
+import { LogIn, Moon, SquareCheckBig, Sun } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -33,7 +33,6 @@ import { useUmbrella, useUser } from "./providers";
 import { client } from "@/lib/graphql";
 
 export default function Header() {
-  const [isClient, setIsClient] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [events, setEvents] = useState<FutureEventsQuery["events"] | null>(
     null
@@ -41,7 +40,7 @@ export default function Header() {
 
   const { setCloseupID } = useUmbrella();
   const { setTheme } = useTheme();
-  const { user, setUser } = useUser();
+  const { user, setUser, registrations } = useUser();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,14 +65,6 @@ export default function Header() {
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    return null;
-  }
 
   const groupEventsByUmbrellaId = () => {
     return events?.reduce((acc, event) => {
@@ -122,6 +113,7 @@ export default function Header() {
                   {groupedEvents
                     ? groupedEvents[uID].map((e) => (
                         <CommandItem
+                          className="justify-between"
                           key={e.ID}
                           onSelect={() => {
                             setSearchOpen(false);
@@ -129,6 +121,12 @@ export default function Header() {
                           }}
                         >
                           {e.title}
+                          {user &&
+                          registrations.find((r) => r.event.ID === e.ID)
+                            ? true
+                            : false && (
+                                <SquareCheckBig className="w-2 h-2 text-green-700" />
+                              )}
                         </CommandItem>
                       ))
                     : ""}
@@ -175,9 +173,6 @@ export default function Header() {
               <p className="text-muted-foreground text-xs">{user.mail}</p>
             </div>
             <Separator />
-            <DropdownMenuItem>
-              <Link href="/dashboard">Dashboard</Link>
-            </DropdownMenuItem>
             <DropdownMenuItem>Einstellungen</DropdownMenuItem>
             <Separator />
             <DropdownMenuItem onClick={() => setUser(null)}>

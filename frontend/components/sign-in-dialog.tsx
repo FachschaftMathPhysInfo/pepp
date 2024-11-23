@@ -16,7 +16,6 @@ import {
   EmailPasswordLoginDocument,
   EmailPasswordLoginQuery,
   EmailPasswordLoginQueryVariables,
-  EventRegistration,
   RegistrationDocument,
   RegistrationMutation,
   RegistrationMutationVariables,

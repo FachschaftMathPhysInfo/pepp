@@ -243,7 +243,9 @@ export default function EventDialog() {
                   }
                   capacities={event?.tutorsAssigned?.map(t => t.room.capacity ?? 1) || []}
                   edit={edit}
+                  newAssignments={newAssignments}
                   setNewAssignments={setNewAssignments}
+                  deleteAssignments={deleteAssignments}
                   setDeleteAssignments={setDeleteAssignments}
                 />
               </div>

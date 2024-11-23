@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AddStudentApplicationForEventDocument,
   AddStudentApplicationForEventMutation,
@@ -38,12 +38,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
-
-type Props = {
-  searchParams: {
-    e: string;
-  };
-};
+import { CardSkeleton } from "@/components/card-skeleton";
+import {Dialog} from "@/components/ui/dialog";
+import {useUmbrella, useUser} from "@/components/providers";
+import {SignInDialog} from "@/components/sign-in-dialog";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
@@ -63,7 +61,13 @@ const MultipleChoiceFormSchema = (required: boolean) =>
       : z.array(z.number()).optional(),
   });
 
-const Home = ({ searchParams }: Props) => {
+export default function Registration() {
+  const searchParams = useSearchParams()
+  const router = useRouter();
+
+  const { user } = useUser();
+  const { setUmbrellaID } = useUmbrella()
+
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
     null
   );
@@ -71,7 +75,6 @@ const Home = ({ searchParams }: Props) => {
   const [sliderValue, setSliderValue] = useState<number>(0);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
   const [responses, setResponses] = useState<NewQuestionResponsePair[]>([]);
 
   useEffect(() => {
@@ -80,11 +83,12 @@ const Home = ({ searchParams }: Props) => {
     }
   }, [responses]);
 
-  const eventID = searchParams.e;
+  const eventID = parseInt(searchParams.get("e") ?? "0")
   useEffect(() => {
+    setUmbrellaID(eventID)
     const fetchData = async () => {
       const vars: RegistrationFormQueryVariables = {
-        eventID: parseInt(eventID),
+        eventID: eventID
       };
 
       const data = await client.request<RegistrationFormQuery>(
@@ -139,8 +143,7 @@ const Home = ({ searchParams }: Props) => {
     }
 
     const application: NewUserToEventApplication = {
-      // TODO
-      userMail: "tutor1@example.de",
+      userMail: user?.mail ?? "",
       eventID: +eventID,
       answers: responses,
     };
@@ -158,7 +161,7 @@ const Home = ({ searchParams }: Props) => {
       handleQuit();
     } catch (err) {
       toast("Ein Fehler ist aufgetreten");
-      console.error(err)
+      console.error(err);
     }
   };
 
@@ -203,114 +206,149 @@ const Home = ({ searchParams }: Props) => {
     </div>
   );
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
-    <div className="grid h-screen place-items-center">
-      <div className="space-y-5">
-        <div>
-          <h1>{regForm?.title}</h1>
-          <p className="text-sm text-muted-foreground">
-            {regForm?.description}
-          </p>
-        </div>
-        <Progress value={progressValue} />
-        <Card className="w-[500px]">
-          <CardHeader>
-            <CardTitle>{regForm?.questions[index].title}</CardTitle>
-          </CardHeader>
-          {regForm?.questions[index].type === QuestionType.MultipleChoice && (
-            <Form {...mcForm}>
-              <form onSubmit={mcForm.handleSubmit(onMCSubmit)}>
-                <CardContent>
-                  <div className="mt-8 mb-8">
-                    <FormField
-                      control={mcForm.control}
-                      name="multipleChoice"
-                      render={() => (
-                        <FormItem>
-                          {regForm?.questions[index].answers.map((answer) => (
-                            <FormField
-                              key={answer.ID}
-                              control={mcForm.control}
-                              name="multipleChoice"
-                              render={({ field }) => (
-                                <FormItem>
+    <>
+      <Dialog open={user ? false : true}>
+        <SignInDialog />
+      </Dialog>
+      {loading ? (
+        <CardSkeleton />
+      ) : (
+        <div className="space-y-5">
+          <div>
+            <h1>{regForm?.title}</h1>
+            <p className="text-sm text-muted-foreground">
+              {regForm?.description}
+            </p>
+          </div>
+          <Progress value={progressValue} />
+          <Card className="w-[500px]">
+            <CardHeader>
+              <CardTitle>{regForm?.questions[index].title}</CardTitle>
+            </CardHeader>
+            {regForm?.questions[index].type === QuestionType.MultipleChoice && (
+              <Form {...mcForm}>
+                <form onSubmit={mcForm.handleSubmit(onMCSubmit)}>
+                  <CardContent>
+                    <div className="mt-8 mb-8">
+                      <FormField
+                        control={mcForm.control}
+                        name="multipleChoice"
+                        render={() => (
+                          <FormItem>
+                            {regForm?.questions[index].answers.map((answer) => (
+                              <FormField
+                                key={answer.ID}
+                                control={mcForm.control}
+                                name="multipleChoice"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <div
+                                      key={answer.ID}
+                                      className="flex items-center space-x-2"
+                                    >
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={field.value?.includes(
+                                            answer.ID
+                                          )}
+                                          onCheckedChange={(checked) => {
+                                            return checked
+                                              ? field.onChange([
+                                                  ...(field.value || []),
+                                                  answer.ID,
+                                                ])
+                                              : field.onChange(
+                                                  field.value?.filter(
+                                                    (value) =>
+                                                      value !== answer.ID
+                                                  )
+                                                );
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <Label>{answer.title}</Label>
+                                    </div>
+                                  </FormItem>
+                                )}
+                              />
+                            ))}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <FooterButtons />
+                  </CardFooter>
+                </form>
+              </Form>
+            )}
+
+            {regForm?.questions[index].type === QuestionType.SingleChoice && (
+              <Form {...scForm}>
+                <form onSubmit={scForm.handleSubmit(onSCSubmit)}>
+                  <CardContent>
+                    <div className="mt-8 mb-8">
+                      <FormField
+                        control={scForm.control}
+                        name="singleChoice"
+                        render={({ field }) => (
+                          <FormItem>
+                            <RadioGroup
+                              value={field.value?.toString()}
+                              onValueChange={(value) =>
+                                field.onChange(parseInt(value, 10))
+                              }
+                            >
+                              {regForm.questions[index].answers.map(
+                                (answer) => (
                                   <div
                                     key={answer.ID}
                                     className="flex items-center space-x-2"
                                   >
-                                    <FormControl>
-                                      <Checkbox
-                                        checked={field.value?.includes(
-                                          answer.ID
-                                        )}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([
-                                                ...(field.value || []),
-                                                answer.ID,
-                                              ])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== answer.ID
-                                                )
-                                              );
-                                        }}
-                                      />
-                                    </FormControl>
-                                    <Label>{answer.title}</Label>
+                                    <RadioGroupItem
+                                      value={answer.ID.toString()}
+                                    />
+                                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                      {answer.title}
+                                    </label>
                                   </div>
-                                </FormItem>
+                                )
                               )}
-                            />
-                          ))}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <FooterButtons />
-                </CardFooter>
-              </form>
-            </Form>
-          )}
+                            </RadioGroup>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <FooterButtons />
+                  </CardFooter>
+                </form>
+              </Form>
+            )}
 
-          {regForm?.questions[index].type === QuestionType.SingleChoice && (
-            <Form {...scForm}>
-              <form onSubmit={scForm.handleSubmit(onSCSubmit)}>
+            {regForm?.questions[index].type === QuestionType.Scale && (
+              <form onSubmit={onScaleSubmit}>
                 <CardContent>
-                  <div className="mt-8 mb-8">
-                    <FormField
-                      control={scForm.control}
-                      name="singleChoice"
-                      render={({ field }) => (
-                        <FormItem>
-                          <RadioGroup
-                            value={field.value?.toString()}
-                            onValueChange={(value) =>
-                              field.onChange(parseInt(value, 10))
-                            }
-                          >
-                            {regForm.questions[index].answers.map((answer) => (
-                              <div
-                                key={answer.ID}
-                                className="flex items-center space-x-2"
-                              >
-                                <RadioGroupItem value={answer.ID.toString()} />
-                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                  {answer.title}
-                                </label>
-                              </div>
-                            ))}
-                          </RadioGroup>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                  <div className="mt-8 mb-8 space-y-4">
+                    <div className="flex justify-between">
+                      <span className="text-sm font-medium">
+                        {regForm.questions[index].answers[1].title}
+                      </span>
+                      <span className="text-sm font-medium">
+                        {regForm.questions[index].answers[0].title}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[sliderValue]}
+                      onValueChange={(value) => setSliderValue(value[0])}
+                      min={regForm.questions[index].answers[1].points}
+                      max={regForm.questions[index].answers[0].points}
+                      step={1}
                     />
                   </div>
                 </CardContent>
@@ -318,39 +356,10 @@ const Home = ({ searchParams }: Props) => {
                   <FooterButtons />
                 </CardFooter>
               </form>
-            </Form>
-          )}
-
-          {regForm?.questions[index].type === QuestionType.Scale && (
-            <form onSubmit={onScaleSubmit}>
-              <CardContent>
-                <div className="mt-8 mb-8 space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium">
-                      {regForm.questions[index].answers[1].title}
-                    </span>
-                    <span className="text-sm font-medium">
-                      {regForm.questions[index].answers[0].title}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[sliderValue]}
-                    onValueChange={(value) => setSliderValue(value[0])}
-                    min={regForm.questions[index].answers[1].points}
-                    max={regForm.questions[index].answers[0].points}
-                    step={1}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter>
-                <FooterButtons />
-              </CardFooter>
-            </form>
-          )}
-        </Card>
-      </div>
-    </div>
+            )}
+          </Card>
+        </div>
+      )}
+    </>
   );
 };
-
-export default Home;

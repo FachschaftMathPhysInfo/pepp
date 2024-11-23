@@ -7,9 +7,10 @@ interface RegistrationLayoutProps {
 
 export default function RegistrationLayout({ children }: RegistrationLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="h-screen flex flex-col justify-between">
       <Header />
-      <main className="flex-1 space-y-4 pl-6 pr-6">{children}</main>
+      <div />
+      <main className="flex justify-center">{children}</main>
       <Footer />
     </div>
   );

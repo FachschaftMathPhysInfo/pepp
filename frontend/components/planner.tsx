@@ -16,6 +16,7 @@ import {
 import { useUmbrella, useUser } from "./providers";
 import { SquareCheckBig } from "lucide-react";
 import {RoomHoverCard} from "./room-hover-card";
+import {calculateFontColor} from "@/lib/utils/colorUtils";
 
 interface PlannerProps {
   events: Event[];
@@ -109,8 +110,9 @@ export function Planner({ events }: PlannerProps) {
                           ></div>
                           <li
                             key={event.ID}
-                            className={`rounded-lg p-4 text-white cursor-pointer hover:opacity-90 transition-opacity`}
+                            className={`rounded-lg p-4 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity`}
                             style={{
+                              color: calculateFontColor(event.topic.color),
                               backgroundColor: event.topic.color,
                               height: `${eventDurationHours * 100}px`,
                             }}
@@ -131,8 +133,8 @@ export function Planner({ events }: PlannerProps) {
                               })}
                             </p>
                             {registration && (
-                              <div className="flex flex-row space-x-2 mt-2 w-fit p-2 rounded-lg text-black bg-white border-l-4 border-green-300">
-                                <SquareCheckBig className="w-4 h-4 opacity-50"/>
+                              <div className="flex flex-row space-x-2 mt-2 w-fit p-2 rounded-lg text-black bg-white border-l-4 border-green-500">
+                                <SquareCheckBig className="w-4 h-4 text-green-700"/>
                                 <RoomHoverCard room={registration.room} />
                               </div>
                             )}

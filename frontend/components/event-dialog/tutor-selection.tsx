@@ -1,16 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  EventToUserAssignment,
-  EventTutorRoomPair,
-  User,
-} from "@/lib/gql/generated/graphql";
-import {
-  ChevronsUpDown,
-} from "lucide-react";
-import { useUmbrella } from "../providers";
-import React, { useState } from "react";
+import { User } from "@/lib/gql/generated/graphql";
+import { ChevronsUpDown } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
   Command,
@@ -23,26 +16,22 @@ import {
 import { Checkbox } from "../ui/checkbox";
 
 interface TutorSelectionProps {
-  tutorial: EventTutorRoomPair | null;
+  selectedTutors?: User[];
+  onSelectedTutorsChange: (tutor: User) => void;
   availableTutors: User[];
-  setDeleteAssignments: React.Dispatch<
-    React.SetStateAction<EventToUserAssignment[]>
-  >;
-  setNewAssignments: React.Dispatch<
-    React.SetStateAction<EventToUserAssignment[]>
-  >;
 }
 
 export function TutorSelection({
-  tutorial,
+  selectedTutors,
+  onSelectedTutorsChange,
   availableTutors,
-  setDeleteAssignments,
-  setNewAssignments,
 }: TutorSelectionProps) {
-  const { closeupID } = useUmbrella();
-
   const [open, setOpen] = useState(false);
-  const [selectedTutors, setSelectedTutors] = useState(tutorial?.tutors);
+  const [selected, setSelected] = useState(selectedTutors ?? []);
+
+  useEffect(() => {
+    setSelected(selectedTutors ?? [])
+  }, [selectedTutors])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,17 +42,17 @@ export function TutorSelection({
           aria-expanded={open}
           className="w-fit h-fit space-x-2"
         >
-        {selectedTutors && selectedTutors.length > 0 ? (
-          <div className="flex flex-col items-start">
-            {selectedTutors?.map((t) => (
-              <p key={t.mail}>
-                {t.fn} {t.sn}
-              </p>
-            ))}
-          </div>
-        ) : (
-          <p>Tutor wählen...</p>
-        )}
+          {selected.length > 0 ? (
+            <div className="flex flex-col items-start">
+              {selected.map((t) => (
+                <p key={t.mail}>
+                  {t.fn} {t.sn}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p>Tutor wählen...</p>
+          )}
           <ChevronsUpDown className="h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -74,49 +63,22 @@ export function TutorSelection({
             <CommandEmpty>Keine Ergebnisse.</CommandEmpty>
             <CommandGroup>
               {availableTutors.map((tutor) => {
-                const isSelected = selectedTutors?.find(
-                  (t) => t.mail === tutor.mail
-                )
+                const isSelected = selected.find((t) => t.mail === tutor.mail)
                   ? true
                   : false;
-                const isOriginal = tutorial?.tutors.find(
-                  (t) => t.mail === tutor.mail
-                )
-                  ? true
-                  : false;
-                const assignment: EventToUserAssignment = {
-                  eventID: closeupID ?? 0,
-                  userMail: tutor.mail,
-                  roomNumber: tutorial?.room.number ?? "",
-                  buildingID: tutorial?.room.building.ID ?? 0,
-                };
                 return (
                   <CommandItem
                     key={tutor.mail}
                     value={tutor.fn + " " + tutor.sn + tutor.mail}
                     onSelect={() => {
+                      onSelectedTutorsChange(tutor);
+
                       if (isSelected) {
-                        setSelectedTutors((prev) =>
-                          prev?.filter((t) => t.mail !== tutor.mail)
+                        setSelected((prev) =>
+                          prev.filter((t) => t.mail !== tutor.mail)
                         );
-
-                        if (isOriginal) {
-                          setDeleteAssignments((prev) => [...prev, assignment]);
-                        } else {
-                          setNewAssignments((prev) =>
-                            prev.filter((a) => a !== assignment)
-                          );
-                        }
                       } else {
-                        setSelectedTutors((prev) => [...prev ?? [], tutor]);
-
-                        if (isOriginal) {
-                          setDeleteAssignments((prev) =>
-                            prev.filter((a) => a !== assignment)
-                          );
-                        } else {
-                          setNewAssignments((prev) => [...prev, assignment]);
-                        }
+                        setSelected((prev) => [...prev, tutor]);
                       }
                     }}
                   >

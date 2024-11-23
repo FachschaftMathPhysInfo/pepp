@@ -831,7 +831,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 	}
 
 	if onlyFuture != nil && *onlyFuture == true {
-		query = query.Where(`"e"."from" >= ?`, time.Now())
+		query = query.Where(`"umbrella"."to" >= ?`, time.Now())
 	}
 
 	if userMail != nil {

@@ -1,11 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  EventTutorRoomPair,
-  MutationUpdateRoomForTutorialArgs,
-  Room,
-} from "@/lib/gql/generated/graphql";
+import { Room } from "@/lib/gql/generated/graphql";
 import { ArrowDownToDot, Check, ChevronsUpDown, Move } from "lucide-react";
 import React, { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
@@ -18,33 +14,19 @@ import {
   CommandList,
 } from "../ui/command";
 import { cn } from "@/lib/utils";
-import { useUmbrella } from "../providers";
 
 interface RoomSelectionProps {
-  i?: number;
-  tutorial: EventTutorRoomPair | null;
+  selectedRoom: Room | undefined;
+  onSelectedRoomChange: (room: Room | undefined) => void;
   groupedRooms: { [key: string]: Room[] };
-  setAvailableRooms: React.Dispatch<React.SetStateAction<Room[]>>;
-  setCapacities?: React.Dispatch<React.SetStateAction<number[]>>;
-  updateRooms: MutationUpdateRoomForTutorialArgs[];
-  setUpdateRooms: React.Dispatch<
-    React.SetStateAction<MutationUpdateRoomForTutorialArgs[]>
-  >;
 }
 
 export function RoomSelection({
-  i,
-  tutorial,
+  selectedRoom,
+  onSelectedRoomChange,
   groupedRooms,
-  setAvailableRooms,
-  setUpdateRooms,
-  updateRooms,
-  setCapacities,
 }: RoomSelectionProps) {
-  const { closeupID } = useUmbrella();
-
   const [open, setOpen] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState(tutorial?.room);
 
   const rooms = structuredClone(groupedRooms);
   if (selectedRoom) {
@@ -101,72 +83,7 @@ export function RoomSelection({
                         room.building.number
                       }
                       onSelect={() => {
-                        const u = updateRooms.find(
-                          (r) =>
-                            r.oldBuildingID === tutorial?.room.building.ID &&
-                            r.oldRoomNumber === tutorial.room.number
-                        );
-                        if (room !== selectedRoom) {
-                          if (setCapacities && i != undefined) {
-                            setCapacities((prev) => {
-                              prev[i] = room.capacity ?? 1;
-                              return prev;
-                            });
-                          }
-                          setAvailableRooms((prev) => {
-                            const newRooms = prev.filter(
-                              (r) =>
-                                !(
-                                  r.number === room.number &&
-                                  r.building.ID === room.building.ID
-                                )
-                            );
-                            if (selectedRoom) {
-                              newRooms.push(selectedRoom);
-                            }
-                            return newRooms;
-                          });
-                          setSelectedRoom(room);
-                          if (
-                            room.number !== tutorial?.room.number &&
-                            room.building.ID !== tutorial?.room.building.ID
-                          ) {
-                            if (u) {
-                              u.newRoomNumber = room.number;
-                              u.newBuildingID = room.building.ID;
-                            } else {
-                              setUpdateRooms((prev) => [
-                                ...prev,
-                                {
-                                  eventID: closeupID ?? 0,
-                                  oldBuildingID:
-                                    tutorial?.room.building.ID ?? 0,
-                                  oldRoomNumber: tutorial?.room.number ?? "",
-                                  newBuildingID: room.building.ID,
-                                  newRoomNumber: room.number,
-                                },
-                              ]);
-                            }
-                          } else {
-                            setUpdateRooms((prev) =>
-                              prev.filter((r) => r !== u)
-                            );
-                          }
-                        } else {
-                          if (setCapacities && i !== undefined) {
-                            setCapacities((prev) => {
-                              prev[i] = 0;
-                              return prev;
-                            });
-                          }
-                          if (selectedRoom) {
-                            setAvailableRooms((prev) => [
-                              ...prev,
-                              selectedRoom,
-                            ]);
-                          }
-                          setSelectedRoom(undefined);
-                        }
+                        onSelectedRoomChange(room);
                         setOpen(false);
                       }}
                     >
