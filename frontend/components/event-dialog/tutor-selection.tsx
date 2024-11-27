@@ -51,7 +51,7 @@ export function TutorSelection({
               ))}
             </div>
           ) : (
-            <p>Tutor wählen...</p>
+            <p>Tutor/in wählen...</p>
           )}
           <ChevronsUpDown className="h-4 w-4 opacity-50" />
         </Button>
@@ -60,7 +60,7 @@ export function TutorSelection({
         <Command>
           <CommandInput placeholder="Name oder E-Mail..." />
           <CommandList>
-            <CommandEmpty>Keine Ergebnisse.</CommandEmpty>
+            <CommandEmpty>Keine Tutor/innen verfügbar.</CommandEmpty>
             <CommandGroup>
               {availableTutors.map((tutor) => {
                 const isSelected = selected.find((t) => t.mail === tutor.mail)

@@ -15,7 +15,10 @@ import { client } from "@/lib/graphql";
 import { CopyTextArea } from "@/components/copy-text-area";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { Planner } from "@/components/planner";
-import { useUmbrella } from "@/components/providers";
+import { useUmbrella, useUser } from "@/components/providers";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ChevronRight, TriangleAlert } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function IndexPage() {
   const router = useRouter();
@@ -23,6 +26,7 @@ export default function IndexPage() {
   const pathname = usePathname();
 
   const { umbrellaID } = useUmbrella();
+  const { applications, user } = useUser();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
@@ -31,6 +35,7 @@ export default function IndexPage() {
   const [tyFilter, setTyFilter] = useState<string[]>(searchParams.getAll("ty"));
   const [icalPath, setIcalPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [isRestricted, setIsRestricted] = useState(false);
 
   const createQueryString = useCallback((name: string, values: string[]) => {
     const params = new URLSearchParams(values.map((v) => [name, v]));
@@ -53,12 +58,8 @@ export default function IndexPage() {
       );
 
       if (eventData.events.length) {
-        if (eventData.typeLabels.length >= 2) {
-          setTypes(eventData.typeLabels);
-        }
-        if (eventData.topicLabels.length >= 2) {
-          setTopics(eventData.topicLabels);
-        }
+        setTypes(eventData.typeLabels);
+        setTopics(eventData.topicLabels);
         setEvents(
           eventData.events.map((e) => ({
             type: { name: "" },
@@ -70,6 +71,11 @@ export default function IndexPage() {
             topic: { name: "", color: e.topic.color },
           }))
         );
+        if (eventData.umbrellas[0].registrationForm) {
+          setIsRestricted(true);
+        } else {
+          setIsRestricted(false);
+        }
         setLoading(false);
       }
     };
@@ -87,29 +93,64 @@ export default function IndexPage() {
   }, [toFilter, tyFilter, umbrellaID]);
 
   useEffect(() => {
+    setTyFilter([]);
+    setToFilter([]);
+  }, [umbrellaID]);
+
+  useEffect(() => {
     setIcalPath(window.location.origin + "/ical/?" + searchParams);
   }, [searchParams]);
+
+  const application = applications.find((a) => a.eventID === umbrellaID);
 
   return (
     <>
       {events.length > 0 && (
-        <section className="flex flex-row items-end">
-          <div className="space-y-2">
-            <Filter
-              title="Thema"
-              options={topics.map((t) => t.name)}
-              filter={toFilter}
-              setFilter={setToFilter}
-            />
-            <Filter
-              title="Veranstaltungsart"
-              options={types.map((t) => t.name)}
-              filter={tyFilter}
-              setFilter={setTyFilter}
-            />
-          </div>
-          <div className="w-full" />
+        <section className="flex flex-row items-end justify-between">
+          {(topics.length >= 2 || types.length >= 2) && (
+            <div className="space-y-2">
+              {topics.length >= 2 && (
+                <Filter
+                  title="Thema"
+                  options={topics.map((t) => t.name)}
+                  filter={toFilter}
+                  setFilter={setToFilter}
+                />
+              )}
+              {types.length >= 2 && (
+                <Filter
+                  title="Veranstaltungsart"
+                  options={types.map((t) => t.name)}
+                  filter={tyFilter}
+                  setFilter={setTyFilter}
+                />
+              )}
+            </div>
+          )}
           <CopyTextArea label="ICS-Kalender" text={icalPath} />
+        </section>
+      )}
+
+      {isRestricted && !application && (
+        <section>
+          <Alert variant="destructive">
+            <TriangleAlert className="h-4 w-4" />
+            <AlertTitle className="font-bold">
+              Registrierung erforderlich!
+            </AlertTitle>
+            <AlertDescription className="flex flex-col">
+              Diese Veranstaltung ist aus Kapazitätsgründen
+              zulassungsbeschränkt.
+              <Button
+                variant="secondary"
+                className="mt-2 w-fit h-fit"
+                onClick={() => router.push("/register?e=" + umbrellaID)}
+              >
+                Zur Anmeldung
+                <ChevronRight />
+              </Button>
+            </AlertDescription>
+          </Alert>
         </section>
       )}
 

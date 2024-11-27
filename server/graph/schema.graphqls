@@ -50,6 +50,7 @@ type Event {
   type: Label!
   from: timestamptz!
   to: timestamptz!
+  registrationForm: Form
 }
 
 type Room {

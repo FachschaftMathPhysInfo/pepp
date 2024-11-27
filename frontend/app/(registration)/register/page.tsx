@@ -65,7 +65,7 @@ export default function Registration() {
   const searchParams = useSearchParams()
   const router = useRouter();
 
-  const { user } = useUser();
+  const { user, applications, setApplications } = useUser();
   const { setUmbrellaID } = useUmbrella()
 
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
@@ -157,6 +157,10 @@ export default function Registration() {
         AddStudentApplicationForEventDocument,
         vars
       );
+      setApplications([...applications, {
+        eventID: eventID,
+        accepted: false
+      }])
       toast("Anmeldung abgeschickt!");
       handleQuit();
     } catch (err) {

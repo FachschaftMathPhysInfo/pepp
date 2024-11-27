@@ -23,11 +23,18 @@ import { type ThemeProviderProps } from "next-themes/dist/types";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { client } from "@/lib/graphql";
 
+type Application = {
+  accepted: boolean;
+  eventID: number;
+};
+
 type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
   registrations: EventRegistration[];
   setRegistrations: (registrations: EventRegistration[]) => void;
+  applications: Application[];
+  setApplications: (applications: Application[]) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -42,10 +49,13 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [registrations, setRegistrations] = useState<EventRegistration[]>([])
+  const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
+  const [applications, setApplications] = useState<Application[]>([])
 
   return (
-    <UserContext.Provider value={{ user, setUser, registrations, setRegistrations }}>
+    <UserContext.Provider
+      value={{ user, setUser, registrations, setRegistrations, applications, setApplications }}
+    >
       {children}
     </UserContext.Provider>
   );

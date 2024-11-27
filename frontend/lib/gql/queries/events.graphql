@@ -30,6 +30,9 @@ query futureEvents {
 query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
   umbrellas(id: [$umbrellaID]) {
     title
+    registrationForm {
+      eventID
+    }
   }
   typeLabels: labels(kind: EVENT_TYPE, umbrellaID: [$umbrellaID]) {
     name
@@ -63,6 +66,7 @@ query eventCloseup($id: Int!) {
     description
     from
     to
+    needsTutors
     topic {
       name
       color

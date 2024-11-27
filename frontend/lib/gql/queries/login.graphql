@@ -6,6 +6,12 @@ query emailPasswordLogin($email: String!, $password: String!) {
       sn
       mail
       confirmed
+      applications {
+        event {
+          ID
+        }
+        accepted
+      }
     }
   }
   registrations(studentMail: $email) {

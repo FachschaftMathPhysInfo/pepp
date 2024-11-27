@@ -447,8 +447,8 @@ export function TutorialsTable({
             </>
           ) : (
             <TableRow>
-              <TableCell className="h-24 text-center">
-                Noch keine Tutorien verfügbar.
+              <TableCell colSpan={4} className="h-24 text-center">
+                Für diese Veranstaltung existieren noch keine Anmeldungen.
               </TableCell>
             </TableRow>
           )}

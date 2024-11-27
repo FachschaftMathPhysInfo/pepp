@@ -53,7 +53,7 @@ const RegisterFormSchema = SignInFormSchema.extend({
 });
 
 export const SignInDialog = () => {
-  const { setUser, setRegistrations } = useUser();
+  const { setUser, setRegistrations, setApplications } = useUser();
   const [correct, setCorrect] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -92,7 +92,17 @@ export const SignInDialog = () => {
         EmailPasswordLoginDocument,
         credentials
       );
-      setUser(userData.login.user);
+      const user = userData.login.user
+      setUser({
+        mail: user.mail,
+        fn: user.fn,
+        sn: user.sn,
+        confirmed: user.confirmed,
+      });
+      setApplications(user.applications?.map(a => ({
+        accepted: a.accepted ?? false,
+        eventID: a.event.ID,
+      })) ?? [])
       setRegistrations(userData.registrations.map(r => ({
         event: {
           ID: r.event.ID,

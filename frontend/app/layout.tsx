@@ -12,7 +12,7 @@ import {
   UmbrellaProvider,
 } from "@/components/providers";
 import Header from "@/components/header";
-import { Suspense } from "react";
+import {Suspense} from "react";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -56,18 +56,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
           fontHeading.variable
         )}
       >
-        <Suspense>
-          <UserProvider>
-            <ThemeProvider>
-              <UmbrellaProvider>
-                <Header />
-                {children}
-                <Toaster />
-                <TailwindIndicator />
-              </UmbrellaProvider>
-            </ThemeProvider>
-          </UserProvider>
-        </Suspense>
+      <Suspense>
+        <UserProvider>
+          <ThemeProvider>
+            <UmbrellaProvider>
+              <Header />
+              {children}
+              <Toaster />
+              <TailwindIndicator />
+            </UmbrellaProvider>
+          </ThemeProvider>
+        </UserProvider>
+      </Suspense>
       </body>
     </html>
   );

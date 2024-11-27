@@ -101,18 +101,19 @@ type ComplexityRoot struct {
 	}
 
 	Event struct {
-		Description     func(childComplexity int) int
-		From            func(childComplexity int) int
-		ID              func(childComplexity int) int
-		NeedsTutors     func(childComplexity int) int
-		RoomsAvailable  func(childComplexity int) int
-		Title           func(childComplexity int) int
-		To              func(childComplexity int) int
-		Topic           func(childComplexity int) int
-		TutorsAssigned  func(childComplexity int) int
-		TutorsAvailable func(childComplexity int) int
-		Type            func(childComplexity int) int
-		Umbrella        func(childComplexity int) int
+		Description      func(childComplexity int) int
+		From             func(childComplexity int) int
+		ID               func(childComplexity int) int
+		NeedsTutors      func(childComplexity int) int
+		RegistrationForm func(childComplexity int) int
+		RoomsAvailable   func(childComplexity int) int
+		Title            func(childComplexity int) int
+		To               func(childComplexity int) int
+		Topic            func(childComplexity int) int
+		TutorsAssigned   func(childComplexity int) int
+		TutorsAvailable  func(childComplexity int) int
+		Type             func(childComplexity int) int
+		Umbrella         func(childComplexity int) int
 	}
 
 	EventRegistration struct {
@@ -536,6 +537,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Event.NeedsTutors(childComplexity), true
+
+	case "Event.registrationForm":
+		if e.complexity.Event.RegistrationForm == nil {
+			break
+		}
+
+		return e.complexity.Event.RegistrationForm(childComplexity), true
 
 	case "Event.roomsAvailable":
 		if e.complexity.Event.RoomsAvailable == nil {
@@ -2749,6 +2757,8 @@ func (ec *executionContext) fieldContext_Application_event(_ context.Context, fi
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -3824,6 +3834,8 @@ func (ec *executionContext) fieldContext_Event_umbrella(_ context.Context, field
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -4148,6 +4160,57 @@ func (ec *executionContext) fieldContext_Event_to(_ context.Context, field graph
 	return fc, nil
 }
 
+func (ec *executionContext) _Event_registrationForm(ctx context.Context, field graphql.CollectedField, obj *models.Event) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Event_registrationForm(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RegistrationForm, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Form)
+	fc.Result = res
+	return ec.marshalOForm2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐForm(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Event_registrationForm(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Event",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "eventID":
+				return ec.fieldContext_Form_eventID(ctx, field)
+			case "title":
+				return ec.fieldContext_Form_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Form_description(ctx, field)
+			case "questions":
+				return ec.fieldContext_Form_questions(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Form", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _EventRegistration_event(ctx context.Context, field graphql.CollectedField, obj *models.UserToEventRegistration) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_EventRegistration_event(ctx, field)
 	if err != nil {
@@ -4211,6 +4274,8 @@ func (ec *executionContext) fieldContext_EventRegistration_event(_ context.Conte
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -5116,6 +5181,8 @@ func (ec *executionContext) fieldContext_Mutation_addEvent(ctx context.Context, 
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -5197,6 +5264,8 @@ func (ec *executionContext) fieldContext_Mutation_updateEvent(ctx context.Contex
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -6274,6 +6343,8 @@ func (ec *executionContext) fieldContext_Mutation_addEventAssignmentForTutor(ctx
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -6355,6 +6426,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteEventAssignmentForTutor(
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -6649,6 +6722,8 @@ func (ec *executionContext) fieldContext_Mutation_updateRoomForTutorial(ctx cont
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -7077,6 +7152,8 @@ func (ec *executionContext) fieldContext_Query_events(ctx context.Context, field
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -7158,6 +7235,8 @@ func (ec *executionContext) fieldContext_Query_umbrellas(ctx context.Context, fi
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -8837,6 +8916,8 @@ func (ec *executionContext) fieldContext_User_eventsRegistered(_ context.Context
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -8904,6 +8985,8 @@ func (ec *executionContext) fieldContext_User_eventsAvailable(_ context.Context,
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -8971,6 +9054,8 @@ func (ec *executionContext) fieldContext_User_eventsAssigned(_ context.Context, 
 				return ec.fieldContext_Event_from(ctx, field)
 			case "to":
 				return ec.fieldContext_Event_to(ctx, field)
+			case "registrationForm":
+				return ec.fieldContext_Event_registrationForm(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Event", field.Name)
 		},
@@ -12122,6 +12207,8 @@ func (ec *executionContext) _Event(ctx context.Context, sel ast.SelectionSet, ob
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "registrationForm":
+			out.Values[i] = ec._Event_registrationForm(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -15063,6 +15150,13 @@ func (ec *executionContext) marshalOEventTutorRoomPair2ᚕᚖgithubᚗcomᚋFach
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalOForm2ᚖgithubᚗcomᚋFachschaftMathPhysInfoᚋpeppᚋserverᚋmodelsᚐForm(ctx context.Context, sel ast.SelectionSet, v *models.Form) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Form(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOHexColorCode2string(ctx context.Context, v interface{}) (string, error) {

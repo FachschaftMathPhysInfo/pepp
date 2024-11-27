@@ -28,7 +28,16 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		Zip:       69115,
 		Latitude:  49.417493,
 		Longitude: 8.675197,
-		ZoomLevel: 19,
+		ZoomLevel: 17,
+	}, {
+		Name:      "Kirchhoff-Institut für Physik",
+		Street:    "INF",
+		Number:    "227",
+		City:      "Heidelberg",
+		Zip:       69115,
+		Latitude:  49.4162501,
+		Longitude: 8.6694734,
+		ZoomLevel: 17,
 	}}
 	if err := insertData(ctx, db, (*models.Building)(nil), buildings, "Buildings"); err != nil {
 		return err
@@ -44,6 +53,12 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		Number:     "2.141",
 		Capacity:   35,
 		BuildingID: 1,
+	}, {
+		Number:     "503",
+		Name:       "Labor 1",
+		Capacity:   30,
+		Floor:      5,
+		BuildingID: 2,
 	}}
 	if err := insertData(ctx, db, (*models.Room)(nil), rooms, "Rooms"); err != nil {
 		return err
@@ -51,8 +66,9 @@ func seedData(ctx context.Context, db *bun.DB) error {
 
 	labels := []*models.Label{
 		{Name: "Mathe", Color: "#87cefa", Kind: "TOPIC"},
-		{Name: "Informatik", Color: "#33ff33", Kind: "TOPIC"},
-		{Name: "Tutorium", Color: "#00ff80", Kind: "EVENT_TYPE"},
+		{Name: "Informatik", Color: "#FFE31A", Kind: "TOPIC"},
+		{Name: "Allgemein", Color: "#5D737E", Kind: "TOPIC"},
+		{Name: "Tutorium", Color: "#ABBA7C", Kind: "EVENT_TYPE"},
 		{Name: "Vorlesung", Color: "#ffbf00", Kind: "EVENT_TYPE"},
 	}
 	if err := insertData(ctx, db, (*models.Label)(nil), labels, "Labels"); err != nil {
@@ -60,9 +76,16 @@ func seedData(ctx context.Context, db *bun.DB) error {
 	}
 
 	umbrellaID := int32(1)
+	umbrellaID2 := int32(2)
 	events := []*models.Event{
 		{
 			Title:       fmt.Sprintf("Vorkurs %s", strconv.Itoa(time.Now().Year())),
+			Description: "Lorem Ipsum",
+			From:        time.Now().Add(-time.Hour),
+			To:          time.Now().Add(3 * (time.Hour * 24)),
+		},
+		{
+			Title:       fmt.Sprintf("Programmiervorkurs %s", strconv.Itoa(time.Now().Year())),
 			Description: "Lorem Ipsum",
 			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(3 * (time.Hour * 24)),
@@ -88,6 +111,16 @@ func seedData(ctx context.Context, db *bun.DB) error {
 			UmbrellaID:  &umbrellaID,
 		},
 		{
+			Title:       "Einführungsveranstaltung",
+			Description: "Lorem Ipsum dolor sit amed",
+			TopicName:   "Allgemein",
+			TypeName:    "Vorlesung",
+			NeedsTutors: true,
+			From:        time.Now().Add(-time.Hour),
+			To:          time.Now().Add(time.Hour),
+			UmbrellaID:  &umbrellaID2,
+		},
+		{
 			Title:       "Lineare Algebra",
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Mathe",
@@ -101,28 +134,30 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
-	buildingID := int32(1)
-	eventID := int32(2)
 	availableRooms := []*models.RoomToEventAvailability{
-		{RoomNumber: "101", BuildingID: buildingID, EventID: eventID},
-		{RoomNumber: "2.141", BuildingID: buildingID, EventID: eventID},
+		{RoomNumber: "101", BuildingID: 1, EventID: 3},
+		{RoomNumber: "2.141", BuildingID: 1, EventID: 3},
+		{RoomNumber: "503", BuildingID: 2, EventID: 5},
 	}
 	if err := insertData(ctx, db, (*models.RoomToEventAvailability)(nil), availableRooms, "Room to Event availabilitys"); err != nil {
 		return err
 	}
 
 	assignments := []*models.EventToUserAssignment{
-		{EventID: eventID, UserMail: "tutor1@example.de", RoomNumber: "101", BuildingID: buildingID},
-		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "101", BuildingID: buildingID},
-		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "2.141", BuildingID: buildingID},
+		{EventID: 3, UserMail: "tutor1@example.de", RoomNumber: "101", BuildingID: 1},
+		{EventID: 3, UserMail: "tutor2@example.de", RoomNumber: "101", BuildingID: 1},
+		{EventID: 3, UserMail: "tutor2@example.de", RoomNumber: "2.141", BuildingID: 1},
+		{EventID: 5, UserMail: "tutor2@example.de", RoomNumber: "503", BuildingID: 2},
 	}
 	if err := insertData(ctx, db, (*models.EventToUserAssignment)(nil), assignments, "Event to User assignments"); err != nil {
 		return err
 	}
 
 	availabilitys := []*models.UserToEventAvailability{
-		{EventID: eventID, UserMail: "tutor1@example.de"},
-		{EventID: eventID, UserMail: "tutor2@example.de"},
+		{EventID: 3, UserMail: "tutor1@example.de"},
+		{EventID: 3, UserMail: "tutor2@example.de"},
+		{EventID: 4, UserMail: "tutor1@example.de"},
+		{EventID: 5, UserMail: "tutor2@example.de"},
 	}
 	if err := insertData(ctx, db, (*models.UserToEventAvailability)(nil), availabilitys, "User to Event availabilitys"); err != nil {
 		return err
@@ -131,16 +166,16 @@ func seedData(ctx context.Context, db *bun.DB) error {
 	form := []*models.Form{{
 		Title:       "Beispielregistrierung",
 		Description: "Lorem Ipsum dolor sit amed",
-		EventID:     1,
+		EventID:     2,
 	}}
 	if err := insertData(ctx, db, (*models.Form)(nil), form, "Form"); err != nil {
 		return err
 	}
 
 	questions := []*models.Question{
-		{Title: "Wie viel Programmiererfahrung hast du?", Type: "SCALE", FormID: 1},
-		{Title: "Welche der folgenden Konzepte kennst du noch nicht?", Type: "MULTIPLE_CHOICE", Required: false, FormID: 1},
-		{Title: "Welchen Studiengang belegst du?", Type: "SINGLE_CHOICE", Required: true, FormID: 1},
+		{Title: "Wie viel Programmiererfahrung hast du?", Type: "SCALE", FormID: 2},
+		{Title: "Welche der folgenden Konzepte kennst du noch nicht?", Type: "MULTIPLE_CHOICE", Required: false, FormID: 2},
+		{Title: "Welchen Studiengang belegst du?", Type: "SINGLE_CHOICE", Required: true, FormID: 2},
 	}
 	if err := insertData(ctx, db, (*models.Question)(nil), questions, "Questions"); err != nil {
 		return err
@@ -163,7 +198,7 @@ func seedData(ctx context.Context, db *bun.DB) error {
 
 	settings := []*models.Setting{
 		{Key: "primary-color", Value: "#990000", Type: "COLOR"},
-		{Key: "logo-url", Value: "https://mathphys.info/mathphysinfo-logo.png", Type: "STRING"},
+		{Key: "logo-url", Value: "http://localhost:8080/fs-logo.png", Type: "STRING"},
 		{Key: "homepage-url", Value: "https://mathphys.info", Type: "STRING"},
 		{Key: "copyright-notice", Value: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.", Type: "STRING"},
 		{Key: "email-greeting", Value: "Hey", Type: "STRING"},

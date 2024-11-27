@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Room } from "@/lib/gql/generated/graphql";
-import { ArrowDownToDot, Check, ChevronsUpDown, Move } from "lucide-react";
+import { ArrowDownToDot, Check, ChevronsUpDown, Move, Users } from "lucide-react";
 import React, { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
@@ -97,7 +97,7 @@ export function RoomSelection({
                         )}
                         {room.capacity && (
                           <div className="flex flex-row">
-                            <Move className="h-4 w-4 opacity-80 mr-1" />
+                            <Users className="h-4 w-4 mr-1" />
                             {room.capacity}
                           </div>
                         )}

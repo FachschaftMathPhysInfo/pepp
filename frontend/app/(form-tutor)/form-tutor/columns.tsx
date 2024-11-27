@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { eventBroker } from "@/lib/eventBroker";
 import { Badge } from "@/components/ui/badge";
-import {Event} from "@/lib/gql/generated/graphql";
+import { Event } from "@/lib/gql/generated/graphql";
 
 export const columns: ColumnDef<Event>[] = [
   {
@@ -23,7 +23,7 @@ export const columns: ColumnDef<Event>[] = [
             eventBroker.addEvent(row.original.ID);
           }
         }}
-        aria-label="Ich kann diese Vorlesung halten"
+        aria-label="Ich kann diese Veranstaltung halten"
       />
     ),
   },

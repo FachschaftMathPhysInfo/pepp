@@ -31,8 +31,11 @@ import {
 } from "@/lib/gql/generated/graphql";
 import { useUmbrella, useUser } from "./providers";
 import { client } from "@/lib/graphql";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
+  const router = useRouter();
+
   const [searchOpen, setSearchOpen] = useState(false);
   const [events, setEvents] = useState<FutureEventsQuery["events"] | null>(
     null
@@ -80,116 +83,124 @@ export default function Header() {
   const groupedEvents = groupEventsByUmbrellaId();
 
   return (
-    <header className="backdrop-blur-md z-20 fixed w-full h-20 flex flex-row items-center px-5 space-x-2">
-      <Image
-        src="/logo.png"
-        alt="Logo der Fachschaft"
-        width="150"
-        height="15"
-      />
-      <div className="w-full" />
-      <Button
-        variant="secondary"
-        onClick={() => setSearchOpen(true)}
-        className="space-x-4 w-fit"
+    <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 bg-white">
+      <div
+        className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400"
+        onClick={() => router.push("/")}
       >
-        <p>Suche nach Veranstaltungen...</p>
-        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </Button>
-      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Suche nach Veranstaltungen..." />
-        <CommandList>
-          <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
-          {groupedEvents
-            ? Object.keys(groupedEvents).map((uID) => (
-                <CommandGroup
-                  key={uID}
-                  heading={
-                    groupedEvents ? groupedEvents[uID][0].umbrella?.title : ""
-                  }
-                >
-                  {groupedEvents
-                    ? groupedEvents[uID].map((e) => (
-                        <CommandItem
-                          className="justify-between"
-                          key={e.ID}
-                          onSelect={() => {
-                            setSearchOpen(false);
-                            setCloseupID(e.ID);
-                          }}
-                        >
-                          {e.title}
-                          {user &&
-                          registrations.find((r) => r.event.ID === e.ID)
-                            ? true
-                            : false && (
-                                <SquareCheckBig className="w-2 h-2 text-green-700" />
-                              )}
-                        </CommandItem>
-                      ))
-                    : ""}
-                </CommandGroup>
-              ))
-            : ""}
-        </CommandList>
-      </CommandDialog>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setTheme("light")}>
-            Light
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")}>
-            Dark
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("system")}>
-            System
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      {user ? (
+        <Image
+          src="/logo.png"
+          alt="Pepp Logo"
+          width="50"
+          height="50"
+          className="mr-2"
+        />
+        <Image src="/fs-logo.png" alt="Pepp Logo" width="150" height="15" />
+      </div>
+      <div className="flex flex-row">
+        <Button
+          variant="secondary"
+          onClick={() => setSearchOpen(true)}
+          className="space-x-4 w-fit"
+        >
+          <p>Suche nach Veranstaltungen...</p>
+          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </Button>
+        <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+          <CommandInput placeholder="Suche nach Veranstaltungen..." />
+          <CommandList>
+            <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
+            {groupedEvents
+              ? Object.keys(groupedEvents).map((uID) => (
+                  <CommandGroup
+                    key={uID}
+                    heading={
+                      groupedEvents ? groupedEvents[uID][0].umbrella?.title : ""
+                    }
+                  >
+                    {groupedEvents
+                      ? groupedEvents[uID].map((e) => (
+                          <CommandItem
+                            className="justify-between"
+                            key={e.ID}
+                            onSelect={() => {
+                              setSearchOpen(false);
+                              setCloseupID(e.ID);
+                            }}
+                          >
+                            {e.title}
+                            {user &&
+                            registrations.find((r) => r.event.ID === e.ID)
+                              ? true
+                              : false && (
+                                  <SquareCheckBig className="w-2 h-2 text-green-700" />
+                                )}
+                          </CommandItem>
+                        ))
+                      : ""}
+                  </CommandGroup>
+                ))
+              : ""}
+          </CommandList>
+        </CommandDialog>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Avatar className="cursor-pointer">
-              <AvatarFallback>
-                {user.fn[0]}
-                {user.sn[0]}
-              </AvatarFallback>
-            </Avatar>
+            <Button variant="ghost" size="icon" className="ml-2">
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <div className="m-2">
-              <p className="font-bold text-sm">
-                {user.fn} {user.sn}
-              </p>
-              <p className="text-muted-foreground text-xs">{user.mail}</p>
-            </div>
-            <Separator />
-            <DropdownMenuItem>Einstellungen</DropdownMenuItem>
-            <Separator />
-            <DropdownMenuItem onClick={() => setUser(null)}>
-              Abmelden
+            <DropdownMenuItem onClick={() => setTheme("light")}>
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("dark")}>
+              Dark
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme("system")}>
+              System
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      ) : (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <LogIn className="h-[1.2rem] w-[1.2rem]" />
-            </Button>
-          </DialogTrigger>
-          <SignInDialog />
-        </Dialog>
-      )}
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="cursor-pointer">
+                <AvatarFallback>
+                  {user.fn[0]}
+                  {user.sn[0]}
+                </AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <div className="m-2">
+                <p className="font-bold text-sm">
+                  {user.fn} {user.sn}
+                </p>
+                <p className="text-muted-foreground text-xs">{user.mail}</p>
+              </div>
+              <Separator />
+              <DropdownMenuItem>Einstellungen</DropdownMenuItem>
+              <Separator />
+              <DropdownMenuItem onClick={() => setUser(null)}>
+                Abmelden
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <LogIn className="h-[1.2rem] w-[1.2rem]" />
+              </Button>
+            </DialogTrigger>
+            <SignInDialog />
+          </Dialog>
+        )}
+      </div>
     </header>
   );
 }

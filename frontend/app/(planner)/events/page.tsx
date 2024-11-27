@@ -14,7 +14,6 @@ import { columns } from "./columns";
 import { TableSkeleton } from "@/components/table-skeleton";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { ModifyEventDialog } from "@/components/modify-event-dialog";
 
 export default function EventsPage() {
   const [loading, setLoading] = useState(true);
@@ -52,11 +51,6 @@ export default function EventsPage() {
           <TableSkeleton />
         ) : (
           <>
-            <ModifyEventDialog>
-              <Button className="w-fit">
-                <Plus className="h-4 w-4" /> Hinzufügen
-              </Button>
-            </ModifyEventDialog>
             <DataTable columns={columns} data={events} />
           </>
         )}

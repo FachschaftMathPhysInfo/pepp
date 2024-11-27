@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Event,
   EventCloseupDocument,
   EventCloseupQuery,
   EventCloseupQueryVariables,
@@ -47,6 +48,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn, formatDateToHHMM } from "@/lib/utils";
 import { TutorialsTable } from "./tutorials-table";
 import { Input } from "../ui/input";
+import { Checkbox } from "../ui/checkbox";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -63,9 +65,7 @@ export default function EventDialog() {
   const { closeupID, setCloseupID } = useUmbrella();
   const [loading, setLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
-  const [event, setEvent] = useState<EventCloseupQuery["events"][0] | null>(
-    null
-  );
+  const [event, setEvent] = useState<Event>();
   const [open, setOpen] = useState(false);
   const [edit, setEdit] = useState(false);
   const [newAssignments, setNewAssignments] = useState<EventToUserAssignment[]>(
@@ -114,7 +114,18 @@ export default function EventDialog() {
       );
 
       if (eventData.events.length) {
-        setEvent(eventData.events[0]);
+        const e = eventData.events[0];
+        setEvent({
+          ID: e.ID,
+          title: e.title,
+          description: e.description,
+          topic: { name: e.topic.name, color: e.topic.color },
+          type: { name: e.type.name, color: e.type.color },
+          from: e.from,
+          to: e.to,
+          needsTutors: e.needsTutors,
+          tutorsAssigned: e.tutorsAssigned
+        });
         form.reset();
         setLoading(false);
       }
@@ -137,20 +148,22 @@ export default function EventDialog() {
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(updateEvent)}>
-          <DialogContent className="sm:max-w-[550px]">
-            <DialogAction>
-              {edit ? (
-                <>
-                  <Save className="h-4 w-4" onClick={() => setEdit(false)} />
-                  <span className="sr-only">Speichern</span>
-                </>
-              ) : (
-                <>
-                  <Edit3 className="h-4 w-4" onClick={() => setEdit(true)} />
-                  <span className="sr-only">Bearbeiten</span>
-                </>
-              )}
-            </DialogAction>
+          <DialogContent className="sm:min-w-[600px]">
+            {user && (
+              <DialogAction>
+                {edit ? (
+                  <>
+                    <Save className="h-4 w-4" onClick={() => setEdit(false)} />
+                    <span className="sr-only">Speichern</span>
+                  </>
+                ) : (
+                  <>
+                    <Edit3 className="h-4 w-4" onClick={() => setEdit(true)} />
+                    <span className="sr-only">Bearbeiten</span>
+                  </>
+                )}
+              </DialogAction>
+            )}
             {loading ? (
               <div className="flex flex-col space-y-3">
                 <Skeleton className="h-5 w-[80px]" />
@@ -221,7 +234,7 @@ export default function EventDialog() {
                   </DialogDescription>
                 </DialogHeader>
 
-                {!user && (
+                {!user && event?.tutorsAssigned?.length && (
                   <div>
                     <span>Bitte </span>
                     <Dialog>
@@ -241,13 +254,24 @@ export default function EventDialog() {
                     event?.tutorsAssigned?.map((t) => t.registrations ?? 0) ||
                     []
                   }
-                  capacities={event?.tutorsAssigned?.map(t => t.room.capacity ?? 1) || []}
+                  capacities={
+                    event?.tutorsAssigned?.map((t) => t.room.capacity ?? 1) ||
+                    []
+                  }
                   edit={edit}
                   newAssignments={newAssignments}
                   setNewAssignments={setNewAssignments}
                   deleteAssignments={deleteAssignments}
                   setDeleteAssignments={setDeleteAssignments}
                 />
+                {edit && (
+                  <div className="flex flex-row space-x-2">
+                    <Checkbox checked={event?.needsTutors} />
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      Benötigt noch Tutor/innen
+                    </label>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>
