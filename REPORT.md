@@ -1,24 +1,9 @@
 1. Einleitung
-    - Anforderungsanalyse
 2. Architektur
-    - Überblick
-    - Technologien und Tools
-3. Entwicklungsprozess
-    - Projektstruktur
-    - Versionierung und Contribution Guideline
-4. Funktionen und Features
-    - Hauptfunktionen
-    - Benutzerfreundlichkeit bzw. UX/UI
-    - Sicherheit: Backend-Kommunikation (mTLS), Passwörter
-5. Herausforderung und Lösungen
-6. Deployment
-    - Docker
-    - Monitoring und Logging
-7. Weiterentwicklung und Ausblick
-8. Fazit
-    - Projektreflexion
-    - Erfolgreiche Aspekte
-    - Verbesserungspotenzial
+3. Funktionen und Features
+4. Deployment
+5. Weiterentwicklung und Ausblick
+6. Fazit
 
 # 1. Einleitung
 
@@ -241,19 +226,24 @@ Für die Weiterentwicklung der Software empfiehlt es sich, am bestehenden Schema
 
 Sollten komplexere oder wiederverwendbare Funktionen benötigt werden, wie beispielsweise Passwort-Hashing oder datenbankunabhängige Logiken, sollten diese in eigene Module ausgelagert werden. Ein Beispiel hierfür ist das Modul `server/password/`, das alle notwendigen Funktionen für die sichere Verarbeitung und Verwaltung von Passwörtern bereitstellt. Eine ähnliche Struktur kann auch für andere funktionale Bereiche übernommen werden, um die Übersichtlichkeit und Wiederverwendbarkeit zu fördern.
 
+#### 2.2.2.4 Sicherheit
+
+Das Backend implementiert alle standartmäßigen Methoden zur datenschutzkonformen und sicheren Speicherung von Passwörtern sowie Nutzerdaten.
+
+- **Speicherung**: Passwörter werden sowohl mit *Salt* als auch *Pepper* versehen und gehashed gespeichert. Der *Pepper* ist als Umgebungsvariable anzugeben
+- **Kommunikation**: Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegliche Kommunikation ist demnach via *mTLS* durch self-signed Zertifikate gesichert.
+
 ### 2.2.3 Datenbank: [PostgreSQL](https://www.postgresql.org/)
 PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksystem mit Unterstützung für erweiterte Funktionen wie JSON-Speicherung und Volltextsuche, was Flexibilität bei der Datenmodellierung ermöglicht.
 
 #### 2.2.3.1 ER-Diagram
 ![Datenbankmodell](pics/pepp-er.jpg)
 
-# 3. Entwicklungsprozess
+# 3. Funktionen und Features
 
-# 4. Funktionen und Features
+## 3.1 Hauptfunktionen
 
-## 4.1 Hauptfunktionen
-
-### 4.1.1 Stundenplan
+### 3.1.1 Stundenplan
 Der Stundenplan ist das zentrale Element dieser Software. Es handelt sich um die Landingpage und ist die Schnittstelle zwischen Organisatoren und Studenten.
 
 ![Stundenplan](pics/pepp-planner.png)
@@ -262,24 +252,24 @@ Auf folgender Abbildung ist die Ansicht eines Admin-Nutzers, eingetragen zur Ver
 
 ![Stundenplan](pics/pepp-planner-admin.png)
 
-### 4.1.2 Veranstaltungssuche
+### 3.1.2 Veranstaltungssuche
 Die Veranstaltungssuche erleichtert das Auffinden spezifischer Veranstaltungen anhand verschiedener Filterkriterien wie Titel, Dozent oder Datum. Die Suchfunktion implementiert *Fuzzy finding*, d.h. Abkürzungen wie *'alda'* führen zum Suchergebnis *'Algorithmen und Datenstrukturen'*. Diese Funktion ist besonders nützlich für Organisatoren, die gezielt nach Veranstaltungen suchen, und für Studenten, die sich über einzelne Veranstaltungen informieren möchten.
 
 ![Veranstaltungssuche](pics/pepp-search.png)
 
-### 4.1.3 Tutorien
+### 3.1.3 Tutorien
 
-#### 4.1.3.1 An- bzw. Abmeldung
+#### 3.1.3.1 An- bzw. Abmeldung
 Studenten können sich über eine intuitive Benutzeroberfläche für Tutorien an- oder abmelden. In der Detailansicht einer Veranstaltung werden alle relevanten Informationen wie Zeit, Ort und verfügbare Plätze angezeigt. Dies ermöglicht eine einfache Verwaltung der Teilnahme.
 
 ![Event Nahansicht](pics/pepp-event-dialog.png)
 
-#### 4.1.3.2 Flexible Bearbeitung
+#### 3.1.3.2 Flexible Bearbeitung
 Organisatoren können Tutorien flexibel anpassen, beispielsweise Änderungen an Zeiten, Räumen oder Teilnehmerkapazitäten vornehmen. Die Bearbeitungsfunktion ist so gestaltet, dass Aktualisierungen ohne großen Aufwand umgesetzt werden können.
 
 ![Event bearbeiten](pics/pepp-event-dialog-edit.png)
 
-### 4.1.4 Registrierung zu Vorkursen
+### 3.1.4 Registrierung zu Vorkursen
 Die Registrierung ermöglicht es, kapazitätsbegrenzte Vorkurse für jene verfügbar zu machen, welche diesen am ehesten benötigen. Über ein Formular wird zunächst Wissen abgefragt. Je weniger man weiß, umso mehr Punkte bekommt man. Zur Anlegung eines Quizes stehen drei verschiedene Komponenten zur Verfügung:
 - Slider: Setzen des Sliders auf eine Zahl zwischen zwei Werten ("auf einer Skala von 1-10, wie viel Programmiererfahrung hast du?")
 - Multiple Choice
@@ -289,28 +279,13 @@ Später können dann beispielsweise die Top 80 zugelassen werden.
 
 ![Registrierung](pics/pepp-registration.png)
 
-### 4.1.5 ICS-Kalender
+### 3.1.5 ICS-Kalender
 Alle geplanten Veranstaltungen können in Form eines ICS-Kalenders exportiert werden. Dadurch können Studenten ihre persönlichen Zeitpläne in Kalenderanwendungen wie Outlook oder Google Kalender integrieren und behalten somit stets den Überblick über ihre Termine.
 
-### 4.1.6 E-Mail Kommunikation
+### 3.1.6 E-Mail Kommunikation
 Um Studenten und Tutoren stets informiert zu halten, versendet *pepp* Mails. Auf folgender Abbildung sieht man beispielsweise eine Benachrichtigung an einen Tutor, nachdem dieser einer Veranstaltung zugewiesen wurde.
 
-## 4.2 UX/UI
-
-## 4.3 Sicherheit
-
-### 4.3.1 Passwörter
-Die Software implementiert alle standartmäßigen Maßnahmen zur Verwendung sicherer Passwörter und der datenschutzkonformen Speicherung.
-
-- **Passwortanforderungen**: 8 Zeichen, 1 Großbuchstabe, 1 Nummer, 1 Sonderzeichen
-- **Speicherung**: Passwörter werden sowohl mit *Salt* als auch *Pepper* versehen und gehashed gespeichert. Der *Pepper* ist als Umgebungsvariable anzugeben
-
-### 4.3.2 Kommunikation
-Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegliche Kommunikation ist demnach via *mTLS* durch self-signed Zertifikate gesichert.
-
-# 5. Herausforderungen und Lösungen
-
-# 6. Deployment
+# 4. Deployment
 1. Umgebungsvariablen angeben in `.env.local`
     ```bash
     cp .env .env.local
@@ -328,11 +303,12 @@ Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegl
 4. Docker-Image bauen: `docker compose build`
 5. Starten: `docker compose up -d && docker compose logs -f`
 
-# 7. Weiterentwicklung und Ausblick
+# 5. Weiterentwicklung und Ausblick
 - Overbooking
 - Mailman 3
+- Drittanbiederauthentifizierungsservices
 
-# 8. Fazit
+# 6. Fazit
 Die vorgestellte Softwarelösung *pepp* adressiert effektiv die organisatorischen Herausforderungen der Verwaltung von Vorkursen für Erstsemester. Durch eine Kombination aus intuitiver Benutzeroberfläche, modularer Architektur und Funktionen wie Veranstaltungsplanung, Raumverwaltung, Tutorienmanagement und Anmeldesystem bietet die Anwendung eine umfassende Plattform zur Optimierung wiederkehrender Prozesse.  
 
 Besonders hervorzuheben sind die Sicherheitsmaßnahmen wie mTLS-basierte Kommunikation und sichere Passwortspeicherung sowie die Integration moderner Technologien wie GraphQL und Next.js, die eine hohe Flexibilität und Skalierbarkeit garantieren. Funktionen wie der ICS-Kalenderexport und automatisierte E-Mail-Benachrichtigungen fördern zusätzlich die Nutzerfreundlichkeit und steigern die Effizienz im Umgang mit Veranstaltungen.  
