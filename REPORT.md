@@ -71,7 +71,7 @@ Ein zentrales Feature der Software ist die Verwaltung der Anmeldungen. Hierbei w
 # 2. Architektur
 
 ## 2.1 Überblick
-![Architekturdiagram](diagrams/pepp-architecture-overview.png)
+![Architekturdiagram](pics/pepp-architecture-overview.png)
 
 Die Architektur ist so gestaltet, dass das Backend die zentrale Rolle einnimmt und alle Anfragen verarbeitet. Durch das direkte Reverse Proxying von `/*`-Anfragen an das Frontend wird der Bedarf an einer dedizierten Proxy-Komponente wie [*NGINX*](https://nginx.org/en/) umgangen. Somit wird die Komplexität reduziert und Ressourcenbedarf minimiert. Das Backend sendet sog. [*Tracing-Daten*](https://opentelemetry.io/docs/concepts/signals/traces/) an einen internen Collector. Dabei handelt es sich um mit Zeitstempel versehene Logs, welche die Ausführungszeit einzelner Aktionen dokumentiert. Der Collector sammelt diese und schickt sie an einen externen Monitoring-Service wie [*Grafana*](https://grafana.com/) zur Visualisierung.
 
@@ -235,15 +235,17 @@ Für die Implementierung des *API-Endpunktes* wird [`gqlgen`](https://gqlgen.com
     ```
 
 #### 2.2.2.3 Datenbankanbindung
-Zur Anbindung der Datenbank wird das *ORM* [`bun`](https://bun.uptrace.dev/) verwendet. Die Initialisierung findet im Modul `server/db/` statt. Neben der Anbindung werden hier auch Testdaten inseriert.
+Zur Anbindung der Datenbank kommt das Object-Relational Mapping (ORM) [`bun`](https://bun.uptrace.dev/) zum Einsatz, ein leistungsstarkes Tool, das die Interaktion mit PostgreSQL stark vereinfacht. Die Initialisierung der Datenbankverbindung sowie grundlegende Konfigurationsarbeiten werden im Modul `server/db/` durchgeführt. Dieses Modul beinhaltet nicht nur den Aufbau der Verbindung, sondern auch die Migration des Datenbankschemas und das Einfügen von Testdaten. Solche Testdaten dienen der lokalen Entwicklungs- und Testumgebung und ermöglichen es, neue Funktionen effizient zu evaluieren.
 
-Bei der Weiterentwicklung sollte sich vom Schema her an bereits implementierte *Queries* und *Mutations* in `server/graph/schema.resolvers.go` gehalten werden, um Flexibilität und Lesbarkeit zu gewährleisten. Genannte Datei sollte darüber hinaus präferiert für Datenbankanfragen verwendet werden. Größere Hilfsfunktionen gilt es daher möglichst in eigene Module auszulagern (siehe bspw. `server/password/`).
+Für die Weiterentwicklung der Software empfiehlt es sich, am bestehenden Schema in der Datei `server/graph/schema.resolvers.go` zu orientieren. Diese Datei enthält bereits implementierte Queries und Mutations, die als Vorlagen dienen können, um neue Funktionalitäten konsistent und wartbar hinzuzufügen. Es ist dabei ratsam, Datenbankanfragen primär in dieser zentralen Datei zu definieren, um eine übersichtliche und einheitliche Codebasis zu gewährleisten.
+
+Sollten komplexere oder wiederverwendbare Funktionen benötigt werden, wie beispielsweise Passwort-Hashing oder datenbankunabhängige Logiken, sollten diese in eigene Module ausgelagert werden. Ein Beispiel hierfür ist das Modul `server/password/`, das alle notwendigen Funktionen für die sichere Verarbeitung und Verwaltung von Passwörtern bereitstellt. Eine ähnliche Struktur kann auch für andere funktionale Bereiche übernommen werden, um die Übersichtlichkeit und Wiederverwendbarkeit zu fördern.
 
 ### 2.2.3 Datenbank: [PostgreSQL](https://www.postgresql.org/)
 PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksystem mit Unterstützung für erweiterte Funktionen wie JSON-Speicherung und Volltextsuche, was Flexibilität bei der Datenmodellierung ermöglicht.
 
 #### 2.2.3.1 ER-Diagram
-![Datenbankmodell](diagrams/pepp-er.jpg)
+![Datenbankmodell](pics/pepp-er.jpg)
 
 # 3. Entwicklungsprozess
 
@@ -254,13 +256,44 @@ PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksyst
 ### 4.1.1 Stundenplan
 Der Stundenplan ist das zentrale Element dieser Software. Es handelt sich um die Landingpage und ist die Schnittstelle zwischen Organisatoren und Studenten.
 
-### 4.1.2 Verwaltung einzelner Veranstaltungen
+![Stundenplan](pics/pepp-planner.png)
 
-### 4.1.3 An-/Abmeldung von Tutorien
+Auf folgender Abbildung ist die Ansicht eines Admin-Nutzers, eingetragen zur Veranstaltung *'Algorithmen und Datenstrukturen'* zu sehen. Über ein zusätzliches Panel (parallel zur Vorkurswahl), kann hier der gesamte Vorkurs bearbeitet werden. 
 
-### 4.1.4 Registration mit automatisiertem Anmeldeformular zu Vorkursen
+![Stundenplan](pics/pepp-planner-admin.png)
 
-### 4.1.2 ICS-Kalender
+### 4.1.2 Veranstaltungssuche
+Die Veranstaltungssuche erleichtert das Auffinden spezifischer Veranstaltungen anhand verschiedener Filterkriterien wie Titel, Dozent oder Datum. Die Suchfunktion implementiert *Fuzzy finding*, d.h. Abkürzungen wie *'alda'* führen zum Suchergebnis *'Algorithmen und Datenstrukturen'*. Diese Funktion ist besonders nützlich für Organisatoren, die gezielt nach Veranstaltungen suchen, und für Studenten, die sich über einzelne Veranstaltungen informieren möchten.
+
+![Veranstaltungssuche](pics/pepp-search.png)
+
+### 4.1.3 Tutorien
+
+#### 4.1.3.1 An- bzw. Abmeldung
+Studenten können sich über eine intuitive Benutzeroberfläche für Tutorien an- oder abmelden. In der Detailansicht einer Veranstaltung werden alle relevanten Informationen wie Zeit, Ort und verfügbare Plätze angezeigt. Dies ermöglicht eine einfache Verwaltung der Teilnahme.
+
+![Event Nahansicht](pics/pepp-event-dialog.png)
+
+#### 4.1.3.2 Flexible Bearbeitung
+Organisatoren können Tutorien flexibel anpassen, beispielsweise Änderungen an Zeiten, Räumen oder Teilnehmerkapazitäten vornehmen. Die Bearbeitungsfunktion ist so gestaltet, dass Aktualisierungen ohne großen Aufwand umgesetzt werden können.
+
+![Event bearbeiten](pics/pepp-event-dialog-edit.png)
+
+### 4.1.4 Registrierung zu Vorkursen
+Die Registrierung ermöglicht es, kapazitätsbegrenzte Vorkurse für jene verfügbar zu machen, welche diesen am ehesten benötigen. Über ein Formular wird zunächst Wissen abgefragt. Je weniger man weiß, umso mehr Punkte bekommt man. Zur Anlegung eines Quizes stehen drei verschiedene Komponenten zur Verfügung:
+- Slider: Setzen des Sliders auf eine Zahl zwischen zwei Werten ("auf einer Skala von 1-10, wie viel Programmiererfahrung hast du?")
+- Multiple Choice
+- Single Choice
+
+Später können dann beispielsweise die Top 80 zugelassen werden.
+
+![Registrierung](pics/pepp-registration.png)
+
+### 4.1.5 ICS-Kalender
+Alle geplanten Veranstaltungen können in Form eines ICS-Kalenders exportiert werden. Dadurch können Studenten ihre persönlichen Zeitpläne in Kalenderanwendungen wie Outlook oder Google Kalender integrieren und behalten somit stets den Überblick über ihre Termine.
+
+### 4.1.6 E-Mail Kommunikation
+Um Studenten und Tutoren stets informiert zu halten, versendet *pepp* Mails. Auf folgender Abbildung sieht man beispielsweise eine Benachrichtigung an einen Tutor, nachdem dieser einer Veranstaltung zugewiesen wurde.
 
 ## 4.2 UX/UI
 
@@ -274,9 +307,6 @@ Die Software implementiert alle standartmäßigen Maßnahmen zur Verwendung sich
 
 ### 4.3.2 Kommunikation
 Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegliche Kommunikation ist demnach via *mTLS* durch self-signed Zertifikate gesichert.
-
-### 4.3.3 Session Management
-
 
 # 5. Herausforderungen und Lösungen
 
@@ -299,6 +329,12 @@ Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegl
 5. Starten: `docker compose up -d && docker compose logs -f`
 
 # 7. Weiterentwicklung und Ausblick
-- Wartelistenmanagement: Automatische Verwaltung von Wartelisten für überbuchte Tutorien und Benachrichtigung von Studenten, wenn Plätze frei werden.
+- Overbooking
+- Mailman 3
 
 # 8. Fazit
+Die vorgestellte Softwarelösung *pepp* adressiert effektiv die organisatorischen Herausforderungen der Verwaltung von Vorkursen für Erstsemester. Durch eine Kombination aus intuitiver Benutzeroberfläche, modularer Architektur und Funktionen wie Veranstaltungsplanung, Raumverwaltung, Tutorienmanagement und Anmeldesystem bietet die Anwendung eine umfassende Plattform zur Optimierung wiederkehrender Prozesse.  
+
+Besonders hervorzuheben sind die Sicherheitsmaßnahmen wie mTLS-basierte Kommunikation und sichere Passwortspeicherung sowie die Integration moderner Technologien wie GraphQL und Next.js, die eine hohe Flexibilität und Skalierbarkeit garantieren. Funktionen wie der ICS-Kalenderexport und automatisierte E-Mail-Benachrichtigungen fördern zusätzlich die Nutzerfreundlichkeit und steigern die Effizienz im Umgang mit Veranstaltungen.  
+
+Dennoch gibt es Potenzial zur Weiterentwicklung. Funktionen wie ein erweitertes Overbooking-Management oder zusätzliche Anbindungen an weitere Authentifizierungsservices könnten den Funktionsumfang erweitern und die Anwendung noch attraktiver machen. Insgesamt stellt *pepp* eine solide Basis für die langfristige Qualitätssicherung und Verbesserung der Vorkursverwaltung dar, mit der Perspektive, in Zukunft auch weitere universitäre Organisationsprozesse zu unterstützen.
