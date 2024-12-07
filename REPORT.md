@@ -9,7 +9,7 @@
 
 Die Software zur Verwaltung des Vorkurses für Erstsemester soll eine effiziente und übersichtliche Lösung für die organisatorischen Herausforderungen bieten, die jedes Jahr bei der Planung und Durchführung dieser Kurse auftreten. Sie soll die zentrale Verwaltung aller benötigten Ressourcen und Prozesse unterstützen.
 
-Die Arbeit an *pepp* ist enstanden, da sich die Verwaltung jährlicher Vorkurse mit insgesamt rund 400 Teilnehmern als mühsamer, aber automatisierbarer Prozess herausgestellt hat. Der Fokus liegt also insbesondere darauf, wiederkehrende Veranstaltungen unkompliziert zu reproduzieren, um den organisatorischen Aufwand zu minimieren. Im besten Fall trägt das mindestens zur Qualitätssicherung bei; im Optimalfall, dass mehr Wert auf die inhaltliche Planung gesetzt werden kann.
+Die Arbeit an *pepp* ist enstanden, da sich die Verwaltung jährlicher Vorkurse mit insgesamt rund 400 Teilnehmern als mühsamer, aber automatisierbarer Prozess herausgestellt hat. Der Fokus liegt also insbesondere darauf, wiederkehrende Veranstaltungen unkompliziert zu reproduzieren, um den organisatorischen Aufwand zu minimieren. Dies sollte mindestens zur Qualitätssicherung beitragen — im Optimalfall führt es dazu, dass mehr Wert auf die inhaltliche Planung gesetzt werden kann.
 
 Im Folgenden werden die Anforderungen an die Software detailliert beschrieben.
 
@@ -218,6 +218,7 @@ Für die Implementierung des *API-Endpunktes* wird [`gqlgen`](https://gqlgen.com
 
     // ...
     ```
+4. Jetzt kann vom Frontend eine entsprechende Query gestartet werden (s. 2.2.1.2)
 
 #### 2.2.2.3 Datenbankanbindung
 Zur Anbindung der Datenbank kommt das Object-Relational Mapping (ORM) [`bun`](https://bun.uptrace.dev/) zum Einsatz, ein leistungsstarkes Tool, das die Interaktion mit PostgreSQL stark vereinfacht. Die Initialisierung der Datenbankverbindung sowie grundlegende Konfigurationsarbeiten werden im Modul `server/db/` durchgeführt. Dieses Modul beinhaltet nicht nur den Aufbau der Verbindung, sondern auch die Migration des Datenbankschemas und das Einfügen von Testdaten. Solche Testdaten dienen der lokalen Entwicklungs- und Testumgebung und ermöglichen es, neue Funktionen effizient zu evaluieren.
@@ -237,6 +238,11 @@ Das Backend implementiert alle standartmäßigen Methoden zur datenschutzkonform
 PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksystem mit Unterstützung für erweiterte Funktionen wie JSON-Speicherung und Volltextsuche, was Flexibilität bei der Datenmodellierung ermöglicht.
 
 #### 2.2.3.1 ER-Diagram
+Die wichtigsten Eigenschften dargestellter Entitäten werden hier erläutert:
+- `events`: Die Software unterscheidet zwischen zwei Arten von Events. Zunächst jene im folgenden als *Umbrella-Event* bezeichnet, und Events, welche zu einem *Umbrella-Event* gehören. Einfacher ausgedrückt sprechen wir hier von Veranstaltungen, welche zu einem Vorkurs gehören.
+    - Ein Tutorium ist *kein* `Event`. Es handelt sich um eine ternäre Beziehung aus Tutor, Raum und Event.
+- `rooms`: Räume existieren nur mit refereziertem `Building`. Der Primärschlüssel setzt sich daher zusammen aus Raum-`number` und `building_id`.
+- ``
 ![Datenbankmodell](pics/pepp-er.jpg)
 
 # 3. Funktionen und Features
@@ -246,9 +252,15 @@ PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksyst
 ### 3.1.1 Stundenplan
 Der Stundenplan ist das zentrale Element dieser Software. Es handelt sich um die Landingpage und ist die Schnittstelle zwischen Organisatoren und Studenten.
 
+Folgende Abbildung beinhaltet (v.o.): 
+- den Header (v.l.) mit dem Logo, einer Veranstaltungssuche, Auswahl der Seitendarstellung (Hell, Dunkel) und dem Nutzerlogin.
+- die Vorkurswahl in form eines Dropdownmenüs.
+- Filterkriterien sowie ein dynamisch ändernder Link aufgrund des eingestellten Vorkurses und Suchkriterien. Dieser kann kopiert und bspw. in den Outlook-Kalender eingefügt werden, um Veranstaltungen dort verfügbar zu haben.
+- den Stundenplan mit Veranstaltungen gruppiert nach Woche (horizontal) und Tag (vertikal).
+
 ![Stundenplan](pics/pepp-planner.png)
 
-Auf folgender Abbildung ist die Ansicht eines Admin-Nutzers, eingetragen zur Veranstaltung *'Algorithmen und Datenstrukturen'* zu sehen. Über ein zusätzliches Panel (parallel zur Vorkurswahl), kann hier der gesamte Vorkurs bearbeitet werden. 
+Auf folgender Abbildung ist die Ansicht eines Admin-Nutzers, eingetragen in einem Tutoriam der Veranstaltung *'Algorithmen und Datenstrukturen'* zu sehen. Unabhängig davon kann über ein zusätzliches Panel (parallel zur Vorkurswahl), der gesamte Vorkurs bearbeitet werden.
 
 ![Stundenplan](pics/pepp-planner-admin.png)
 
@@ -305,7 +317,7 @@ Um Studenten und Tutoren stets informiert zu halten, versendet *pepp* Mails. Auf
 
 # 5. Weiterentwicklung und Ausblick
 - Overbooking
-- Mailman 3
+- Mailman 3 API
 - Drittanbiederauthentifizierungsservices
 
 # 6. Fazit
