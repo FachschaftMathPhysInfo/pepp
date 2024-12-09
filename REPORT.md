@@ -298,6 +298,8 @@ Alle geplanten Veranstaltungen können in Form eines ICS-Kalenders exportiert we
 ## 3.6 E-Mail Kommunikation
 Um alle Beteiligten stets informiert zu halten, versendet *pepp* Mails. Auf folgender Abbildung sieht man beispielsweise eine Benachrichtigung an einen Tutor, nachdem dieser einer Veranstaltung zugewiesen wurde.
 
+![Tutorium Zuweisung](pics/pepp-assignment-mail.png)
+
 # 4. Deployment
 1. Umgebungsvariablen angeben in `.env.local`
     ```bash
