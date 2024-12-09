@@ -1,6 +1,9 @@
+# Bericht zur Vorkursorganistationssoftware *pepp*
+> Daniel Heidemann, Universität Heidelberg
+
 1. Einleitung
 2. Architektur
-3. Funktionen und Features
+3. Hauptfunktionen
 4. Deployment
 5. Weiterentwicklung und Ausblick
 6. Fazit
@@ -9,7 +12,7 @@
 
 Die Software zur Verwaltung des Vorkurses für Erstsemester soll eine effiziente und übersichtliche Lösung für die organisatorischen Herausforderungen bieten, die jedes Jahr bei der Planung und Durchführung dieser Kurse auftreten. Sie soll die zentrale Verwaltung aller benötigten Ressourcen und Prozesse unterstützen.
 
-Die Arbeit an *pepp* ist enstanden, da sich die Verwaltung jährlicher Vorkurse mit insgesamt rund 400 Teilnehmern als mühsamer, aber automatisierbarer Prozess herausgestellt hat. Der Fokus liegt also insbesondere darauf, wiederkehrende Veranstaltungen unkompliziert zu reproduzieren, um den organisatorischen Aufwand zu minimieren. Dies sollte mindestens zur Qualitätssicherung beitragen — im Optimalfall führt es dazu, dass mehr Wert auf die inhaltliche Planung gesetzt werden kann.
+Die Arbeit an *pepp* ist enstanden, da sich die Verwaltung jährlicher Vorkurse mit insgesamt rund 400 Erstsemestern als mühsamer, aber automatisierbarer Prozess herausgestellt hat. Der Fokus liegt also insbesondere darauf, wiederkehrende Veranstaltungen unkompliziert zu reproduzieren und verwalten, um den organisatorischen Aufwand zu minimieren. Dies sollte mindestens zur Qualitätssicherung beitragen — im Optimalfall führt es dazu, dass mehr Wert auf die inhaltliche Planung gesetzt werden kann.
 
 Im Folgenden werden die Anforderungen an die Software detailliert beschrieben.
 
@@ -27,7 +30,7 @@ Die Software muss es den Organisatoren ermöglichen, den Vorkurs in verschiedene
 
 Für eine reibungslose Durchführung des Vorkurses ist eine zentrale Raumverwaltung notwendig. Die Software muss dabei folgende Anforderungen erfüllen:
 
-- **Markieren** reservierter Räume: Zuweisung von Räumen zu einzelnen Veranstaltungen unter Berücksichtigung der Raumkapazität
+- **Markieren** reservierter Räume: Zuweisung von Räumen zu einzelnen Veranstaltungen unter Berücksichtigung der Raumkapazität.
 - **Konfliktprüfung**: Die Software soll sicherstellen, dass keine Doppelbuchungen für Räume entstehen und dass die Raumkapazitäten den Teilnehmerzahlen entsprechen.
 
 ### 1.1.3 Verwaltung von Tutoren und Dozenten
@@ -38,12 +41,12 @@ Die Software sollte ein umfassendes Management für Tutoren und Dozenten bieten,
 - **Zuweisung** zu Veranstaltungen: Die Software muss die Möglichkeit bieten, Tutoren und Dozenten bestimmten Veranstaltungen (z. B. Tutorien oder Vorlesungen) zuzuweisen und ihnen Benachrichtigungen zukommen zu lassen.
 - Verwaltung der **Rollen und Rechte**: Abgrenzung der Rechte zwischen Tutoren, Dozenten und Administratoren, sodass beispielsweise nur die zuständigen Personen Änderungen an den Veranstaltungsdetails vornehmen können.
 
-### 1.1.4 Anmeldesystem für Studenten
+### 1.1.4 Anmeldesystem
 
 Ein zentrales Feature der Software ist die Verwaltung der Anmeldungen. Hierbei wird unterschieden zwischen der Anmeldung für den gesamten Vorkurs und der Auswahl spezifischer Tutorien.
 
-- **Unabhängige** Anmeldung: Häufig werden zur Verwendung universäter Dienste interne Anmeldedaten benötigt, welche einigen Studenten noch nicht zur Verfügung stehen. Ein unabhängiges Registrierungsverfahren soll hier Abhilfe schaffen.
-- Anmeldung **für den Vorkurs**: Die Software soll es ermöglichen eine zentrale Anmeldemöglichkeit für kapazitätsbegrenzte Vorkurse anzubieten. Dabei sollen durch einen Fragebogen bevorzugt Studenten mit weniger Vorerfahrung zugelassen werden.
+- **Unabhängige** Anmeldung: Häufig werden zur Verwendung universitärer Dienste interne Anmeldedaten benötigt, welche einigen Studenten noch nicht zur Verfügung stehen. Ein unabhängiges Registrierungsverfahren soll hier Abhilfe schaffen.
+- Anmeldung **für den Vorkurs**: Die Software soll es ermöglichen, eine zentrale Anmeldemöglichkeit für kapazitätsbegrenzte Vorkurse anzubieten. Dabei sollen durch einen Fragebogen bevorzugt Studenten mit weniger Vorerfahrung zugelassen werden.
 - Anmeldung **zu Tutorien**: Flexible Eintragung anhand der Verfügbarkeit von Plätzen.
 - **Bestätigungs- und Erinnerungsmails**: Die Software sollte automatisierte Bestätigungs- und Erinnerungsemails für Anmeldungen versenden, um die Teilnehmer regelmäßig zu informieren.
 
@@ -58,7 +61,7 @@ Ein zentrales Feature der Software ist die Verwaltung der Anmeldungen. Hierbei w
 ## 2.1 Überblick
 ![Architekturdiagram](pics/pepp-architecture-overview.png)
 
-Die Architektur ist so gestaltet, dass das Backend die zentrale Rolle einnimmt und alle Anfragen verarbeitet. Durch das direkte Reverse Proxying von `/*`-Anfragen an das Frontend wird der Bedarf an einer dedizierten Proxy-Komponente wie [*NGINX*](https://nginx.org/en/) umgangen. Somit wird die Komplexität reduziert und Ressourcenbedarf minimiert. Das Backend sendet sog. [*Tracing-Daten*](https://opentelemetry.io/docs/concepts/signals/traces/) an einen internen Collector. Dabei handelt es sich um mit Zeitstempel versehene Logs, welche die Ausführungszeit einzelner Aktionen dokumentiert. Der Collector sammelt diese und schickt sie an einen externen Monitoring-Service wie [*Grafana*](https://grafana.com/) zur Visualisierung.
+Die Architektur ist so gestaltet, dass das Backend die zentrale Rolle einnimmt und alle Anfragen verarbeitet. Durch das direkte Reverse Proxying von `/*`-Anfragen an das Frontend wird der Bedarf an einer dedizierten Proxy-Komponente wie [*NGINX*](https://nginx.org/en/) umgangen. Somit wird die Komplexität reduziert und der Ressourcenbedarf minimiert. Das Backend sendet sog. [*Tracing-Daten*](https://opentelemetry.io/docs/concepts/signals/traces/) an einen internen Collector. Dabei handelt es sich um mit Zeitstempel versehene Logs, welche die Ausführungszeit einzelner Aktionen dokumentiert. Der Collector sammelt diese und schickt sie an einen externen Monitoring-Service wie [*Grafana*](https://grafana.com/) zur Visualisierung.
 
 ## 2.2 Technologien und Tools
 
@@ -96,7 +99,7 @@ frontend
 ```
 
 #### 2.2.1.2 Backend-Kommunikation
-Die Kommunikation zum API-Endpunkt erfolgt über eine Kombination der Bibliotheken [`graphql-request`](https://www.npmjs.com/package/graphql-request) und [`graphql-codegen`](https://the-guild.dev/graphql/codegen/docs/getting-started). Erstere übernimmt dabei die Kommunikation an sich, das Setup der `client`-Komponente findet sich in `frontend/lib/graphql.ts`. `graphql-codegen` generiert zum Einen aus dem GraphQL-Schema in `server/graph/schema.graphqls` alle für die Frontend-Entwicklung relevanten Typen wie `Event` oder `Room`. Und zum Anderen alle *Queries* und *Mutations* definiert in `frontend/lib/gql/queries`, bzw. `.../mutations`.
+Die Kommunikation zum API-Endpunkt erfolgt über eine Kombination der Bibliotheken [`graphql-request`](https://www.npmjs.com/package/graphql-request) und [`graphql-codegen`](https://the-guild.dev/graphql/codegen/docs/getting-started). Erstere simplifiziert dabei die Kommunikation mit dem Backend, wobei letztere das Schreiben der Anfragen und Verarbeiten der Responses erleichtert. `graphql-codegen` generiert zum Einen aus dem GraphQL-Schema in `server/graph/schema.graphqls` alle für die Frontend-Entwicklung relevanten Typen wie `Event` oder `Room`. Und zum Anderen alle *Queries* und *Mutations* definiert in `frontend/lib/gql/queries`, bzw. `.../mutations`.
 
 Das Erstellen einer *Query* wird nun beispielhaft gezeigt:
 1. Definition
@@ -223,13 +226,13 @@ Für die Implementierung des *API-Endpunktes* wird [`gqlgen`](https://gqlgen.com
 #### 2.2.2.3 Datenbankanbindung
 Zur Anbindung der Datenbank kommt das Object-Relational Mapping (ORM) [`bun`](https://bun.uptrace.dev/) zum Einsatz, ein leistungsstarkes Tool, das die Interaktion mit PostgreSQL stark vereinfacht. Die Initialisierung der Datenbankverbindung sowie grundlegende Konfigurationsarbeiten werden im Modul `server/db/` durchgeführt. Dieses Modul beinhaltet nicht nur den Aufbau der Verbindung, sondern auch die Migration des Datenbankschemas und das Einfügen von Testdaten. Solche Testdaten dienen der lokalen Entwicklungs- und Testumgebung und ermöglichen es, neue Funktionen effizient zu evaluieren.
 
-Für die Weiterentwicklung der Software empfiehlt es sich, am bestehenden Schema in der Datei `server/graph/schema.resolvers.go` zu orientieren. Diese Datei enthält bereits implementierte Queries und Mutations, die als Vorlagen dienen können, um neue Funktionalitäten konsistent und wartbar hinzuzufügen. Es ist dabei ratsam, Datenbankanfragen primär in dieser zentralen Datei zu definieren, um eine übersichtliche und einheitliche Codebasis zu gewährleisten.
+Für die Weiterentwicklung der Software empfiehlt es sich, sich am bestehenden Schema in der Datei `server/graph/schema.resolvers.go` zu orientieren. Diese Datei enthält bereits implementierte Queries und Mutations, die als Vorlagen dienen können, um neue Funktionalitäten konsistent und wartbar hinzuzufügen. Es ist dabei ratsam, Datenbankanfragen primär in dieser zentralen Datei zu definieren, um eine übersichtliche und einheitliche Codebasis zu gewährleisten.
 
 Sollten komplexere oder wiederverwendbare Funktionen benötigt werden, wie beispielsweise Passwort-Hashing oder datenbankunabhängige Logiken, sollten diese in eigene Module ausgelagert werden. Ein Beispiel hierfür ist das Modul `server/password/`, das alle notwendigen Funktionen für die sichere Verarbeitung und Verwaltung von Passwörtern bereitstellt. Eine ähnliche Struktur kann auch für andere funktionale Bereiche übernommen werden, um die Übersichtlichkeit und Wiederverwendbarkeit zu fördern.
 
 #### 2.2.2.4 Sicherheit
 
-Das Backend implementiert alle standartmäßigen Methoden zur datenschutzkonformen und sicheren Speicherung von Passwörtern sowie Nutzerdaten.
+Das Backend implementiert alle standardmäßigen Methoden zur datenschutzkonformen und sicheren Speicherung von Passwörtern sowie Nutzerdaten.
 
 - **Speicherung**: Passwörter werden sowohl mit *Salt* als auch *Pepper* versehen und gehashed gespeichert. Der *Pepper* ist als Umgebungsvariable anzugeben
 - **Kommunikation**: Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegliche Kommunikation ist demnach via *mTLS* durch self-signed Zertifikate gesichert.
@@ -238,51 +241,49 @@ Das Backend implementiert alle standartmäßigen Methoden zur datenschutzkonform
 PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksystem mit Unterstützung für erweiterte Funktionen wie JSON-Speicherung und Volltextsuche, was Flexibilität bei der Datenmodellierung ermöglicht.
 
 #### 2.2.3.1 ER-Diagram
-Die wichtigsten Eigenschften dargestellter Entitäten werden hier erläutert:
-- `events`: Die Software unterscheidet zwischen zwei Arten von Events. Zunächst jene im folgenden als *Umbrella-Event* bezeichnet, und Events, welche zu einem *Umbrella-Event* gehören. Einfacher ausgedrückt sprechen wir hier von Veranstaltungen, welche zu einem Vorkurs gehören.
+Die wichtigsten Eigenschaften dargestellter Entitäten werden hier erläutert:
+- `events`: Die Software unterscheidet zwischen zwei Arten von Events. Zunächst jene im folgenden als *Umbrella-Event* bezeichnet, und Events, welche zu einem *Umbrella-Event* gehören. Einfacher ausgedrückt, sprechen wir hier von Veranstaltungen, welche zu einem Vorkurs gehören.
     - Ein Tutorium ist *kein* `Event`. Es handelt sich um eine ternäre Beziehung aus Tutor, Raum und Event.
 - `rooms`: Räume existieren nur mit refereziertem `Building`. Der Primärschlüssel setzt sich daher zusammen aus Raum-`number` und `building_id`.
-- ``
+
 ![Datenbankmodell](pics/pepp-er.jpg)
 
-# 3. Funktionen und Features
+# 3 Hauptfunktionen
 
-## 3.1 Hauptfunktionen
-
-### 3.1.1 Stundenplan
+## 3.1 Stundenplan
 Der Stundenplan ist das zentrale Element dieser Software. Es handelt sich um die Landingpage und ist die Schnittstelle zwischen Organisatoren und Studenten.
 
 Folgende Abbildung beinhaltet (v.o.): 
 - den Header (v.l.) mit dem Logo, einer Veranstaltungssuche, Auswahl der Seitendarstellung (Hell, Dunkel) und dem Nutzerlogin.
-- die Vorkurswahl in form eines Dropdownmenüs.
-- Filterkriterien sowie ein dynamisch ändernder Link aufgrund des eingestellten Vorkurses und Suchkriterien. Dieser kann kopiert und bspw. in den Outlook-Kalender eingefügt werden, um Veranstaltungen dort verfügbar zu haben.
+- die Vorkurswahl in Form eines Dropdownmenüs.
+- Filterkriterien sowie ein sich dynamisch verändernder Link aufgrund des eingestellten Vorkurses und der Filter. Dieser kann kopiert und bspw. in den Outlook-Kalender eingefügt werden, um Veranstaltungen dort verfügbar zu haben.
 - den Stundenplan mit Veranstaltungen gruppiert nach Woche (horizontal) und Tag (vertikal).
 
 ![Stundenplan](pics/pepp-planner.png)
 
-Auf folgender Abbildung ist die Ansicht eines Admin-Nutzers, eingetragen in einem Tutoriam der Veranstaltung *'Algorithmen und Datenstrukturen'* zu sehen. Unabhängig davon kann über ein zusätzliches Panel (parallel zur Vorkurswahl), der gesamte Vorkurs bearbeitet werden.
+Auf folgender Abbildung ist die Ansicht eines Admin-Nutzers, eingetragen in einem Tutorium der Veranstaltung *'Algorithmen und Datenstrukturen'* zu sehen. Unabhängig davon kann über ein zusätzliches Panel (parallel zur Vorkurswahl), der gesamte Vorkurs bearbeitet werden.
 
 ![Stundenplan](pics/pepp-planner-admin.png)
 
-### 3.1.2 Veranstaltungssuche
+## 3.2 Veranstaltungssuche
 Die Veranstaltungssuche erleichtert das Auffinden spezifischer Veranstaltungen anhand verschiedener Filterkriterien wie Titel, Dozent oder Datum. Die Suchfunktion implementiert *Fuzzy finding*, d.h. Abkürzungen wie *'alda'* führen zum Suchergebnis *'Algorithmen und Datenstrukturen'*. Diese Funktion ist besonders nützlich für Organisatoren, die gezielt nach Veranstaltungen suchen, und für Studenten, die sich über einzelne Veranstaltungen informieren möchten.
 
 ![Veranstaltungssuche](pics/pepp-search.png)
 
-### 3.1.3 Tutorien
+## 3.3 Tutorien
 
-#### 3.1.3.1 An- bzw. Abmeldung
+### 3.3.1 An- bzw. Abmeldung
 Studenten können sich über eine intuitive Benutzeroberfläche für Tutorien an- oder abmelden. In der Detailansicht einer Veranstaltung werden alle relevanten Informationen wie Zeit, Ort und verfügbare Plätze angezeigt. Dies ermöglicht eine einfache Verwaltung der Teilnahme.
 
 ![Event Nahansicht](pics/pepp-event-dialog.png)
 
-#### 3.1.3.2 Flexible Bearbeitung
+### 3.3.2 Flexible Bearbeitung
 Organisatoren können Tutorien flexibel anpassen, beispielsweise Änderungen an Zeiten, Räumen oder Teilnehmerkapazitäten vornehmen. Die Bearbeitungsfunktion ist so gestaltet, dass Aktualisierungen ohne großen Aufwand umgesetzt werden können.
 
 ![Event bearbeiten](pics/pepp-event-dialog-edit.png)
 
-### 3.1.4 Registrierung zu Vorkursen
-Die Registrierung ermöglicht es, kapazitätsbegrenzte Vorkurse für jene verfügbar zu machen, welche diesen am ehesten benötigen. Über ein Formular wird zunächst Wissen abgefragt. Je weniger man weiß, umso mehr Punkte bekommt man. Zur Anlegung eines Quizes stehen drei verschiedene Komponenten zur Verfügung:
+## 3.4 Registrierung zu Vorkursen
+Die Registrierung ermöglicht es, kapazitätsbegrenzte Vorkurse für jene verfügbar zu machen, welche diese am ehesten benötigen. Über ein Formular wird zunächst Wissen abgefragt. Je weniger man weiß, umso mehr Punkte bekommt man. Zur Anlegung eines Quizes stehen drei verschiedene Komponenten zur Verfügung:
 - Slider: Setzen des Sliders auf eine Zahl zwischen zwei Werten ("auf einer Skala von 1-10, wie viel Programmiererfahrung hast du?")
 - Multiple Choice
 - Single Choice
@@ -291,11 +292,11 @@ Später können dann beispielsweise die Top 80 zugelassen werden.
 
 ![Registrierung](pics/pepp-registration.png)
 
-### 3.1.5 ICS-Kalender
+## 3.5 ICS-Kalender
 Alle geplanten Veranstaltungen können in Form eines ICS-Kalenders exportiert werden. Dadurch können Studenten ihre persönlichen Zeitpläne in Kalenderanwendungen wie Outlook oder Google Kalender integrieren und behalten somit stets den Überblick über ihre Termine.
 
-### 3.1.6 E-Mail Kommunikation
-Um Studenten und Tutoren stets informiert zu halten, versendet *pepp* Mails. Auf folgender Abbildung sieht man beispielsweise eine Benachrichtigung an einen Tutor, nachdem dieser einer Veranstaltung zugewiesen wurde.
+## 3.6 E-Mail Kommunikation
+Um alle Beteiligten stets informiert zu halten, versendet *pepp* Mails. Auf folgender Abbildung sieht man beispielsweise eine Benachrichtigung an einen Tutor, nachdem dieser einer Veranstaltung zugewiesen wurde.
 
 # 4. Deployment
 1. Umgebungsvariablen angeben in `.env.local`
