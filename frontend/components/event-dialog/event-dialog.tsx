@@ -268,7 +268,7 @@ export default function EventDialog() {
                   <div className="flex flex-row space-x-2">
                     <Checkbox checked={event?.needsTutors} />
                     <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Benötigt noch Tutor/innen
+                      Benötigt noch Tutoren
                     </label>
                   </div>
                 )}

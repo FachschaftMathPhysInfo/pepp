@@ -17,6 +17,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/FachschaftMathPhysInfo/pepp/server/password"
 	hermes "github.com/matcornic/hermes/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
 
@@ -503,6 +504,7 @@ func (r *mutationResolver) AddEventAssignmentForTutor(ctx context.Context, assig
 		Relation("Event").
 		Relation("Room").
 		Relation("Building").
+		Relation("User").
 		WherePK().
 		Scan(ctx); err != nil {
 		return nil, err
@@ -512,6 +514,8 @@ func (r *mutationResolver) AddEventAssignmentForTutor(ctx context.Context, assig
 
 	m.Subject = fmt.Sprintf("%s: %s",
 		r.Settings["email-assignment-subject"], assignment.Event.Title)
+	logrus.Info("title", assignment.Event.Title)
+	logrus.Info("room number: ", assignment.Room.Number)
 
 	roomNumber := assignment.Room.Number
 	if assignment.Room.Name != "" {
