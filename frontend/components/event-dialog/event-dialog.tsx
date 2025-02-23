@@ -49,6 +49,7 @@ import { cn, formatDateToHHMM } from "@/lib/utils";
 import { TutorialsTable } from "./tutorials-table";
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
+import { FullDateDescription } from "../full-date-description";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -61,6 +62,12 @@ const FormSchema = z.object({
 });
 
 export default function EventDialog() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const { user } = useUser();
   const { closeupID, setCloseupID } = useUmbrella();
   const [loading, setLoading] = useState(true);
@@ -124,7 +131,7 @@ export default function EventDialog() {
           from: e.from,
           to: e.to,
           needsTutors: e.needsTutors,
-          tutorsAssigned: e.tutorsAssigned
+          tutorsAssigned: e.tutorsAssigned,
         });
         form.reset();
         setLoading(false);
@@ -315,24 +322,5 @@ function DatePicker({ from, to }: DatePickerProps) {
         </div>
       </PopoverContent>
     </Popover>
-  );
-}
-
-interface FullDateDescriptionProps {
-  from: Date;
-  to: Date;
-}
-
-function FullDateDescription({ from, to }: FullDateDescriptionProps) {
-  return (
-    <div>
-      <p>
-        {from.toLocaleString(undefined, { weekday: "long" })},{" "}
-        {format(from, "PPP")}
-      </p>
-      <p>
-        Von {formatDateToHHMM(from)} bis {formatDateToHHMM(to)}
-      </p>
-    </div>
   );
 }

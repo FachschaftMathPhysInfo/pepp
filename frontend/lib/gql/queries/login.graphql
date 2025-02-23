@@ -37,3 +37,21 @@ query emailPasswordLogin($email: String!, $password: String!) {
     }
   }
 }
+
+query sidLogin($sid: String!) {
+  login(sessionID: $sid) {
+    sessionID
+    user {
+      fn
+      sn
+      mail
+      confirmed
+      applications {
+        event {
+          ID
+        }
+        accepted
+      }
+    }
+  }
+}

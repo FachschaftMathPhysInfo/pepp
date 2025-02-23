@@ -15,8 +15,8 @@ import {
 } from "./ui/card";
 import { useUmbrella, useUser } from "./providers";
 import { SquareCheckBig } from "lucide-react";
-import {RoomHoverCard} from "./room-hover-card";
-import {calculateFontColor} from "@/lib/utils/colorUtils";
+import { RoomHoverCard } from "./room-hover-card";
+import { calculateFontColor } from "@/lib/utils/colorUtils";
 
 interface PlannerProps {
   events: Event[];
@@ -42,7 +42,7 @@ export function Planner({ events }: PlannerProps) {
   }, []);
 
   return (
-    <div className="flex flex-row space-x-4">
+    <div className="lg:flex lg:flex-row lg:space-x-4 lg:space-y-0 md:space-y-4">
       {Object.entries(groupedEvents).map(([week, days], weekIndex) => (
         <div key={week} className="space-y-4 flex-1">
           {Object.keys(groupedEvents).length > 1 && (
@@ -100,7 +100,9 @@ export function Planner({ events }: PlannerProps) {
                         event.from,
                         event.to
                       );
-                      const registration = registrations.find(r => r.event.ID === event.ID)
+                      const registration = registrations.find(
+                        (r) => r.event.ID === event.ID
+                      );
 
                       return (
                         <div key={event.ID}>
@@ -110,7 +112,7 @@ export function Planner({ events }: PlannerProps) {
                           ></div>
                           <li
                             key={event.ID}
-                            className={`rounded-lg p-4 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity`}
+                            className={`rounded-lg p-4 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
                             style={{
                               color: calculateFontColor(event.topic.color),
                               backgroundColor: event.topic.color,
@@ -120,21 +122,23 @@ export function Planner({ events }: PlannerProps) {
                             tabIndex={0}
                             onClick={() => setCloseupID(event.ID)}
                           >
-                            <p className="text-sm font-bold">{event.title}</p>
-                            <p className="text-sm">
-                              {new Date(event.from).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}{" "}
-                              -{" "}
-                              {new Date(event.to).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
+                            <div>
+                              <p className="text-sm font-bold">{event.title}</p>
+                              <p className="text-sm">
+                                {new Date(event.from).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}{" "}
+                                -{" "}
+                                {new Date(event.to).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
                             {registration && (
-                              <div className="flex flex-row space-x-2 mt-2 w-fit p-2 rounded-lg text-black bg-white border-l-4 border-green-500">
-                                <SquareCheckBig className="w-4 h-4 text-green-700"/>
+                              <div className="flex flex-row space-x-2 mt-2 w-fit h-fit py-1 px-2 rounded-lg text-black bg-white border-l-4 border-green-500">
+                                <SquareCheckBig className="w-4 h-4 text-green-700" />
                                 <RoomHoverCard room={registration.room} />
                               </div>
                             )}

@@ -10,6 +10,9 @@ import {
 } from "react";
 import {
   EventRegistration,
+  SidLoginDocument,
+  SidLoginQuery,
+  SidLoginQueryVariables,
   UmbrellaOfEventDocument,
   UmbrellaOfEventQuery,
   UmbrellaOfEventQueryVariables,
@@ -51,6 +54,29 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
   const [applications, setApplications] = useState<Application[]>([])
+
+  useEffect(() => {
+    const login = async (sid: string) => {
+      const vars: SidLoginQueryVariables = {
+        sid: sid
+      }
+      const userData = await client.request<SidLoginQuery>(
+        SidLoginDocument,
+        vars
+      )
+      const user = userData.login.user
+      setUser({
+        mail: user.mail,
+        fn: user.fn,
+        sn: user.sn,
+        confirmed: user.confirmed,
+      });
+      setApplications(user.applications?.map(a => ({
+        accepted: a.accepted ?? false,
+        eventID: a.event.ID,
+      })) ?? [])
+    }
+  })
 
   return (
     <UserContext.Provider

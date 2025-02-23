@@ -21,7 +21,7 @@ export function CopyTextArea({ label, text }: CopyTextAreaProps) {
   };
 
   return (
-    <div className="relative border rounded-lg p-2 flex flex-row min-w-[300px] overflow-hidden">
+    <div className="relative border rounded-lg p-2 flex flex-row w-[300px] overflow-hidden">
       <div>
         <p className="text-xs font-bold text-muted-foreground">{label}</p>
         <p className="text-sm truncate">{text}</p>
