@@ -15,6 +15,8 @@ COPY tracing ./tracing
 COPY ical ./ical
 COPY password ./password
 
+RUN go generate ./...
+
 RUN CGO_ENABLED=0 go build -a -o graphql-server server.go
 
 FROM gcr.io/distroless/static-debian11

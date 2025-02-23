@@ -11,7 +11,7 @@ type Application struct {
 
 	EventID     int32  `bun:",pk"`
 	StudentMail string `bun:",notnull,type:varchar(255)"`
-	Score       int16  `bun:",notnull,default:0"`
+	Score       int16  `bun:",notnull"`
 	Accepted    *bool
 
 	Event   *Event `bun:"rel:belongs-to,join:event_id=id"`

@@ -3,17 +3,16 @@ volumes:
   data:
 
 services:
-  postgres:
-    image: postgres:15.6-alpine
-    restart: always
-    volumes:
-      - data:/var/lib/postgresql/data
-      - ./postgresql.conf:/etc/postgresql/config/postgresql.conf:ro
-      - ./tls/certs/root.crt:/etc/postgres/security/root.crt:ro
-      - ./tls/certs/server.crt:/etc/postgres/security/server.crt:ro
-      - ./tls/certs/server.key:/etc/postgres/security/server.key:ro
-    command: -c config_file=/etc/postgresql/config/postgresql.conf
-    env_file: .env.local
+  # postgres:
+  #   image: postgres:15.6-alpine
+  #   volumes:
+  #     - data:/var/lib/postgresql/data
+  #     - ./postgresql.conf:/etc/postgresql/config/postgresql.conf:ro
+  #     - ./tls/certs/root.crt:/etc/postgres/security/root.crt:ro
+  #     - ./tls/certs/server.crt:/etc/postgres/security/server.crt:ro
+  #     - ./tls/certs/server.key:/etc/postgres/security/server.key:ro
+  #   command: -c config_file=/etc/postgresql/config/postgresql.conf
+  #   env_file: .env.local
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib
@@ -24,23 +23,21 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    restart: always
-    volumes:
-      - ./tls/certs/client.crt:/client.crt:ro
-      - ./tls/certs/client.key:/client.key:ro
-      - ./tls/certs/root.crt:/root.crt:ro
+      # volumes:
+      #   - ./tls/certs/client.crt:/client.crt:ro
+      #   - ./tls/certs/client.key:/client.key:ro
+      #   - ./tls/certs/root.crt:/root.crt:ro
     env_file: .env.local
     ports:
       - 8080:8080
     depends_on:
-      - postgres
+      # - postgres
       - otel-collector
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    restart: always
     env_file: .env.local
     depends_on:
       - server

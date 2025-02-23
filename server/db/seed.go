@@ -25,7 +25,7 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		Street:    "INF",
 		Number:    "205",
 		City:      "Heidelberg",
-		Zip:       69115,
+		Zip:       "69115",
 		Latitude:  49.417493,
 		Longitude: 8.675197,
 		ZoomLevel: 17,
@@ -34,7 +34,7 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		Street:    "INF",
 		Number:    "227",
 		City:      "Heidelberg",
-		Zip:       69115,
+		Zip:       "69115",
 		Latitude:  49.4162501,
 		Longitude: 8.6694734,
 		ZoomLevel: 17,
@@ -236,11 +236,11 @@ func insertData[T any](ctx context.Context, db *bun.DB, model T, data []T, descr
 
 	if count == 0 {
 		if _, err := db.NewInsert().Model(&data).Exec(ctx); err != nil {
-			return err
+			return fmt.Errorf("%s: %s", description, err)
 		}
 		log.Infof("%s seeded successfully\n", description)
 	} else {
-		log.Infof("%s already exist, skipping seed\n", description)
+		log.Infof("%s already exists, skipping seed\n", description)
 	}
 	return nil
 }

@@ -48,7 +48,7 @@ func Send(person models.User, email Email, config *Config) error {
 	smtpPW := os.Getenv("SMTP_PASSWORD")
 	smtpPort, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	if err != nil {
-		return err
+		return fmt.Errorf("no valid SMTP_PORT provided: ", err)
 	}
 
 	body, err := h.GenerateHTML(mail)

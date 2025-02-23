@@ -11,17 +11,31 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/dialect/sqlitedialect"
+	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/extra/bunotel"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
 func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, error) {
-	sqldb, err := connectTCPSocket()
-	if err != nil {
-		return nil, nil, err
+	var db *bun.DB
+	var sqldb *sql.DB
+	var err error
+	switch os.Getenv("DATABASE_TYPE") {
+	case "PostgreSQL":
+		sqldb, err = connectTCPSocket()
+		if err != nil {
+			log.Panic("postgres connection failed: ", err)
+		}
+		db = bun.NewDB(sqldb, pgdialect.New())
+	default:
+		log.Info("no database type specified, creating default sqlite")
+		sqldb, err = sql.Open(sqliteshim.ShimName, "./pepp.db")
+		if err != nil {
+			log.Panic("sqlite creation failed: ", err)
+		}
+		db = bun.NewDB(sqldb, sqlitedialect.New())
 	}
-
-	db := bun.NewDB(sqldb, pgdialect.New())
 
 	db.AddQueryHook(bunotel.NewQueryHook(
 		bunotel.WithFormattedQueries(true),
@@ -52,16 +66,16 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 	}
 
 	if err := createTables(ctx, db, tables); err != nil {
-		return nil, nil, err
+		log.Panic("unable to insert basic relations in DB: ", err)
 	}
 
 	if err := createTables(ctx, db, relations); err != nil {
-		return nil, nil, err
+		log.Panic("unable to insert basic connetcion relations in DB: ", err)
 	}
 
-	if err := seedData(ctx, db); err != nil {
-		return nil, nil, err
-	}
+	// if err := seedData(ctx, db); err != nil {
+	// 	log.Panic("unable to seed basic data in DB: ", err)
+	// }
 
 	return db, sqldb, nil
 }
@@ -89,13 +103,14 @@ func connectTCPSocket() (*sql.DB, error) {
 	}
 
 	var (
+		dbHost = mustGetenv("POSTGRES_HOST")
 		dbUser = mustGetenv("POSTGRES_USER")
 		dbPwd  = mustGetenv("POSTGRES_PASSWORD")
 		dbName = mustGetenv("POSTGRES_DB")
 	)
 
-	dbURI := fmt.Sprintf("host=postgres user=%s password=%s database=%s sslmode=verify-full sslrootcert=root.crt sslcert=client.crt sslkey=client.key",
-		dbUser, dbPwd, dbName)
+	dbURI := fmt.Sprintf("host=%s user=%s password=%s database=%s sslmode=verify-full sslrootcert=root.crt sslcert=client.crt sslkey=client.key",
+		dbHost, dbUser, dbPwd, dbName)
 
 	dbPool, err := sql.Open("postgres", dbURI)
 	if err != nil {

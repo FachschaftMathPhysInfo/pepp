@@ -1,5 +1,4 @@
-scalar HexColorCode
-scalar timestamptz
+scalar Time
 
 enum ScalarType {
   STRING
@@ -28,7 +27,7 @@ enum LabelKind {
 
 type Label {
   name: String!
-  color: HexColorCode
+  color: String
 }
 
 type EventTutorRoomPair {
@@ -48,8 +47,8 @@ type Event {
   description: String
   topic: Label!
   type: Label!
-  from: timestamptz!
-  to: timestamptz!
+  from: Time!
+  to: Time!
   registrationForm: Form
 }
 
@@ -67,7 +66,7 @@ type Building {
   street: String!
   number: String!
   city: String!
-  zip: Int!
+  zip: String!
   latitude: Float!
   longitude: Float!
   zoomLevel: Int!
@@ -169,8 +168,8 @@ input NewEvent {
   topicName: String
   typeName: String
   needsTutors: Boolean!
-  from: timestamptz!
-  to: timestamptz!
+  from: Time!
+  to: Time!
   umbrellaID: Int
 }
 
@@ -179,7 +178,7 @@ input NewBuilding {
   street: String!
   number: String!
   city: String!
-  zip: Int!
+  zip: String!
   latitude: Float!
   longitude: Float!
   zoomLevel: Int
@@ -195,7 +194,7 @@ input NewRoom {
 
 input NewLabel {
   name: String!
-  color: HexColorCode
+  color: String
   kind: LabelKind!
 }
 

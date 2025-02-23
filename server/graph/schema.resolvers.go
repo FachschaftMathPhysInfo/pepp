@@ -17,7 +17,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/FachschaftMathPhysInfo/pepp/server/password"
 	hermes "github.com/matcornic/hermes/v2"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
 
@@ -71,11 +71,6 @@ func (r *applicationResolver) Responses(ctx context.Context, obj *models.Applica
 	return qas, nil
 }
 
-// ZoomLevel is the resolver for the zoomLevel field.
-func (r *buildingResolver) ZoomLevel(ctx context.Context, obj *models.Building) (int, error) {
-	return int(obj.ZoomLevel), nil
-}
-
 // TutorsAssigned is the resolver for the tutorsAssigned field.
 func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error) {
 	var eventToTutorRelations []*models.EventToUserAssignment
@@ -123,38 +118,30 @@ func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) (
 	return tutorRoomPairs, nil
 }
 
-// From is the resolver for the from field.
-func (r *eventResolver) From(ctx context.Context, obj *models.Event) (string, error) {
-	return obj.From.String(), nil
-}
-
-// To is the resolver for the to field.
-func (r *eventResolver) To(ctx context.Context, obj *models.Event) (string, error) {
-	return obj.To.String(), nil
-}
-
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (*models.User, error) {
 	sessionID, err := password.GenerateSalt(8)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while generating sessionID for %s: %s", user.Mail, err)
 	}
 
 	user.SessionID = sessionID
 
-	passwordSalt, err := password.GenerateSalt(16)
-	if err != nil {
-		return nil, err
+	if user.Password != "" {
+		passwordSalt, err := password.GenerateSalt(16)
+		if err != nil {
+			return nil, err
+		}
+
+		user.Salt = passwordSalt
+
+		password, err := password.Hash(user.Password, passwordSalt)
+		if err != nil {
+			return nil, err
+		}
+
+		user.Password = password
 	}
-
-	user.Salt = passwordSalt
-
-	password, err := password.Hash(user.Password, passwordSalt)
-	if err != nil {
-		return nil, err
-	}
-
-	user.Password = password
 
 	if _, err := r.DB.NewInsert().
 		Model(&user).
@@ -168,7 +155,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (*mode
 		os.Getenv("PUBLIC_URL"), user.SessionID)
 
 	if err := email.Send(user, m, r.MailConfig); err != nil {
-		return nil, err
+		log.Error("failed to send email: ", err)
 	}
 
 	return &user, nil
@@ -514,8 +501,6 @@ func (r *mutationResolver) AddEventAssignmentForTutor(ctx context.Context, assig
 
 	m.Subject = fmt.Sprintf("%s: %s",
 		r.Settings["email-assignment-subject"], assignment.Event.Title)
-	logrus.Info("title", assignment.Event.Title)
-	logrus.Info("room number: ", assignment.Room.Number)
 
 	roomNumber := assignment.Room.Number
 	if assignment.Room.Name != "" {
@@ -537,7 +522,7 @@ func (r *mutationResolver) AddEventAssignmentForTutor(ctx context.Context, assig
 			Value: fmt.Sprintf("%s, %s %s, %s, %s",
 				assignment.Building.Name,
 				assignment.Building.Street, assignment.Building.Number,
-				strconv.Itoa(int(assignment.Building.Zip)), assignment.Building.City)}}
+				assignment.Building.Zip, assignment.Building.City)}}
 
 	if err := email.Send(*assignment.User, m, r.MailConfig); err != nil {
 		return nil, err
@@ -812,7 +797,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("RoomsAvailable.Building").
 		Relation("Umbrella").
 		Where(`"e"."umbrella_id" IS NOT NULL`).
-		Order("from ASC")
+		Order("ASC")
 
 	if umbrellaID != nil {
 		query = query.Where(`"e"."umbrella_id" IN (?)`, bun.In(umbrellaID))
@@ -1134,34 +1119,6 @@ func (r *newAnswerResolver) Points(ctx context.Context, obj *models.Answer, data
 	return nil
 }
 
-// ZoomLevel is the resolver for the zoomLevel field.
-func (r *newBuildingResolver) ZoomLevel(ctx context.Context, obj *models.Building, data *int) error {
-	obj.ZoomLevel = int8(*data)
-	return nil
-}
-
-// From is the resolver for the from field.
-func (r *newEventResolver) From(ctx context.Context, obj *models.Event, data string) error {
-	from, err := time.Parse(time.RFC3339, data)
-	if err != nil {
-		return err
-	}
-
-	obj.From = from
-	return nil
-}
-
-// To is the resolver for the to field.
-func (r *newEventResolver) To(ctx context.Context, obj *models.Event, data string) error {
-	to, err := time.Parse(time.RFC3339, data)
-	if err != nil {
-		return err
-	}
-
-	obj.To = to
-	return nil
-}
-
 // Kind is the resolver for the kind field.
 func (r *newLabelResolver) Kind(ctx context.Context, obj *models.Label, data model.LabelKind) error {
 	obj.Kind = data.String()
@@ -1198,9 +1155,6 @@ func (r *Resolver) Answer() AnswerResolver { return &answerResolver{r} }
 // Application returns ApplicationResolver implementation.
 func (r *Resolver) Application() ApplicationResolver { return &applicationResolver{r} }
 
-// Building returns BuildingResolver implementation.
-func (r *Resolver) Building() BuildingResolver { return &buildingResolver{r} }
-
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
 
@@ -1222,12 +1176,6 @@ func (r *Resolver) Setting() SettingResolver { return &settingResolver{r} }
 // NewAnswer returns NewAnswerResolver implementation.
 func (r *Resolver) NewAnswer() NewAnswerResolver { return &newAnswerResolver{r} }
 
-// NewBuilding returns NewBuildingResolver implementation.
-func (r *Resolver) NewBuilding() NewBuildingResolver { return &newBuildingResolver{r} }
-
-// NewEvent returns NewEventResolver implementation.
-func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
-
 // NewLabel returns NewLabelResolver implementation.
 func (r *Resolver) NewLabel() NewLabelResolver { return &newLabelResolver{r} }
 
@@ -1242,7 +1190,6 @@ func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{
 
 type answerResolver struct{ *Resolver }
 type applicationResolver struct{ *Resolver }
-type buildingResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
@@ -1250,19 +1197,7 @@ type questionResolver struct{ *Resolver }
 type roomResolver struct{ *Resolver }
 type settingResolver struct{ *Resolver }
 type newAnswerResolver struct{ *Resolver }
-type newBuildingResolver struct{ *Resolver }
-type newEventResolver struct{ *Resolver }
 type newLabelResolver struct{ *Resolver }
 type newQuestionResolver struct{ *Resolver }
 type newRoomResolver struct{ *Resolver }
 type newSettingResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//   - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//     it when you're done.
-//   - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *eventResolver) Form(ctx context.Context, obj *models.Event) (*models.Form, error) {
-	panic(fmt.Errorf("not implemented: Form - form"))
-}
