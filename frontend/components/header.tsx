@@ -83,7 +83,7 @@ export default function Header() {
   const groupedEvents = groupEventsByUmbrellaId();
 
   return (
-    <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 bg-white">
+    <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md">
       <div
         className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400"
         onClick={() => router.push("/")}
@@ -91,11 +91,29 @@ export default function Header() {
         <Image
           src="/logo.png"
           alt="Pepp Logo"
-          width="50"
-          height="50"
-          className="mr-2"
+          width="0"
+          height="0"
+          sizes="100vw"
+          className="h-10 w-auto pr-2"
         />
-        <Image src="/fs-logo.png" alt="Pepp Logo" width="150" height="15" />
+        <div className="pl-3">
+          <Image
+            src="/fs-logo-light.png"
+            alt="Fachschaft MathPhysInfo Logo"
+            width="0"
+            height="0"
+            sizes="100vw"
+            className="h-10 w-auto block dark:hidden"
+          />
+          <Image
+            src="/fs-logo-dark.png"
+            alt="Fachschaft MathPhysInfo Logo"
+            width="0"
+            height="0"
+            sizes="100vw"
+            className="h-10 w-auto hidden dark:block"
+          />
+        </div>
       </div>
       <div className="flex flex-row">
         <Button

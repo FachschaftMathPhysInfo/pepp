@@ -71,51 +71,14 @@ func (r *applicationResolver) Responses(ctx context.Context, obj *models.Applica
 	return qas, nil
 }
 
-// TutorsAssigned is the resolver for the tutorsAssigned field.
-func (r *eventResolver) TutorsAssigned(ctx context.Context, obj *models.Event) ([]*model.EventTutorRoomPair, error) {
-	var eventToTutorRelations []*models.EventToUserAssignment
-	if err := r.DB.NewSelect().
-		Model(&eventToTutorRelations).
-		Relation("Room").
-		Relation("Room.Building").
-		Relation("User").
-		Where("event_id = ?", obj.ID).
-		Scan(ctx); err != nil {
+// Tutorials is the resolver for the tutorials field.
+func (r *eventResolver) Tutorials(ctx context.Context, obj *models.Event) ([]*model.Tutorial, error) {
+	tutorials, err := r.Query().Tutorials(ctx, []int{int(obj.ID)}, nil, nil, nil)
+	if err != nil {
 		return nil, err
 	}
 
-	roomMap := make(map[string]*model.EventTutorRoomPair)
-	for _, eventToTutorRelation := range eventToTutorRelations {
-		roomKey := eventToTutorRelation.Room.Number +
-			strconv.Itoa(int(eventToTutorRelation.Room.BuildingID))
-		if room, exists := roomMap[roomKey]; exists {
-			room.Tutors = append(room.Tutors, eventToTutorRelation.User)
-		} else {
-			registrationsCount, err := r.DB.NewSelect().
-				Model((*models.UserToEventRegistration)(nil)).
-				Where("event_id = ?", obj.ID).
-				Where("room_number = ?", eventToTutorRelation.Room.Number).
-				Where("building_id = ?", eventToTutorRelation.BuildingID).
-				Count(ctx)
-
-			if err != nil {
-				return nil, err
-			}
-
-			roomMap[roomKey] = &model.EventTutorRoomPair{
-				Tutors:        []*models.User{eventToTutorRelation.User},
-				Room:          eventToTutorRelation.Room,
-				Registrations: registrationsCount,
-			}
-		}
-	}
-
-	var tutorRoomPairs []*model.EventTutorRoomPair
-	for _, tutorRoomPair := range roomMap {
-		tutorRoomPairs = append(tutorRoomPairs, tutorRoomPair)
-	}
-
-	return tutorRoomPairs, nil
+	return tutorials, nil
 }
 
 // AddUser is the resolver for the addUser field.
@@ -669,19 +632,19 @@ func (r *mutationResolver) DeleteRoomAvailabilityForEvent(ctx context.Context, a
 }
 
 // AddStudentRegistrationForEvent is the resolver for the addStudentRegistrationForEvent field.
-func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*models.UserToEventRegistration, error) {
+func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*model.Tutorial, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&registration).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	reg, err := r.Query().Registrations(ctx, registration.UserMail)
+	tut, err := r.Query().Tutorials(ctx, []int{int(registration.EventID)}, nil, nil, []string{registration.UserMail})
 	if err != nil {
 		return nil, err
 	}
 
-	return reg[0], nil
+	return tut[0], nil
 }
 
 // DeleteStudentRegistrationForEvent is the resolver for the deleteStudentRegistrationForEvent field.
@@ -1032,22 +995,67 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, studentM
 	return applications, nil
 }
 
-// Registrations is the resolver for the registrations field.
-func (r *queryResolver) Registrations(ctx context.Context, studentMail string) ([]*models.UserToEventRegistration, error) {
-	var registrations []*models.UserToEventRegistration
+// Tutorials is the resolver for the tutorials field.
+func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID []int, tutorMail []string, studentMail []string) ([]*model.Tutorial, error) {
+	var eventToUserAssignments []*models.EventToUserAssignment
 
 	query := r.DB.NewSelect().
-		Model(&registrations).
+		Model(&eventToUserAssignments).
 		Relation("Event").
 		Relation("Room").
 		Relation("Room.Building").
-		Where("user_mail = ?", studentMail)
+		Relation("User")
+
+	if eventID != nil {
+		query = query.Where("event_id IN (?)", bun.In(eventID))
+	}
+
+	if studentMail != nil {
+		query = query.
+			Join("JOIN user_to_event_registrations AS uer ON uer.event_id = event_id").
+			Where("uer.user_mail IN (?)", bun.In(studentMail))
+	}
+
+	if tutorMail != nil {
+		query = query.Where("user_mail IN (?)", bun.In(tutorMail))
+	}
 
 	if err := query.Scan(ctx); err != nil {
 		return nil, err
 	}
 
-	return registrations, nil
+	roomMap := make(map[string]*model.Tutorial)
+	for _, eventToUserAssignment := range eventToUserAssignments {
+		roomKey := eventToUserAssignment.Room.Number +
+			strconv.Itoa(int(eventToUserAssignment.Room.BuildingID))
+		if room, exists := roomMap[roomKey]; exists {
+			room.Tutors = append(room.Tutors, eventToUserAssignment.User)
+		} else {
+			registrationsCount, err := r.DB.NewSelect().
+				Model((*models.UserToEventRegistration)(nil)).
+				Where("event_id = ?", eventToUserAssignment.EventID).
+				Where("room_number = ?", eventToUserAssignment.Room.Number).
+				Where("building_id = ?", eventToUserAssignment.BuildingID).
+				Count(ctx)
+
+			if err != nil {
+				return nil, err
+			}
+
+			roomMap[roomKey] = &model.Tutorial{
+				Tutors:        []*models.User{eventToUserAssignment.User},
+				Room:          eventToUserAssignment.Room,
+				Registrations: registrationsCount,
+			}
+		}
+	}
+
+	var tutorials []*model.Tutorial
+	for _, tutorRoomPair := range roomMap {
+		tutorials = append(tutorials, tutorRoomPair)
+	}
+
+	return tutorials, nil
 }
 
 // Login is the resolver for the login field.
@@ -1113,6 +1121,31 @@ func (r *settingResolver) Type(ctx context.Context, obj *models.Setting) (model.
 	return model.ScalarTypeString, fmt.Errorf("unable to resolve type: %s", obj.Type)
 }
 
+// Registrations is the resolver for the registrations field.
+func (r *userResolver) Registrations(ctx context.Context, obj *models.User) ([]*model.Tutorial, error) {
+	tutorials, err := r.Query().Tutorials(ctx, nil, nil, nil, []string{obj.Mail})
+	if err != nil {
+		return nil, err
+	}
+
+	return tutorials, nil
+}
+
+// Tutorials is the resolver for the tutorials field.
+func (r *userResolver) Tutorials(ctx context.Context, obj *models.User) ([]*model.Tutorial, error) {
+	tutorials, err := r.Query().Tutorials(ctx, nil, nil, []string{obj.Mail}, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return tutorials, nil
+}
+
+// Role is the resolver for the role field.
+func (r *userResolver) Role(ctx context.Context, obj *models.User) (model.Role, error) {
+	return model.Role(obj.Role), nil
+}
+
 // Points is the resolver for the points field.
 func (r *newAnswerResolver) Points(ctx context.Context, obj *models.Answer, data int) error {
 	obj.Points = int8(data)
@@ -1173,6 +1206,9 @@ func (r *Resolver) Room() RoomResolver { return &roomResolver{r} }
 // Setting returns SettingResolver implementation.
 func (r *Resolver) Setting() SettingResolver { return &settingResolver{r} }
 
+// User returns UserResolver implementation.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
 // NewAnswer returns NewAnswerResolver implementation.
 func (r *Resolver) NewAnswer() NewAnswerResolver { return &newAnswerResolver{r} }
 
@@ -1196,6 +1232,7 @@ type queryResolver struct{ *Resolver }
 type questionResolver struct{ *Resolver }
 type roomResolver struct{ *Resolver }
 type settingResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }
 type newAnswerResolver struct{ *Resolver }
 type newLabelResolver struct{ *Resolver }
 type newQuestionResolver struct{ *Resolver }

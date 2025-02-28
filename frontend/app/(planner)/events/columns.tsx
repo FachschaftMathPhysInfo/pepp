@@ -1,4 +1,5 @@
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { useUmbrella } from "@/components/providers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -40,6 +41,17 @@ export const columns: ColumnDef<Event>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Titel" />
     ),
+    cell: ({ row }) => {
+      const { setCloseupID } = useUmbrella();
+      return (
+        <p
+          className="hover:underline cursor-pointer"
+          onClick={() => setCloseupID(row.original.ID)}
+        >
+          {row.original.title}
+        </p>
+      );
+    },
   },
   {
     accessorKey: "date",

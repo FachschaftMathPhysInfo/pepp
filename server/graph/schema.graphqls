@@ -9,15 +9,28 @@ enum ScalarType {
   TIMESTAMP
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
+type Tutorial {
+  event: Event!
+  tutors: [User!]!
+  room: Room!
+  registrations: Int!
+}
+
 type User {
   fn: String!
   sn: String!
   mail: String!
   confirmed: Boolean!
-  eventsRegistered: [Event!]
-  eventsAvailable: [Event!]
-  eventsAssigned: [Event!]
+  availabilities: [Event!]
+  registrations: [Tutorial!]
+  tutorials: [Tutorial!]
   applications: [Application!]
+  role: Role!
 }
 
 enum LabelKind {
@@ -30,15 +43,9 @@ type Label {
   color: String
 }
 
-type EventTutorRoomPair {
-  tutors: [User!]!
-  room: Room!
-  registrations: Int!
-}
-
 type Event {
   ID: Int!
-  tutorsAssigned: [EventTutorRoomPair!]
+  tutorials: [Tutorial!]
   tutorsAvailable: [User!]
   roomsAvailable: [Room!]
   umbrella: Event
@@ -131,11 +138,6 @@ type AuthPayload {
   user: User!
 }
 
-type EventRegistration {
-  event: Event!
-  room: Room!
-}
-
 type Query {
   events(id: [Int!], umbrellaID: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, onlyFuture: Boolean, userMail: [String!]): [Event!]!
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
@@ -146,7 +148,7 @@ type Query {
   users(mail: [String!], sessionID: [String!]): [User!]!
   forms(id: [Int!]): [Form!]!
   applications(eventID: Int, studentMail: [String!]): [Application!]!
-  registrations(studentMail: String!): [EventRegistration!]!
+  tutorials(eventID: [Int!], umbrellaID: [Int!], tutorMail: [String!], studentMail: [String!]): [Tutorial!]!
   login(credentials: EmailPassword, sessionID: String): AuthPayload!
 }
 
@@ -291,7 +293,7 @@ type Mutation {
   addRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
   updateRoomForTutorial(newRoomNumber: String!, newBuildingID: Int!, eventID: Int!, oldRoomNumber: String!, oldBuildingID: Int!): Event!
   deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
-  addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): EventRegistration!
+  addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): Tutorial!
   deleteStudentRegistrationForEvent(registration: NewUserToEventRegistration!): User!
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
   deleteStudentApplicationForEvent(mail: String!, eventID: Int!): User!

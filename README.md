@@ -33,14 +33,14 @@ FROM_ADDRESS=vorkurs@example.de
 ```
 
 <details>
-    <summary>To get some data to work with, paste the `mutation` in the GraphQL Playground</summary>
+    <summary>To get some data to work with, paste the mutation in the GraphQL Playground</summary>
 
     ```
     mutation exampleData {
-      tutor1: addUser(user: {mail: "tutor1@example.de", fn: "Tutorin", sn: "One"}) {
+      tutor1: addUser(user: {mail: "tutor1@example.de", fn: "Tutorin", sn: "One", password: "test1"}) {
         mail
       }
-      tutor2: addUser(user: {mail: "tutor2@example.de", fn: "Tutor", sn: "Two"}) {
+      tutor2: addUser(user: {mail: "tutor2@example.de", fn: "Tutor", sn: "Two", password: "test2"}) {
         mail
       }
       mmk: addBuilding(
@@ -84,22 +84,22 @@ FROM_ADDRESS=vorkurs@example.de
         name
       }
       vk: addEvent(
-        event: {title: "Vorkurs 2025", description: "Lorem Ipsum", from: "2025-02-21T00:00:00Z", to: "2025-02-24T00:00:00Z", needsTutors: true}
+        event: {title: "Vorkurs 2025", description: "Lorem Ipsum", from: "2030-02-21T00:00:00Z", to: "2030-02-24T00:00:00Z", needsTutors: true}
       ) {
         ID
       }
       pvk: addEvent(
-        event: {title: "Programmiervorkurs 2025", description: "Lorem Ipsum", from: "2025-02-21T00:00:00Z", to: "2025-02-24T00:00:00Z", needsTutors: true}
+        event: {title: "Programmiervorkurs 2025", description: "Lorem Ipsum", from: "2030-02-21T00:00:00Z", to: "2030-02-24T00:00:00Z", needsTutors: true}
       ) {
         ID
       }
       alda: addEvent(
-        event: {title: "Algorithmen und Datenstrukturen", description: "Lorem Ipsum dolor sit amed", topicName: "Informatik", typeName: "Tutorium", needsTutors: true, from: "2025-02-21T00:00:00Z", to: "2025-02-21T01:00:00Z", umbrellaID: 1}
+        event: {title: "Algorithmen und Datenstrukturen", description: "Lorem Ipsum dolor sit amed", topicName: "Informatik", typeName: "Tutorium", needsTutors: true, from: "2030-02-21T00:00:00Z", to: "2030-02-21T01:00:00Z", umbrellaID: 1}
       ) {
         ID
       }
       ana: addEvent(
-        event: {title: "Analysis", description: "Lorem Ipsum dolor sit amed", topicName: "Mathe", typeName: "Vorlesung", needsTutors: true, from: "2025-02-28T00:00:00Z", to: "2025-02-28T02:00:00Z", umbrellaID: 1}
+        event: {title: "Analysis", description: "Lorem Ipsum dolor sit amed", topicName: "Mathe", typeName: "Vorlesung", needsTutors: true, from: "2030-02-28T00:00:00Z", to: "2030-02-28T02:00:00Z", umbrellaID: 1}
       ) {
         ID
       }

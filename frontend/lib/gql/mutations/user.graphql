@@ -4,5 +4,6 @@ mutation registration($fn: String!, $sn: String, $mail: String!, $password: Stri
     sn
     mail
     confirmed
+    role
   }
 }

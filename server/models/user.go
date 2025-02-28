@@ -10,24 +10,25 @@ import (
 type User struct {
 	bun.BaseModel `bun:",alias:u"`
 
-	Mail      string    `bun:",pk,notnull,type:varchar(255)"`
-	Fn        string    `bun:",notnull,type:varchar(255)"`
-	Sn        string    `bun:"type:varchar(255)"`
+	Mail      string    `bun:"type:varchar(255),pk"`
+	Fn        string    `bun:"type:varchar(255),notnull"`
+	Sn        string    `bun:"type:varchar(255),notnull"`
 	Confirmed bool      `bun:",notnull"`
 	SessionID string    `bun:"type:varchar(11)"`
 	LastLogin time.Time `bun:",nullzero,notnull,default:current_timestamp"`
 	Password  string    `bun:"type:varchar(64)"`
 	Salt      string    `bun:"type:varchar(22)"`
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp"`
+	Role      string    `bun:"type:varchar(5),default:'USER'"`
 
-	EventsAvailable  []Event        `bun:"m2m:user_to_event_availabilitys,join:User=Event"`
+	Availabilities   []Event        `bun:"m2m:user_to_event_availabilities,join:User=Event"`
 	EventsAssigned   []Event        `bun:"m2m:event_to_user_assignments,join:User=Event"`
 	EventsRegistered []Event        `bun:"m2m:user_to_event_registrations,join:User=Event"`
 	Applications     []*Application `bun:"rel:has-many,join:mail=student_mail"`
 }
 
 type UserToEventAvailability struct {
-	bun.BaseModel `bun:"table:user_to_event_availabilitys,alias:uea"`
+	bun.BaseModel `bun:"table:user_to_event_availabilities,alias:uea"`
 
 	UserMail string `bun:",pk,type:varchar(255)"`
 	User     *User  `bun:"rel:belongs-to,join:user_mail=mail"`
@@ -44,7 +45,7 @@ func (*UserToEventAvailability) BeforeCreateTable(ctx context.Context, query *bu
 }
 
 type UserToEventRegistration struct {
-	bun.BaseModel `bun:"table:user_to_event_registrations,alias:ser"`
+	bun.BaseModel `bun:"table:user_to_event_registrations,alias:uer"`
 
 	UserMail   string `bun:",pk,type:varchar(255)"`
 	User       *User  `bun:"rel:belongs-to,join:user_mail=mail"`

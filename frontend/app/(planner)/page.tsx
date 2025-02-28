@@ -19,14 +19,15 @@ import { useUmbrella, useUser } from "@/components/providers";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ChevronRight, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { defaultEvent, defaultLabel } from "@/types/defaults";
 
 export default function IndexPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
+  const { user } = useUser();
   const { umbrellaID } = useUmbrella();
-  const { applications, user } = useUser();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
@@ -62,13 +63,9 @@ export default function IndexPage() {
         setTopics(eventData.topicLabels);
         setEvents(
           eventData.events.map((e) => ({
-            type: { name: "" },
-            needsTutors: true,
-            ID: e.ID,
-            title: e.title,
-            from: e.from,
-            to: e.to,
-            topic: { name: "", color: e.topic.color },
+            ...defaultEvent,
+            ...e,
+            topic: { ...defaultLabel, ...e.topic },
           }))
         );
         if (eventData.umbrellas[0].registrationForm) {
@@ -101,7 +98,7 @@ export default function IndexPage() {
     setIcalPath(window.location.origin + "/ical/?" + searchParams);
   }, [searchParams]);
 
-  const application = applications.find((a) => a.eventID === umbrellaID);
+  const application = user?.applications?.find((a) => a.event.ID === umbrellaID);
 
   return (
     <>

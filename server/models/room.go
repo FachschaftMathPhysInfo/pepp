@@ -26,7 +26,7 @@ func (*Room) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery)
 }
 
 type RoomToEventAvailability struct {
-	bun.BaseModel `bun:"table:room_to_event_availabilitys,alias:rea"`
+	bun.BaseModel `bun:"table:room_to_event_availabilities,alias:rea"`
 
 	RoomNumber string `bun:",pk,type:varchar(50)"`
 	BuildingID int32  `bun:",pk"`

@@ -29,6 +29,16 @@ const SignInFormSchema = z.object({
   email: z.string().min(4, {
     message: "Bitte gib deine E-Mail Adresse an.",
   }),
+  password: z.string()
+});
+
+const RegisterFormSchema = SignInFormSchema.extend({
+  fn: z.string().min(1, {
+    message: "Bitte gib deinen Vornamen an.",
+  }),
+  sn: z.string().min(1, {
+    message: "Bitte gib deinen Nachnamen an."
+  }),
   password: z
     .string()
     .min(8, { message: "Muss mindestens 8 Zeichen lang sein." })
@@ -39,13 +49,6 @@ const SignInFormSchema = z.object({
     .regex(new RegExp(".*[`~<>?,./!@#$%^&*()\\-_+=\"'|{}\\[\\];:\\\\].*"), {
       message: "Muss ein Sonderzeichen enthalten.",
     }),
-});
-
-const RegisterFormSchema = SignInFormSchema.extend({
-  fn: z.string().min(1, {
-    message: "Bitte gib deinen Vornamen an.",
-  }),
-  sn: z.string(),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   path: ["confirmPassword"],
@@ -159,6 +162,7 @@ export const SignInDialog = () => {
                     <FormControl>
                       <Input placeholder="Vorname" {...field} />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -170,6 +174,7 @@ export const SignInDialog = () => {
                     <FormControl>
                       <Input placeholder="Nachname" {...field} />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

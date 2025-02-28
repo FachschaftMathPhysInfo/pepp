@@ -24,7 +24,7 @@ interface PlannerProps {
 
 export function Planner({ events }: PlannerProps) {
   const { setCloseupID } = useUmbrella();
-  const { registrations } = useUser();
+  const { user } = useUser();
 
   const groupedEvents = groupEvents(events);
   const [currentMinutes, setCurrentMinutes] = useState(0);
@@ -100,7 +100,7 @@ export function Planner({ events }: PlannerProps) {
                         event.from,
                         event.to
                       );
-                      const registration = registrations.find(
+                      const registration = user?.registrations?.find(
                         (r) => r.event.ID === event.ID
                       );
 
@@ -114,8 +114,8 @@ export function Planner({ events }: PlannerProps) {
                             key={event.ID}
                             className={`rounded-lg p-4 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
                             style={{
-                              color: calculateFontColor(event.topic.color),
-                              backgroundColor: event.topic.color,
+                              color: calculateFontColor(event.topic.color ?? ""),
+                              backgroundColor: event.topic.color ?? "",
                               height: `${eventDurationHours * 100}px`,
                             }}
                             role="button"

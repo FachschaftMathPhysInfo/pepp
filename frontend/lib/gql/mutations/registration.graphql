@@ -11,8 +11,10 @@ mutation addStudentRegistrationForEvent($registration:NewUserToEventRegistration
 
 mutation deleteStudentRegistrationForEvent($registration: NewUserToEventRegistration!) {
   deleteStudentRegistrationForEvent(registration: $registration) {
-    eventsRegistered {
-      ID
+    registrations {
+      event {
+        ID
+      }
     }
   }
 }

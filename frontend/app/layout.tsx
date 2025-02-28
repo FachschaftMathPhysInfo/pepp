@@ -12,7 +12,7 @@ import {
   UmbrellaProvider,
 } from "@/components/providers";
 import Header from "@/components/header";
-import {Suspense} from "react";
+import { Suspense } from "react";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -47,27 +47,33 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="de" suppressHydrationWarning>
       <head />
       <body
+        suppressHydrationWarning
         className={cn(
           "min-h-screen bg-background font-sans antialiased max-w-xm",
           fontSans.variable,
           fontHeading.variable
         )}
       >
-      <Suspense>
-        <UserProvider>
-          <ThemeProvider>
-            <UmbrellaProvider>
-              <Header />
-              {children}
-              <Toaster />
-              <TailwindIndicator />
-            </UmbrellaProvider>
-          </ThemeProvider>
-        </UserProvider>
-      </Suspense>
+        <Suspense>
+          <UserProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <UmbrellaProvider>
+                <Header />
+                {children}
+                <Toaster />
+                <TailwindIndicator />
+              </UmbrellaProvider>
+            </ThemeProvider>
+          </UserProvider>
+        </Suspense>
       </body>
     </html>
   );

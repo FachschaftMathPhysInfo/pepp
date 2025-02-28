@@ -75,7 +75,7 @@ query eventCloseup($id: Int!) {
       name
       color
     }
-    tutorsAssigned {
+    tutorials {
       tutors {
         fn
         sn

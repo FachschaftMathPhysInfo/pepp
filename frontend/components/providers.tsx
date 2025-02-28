@@ -9,10 +9,11 @@ import {
   useState,
 } from "react";
 import {
-  EventRegistration,
-  SidLoginDocument,
-  SidLoginQuery,
-  SidLoginQueryVariables,
+  LoginDocument,
+  LoginQuery,
+  LoginQueryVariables,
+  Role,
+  Tutorial,
   UmbrellaOfEventDocument,
   UmbrellaOfEventQuery,
   UmbrellaOfEventQueryVariables,
@@ -21,23 +22,20 @@ import {
   UmbrellasQueryVariables,
   User,
 } from "@/lib/gql/generated/graphql";
+import {
+  defaultApplication,
+  defaultEvent,
+  defaultTutorial,
+  defaultUser,
+} from "@/types/defaults";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { type ThemeProviderProps } from "next-themes/dist/types";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { client } from "@/lib/graphql";
 
-type Application = {
-  accepted: boolean;
-  eventID: number;
-};
-
 type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
-  registrations: EventRegistration[];
-  setRegistrations: (registrations: EventRegistration[]) => void;
-  applications: Application[];
-  setApplications: (applications: Application[]) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -52,36 +50,34 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
-  const [applications, setApplications] = useState<Application[]>([])
 
   useEffect(() => {
     const login = async (sid: string) => {
-      const vars: SidLoginQueryVariables = {
-        sid: sid
-      }
-      const userData = await client.request<SidLoginQuery>(
-        SidLoginDocument,
-        vars
-      )
-      const user = userData.login.user
+      const vars: LoginQueryVariables = {
+        sessionID: sid,
+      };
+      const userData = await client.request<LoginQuery>(LoginDocument, vars);
+      const user = userData.login.user;
       setUser({
-        mail: user.mail,
-        fn: user.fn,
-        sn: user.sn,
-        confirmed: user.confirmed,
+        ...defaultUser,
+        ...user,
+        registrations: user.registrations?.map((r) => ({
+          ...defaultTutorial,
+          ...r,
+          event: { ...defaultEvent, ...r.event },
+        })),
+        applications:
+          user.applications?.map((a) => ({
+            ...defaultApplication,
+            ...a,
+            event: { ...defaultEvent, ...a.event },
+          })) || [],
       });
-      setApplications(user.applications?.map(a => ({
-        accepted: a.accepted ?? false,
-        eventID: a.event.ID,
-      })) ?? [])
-    }
-  })
+    };
+  });
 
   return (
-    <UserContext.Provider
-      value={{ user, setUser, registrations, setRegistrations, applications, setApplications }}
-    >
+    <UserContext.Provider value={{ user, setUser }}>
       {children}
     </UserContext.Provider>
   );
@@ -183,5 +179,15 @@ export const UmbrellaProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const ThemeProvider = ({ children, ...props }: ThemeProviderProps) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
 };

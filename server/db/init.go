@@ -29,7 +29,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		}
 		db = bun.NewDB(sqldb, pgdialect.New())
 	default:
-		log.Info("no database type specified, creating default sqlite")
+		log.Info("no database type specified, using default sqlite")
 		sqldb, err = sql.Open(sqliteshim.ShimName, "./pepp.db")
 		if err != nil {
 			log.Panic("sqlite creation failed: ", err)
