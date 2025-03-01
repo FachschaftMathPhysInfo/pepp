@@ -2,7 +2,6 @@
 
 import { LogIn, Moon, SquareCheckBig, Sun } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   DropdownMenu,
@@ -43,7 +42,7 @@ export default function Header() {
 
   const { setCloseupID } = useUmbrella();
   const { setTheme } = useTheme();
-  const { user, setUser, registrations } = useUser();
+  const { user, setUser } = useUser();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -150,7 +149,9 @@ export default function Header() {
                           >
                             {e.title}
                             {user &&
-                            registrations.find((r) => r.event.ID === e.ID)
+                            user?.registrations?.find(
+                              (r) => r.event.ID === e.ID
+                            )
                               ? true
                               : false && (
                                   <SquareCheckBig className="w-2 h-2 text-green-700" />

@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  defaultRoom,
+  defaultTutorial,
+  defaultUser,
+  defaultEvent,
+} from "@/types/defaults";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,12 +22,10 @@ import {
   DeleteStudentRegistrationForEventDocument,
   DeleteStudentRegistrationForEventMutation,
   DeleteStudentRegistrationForEventMutationVariables,
-  EventRegistration,
   EventToUserAssignment,
-  EventTutorRoomPair,
   MutationUpdateRoomForTutorialArgs,
-  NewUserToEventRegistration,
   Room,
+  Tutorial,
   TutorialAvailabilitysDocument,
   TutorialAvailabilitysQuery,
   TutorialAvailabilitysQueryVariables,
@@ -43,7 +47,7 @@ import { RoomSelection } from "./room-selection";
 import { RoomHoverCard } from "../room-hover-card";
 
 interface TutorialsTableProps {
-  tutorials: EventTutorRoomPair[];
+  tutorials: Tutorial[];
   registrationCounts: number[];
   capacities: number[];
   edit: boolean;
@@ -62,17 +66,11 @@ export function TutorialsTable({
   registrationCounts,
   capacities,
   edit,
-  newAssignments,
-  setNewAssignments,
-  deleteAssignments,
-  setDeleteAssignments,
 }: TutorialsTableProps) {
-  const { user, registrations, setRegistrations } = useUser();
+  const { user, setUser } = useUser();
   const { closeupID } = useUmbrella();
   const [loading, setLoading] = useState(false);
-  const [registration, setRegistration] = useState<
-    EventRegistration | undefined
-  >();
+  const [registration, setRegistration] = useState<Tutorial | undefined>();
   const [regCounts, setRegCounts] = useState<number[]>(registrationCounts);
   const [cap, setCap] = useState<number[]>(capacities);
   const [availableTutors, setAvailableTutors] = useState<User[]>([]);
@@ -87,7 +85,7 @@ export function TutorialsTable({
 
   useEffect(() => {
     if (!user) return;
-    setRegistration(registrations.find((r) => r.event.ID === closeupID));
+    setRegistration(user.registrations?.find((r) => r.event.ID === closeupID));
   }, [user]);
 
   const groupRoomsByBuildingID = () => {
@@ -101,13 +99,14 @@ export function TutorialsTable({
     }, {} as { [key: string]: Room[] });
   };
 
-  const registerForEvent = async (
-    reg: NewUserToEventRegistration,
-    i: number,
-    room: Room
-  ) => {
+  const registerForEvent = async (tutorial: Tutorial, i: number) => {
     const vars: AddStudentRegistrationForEventMutationVariables = {
-      registration: reg,
+      registration: {
+        eventID: tutorial.event.ID,
+        userMail: user?.mail!,
+        roomNumber: tutorial.room.number,
+        buildingID: tutorial.room.building.ID,
+      },
     };
 
     await client.request<AddStudentRegistrationForEventMutation>(
@@ -116,20 +115,8 @@ export function TutorialsTable({
     );
 
     changeRegistrationCount(i, 1);
-    const newReg = {
-      event: {
-        ID: reg.eventID,
-        title: "",
-        topic: { name: "" },
-        type: { name: "" },
-        from: "",
-        to: "",
-        needsTutors: true,
-      },
-      room: room,
-    };
-    setRegistrations([...registrations, newReg]);
-    setRegistration(newReg);
+    setUser({ ...user!, registrations: user!.registrations?.concat(tutorial) });
+    setRegistration(tutorial);
   };
 
   useEffect(() => {
@@ -147,10 +134,8 @@ export function TutorialsTable({
 
       setAvailableTutors(
         eventData.events[0].tutorsAvailable?.map((t) => ({
-          mail: t.mail,
-          fn: t.fn,
-          sn: t.sn,
-          confirmed: true,
+          ...defaultUser,
+          ...t,
         })) ?? []
       );
 
@@ -159,19 +144,8 @@ export function TutorialsTable({
       setAvailableRooms(
         eventData.events[0].roomsAvailable
           ?.map((r) => ({
-            number: r.number,
-            name: r.name,
-            building: {
-              number: r.building.number,
-              ID: r.building.ID,
-              name: r.building.name,
-              street: r.building.street,
-              zip: r.building.zip,
-              city: r.building.city,
-              latitude: 0,
-              longitude: 0,
-              zoomLevel: 0,
-            },
+            ...defaultRoom,
+            ...r,
           }))
           .filter((r) => tutorials.map((t) => t.room).includes(r)) ?? []
       );
@@ -180,9 +154,14 @@ export function TutorialsTable({
     fetchData();
   }, [edit]);
 
-  const unregisterFromEvent = async (reg: NewUserToEventRegistration) => {
+  const unregisterFromEvent = async (tutorial: Tutorial) => {
     const vars: DeleteStudentRegistrationForEventMutationVariables = {
-      registration: reg,
+      registration: {
+        eventID: tutorial.event.ID,
+        userMail: user?.mail!,
+        roomNumber: tutorial.room.number,
+        buildingID: tutorial.room.building.ID,
+      },
     };
 
     await client.request<DeleteStudentRegistrationForEventMutation>(
@@ -229,42 +208,42 @@ export function TutorialsTable({
   const handleRegistrationChange = async (room: Room, i: number) => {
     setLoading(true);
 
-    const reg = {
-      userMail: user?.mail ?? "",
-      eventID: closeupID ?? 0,
-      roomNumber: room.number,
-      buildingID: room.building.ID,
-    };
-
     if (registration) {
+      const newRegistration: Tutorial = { ...registration, room: room };
       if (
-        reg.roomNumber === registration.room.number &&
-        reg.buildingID === registration.room.building.ID
+        newRegistration.room.number === registration.room.number &&
+        newRegistration.room.building.ID === registration.room.building.ID
       ) {
-        await unregisterFromEvent(reg);
+        await unregisterFromEvent(newRegistration);
         setRegistration(undefined);
-        setRegistrations(
-          registrations.filter((r) => r.event.ID !== reg.eventID)
-        );
-      } else {
-        await unregisterFromEvent({
-          eventID: reg.eventID,
-          roomNumber: registration.room.number,
-          buildingID: registration.room.building.ID,
-          userMail: user?.mail ?? "",
+        setUser({
+          ...user!,
+          registrations: user?.registrations?.filter(
+            (r) => r.event.ID !== newRegistration.event.ID
+          ),
         });
-        await registerForEvent(reg, i, room);
-        setRegistrations(
-          registrations.map((r) => {
-            if (r.event.ID === reg.eventID) {
+      } else {
+        await unregisterFromEvent(registration);
+        await registerForEvent(newRegistration, i);
+        setUser({
+          ...user!,
+          registrations: user?.registrations?.map((r) => {
+            if (r.event.ID === newRegistration.event.ID) {
               r.room = room;
             }
             return r;
-          })
-        );
+          }),
+        });
       }
     } else {
-      await registerForEvent(reg, i, room);
+      await registerForEvent(
+        {
+          ...defaultTutorial,
+          room: room,
+          event: { ...defaultEvent, ID: closeupID! },
+        },
+        i
+      );
     }
     setLoading(false);
   };
@@ -504,17 +483,17 @@ export function TutorialsTable({
                       setTuts((prev) => [
                         ...prev,
                         {
+                          ...defaultTutorial,
                           tutors: newTutorialTutors,
                           room: newTutorialRoom,
-                          registrations: 0,
                         },
                       ]);
                     }
                     setCap((prev) => [...prev, newTutorialRoom?.capacity ?? 1]);
-                    setSelectedRooms(prev => [...prev, newTutorialRoom])
-                    setRegCounts(prev => [...prev, 0])
-                    setNewTutorialRoom(undefined)
-                    setNewTutorialTutors([])
+                    setSelectedRooms((prev) => [...prev, newTutorialRoom]);
+                    setRegCounts((prev) => [...prev, 0]);
+                    setNewTutorialRoom(undefined);
+                    setNewTutorialTutors([]);
                   }}
                 >
                   <Plus />

@@ -12,8 +12,6 @@ import { client } from "@/lib/graphql";
 import { useEffect, useState } from "react";
 import { columns } from "./columns";
 import { TableSkeleton } from "@/components/table-skeleton";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
 export default function EventsPage() {
   const [loading, setLoading] = useState(true);

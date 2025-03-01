@@ -1,4 +1,4 @@
-FROM golang:1.22.4-bullseye AS build
+FROM golang:1.23.0-bullseye AS build
 
 WORKDIR /go/src
 
@@ -14,8 +14,6 @@ COPY maintenance ./maintenance
 COPY tracing ./tracing
 COPY ical ./ical
 COPY password ./password
-
-RUN go generate ./...
 
 RUN CGO_ENABLED=0 go build -a -o graphql-server server.go
 

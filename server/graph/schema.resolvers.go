@@ -754,7 +754,6 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Model(&events).
 		Relation("Topic").
 		Relation("Type").
-		Relation("TutorsAssigned").
 		Relation("TutorsAvailable").
 		Relation("RoomsAvailable").
 		Relation("RoomsAvailable.Building").
@@ -1024,11 +1023,11 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 		return nil, err
 	}
 
-	roomMap := make(map[string]*model.Tutorial)
+	tutorialMap := make(map[string]*model.Tutorial)
 	for _, eventToUserAssignment := range eventToUserAssignments {
 		roomKey := eventToUserAssignment.Room.Number +
 			strconv.Itoa(int(eventToUserAssignment.Room.BuildingID))
-		if room, exists := roomMap[roomKey]; exists {
+		if room, exists := tutorialMap[roomKey]; exists {
 			room.Tutors = append(room.Tutors, eventToUserAssignment.User)
 		} else {
 			registrationsCount, err := r.DB.NewSelect().
@@ -1037,12 +1036,11 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 				Where("room_number = ?", eventToUserAssignment.Room.Number).
 				Where("building_id = ?", eventToUserAssignment.BuildingID).
 				Count(ctx)
-
 			if err != nil {
 				return nil, err
 			}
 
-			roomMap[roomKey] = &model.Tutorial{
+			tutorialMap[roomKey] = &model.Tutorial{
 				Tutors:        []*models.User{eventToUserAssignment.User},
 				Room:          eventToUserAssignment.Room,
 				Registrations: registrationsCount,
@@ -1051,7 +1049,7 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 	}
 
 	var tutorials []*model.Tutorial
-	for _, tutorRoomPair := range roomMap {
+	for _, tutorRoomPair := range tutorialMap {
 		tutorials = append(tutorials, tutorRoomPair)
 	}
 

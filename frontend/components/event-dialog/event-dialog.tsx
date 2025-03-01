@@ -50,6 +50,7 @@ import { TutorialsTable } from "./tutorials-table";
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
 import { FullDateDescription } from "../full-date-description";
+import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -123,15 +124,13 @@ export default function EventDialog() {
       if (eventData.events.length) {
         const e = eventData.events[0];
         setEvent({
-          ID: e.ID,
-          title: e.title,
-          description: e.description,
-          topic: { name: e.topic.name, color: e.topic.color },
-          type: { name: e.type.name, color: e.type.color },
-          from: e.from,
-          to: e.to,
-          needsTutors: e.needsTutors,
-          tutorsAssigned: e.tutorsAssigned,
+          ...defaultEvent,
+          ...e,
+          tutorials: e.tutorials?.map((t) => ({
+            ...defaultTutorial,
+            ...t,
+            tutors: t.tutors.map((tu) => ({ ...defaultUser, ...tu })),
+          })),
         });
         form.reset();
         setLoading(false);
@@ -220,10 +219,10 @@ export default function EventDialog() {
                       )}
                     />
                     <div className="space-x-2">
-                      <Badge variant="event" color={event?.topic.color}>
+                      <Badge variant="event" color={event?.topic.color || ""}>
                         {event?.topic.name}
                       </Badge>
-                      <Badge variant="event" color={event?.type.color}>
+                      <Badge variant="event" color={event?.type.color || ""}>
                         {event?.type.name}
                       </Badge>
                     </div>
@@ -241,7 +240,7 @@ export default function EventDialog() {
                   </DialogDescription>
                 </DialogHeader>
 
-                {!user && event?.tutorsAssigned?.length && (
+                {!user && event?.tutorials?.length && (
                   <div>
                     <span>Bitte </span>
                     <Dialog>
@@ -256,13 +255,13 @@ export default function EventDialog() {
                   </div>
                 )}
                 <TutorialsTable
-                  tutorials={event?.tutorsAssigned ?? []}
+                  tutorials={event?.tutorials ?? []}
                   registrationCounts={
-                    event?.tutorsAssigned?.map((t) => t.registrations ?? 0) ||
+                    event?.tutorials?.map((t) => t.registrations ?? 0) ||
                     []
                   }
                   capacities={
-                    event?.tutorsAssigned?.map((t) => t.room.capacity ?? 1) ||
+                    event?.tutorials?.map((t) => t.room.capacity ?? 1) ||
                     []
                   }
                   edit={edit}

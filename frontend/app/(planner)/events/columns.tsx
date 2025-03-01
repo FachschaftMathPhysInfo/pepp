@@ -15,6 +15,19 @@ import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 
+const TitleCell = ({ row }: { row: any }) => {
+  const { setCloseupID } = useUmbrella(); // Now inside a React component
+
+  return (
+    <p
+      className="hover:underline cursor-pointer"
+      onClick={() => setCloseupID(row.original.ID)}
+    >
+      {row.original.title}
+    </p>
+  );
+};
+
 export const columns: ColumnDef<Event>[] = [
   {
     id: "select",
@@ -41,17 +54,7 @@ export const columns: ColumnDef<Event>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Titel" />
     ),
-    cell: ({ row }) => {
-      const { setCloseupID } = useUmbrella();
-      return (
-        <p
-          className="hover:underline cursor-pointer"
-          onClick={() => setCloseupID(row.original.ID)}
-        >
-          {row.original.title}
-        </p>
-      );
-    },
+    cell: ({ row }) => <TitleCell row={row} />,
   },
   {
     accessorKey: "date",
@@ -84,7 +87,7 @@ export const columns: ColumnDef<Event>[] = [
     accessorKey: "type",
     header: "Art",
     cell: ({ row }) => (
-      <Badge variant="event" color={row.original.type.color}>
+      <Badge variant="event" color={row.original.type.color ?? ""}>
         {row.original.type.name}
       </Badge>
     ),
@@ -93,7 +96,7 @@ export const columns: ColumnDef<Event>[] = [
     accessorKey: "topic",
     header: "Thema",
     cell: ({ row }) => (
-      <Badge variant="event" color={row.original.topic.color}>
+      <Badge variant="event" color={row.original.topic.color ?? ""}>
         {row.original.topic.name}
       </Badge>
     ),
@@ -102,8 +105,6 @@ export const columns: ColumnDef<Event>[] = [
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const event = row.original;
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -13,9 +13,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  EmailPasswordLoginDocument,
-  EmailPasswordLoginQuery,
-  EmailPasswordLoginQueryVariables,
+  EmailPassword,
+  LoginDocument,
+  LoginQuery,
   RegistrationDocument,
   RegistrationMutation,
   RegistrationMutationVariables,
@@ -24,12 +24,18 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { client } from "@/lib/graphql";
 import { useUser } from "./providers";
+import {
+  defaultApplication,
+  defaultEvent,
+  defaultTutorial,
+  defaultUser,
+} from "@/types/defaults";
 
 const SignInFormSchema = z.object({
   email: z.string().min(4, {
     message: "Bitte gib deine E-Mail Adresse an.",
   }),
-  password: z.string()
+  password: z.string(),
 });
 
 const RegisterFormSchema = SignInFormSchema.extend({
@@ -37,7 +43,7 @@ const RegisterFormSchema = SignInFormSchema.extend({
     message: "Bitte gib deinen Vornamen an.",
   }),
   sn: z.string().min(1, {
-    message: "Bitte gib deinen Nachnamen an."
+    message: "Bitte gib deinen Nachnamen an.",
   }),
   password: z
     .string()
@@ -56,7 +62,7 @@ const RegisterFormSchema = SignInFormSchema.extend({
 });
 
 export const SignInDialog = () => {
-  const { setUser, setRegistrations, setApplications } = useUser();
+  const { setUser } = useUser();
   const [correct, setCorrect] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -85,39 +91,31 @@ export const SignInDialog = () => {
       }
     }
 
-    const credentials: EmailPasswordLoginQueryVariables = {
+    const credentials: EmailPassword = {
       email: data.email,
       password: data.password,
     };
 
     try {
-      const userData = await client.request<EmailPasswordLoginQuery>(
-        EmailPasswordLoginDocument,
+      const userData = await client.request<LoginQuery>(
+        LoginDocument,
         credentials
       );
-      const user = userData.login.user
+      const user = userData.login.user;
       setUser({
-        mail: user.mail,
-        fn: user.fn,
-        sn: user.sn,
-        confirmed: user.confirmed,
+        ...defaultUser,
+        ...user,
+        registrations: user.registrations?.map((r) => ({
+          ...defaultTutorial,
+          ...r,
+          event: { ...defaultEvent, ...r.event },
+        })),
+        applications: user.applications?.map((a) => ({
+          ...defaultApplication,
+          ...a,
+          event: { ...defaultEvent, ...a.event },
+        })),
       });
-      setApplications(user.applications?.map(a => ({
-        accepted: a.accepted ?? false,
-        eventID: a.event.ID,
-      })) ?? [])
-      setRegistrations(userData.registrations.map(r => ({
-        event: {
-          ID: r.event.ID,
-          title: "",
-          topic: { name: "" },
-          type: { name: "" },
-          from: "",
-          to: "",
-          needsTutors: true,
-        },
-        room: r.room,
-      })))
     } catch {
       setCorrect(false);
     }

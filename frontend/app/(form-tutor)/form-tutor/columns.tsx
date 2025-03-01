@@ -33,7 +33,7 @@ export const columns: ColumnDef<Event>[] = [
     cell: ({ row }) => (
       <div>
         <div className={"mb-0.5"}>{row.original.title}</div>
-        <Badge color={row.original.type.color}>{row.original.type.name}</Badge>
+        <Badge color={row.original.type.color ?? ""}>{row.original.type.name}</Badge>
       </div>
     ),
   },

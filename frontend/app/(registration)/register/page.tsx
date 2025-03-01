@@ -39,9 +39,10 @@ import {
 } from "@/components/ui/form";
 import { toast } from "sonner";
 import { CardSkeleton } from "@/components/card-skeleton";
-import {Dialog} from "@/components/ui/dialog";
-import {useUmbrella, useUser} from "@/components/providers";
-import {SignInDialog} from "@/components/sign-in-dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { useUmbrella, useUser } from "@/components/providers";
+import { SignInDialog } from "@/components/sign-in-dialog";
+import { defaultApplication } from "@/types/defaults";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
@@ -62,11 +63,11 @@ const MultipleChoiceFormSchema = (required: boolean) =>
   });
 
 export default function Registration() {
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   const router = useRouter();
 
-  const { user, applications, setApplications } = useUser();
-  const { setUmbrellaID } = useUmbrella()
+  const { user, setUser } = useUser();
+  const { setUmbrellaID } = useUmbrella();
 
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
     null
@@ -83,12 +84,12 @@ export default function Registration() {
     }
   }, [responses]);
 
-  const eventID = parseInt(searchParams.get("e") ?? "0")
+  const eventID = parseInt(searchParams.get("e") ?? "0");
   useEffect(() => {
-    setUmbrellaID(eventID)
+    setUmbrellaID(eventID);
     const fetchData = async () => {
       const vars: RegistrationFormQueryVariables = {
-        eventID: eventID
+        eventID: eventID,
       };
 
       const data = await client.request<RegistrationFormQuery>(
@@ -157,10 +158,6 @@ export default function Registration() {
         AddStudentApplicationForEventDocument,
         vars
       );
-      setApplications([...applications, {
-        eventID: eventID,
-        accepted: false
-      }])
       toast("Anmeldung abgeschickt!");
       handleQuit();
     } catch (err) {
@@ -366,4 +363,4 @@ export default function Registration() {
       )}
     </>
   );
-};
+}

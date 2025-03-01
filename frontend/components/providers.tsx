@@ -12,8 +12,6 @@ import {
   LoginDocument,
   LoginQuery,
   LoginQueryVariables,
-  Role,
-  Tutorial,
   UmbrellaOfEventDocument,
   UmbrellaOfEventQuery,
   UmbrellaOfEventQueryVariables,
