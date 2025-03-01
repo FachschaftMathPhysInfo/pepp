@@ -13,6 +13,7 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
 	"github.com/uptrace/bun/driver/sqliteshim"
+	"github.com/uptrace/bun/extra/bundebug"
 	"github.com/uptrace/bun/extra/bunotel"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
@@ -36,6 +37,10 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		}
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 	}
+
+	db.AddQueryHook(bundebug.NewQueryHook(
+		bundebug.WithVerbose(true),
+	))
 
 	db.AddQueryHook(bunotel.NewQueryHook(
 		bunotel.WithFormattedQueries(true),

@@ -68,13 +68,10 @@ export default function IndexPage() {
             topic: { ...defaultLabel, ...e.topic },
           }))
         );
-        if (eventData.umbrellas[0].registrationForm) {
-          setIsRestricted(true);
-        } else {
-          setIsRestricted(false);
-        }
-        setLoading(false);
+        setIsRestricted(eventData.umbrellas[0].registrationForm ? true : false);
       }
+
+      setLoading(false);
     };
 
     router.push(
@@ -98,7 +95,9 @@ export default function IndexPage() {
     setIcalPath(window.location.origin + "/ical/?" + searchParams);
   }, [searchParams]);
 
-  const application = user?.applications?.find((a) => a.event.ID === umbrellaID);
+  const application = user?.applications?.find(
+    (a) => a.event.ID === umbrellaID
+  );
 
   return (
     <>

@@ -37,6 +37,8 @@ github.com/dgryski/trifles v0.0.0-20200323201526-dd97f9abfb48/go.mod h1:if7Fbed8
 github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
+github.com/fatih/color v1.18.0 h1:S8gINlzdQ840/4pfAwic/ZE0djQEH3wM94VfqLTZcOM=
+github.com/fatih/color v1.18.0/go.mod h1:4FelSpRwEGDpQ12mAdzqdOukCy4u8WUtOY6lkT/6HfU=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/go-chi/chi/v5 v5.1.0 h1:acVI1TYaD+hhedDJ3r54HyA6sExp3HfXq7QWEEY/xMw=
@@ -85,6 +87,8 @@ github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/matcornic/hermes/v2 v2.1.0 h1:9TDYFBPFv6mcXanaDmRDEp/RTWj0dTTi+LpFnnnfNWc=
 github.com/matcornic/hermes/v2 v2.1.0/go.mod h1:2+ziJeoyRfaLiATIL8VZ7f9hpzH4oDHqTmn0bhrsgVI=
+github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
+github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-runewidth v0.0.3/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
@@ -153,6 +157,8 @@ github.com/uptrace/bun/dialect/sqlitedialect v1.2.10 h1:/74GDx1hnRrrmIvqpNbbFwD2
 github.com/uptrace/bun/dialect/sqlitedialect v1.2.10/go.mod h1:xBx+N2q4G4s51tAxZU5vKB3Zu0bFl1uRmKqZwCPBilg=
 github.com/uptrace/bun/driver/sqliteshim v1.2.10 h1:D9CDMuvhbAEgWOTNDgHcXDMMBdO2bxZPB1I7BwmE7VI=
 github.com/uptrace/bun/driver/sqliteshim v1.2.10/go.mod h1:kVsO2rGHv/Ee4XBDNXWlR/kJ3LEy4Imd2wzF4gGq2R8=
+github.com/uptrace/bun/extra/bundebug v1.2.10 h1:9Ot6fJ1vemrc0qBYp0roJCogTl9den1PAFcYygBiKoc=
+github.com/uptrace/bun/extra/bundebug v1.2.10/go.mod h1:xnuXkwPrC0gNalR2bde8PobgjwXGCo4D9nZoV/2ghzQ=
 github.com/uptrace/bun/extra/bunotel v1.2.10 h1:Qkg0PrpcnlC9AvqCfqTL3seZHc5t1siKdSFUPCxql+Q=
 github.com/uptrace/bun/extra/bunotel v1.2.10/go.mod h1:FP1Bx8AIK8WYVM1OL/ynpcnkg7xjBkTCB91PEjFhdmU=
 github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.2 h1:ZjUj9BLYf9PEqBn8W/OapxhPjVRdC6CsXTdULHsyk5c=

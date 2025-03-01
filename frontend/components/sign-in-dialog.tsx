@@ -16,6 +16,7 @@ import {
   EmailPassword,
   LoginDocument,
   LoginQuery,
+  LoginQueryVariables,
   RegistrationDocument,
   RegistrationMutation,
   RegistrationMutationVariables,
@@ -35,7 +36,9 @@ const SignInFormSchema = z.object({
   email: z.string().min(4, {
     message: "Bitte gib deine E-Mail Adresse an.",
   }),
-  password: z.string(),
+  password: z.string().min(1, {
+    message: "Bitte gib dein Passwort an.",
+  }),
 });
 
 const RegisterFormSchema = SignInFormSchema.extend({
@@ -91,9 +94,11 @@ export const SignInDialog = () => {
       }
     }
 
-    const credentials: EmailPassword = {
-      email: data.email,
-      password: data.password,
+    const credentials: LoginQueryVariables = {
+      credentials: {
+        email: data.email,
+        password: data.password,
+      },
     };
 
     try {

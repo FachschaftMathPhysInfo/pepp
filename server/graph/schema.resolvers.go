@@ -930,7 +930,6 @@ func (r *queryResolver) Users(ctx context.Context, mail []string, sessionID []st
 	query := r.DB.NewSelect().
 		Model(&users).
 		Relation("EventsAssigned").
-		Relation("EventsAvailable").
 		Relation("EventsRegistered").
 		Relation("Applications")
 
@@ -1006,17 +1005,17 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 		Relation("User")
 
 	if eventID != nil {
-		query = query.Where("event_id IN (?)", bun.In(eventID))
+		query = query.Where("eta.event_id IN (?)", bun.In(eventID))
 	}
 
 	if studentMail != nil {
 		query = query.
-			Join("JOIN user_to_event_registrations AS uer ON uer.event_id = event_id").
+			Join("JOIN user_to_event_registrations AS uer ON uer.event_id = eta.event_id").
 			Where("uer.user_mail IN (?)", bun.In(studentMail))
 	}
 
 	if tutorMail != nil {
-		query = query.Where("user_mail IN (?)", bun.In(tutorMail))
+		query = query.Where("eta.user_mail IN (?)", bun.In(tutorMail))
 	}
 
 	if err := query.Scan(ctx); err != nil {

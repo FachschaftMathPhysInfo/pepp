@@ -19,7 +19,7 @@ type User struct {
 	Password  string    `bun:"type:varchar(64)"`
 	Salt      string    `bun:"type:varchar(22)"`
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp"`
-	Role      string    `bun:"type:varchar(5),default:'USER'"`
+	Role      string    `bun:"type:varchar(5),nullzero,notnull,default:'USER'"`
 
 	Availabilities   []Event        `bun:"m2m:user_to_event_availabilities,join:User=Event"`
 	EventsAssigned   []Event        `bun:"m2m:event_to_user_assignments,join:User=Event"`
