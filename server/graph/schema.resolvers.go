@@ -1010,8 +1010,10 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 
 	if studentMail != nil {
 		query = query.
-			Join("JOIN user_to_event_registrations AS uer ON uer.event_id = eta.event_id").
-			Where("uer.user_mail IN (?)", bun.In(studentMail))
+			Join("JOIN user_to_event_registrations AS uer ON eta.user_mail = uer.user_mail AND eta.event_id = uer.event_id AND eta.room_number = uer.room_number AND eta.building_id = uer.building_id").
+			Where("eta.user_mail IN (?)", bun.In(studentMail))
+		//			Join("JOIN user_to_event_registrations AS uer ON uer.event_id = eta.event_id").
+		//			Where("uer.user_mail IN (?)", bun.In(studentMail)).
 	}
 
 	if tutorMail != nil {
@@ -1042,6 +1044,7 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 			tutorialMap[roomKey] = &model.Tutorial{
 				Tutors:        []*models.User{eventToUserAssignment.User},
 				Room:          eventToUserAssignment.Room,
+				Event:         eventToUserAssignment.Event,
 				Registrations: registrationsCount,
 			}
 		}
