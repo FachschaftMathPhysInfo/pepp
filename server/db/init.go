@@ -42,10 +42,12 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		bundebug.WithVerbose(true),
 	))
 
-	db.AddQueryHook(bunotel.NewQueryHook(
-		bunotel.WithFormattedQueries(true),
-		bunotel.WithTracerProvider(tracer),
-	))
+	if tracer != nil {
+		db.AddQueryHook(bunotel.NewQueryHook(
+			bunotel.WithFormattedQueries(true),
+			bunotel.WithTracerProvider(tracer),
+		))
+	}
 
 	relations := []interface{}{
 		(*models.ApplicationToQuestion)(nil),

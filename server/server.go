@@ -22,6 +22,8 @@ import (
 	"github.com/robfig/cron/v3"
 	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -39,12 +41,20 @@ func main() {
 		port = defaultPort
 	}
 
-	apiTracer := tracing.InitTracing("api")
-	routerTracer := tracing.InitTracing("router")
-	databaseTracer := tracing.InitTracing("database")
-	maintenanceTracer := tracing.InitTracing("cronjobs")
+	enableTracing := os.Getenv("ENABLE_TRACING") == "true"
 
-	// init of database (create tables and stuff)
+	var apiTracer, routerTracer, databaseTracer, maintenanceTracer *sdktrace.TracerProvider
+	if enableTracing {
+		apiTracer = tracing.InitTracing("api")
+		routerTracer = tracing.InitTracing("router")
+		databaseTracer = tracing.InitTracing("database")
+		maintenanceTracer = tracing.InitTracing("cronjobs")
+	} else {
+		log.Info("tracing is disabled")
+		apiTracer, routerTracer, databaseTracer, maintenanceTracer = nil, nil, nil, nil
+	}
+
+	// Initialize database
 	db, sqldb, err := db.Init(ctx, databaseTracer)
 	defer sqldb.Close()
 	defer db.Close()
@@ -55,33 +65,39 @@ func main() {
 	resolver = graph.Resolver{
 		DB:         db,
 		Settings:   make(map[string]string),
-		MailConfig: new(email.Config)}
-	if err := resolver.FetchSettings(ctx); err != nil {
-		log.Fatalf("unable to fetch settings: %s", err)
+		MailConfig: new(email.Config),
 	}
 
-	// cronjobs for maintenance tasks
+	if err := resolver.FetchSettings(ctx); err != nil {
+		log.Fatal("unable to get settings: ", err)
+	}
+
+	log.Info("database connection successful")
+
+	// Set up cronjobs
 	c := cron.New()
 	c.AddFunc("@hourly", func() {
-		hourlyTracer := maintenanceTracer.Tracer("hourly")
+		var hourlyTracer trace.Tracer
+		if enableTracing {
+			hourlyTracer = maintenanceTracer.Tracer("hourly")
+		} else {
+			hourlyTracer = nil
+		}
 
 		if err := maintenance.DeleteUnconfirmedPeople(ctx, &resolver, hourlyTracer); err != nil {
-			log.Error("Error deleting unconfirmed people:", err)
+			log.Error("error deleting unconfirmed people: ", err)
 		}
 
 		if err := maintenance.CleanSessionIds(ctx, &resolver, hourlyTracer); err != nil {
-			log.Error("Error cleaning session ids:", err)
+			log.Error("error cleaning session ids: ", err)
 		}
 	})
 	c.Start()
 	defer c.Stop()
 
-	// server configuration
-	// [/]: Next.JS frontend
-	// [/api]: JSON API endpoint
-	// [/playground]: GraphQL Playground
-	// [/ical]: .ics calendar
-	// [/confirm/{sessionID}]: Confirm email addresses
+	log.Info("started cronjobs")
+
+	// Configure router
 	router := chi.NewRouter()
 	router.Use(
 		cors.New(cors.Options{
@@ -89,11 +105,14 @@ func main() {
 			AllowCredentials: true,
 			Debug:            false,
 		}).Handler,
-		otelchi.Middleware("pepp-server",
+	)
+
+	if enableTracing {
+		router.Use(otelchi.Middleware("pepp-server",
 			otelchi.WithChiRoutes(router),
 			otelchi.WithTracerProvider(routerTracer),
-		),
-	)
+		))
+	}
 
 	router.Use(middleware.Logger)
 
@@ -109,6 +128,11 @@ func main() {
 	})
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver}))
+
+	if enableTracing {
+		srv.Use(otelgqlgen.Middleware(otelgqlgen.WithTracerProvider(apiTracer)))
+	}
+
 	router.With(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.Header.Get(apiKeyHeader) != os.Getenv("API_KEY") {
@@ -118,10 +142,9 @@ func main() {
 			h.ServeHTTP(w, r)
 		})
 	}).Handle("/api", srv)
-	srv.Use(otelgqlgen.Middleware(otelgqlgen.WithTracerProvider(apiTracer)))
 
 	router.Handle("/playground", playground.Handler("GraphQL playground", "/api"))
 
-	log.Infof("connect to http://localhost:%s/ for GraphQL playground", port)
+	log.Info("router setup finished, ready to fire")
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }

@@ -10,8 +10,10 @@ import (
 )
 
 func DeleteUnconfirmedPeople(ctx context.Context, r *graph.Resolver, tracer trace.Tracer) error {
-	ctx, span := tracer.Start(ctx, "delete-unconfirmed-people")
-	defer span.End()
+	if tracer != nil {
+		_, span := tracer.Start(ctx, "delete-unconfirmed-people")
+		defer span.End()
+	}
 
 	twoHoursAgo := time.Now().Add(-2 * time.Hour)
 
@@ -33,8 +35,11 @@ func DeleteUnconfirmedPeople(ctx context.Context, r *graph.Resolver, tracer trac
 }
 
 func CleanSessionIds(ctx context.Context, r *graph.Resolver, tracer trace.Tracer) error {
-	ctx, span := tracer.Start(ctx, "clean-session-ids")
-	defer span.End()
+	if tracer != nil {
+
+		_, span := tracer.Start(ctx, "clean-session-ids")
+		defer span.End()
+	}
 
 	twelveHoursAgo := time.Now().Add(-12 * time.Hour)
 
