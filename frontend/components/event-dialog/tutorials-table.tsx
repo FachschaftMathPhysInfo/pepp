@@ -48,7 +48,6 @@ import { RoomHoverCard } from "../room-hover-card";
 
 interface TutorialsTableProps {
   tutorials: Tutorial[];
-  registrationCounts: number[];
   capacities: number[];
   edit: boolean;
   deleteAssignments: EventToUserAssignment[];
@@ -63,7 +62,6 @@ interface TutorialsTableProps {
 
 export function TutorialsTable({
   tutorials,
-  registrationCounts,
   capacities,
   edit,
 }: TutorialsTableProps) {
@@ -71,7 +69,6 @@ export function TutorialsTable({
   const { closeupID } = useUmbrella();
   const [loading, setLoading] = useState(false);
   const [registration, setRegistration] = useState<Tutorial | undefined>();
-  const [regCounts, setRegCounts] = useState<number[]>(registrationCounts);
   const [cap, setCap] = useState<number[]>(capacities);
   const [availableTutors, setAvailableTutors] = useState<User[]>([]);
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
@@ -99,32 +96,12 @@ export function TutorialsTable({
     }, {} as { [key: string]: Room[] });
   };
 
-  const registerForEvent = async (tutorial: Tutorial, i: number) => {
-    const vars: AddStudentRegistrationForEventMutationVariables = {
-      registration: {
-        eventID: tutorial.event.ID,
-        userMail: user?.mail!,
-        roomNumber: tutorial.room.number,
-        buildingID: tutorial.room.building.ID,
-      },
-    };
-
-    await client.request<AddStudentRegistrationForEventMutation>(
-      AddStudentRegistrationForEventDocument,
-      vars
-    );
-
-    changeRegistrationCount(i, 1);
-    setUser({ ...user!, registrations: user!.registrations?.concat(tutorial) });
-    setRegistration(tutorial);
-  };
-
   useEffect(() => {
     if (!edit) return;
 
     const fetchData = async () => {
       const vars: TutorialAvailabilitysQueryVariables = {
-        id: closeupID ?? 0,
+        id: closeupID!,
       };
 
       const eventData = await client.request<TutorialAvailabilitysQuery>(
@@ -154,11 +131,27 @@ export function TutorialsTable({
     fetchData();
   }, [edit]);
 
+  const registerForEvent = async (tutorial: Tutorial) => {
+    const vars: AddStudentRegistrationForEventMutationVariables = {
+      registration: {
+        eventID: closeupID!,
+        userMail: user!.mail,
+        roomNumber: tutorial.room.number,
+        buildingID: tutorial.room.building.ID,
+      },
+    };
+
+    await client.request<AddStudentRegistrationForEventMutation>(
+      AddStudentRegistrationForEventDocument,
+      vars
+    );
+  };
+
   const unregisterFromEvent = async (tutorial: Tutorial) => {
     const vars: DeleteStudentRegistrationForEventMutationVariables = {
       registration: {
-        eventID: tutorial.event.ID,
-        userMail: user?.mail!,
+        eventID: closeupID!,
+        userMail: user!.mail,
         roomNumber: tutorial.room.number,
         buildingID: tutorial.room.building.ID,
       },
@@ -168,18 +161,81 @@ export function TutorialsTable({
       DeleteStudentRegistrationForEventDocument,
       vars
     );
-
-    tutorials.forEach((e, i) => {
-      if (e.room?.number === registration?.room.number && e.room?.building.ID) {
-        changeRegistrationCount(i, -1);
-      }
-    });
   };
 
-  const changeRegistrationCount = (index: number, value: number) => {
-    setRegCounts((prevRegistrations) =>
-      prevRegistrations.map((reg, i) => (i === index ? reg + value : reg))
+  const isSameTutorial = (first: Tutorial, second: Tutorial) => {
+    return (
+      first.room.number === second.room.number &&
+      first.room.building.ID === second.room.building.ID
     );
+  };
+
+  const handleRegistrationChange = async (tutorial: Tutorial) => {
+    setLoading(true);
+
+    if (registration) {
+      if (isSameTutorial(tutorial, registration)) {
+        await unregisterFromEvent(registration);
+
+        setUser({
+          ...user!,
+          registrations: user?.registrations?.filter(
+            (r) => r.event.ID !== tutorial.event.ID
+          ),
+        });
+
+        setTuts(
+          tuts.map((t) => {
+            if (isSameTutorial(t, tutorial)) {
+              t.registrations -= 1;
+            }
+            return t;
+          })
+        );
+      } else {
+        await unregisterFromEvent(registration);
+        await registerForEvent(tutorial);
+
+        setUser({
+          ...user!,
+          registrations: user!.registrations?.map((t) => {
+            if (t.event.ID === tutorial.event.ID) {
+              t = tutorial;
+            }
+            return t;
+          }),
+        });
+
+        setTuts(
+          tuts.map((t) => {
+            if (isSameTutorial(t, tutorial)) {
+              t.registrations += 1;
+            } else if (isSameTutorial(t, registration)) {
+              t.registrations -= 1;
+            }
+            return t;
+          })
+        );
+      }
+    } else {
+      await registerForEvent(tutorial);
+
+      setUser({
+        ...user!,
+        registrations: (user!.registrations || []).concat(tutorial),
+      });
+
+      setTuts(
+        tuts.map((t) => {
+          if (isSameTutorial(t, tutorial)) {
+            t.registrations += 1;
+          }
+          return t;
+        })
+      );
+    }
+
+    setLoading(false);
   };
 
   const handleAvailableRoomsChange = (
@@ -205,49 +261,6 @@ export function TutorialsTable({
     }
   };
 
-  const handleRegistrationChange = async (room: Room, i: number) => {
-    setLoading(true);
-
-    if (registration) {
-      const newRegistration: Tutorial = { ...registration, room: room };
-      if (
-        newRegistration.room.number === registration.room.number &&
-        newRegistration.room.building.ID === registration.room.building.ID
-      ) {
-        await unregisterFromEvent(newRegistration);
-        setRegistration(undefined);
-        setUser({
-          ...user!,
-          registrations: user?.registrations?.filter(
-            (r) => r.event.ID !== newRegistration.event.ID
-          ),
-        });
-      } else {
-        await unregisterFromEvent(registration);
-        await registerForEvent(newRegistration, i);
-        setUser({
-          ...user!,
-          registrations: user?.registrations?.map((r) => {
-            if (r.event.ID === newRegistration.event.ID) {
-              r.room = room;
-            }
-            return r;
-          }),
-        });
-      }
-    } else {
-      await registerForEvent(
-        {
-          ...defaultTutorial,
-          room: room,
-          event: { ...defaultEvent, ID: closeupID! },
-        },
-        i
-      );
-    }
-    setLoading(false);
-  };
-
   const groupedRooms = groupRoomsByBuildingID();
 
   return (
@@ -258,15 +271,24 @@ export function TutorialsTable({
             <>
               {tuts.map((e, i) => {
                 const capacity = cap[i];
-                const utilization = (regCounts[i] / capacity) * 100;
+                const utilization = (e.registrations / capacity) * 100;
                 const isRegisteredEvent =
-                  e.room?.number === registration?.room.number &&
-                  e.room?.building.ID === registration?.room.building.ID;
+                  e.room.number === registration?.room.number &&
+                  e.room.building.ID === registration?.room.building.ID;
 
                 return (
                   <TableRow key={e.room?.number} className="relative">
                     <div
-                      className="absolute inset-0 z-0"
+                      className="light:hidden absolute inset-0 z-0"
+                      style={{
+                        width: `${utilization}%`,
+                        backgroundColor: `${
+                          utilization < 100 ? "#024b30" : "#8b0000"
+                        }`,
+                      }}
+                    />
+                    <div
+                      className="dark:hidden absolute inset-0 z-0"
                       style={{
                         width: `${utilization}%`,
                         backgroundColor: `${
@@ -378,7 +400,7 @@ export function TutorialsTable({
                       )}
                     </TableCell>
                     <TableCell className="relative z-1">
-                      {regCounts[i]}/{capacity !== 0 ? capacity : "?"}
+                      {e.registrations}/{capacity !== 0 ? capacity : "?"}
                     </TableCell>
                     <TableCell className="relative z-1">
                       {edit ? (
@@ -399,14 +421,18 @@ export function TutorialsTable({
                         </DropdownMenu>
                       ) : (
                         <Button
-                          disabled={utilization == 100 || !user || loading}
+                          disabled={
+                            (!isRegisteredEvent && utilization == 100) ||
+                            !user ||
+                            loading
+                          }
                           variant={
                             isRegisteredEvent && user
                               ? "destructive"
                               : "outline"
                           }
                           onClick={() => {
-                            handleRegistrationChange(e.room, i);
+                            handleRegistrationChange(e);
                           }}
                         >
                           {loading && (
@@ -432,7 +458,7 @@ export function TutorialsTable({
             </TableRow>
           )}
           {edit && (
-            <TableRow className="bg-gray-100">
+            <TableRow className="light:bg-gray-100 dark:bg-gray-900">
               <div />
               <TableCell>
                 <TutorSelection
@@ -491,7 +517,6 @@ export function TutorialsTable({
                     }
                     setCap((prev) => [...prev, newTutorialRoom?.capacity ?? 1]);
                     setSelectedRooms((prev) => [...prev, newTutorialRoom]);
-                    setRegCounts((prev) => [...prev, 0]);
                     setNewTutorialRoom(undefined);
                     setNewTutorialTutors([]);
                   }}

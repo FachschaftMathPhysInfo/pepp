@@ -83,15 +83,11 @@ export const SignInDialog = () => {
         sn: data.sn,
       };
 
-      try {
-        const userData = await client.request<RegistrationMutation>(
-          RegistrationDocument,
-          details
-        );
-        setUser(userData.addUser);
-      } catch {
-        console.log("ne");
-      }
+      const userData = await client.request<RegistrationMutation>(
+        RegistrationDocument,
+        details
+      );
+      setUser(userData.addUser);
     }
 
     const credentials: LoginQueryVariables = {
@@ -107,6 +103,7 @@ export const SignInDialog = () => {
         credentials
       );
       const user = userData.login.user;
+      console.log(user.registrations)
       setUser({
         ...defaultUser,
         ...user,

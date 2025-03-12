@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, Moon, SquareCheckBig, Sun } from "lucide-react";
+import { Computer, LogIn, Moon, SquareCheckBig, Sun } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
@@ -169,17 +169,20 @@ export default function Header() {
             <Button variant="ghost" size="icon" className="ml-2">
               <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
+              <span className="sr-only">Thema wechseln</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setTheme("light")}>
-              Light
+              <Sun className="h-[1rem] w-auto mr-2" />
+              Hell
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme("dark")}>
-              Dark
+              <Moon className="h-[1rem] w-auto mr-2" />
+              Dunkel
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme("system")}>
+              <Computer className="h-[1rem] w-auto mr-2" />
               System
             </DropdownMenuItem>
           </DropdownMenuContent>

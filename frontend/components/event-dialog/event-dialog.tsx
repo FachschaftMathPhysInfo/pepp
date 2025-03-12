@@ -129,6 +129,7 @@ export default function EventDialog() {
           tutorials: e.tutorials?.map((t) => ({
             ...defaultTutorial,
             ...t,
+            event: {...defaultEvent, ID: closeupID},
             tutors: t.tutors.map((tu) => ({ ...defaultUser, ...tu })),
           })),
         });
@@ -256,10 +257,6 @@ export default function EventDialog() {
                 )}
                 <TutorialsTable
                   tutorials={event?.tutorials ?? []}
-                  registrationCounts={
-                    event?.tutorials?.map((t) => t.registrations ?? 0) ||
-                    []
-                  }
                   capacities={
                     event?.tutorials?.map((t) => t.room.capacity ?? 1) ||
                     []

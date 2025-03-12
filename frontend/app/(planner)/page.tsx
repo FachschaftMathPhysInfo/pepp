@@ -102,9 +102,9 @@ export default function IndexPage() {
   return (
     <>
       {events.length > 0 && (
-        <section className="flex flex-row items-end justify-between">
+        <section className="sm:flex sm:flex-row sm:items-end sm:justify-between">
           {(topics.length >= 2 || types.length >= 2) && (
-            <div className="space-y-2">
+            <div className="space-y-2 mb-2">
               {topics.length >= 2 && (
                 <Filter
                   title="Thema"
