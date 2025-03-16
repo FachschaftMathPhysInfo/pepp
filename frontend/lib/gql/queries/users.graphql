@@ -1,0 +1,37 @@
+query loginUser($sid: String!) {
+  users(mail: [$sid]) {
+    registrations {
+      event {
+        ID
+      }
+      room {
+        capacity
+        floor
+        name
+        number
+        building {
+          ID
+          name
+          street
+          number
+          city
+          zip
+          latitude
+          longitude
+          zoomLevel
+        }
+      }
+    }
+    fn
+    sn
+    mail
+    confirmed
+    role
+    applications {
+      event {
+        ID
+      }
+      accepted
+    }
+  }
+}

@@ -1,4 +1,4 @@
-package password
+package auth
 
 import (
 	"fmt"

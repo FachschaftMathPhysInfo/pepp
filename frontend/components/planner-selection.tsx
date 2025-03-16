@@ -11,7 +11,7 @@ import { ChevronsUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUmbrella, useUser } from "./providers";
@@ -63,6 +63,8 @@ export function PlannerHeader() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const client = getClient()
+
       const vars: UmbrellasQueryVariables = {
         onlyFuture: true,
       };
@@ -71,6 +73,7 @@ export function PlannerHeader() {
         UmbrellasDocument,
         vars
       );
+
       if (umbrellaData.umbrellas.length) {
         setUmbrellas(
           umbrellaData.umbrellas.map((u) => ({

@@ -26,7 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { SignInDialog } from "@/components/sign-in-dialog";
 import { useUmbrella, useUser } from "../providers";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 import TextareaAutosize from "react-textarea-autosize";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -43,9 +43,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { cn, formatDateToHHMM } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { TutorialsTable } from "./tutorials-table";
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
@@ -111,6 +110,8 @@ export default function EventDialog() {
     if (!closeupID) return;
     const fetchData = async () => {
       setLoading(true);
+
+      const client = getClient()
 
       const vars: EventCloseupQueryVariables = {
         id: closeupID,

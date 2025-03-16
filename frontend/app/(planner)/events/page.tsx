@@ -8,7 +8,7 @@ import {
   TableEventsQuery,
   TableEventsQueryVariables,
 } from "@/lib/gql/generated/graphql";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 import { useEffect, useState } from "react";
 import { columns } from "./columns";
 import { TableSkeleton } from "@/components/table-skeleton";
@@ -22,6 +22,8 @@ export default function EventsPage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+
+      const client = getClient()
 
       const vars: TableEventsQueryVariables = {
         umbrellaID: [umbrellaID ?? 0],

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
@@ -18,10 +19,13 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 )
 
+var (
+	db    *bun.DB
+	sqldb *sql.DB
+	err   error
+)
+
 func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, error) {
-	var db *bun.DB
-	var sqldb *sql.DB
-	var err error
 	switch os.Getenv("DATABASE_TYPE") {
 	case "PostgreSQL":
 		sqldb, err = connectTCPSocket()
@@ -38,9 +42,11 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 	}
 
-	db.AddQueryHook(bundebug.NewQueryHook(
-		bundebug.WithVerbose(true),
-	))
+	if os.Getenv("LOG_LEVEL") == "DEBUG" {
+		db.AddQueryHook(bundebug.NewQueryHook(
+			bundebug.WithVerbose(true),
+		))
+	}
 
 	if tracer != nil {
 		db.AddQueryHook(bunotel.NewQueryHook(
@@ -72,22 +78,61 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		db.RegisterModel(relation)
 	}
 
-	if err := createTables(ctx, db, tables); err != nil {
+	if err := createTables(ctx, tables); err != nil {
 		log.Panic("unable to insert basic relations in DB: ", err)
 	}
 
-	if err := createTables(ctx, db, relations); err != nil {
+	if err := createTables(ctx, relations); err != nil {
 		log.Panic("unable to insert basic connetcion relations in DB: ", err)
 	}
 
-	// if err := seedData(ctx, db); err != nil {
-	// 	log.Panic("unable to seed basic data in DB: ", err)
-	// }
+	if err := initAdminUser(ctx); err != nil {
+		log.Panic("error crating admin user: ", err)
+	}
 
 	return db, sqldb, nil
 }
 
-func createTables(ctx context.Context, db *bun.DB, tables []interface{}) error {
+func initAdminUser(ctx context.Context) error {
+	mail := os.Getenv("ADMIN_USER")
+	if mail == "" {
+		mail = "admin@pepp.local"
+	}
+
+	password, err := auth.GenerateSalt(32)
+	if err != nil {
+		return err
+	}
+
+	hash, salt, err := auth.Hash(password)
+	if err != nil {
+		return err
+	}
+
+	admin := &models.User{
+		Fn:        "Admin",
+		Sn:        "",
+		Mail:      mail,
+		Password:  hash,
+		Salt:      salt,
+		Confirmed: true,
+		Role:      "ADMIN",
+	}
+	res, err := db.NewInsert().Model(admin).Ignore().Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 1 {
+		log.Infof("new admin user created:\n  mail:     %s\n  password: %s",
+			mail, password)
+	}
+
+	return nil
+}
+
+func createTables(ctx context.Context, tables []interface{}) error {
 	for _, table := range tables {
 		if _, err := db.NewCreateTable().
 			Model(table).

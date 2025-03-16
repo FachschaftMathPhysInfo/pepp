@@ -12,7 +12,7 @@ import {
   RegistrationFormQuery,
   RegistrationFormQueryVariables,
 } from "@/lib/gql/generated/graphql";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,7 +42,6 @@ import { CardSkeleton } from "@/components/card-skeleton";
 import { Dialog } from "@/components/ui/dialog";
 import { useUmbrella, useUser } from "@/components/providers";
 import { SignInDialog } from "@/components/sign-in-dialog";
-import { defaultApplication } from "@/types/defaults";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
@@ -66,7 +65,7 @@ export default function Registration() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const { user, setUser } = useUser();
+  const { user, setUser, sid } = useUser();
   const { setUmbrellaID } = useUmbrella();
 
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
@@ -88,6 +87,8 @@ export default function Registration() {
   useEffect(() => {
     setUmbrellaID(eventID);
     const fetchData = async () => {
+      const client = getClient();
+
       const vars: RegistrationFormQueryVariables = {
         eventID: eventID,
       };
@@ -154,6 +155,7 @@ export default function Registration() {
     };
 
     try {
+      const client = getClient(sid!)
       await client.request<AddStudentApplicationForEventMutation>(
         AddStudentApplicationForEventDocument,
         vars

@@ -8,8 +8,11 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/db"
+	"github.com/FachschaftMathPhysInfo/pepp/server/directives"
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph"
 	"github.com/FachschaftMathPhysInfo/pepp/server/ical"
@@ -27,11 +30,12 @@ import (
 )
 
 const (
-	defaultPort  = "8080"
-	apiKeyHeader = "X-API-Key"
+	defaultPort = "8080"
 )
 
-var resolver graph.Resolver
+var (
+	resolver graph.Resolver
+)
 
 func main() {
 	ctx := context.Background()
@@ -127,7 +131,11 @@ func main() {
 		ical.Handler(ctx, w, r, &resolver)
 	})
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &resolver}))
+	gc := graph.Config{Resolvers: &resolver}
+	gc.Directives.Auth = directives.Auth
+
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(gc))
+	srv.AddTransport(transport.POST{})
 
 	if enableTracing {
 		srv.Use(otelgqlgen.Middleware(otelgqlgen.WithTracerProvider(apiTracer)))
@@ -135,11 +143,15 @@ func main() {
 
 	router.With(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Header.Get(apiKeyHeader) != os.Getenv("API_KEY") {
-				http.Error(w, "Invalid API Key", http.StatusUnauthorized)
-				return
+			sid := r.Header.Get("SID")
+			if sid != "" {
+				ctx, err = auth.ValidateUser(ctx, sid, db)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusUnauthorized)
+					return
+				}
 			}
-			h.ServeHTTP(w, r)
+			h.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}).Handle("/api", srv)
 

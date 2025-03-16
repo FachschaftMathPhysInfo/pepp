@@ -13,7 +13,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  EmailPassword,
   LoginDocument,
   LoginQuery,
   LoginQueryVariables,
@@ -23,14 +22,8 @@ import {
 } from "@/lib/gql/generated/graphql";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 import { useUser } from "./providers";
-import {
-  defaultApplication,
-  defaultEvent,
-  defaultTutorial,
-  defaultUser,
-} from "@/types/defaults";
 
 const SignInFormSchema = z.object({
   email: z.string().min(4, {
@@ -65,7 +58,9 @@ const RegisterFormSchema = SignInFormSchema.extend({
 });
 
 export const SignInDialog = () => {
-  const { setUser } = useUser();
+  const client = getClient()
+
+  const { setUser, setSid } = useUser();
   const [correct, setCorrect] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -83,41 +78,25 @@ export const SignInDialog = () => {
         sn: data.sn,
       };
 
-      const userData = await client.request<RegistrationMutation>(
+      const sid = await client.request<RegistrationMutation>(
         RegistrationDocument,
         details
       );
-      setUser(userData.addUser);
+      setSid(sid.addUser);
     }
 
     const credentials: LoginQueryVariables = {
-      credentials: {
-        email: data.email,
+        mail: data.email,
         password: data.password,
-      },
     };
 
     try {
-      const userData = await client.request<LoginQuery>(
+      const sid = await client.request<LoginQuery>(
         LoginDocument,
         credentials
       );
-      const user = userData.login.user;
-      console.log(user.registrations)
-      setUser({
-        ...defaultUser,
-        ...user,
-        registrations: user.registrations?.map((r) => ({
-          ...defaultTutorial,
-          ...r,
-          event: { ...defaultEvent, ...r.event },
-        })),
-        applications: user.applications?.map((a) => ({
-          ...defaultApplication,
-          ...a,
-          event: { ...defaultEvent, ...a.event },
-        })),
-      });
+
+      setSid(sid.login)
     } catch {
       setCorrect(false);
     }

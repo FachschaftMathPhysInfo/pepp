@@ -1,5 +1,8 @@
 scalar Time
 
+directive @auth(rule: Rule, role: Role) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @binding(constraint: String!) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
 enum ScalarType {
   STRING
   INT
@@ -12,6 +15,11 @@ enum ScalarType {
 enum Role {
   ADMIN
   USER
+}
+
+enum Rule {
+  IS_USER
+  IS_TUTOR
 }
 
 type Tutorial {
@@ -46,8 +54,8 @@ type Label {
 type Event {
   ID: Int!
   tutorials: [Tutorial!]
-  tutorsAvailable: [User!]
-  roomsAvailable: [Room!]
+  tutorsAvailable: [User!] @auth(role: ADMIN)
+  roomsAvailable: [Room!] @auth(role: ADMIN)
   umbrella: Event
   needsTutors: Boolean!
   title: String!
@@ -133,35 +141,34 @@ type Application {
   responses: [QuestionAnswersPair!]
 }
 
-type AuthPayload {
-  sessionID: String!
-  user: User!
-}
-
 type Query {
   events(id: [Int!], umbrellaID: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, onlyFuture: Boolean, userMail: [String!]): [Event!]!
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: Int!): [Room!]!
   labels(name: [String!], kind: [LabelKind!], umbrellaID: [Int!]): [Label!]!
-  settings(key: [String!], type: [ScalarType!]): [Setting!]!
-  users(mail: [String!], sessionID: [String!]): [User!]!
+  settings(key: [String!], type: [ScalarType!]): [Setting!]! @auth(role: ADMIN)
+  users(mail: [String!]): [User!]! @auth(rule: IS_USER)
   forms(id: [Int!]): [Form!]!
-  applications(eventID: Int, studentMail: [String!]): [Application!]!
+  applications(eventID: Int, mail: [String!]): [Application!]! @auth(rule: IS_USER)
   tutorials(eventID: [Int!], umbrellaID: [Int!], tutorMail: [String!], studentMail: [String!]): [Tutorial!]!
-  login(credentials: EmailPassword, sessionID: String): AuthPayload!
-}
-
-input EmailPassword {
-  email: String!
-  password: String!
+  login(mail: String!, password: String!): String!
 }
 
 input NewUser {
   fn: String!
-  sn: String
+  sn: String!
   mail: String!
   password: String
+}
+
+input UpdateUser {
+  fn: String!
+  sn: String!
+  mail: String! @auth(rule: IS_USER)
+  password: String
+  role: String
+  confirmed: Boolean
 }
 
 input NewEvent {
@@ -226,13 +233,13 @@ input NewSetting {
 
 input EventToUserAssignment {
   eventID: Int!
-  userMail: String!
+  userMail: String! @auth(rule: IS_USER)
   roomNumber: String!
   buildingID: Int!
 }
 
 input NewUserToEventAvailability {
-  userMail: String!
+  userMail: String! @auth(rule: IS_USER)
   eventID: [Int!]!
 }
 
@@ -244,7 +251,7 @@ input RoomToEventAvailability {
 
 input NewUserToEventRegistration {
   eventID: Int!
-  userMail: String!
+  userMail: String! @auth(rule: IS_USER)
   roomNumber: String!
   buildingID: Int!
 }
@@ -256,45 +263,45 @@ input NewQuestionResponsePair {
 }
 
 input NewUserToEventApplication {
-  userMail: String!
+  userMail: String! @auth(rule: IS_USER)
   eventID: Int!
   answers: [NewQuestionResponsePair!]
 }
 
 type Mutation {
-  addUser(user: NewUser!): User!
-  updateUser(user: NewUser!): User!
-  deleteUser(mail: [String!]!): Int!
+  addUser(user: NewUser!): String!
+  updateUser(user: UpdateUser!): User!
+  deleteUser(mail: [String!]!): Int! @auth(rule: IS_USER)
   addTutor(tutor: NewUser!, availability: NewUserToEventAvailability!): User!
   addStudent(student: NewUser!, application: NewUserToEventApplication!): User!
-  addEvent(event: NewEvent!): Event!
-  updateEvent(id: Int!, event: NewEvent!): Event!
-  deleteEvent(id: [Int!]!): Int!
-  addBuilding(building: NewBuilding!): Building!
-  updateBuilding(id: Int!, building: NewBuilding!): Building!
-  deleteBuilding(id: [Int!]!): Int!
-  addRoom(room: NewRoom!): Room!
-  updateRoom(room: NewRoom!): Room!
-  deleteRoom(number: [String!]!, buildingID: Int!): Int!
-  addLabel(label: NewLabel!): Label!
-  updateLabel(label: NewLabel!): Label!
-  deleteLabel(name: [String!]!): Int!
-  addSetting(setting: NewSetting!): Setting!
-  updateSetting(setting: NewSetting!): Setting!
-  deleteSetting(key: [String!]!): Int!
-  addForm(form: NewForm!): Form!
-  updateForm(id: Int!, form: NewForm!): Form!
-  deleteForm(id: [Int!]!): Int!
+  addEvent(event: NewEvent!): Event! @auth(role: ADMIN)
+  updateEvent(id: Int!, event: NewEvent!): Event! @auth(role: ADMIN)
+  deleteEvent(id: [Int!]!): Int! @auth(role: ADMIN)
+  addBuilding(building: NewBuilding!): Building! @auth(role: ADMIN)
+  updateBuilding(id: Int!, building: NewBuilding!): Building! @auth(role: ADMIN)
+  deleteBuilding(id: [Int!]): Int! @auth(role: ADMIN)
+  addRoom(room: NewRoom!): Room! @auth(role: ADMIN)
+  updateRoom(room: NewRoom!): Room! @auth(role: ADMIN)
+  deleteRoom(number: [String!]!, buildingID: Int!): Int! @auth(role: ADMIN)
+  addLabel(label: NewLabel!): Label! @auth(role: ADMIN)
+  updateLabel(label: NewLabel!): Label! @auth(role: ADMIN)
+  deleteLabel(name: [String!]!): Int! @auth(role: ADMIN)
+  addSetting(setting: NewSetting!): Setting! @auth(role: ADMIN)
+  updateSetting(setting: NewSetting!): Setting! @auth(role: ADMIN)
+  deleteSetting(key: [String!]!): Int! @auth(role: ADMIN)
+  addForm(form: NewForm!): Form! @auth(role: ADMIN)
+  updateForm(id: Int!, form: NewForm!): Form! @auth(role: ADMIN)
+  deleteForm(id: [Int!]!): Int! @auth(role: ADMIN)
 
-  addEventAssignmentForTutor(assignment: EventToUserAssignment!): Event!
-  deleteEventAssignmentForTutor(assignment: EventToUserAssignment!): Event!
+  addEventAssignmentForTutor(assignment: EventToUserAssignment!): Event! @auth(role: ADMIN)
+  deleteEventAssignmentForTutor(assignment: EventToUserAssignment!): Event! @auth(role: ADMIN)
   addTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
   deleteTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
-  addRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
-  updateRoomForTutorial(newRoomNumber: String!, newBuildingID: Int!, eventID: Int!, oldRoomNumber: String!, oldBuildingID: Int!): Event!
-  deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room!
+  addRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room! @auth(role: ADMIN)
+  updateRoomForTutorial(newRoomNumber: String!, newBuildingID: Int!, eventID: Int!, oldRoomNumber: String!, oldBuildingID: Int!): Event! @auth(role: ADMIN)
+  deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room! @auth(role: ADMIN)
   addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): Tutorial!
-  deleteStudentRegistrationForEvent(registration: NewUserToEventRegistration!): User!
+  deleteStudentRegistrationForEvent(registration: NewUserToEventRegistration!): String!
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
   deleteStudentApplicationForEvent(mail: String!, eventID: Int!): User!
 }

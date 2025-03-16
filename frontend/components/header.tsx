@@ -29,7 +29,7 @@ import {
   FutureEventsQuery,
 } from "@/lib/gql/generated/graphql";
 import { useUmbrella, useUser } from "./providers";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 import { useRouter } from "next/navigation";
 
 export default function Header() {
@@ -46,6 +46,8 @@ export default function Header() {
 
   useEffect(() => {
     const fetchData = async () => {
+      const client = getClient()
+
       const eventData = await client.request<FutureEventsQuery>(
         FutureEventsDocument
       );

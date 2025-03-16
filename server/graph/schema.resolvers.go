@@ -12,10 +12,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
-	"github.com/FachschaftMathPhysInfo/pepp/server/password"
 	hermes "github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
@@ -82,34 +82,28 @@ func (r *eventResolver) Tutorials(ctx context.Context, obj *models.Event) ([]*mo
 }
 
 // AddUser is the resolver for the addUser field.
-func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (*models.User, error) {
-	sessionID, err := password.GenerateSalt(8)
+func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (string, error) {
+	sessionID, err := auth.GenerateSessionID()
 	if err != nil {
-		return nil, fmt.Errorf("error while generating sessionID for %s: %s", user.Mail, err)
+		return "", fmt.Errorf("error while generating sessionID for %s: %s", user.Mail, err)
 	}
 
 	user.SessionID = sessionID
 
 	if user.Password != "" {
-		passwordSalt, err := password.GenerateSalt(16)
+		password, salt, err := auth.Hash(user.Password)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
-		user.Salt = passwordSalt
-
-		password, err := password.Hash(user.Password, passwordSalt)
-		if err != nil {
-			return nil, err
-		}
-
+		user.Salt = salt
 		user.Password = password
 	}
 
 	if _, err := r.DB.NewInsert().
 		Model(&user).
 		Exec(ctx); err != nil {
-		return nil, err
+		return "", err
 	}
 
 	m := r.MailConfig.Confirmation
@@ -121,7 +115,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (*mode
 		log.Error("failed to send email: ", err)
 	}
 
-	return &user, nil
+	return sessionID, nil
 }
 
 // UpdateUser is the resolver for the updateUser field.
@@ -563,7 +557,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 		m.Table.Data = append(m.Table.Data, e)
 	}
 
-	user, err := r.Query().Users(ctx, []string{availability.UserMail}, nil)
+	user, err := r.Query().Users(ctx, []string{availability.UserMail})
 	if err != nil {
 		return nil, err
 	}
@@ -585,7 +579,7 @@ func (r *mutationResolver) DeleteTutorAvailabilityForEvent(ctx context.Context, 
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{availability.UserMail}, nil)
+	user, err := r.Query().Users(ctx, []string{availability.UserMail})
 	if err != nil {
 		return nil, err
 	}
@@ -648,20 +642,15 @@ func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, r
 }
 
 // DeleteStudentRegistrationForEvent is the resolver for the deleteStudentRegistrationForEvent field.
-func (r *mutationResolver) DeleteStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*models.User, error) {
+func (r *mutationResolver) DeleteStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (string, error) {
 	if _, err := r.DB.NewDelete().
 		Model(&registration).
 		WherePK().
 		Exec(ctx); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	user, err := r.Query().Users(ctx, []string{registration.UserMail}, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return user[0], nil
+	return registration.UserMail, nil
 }
 
 // AddStudentApplicationForEvent is the resolver for the addStudentApplicationForEvent field.
@@ -720,7 +709,7 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{application.UserMail}, nil)
+	user, err := r.Query().Users(ctx, []string{application.UserMail})
 	if err != nil {
 		return nil, err
 	}
@@ -738,7 +727,7 @@ func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context,
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{mail}, nil)
+	user, err := r.Query().Users(ctx, []string{mail})
 	if err != nil {
 		return nil, err
 	}
@@ -924,7 +913,7 @@ func (r *queryResolver) Settings(ctx context.Context, key []string, typeArg []mo
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context, mail []string, sessionID []string) ([]*models.User, error) {
+func (r *queryResolver) Users(ctx context.Context, mail []string) ([]*models.User, error) {
 	var users []*models.User
 
 	query := r.DB.NewSelect().
@@ -934,11 +923,9 @@ func (r *queryResolver) Users(ctx context.Context, mail []string, sessionID []st
 		Relation("Applications")
 
 	if mail != nil {
-		query = query.Where("mail IN (?)", bun.In(mail))
-	}
-
-	if sessionID != nil {
-		query = query.Where("session_id IN (?)", bun.In(sessionID))
+		query = query.
+			Where("mail IN (?)", bun.In(mail)).
+			WhereOr("session_id IN (?)", bun.In(mail))
 	}
 
 	if err := query.Scan(ctx); err != nil {
@@ -969,7 +956,7 @@ func (r *queryResolver) Forms(ctx context.Context, id []int) ([]*models.Form, er
 }
 
 // Applications is the resolver for the applications field.
-func (r *queryResolver) Applications(ctx context.Context, eventID *int, studentMail []string) ([]*models.Application, error) {
+func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []string) ([]*models.Application, error) {
 	var applications []*models.Application
 
 	query := r.DB.NewSelect().
@@ -982,8 +969,8 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, studentM
 		query = query.Where("event_id = ?", *eventID)
 	}
 
-	if studentMail != nil {
-		query = query.Where("student_mail IN (?)", bun.In(studentMail))
+	if mail != nil {
+		query = query.Where("student_mail IN (?)", bun.In(mail))
 	}
 
 	if err := query.Scan(ctx); err != nil {
@@ -1012,8 +999,6 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 		query = query.
 			Join("JOIN user_to_event_registrations AS uer ON eta.user_mail = uer.user_mail AND eta.event_id = uer.event_id AND eta.room_number = uer.room_number AND eta.building_id = uer.building_id").
 			Where("eta.user_mail IN (?)", bun.In(studentMail))
-		//			Join("JOIN user_to_event_registrations AS uer ON uer.event_id = eta.event_id").
-		//			Where("uer.user_mail IN (?)", bun.In(studentMail)).
 	}
 
 	if tutorMail != nil {
@@ -1059,32 +1044,33 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 }
 
 // Login is the resolver for the login field.
-func (r *queryResolver) Login(ctx context.Context, credentials *model.EmailPassword, sessionID *string) (*model.AuthPayload, error) {
-	var email []string
-	var sID []string
-	if sessionID != nil {
-		sID = append(sID, *sessionID)
-	} else {
-		email = append(email, credentials.Email)
+func (r *queryResolver) Login(ctx context.Context, mail string, password string) (string, error) {
+	users, err := r.Query().Users(ctx, []string{mail})
+	if err != nil || len(users) == 0 {
+		return "", fmt.Errorf("user not found")
 	}
 
-	user, err := r.Query().Users(ctx, email, sID)
-	if err != nil || len(user) == 0 {
-		return nil, err
+	user := users[0]
+
+	if err := auth.VerifyPassword(user.Password, password, user.Salt); err != nil {
+		return "", err
 	}
 
-	if credentials != nil {
-		if err := password.VerifyPassword(user[0].Password, credentials.Password, user[0].Salt); err != nil {
-			return nil, err
+	if user.SessionID == "" {
+		sid, err := auth.GenerateSessionID()
+		if err != nil {
+			return "", fmt.Errorf("error while generating sessionID for %s: %s", user.Mail, err)
 		}
+		user.SessionID = sid
 	}
 
-	payload := &model.AuthPayload{
-		SessionID: user[0].SessionID,
-		User:      user[0],
+	user.LastLogin = time.Now()
+	user, err = r.Mutation().UpdateUser(ctx, *user)
+	if err != nil {
+		return "", err
 	}
 
-	return payload, nil
+	return user.SessionID, nil
 }
 
 // Type is the resolver for the type field.

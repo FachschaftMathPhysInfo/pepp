@@ -9,9 +9,9 @@ import {
   useState,
 } from "react";
 import {
-  LoginDocument,
-  LoginQuery,
-  LoginQueryVariables,
+  LoginUserDocument,
+  LoginUserQuery,
+  LoginUserQueryVariables,
   UmbrellaOfEventDocument,
   UmbrellaOfEventQuery,
   UmbrellaOfEventQueryVariables,
@@ -29,11 +29,13 @@ import {
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { type ThemeProviderProps } from "next-themes/dist/types";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 
 type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
+  sid: string | null;
+  setSid: (sid: string | null) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -48,14 +50,27 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [sid, setSid] = useState<string | null>(null);
 
   useEffect(() => {
-    const login = async (sid: string) => {
-      const vars: LoginQueryVariables = {
-        sessionID: sid,
+    if (!sid) {
+      setUser(null);
+      return;
+    }
+
+    const fetchUser = async () => {
+      const client = getClient(sid);
+
+      const vars: LoginUserQueryVariables = {
+        sid: sid,
       };
-      const userData = await client.request<LoginQuery>(LoginDocument, vars);
-      const user = userData.login.user;
+
+      const userData = await client.request<LoginUserQuery>(
+        LoginUserDocument,
+        vars
+      );
+
+      const user = userData.users[0];
       setUser({
         ...defaultUser,
         ...user,
@@ -72,10 +87,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           })) || [],
       });
     };
-  });
+
+    fetchUser();
+  }, [sid]);
 
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, setUser, sid, setSid }}>
       {children}
     </UserContext.Provider>
   );
@@ -109,6 +126,7 @@ export const UmbrellaProvider = ({ children }: { children: ReactNode }) => {
   const [closeupID, setCloseupID] = useState<number | null>(null);
 
   useEffect(() => {
+    const client = getClient();
     const isUmbrella = async (id: number): Promise<Boolean> => {
       const vars: UmbrellasQueryVariables = {
         id: id,

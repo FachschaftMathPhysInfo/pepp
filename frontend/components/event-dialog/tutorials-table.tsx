@@ -39,7 +39,7 @@ import {
 } from "../ui/hover-card";
 import { MailLinkWithLabel } from "../links/email";
 import { useUmbrella, useUser } from "../providers";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "../ui/table";
 import { TutorSelection } from "./tutor-selection";
@@ -65,7 +65,7 @@ export function TutorialsTable({
   capacities,
   edit,
 }: TutorialsTableProps) {
-  const { user, setUser } = useUser();
+  const { user, setUser, sid } = useUser();
   const { closeupID } = useUmbrella();
   const [loading, setLoading] = useState(false);
   const [registration, setRegistration] = useState<Tutorial | undefined>();
@@ -100,6 +100,8 @@ export function TutorialsTable({
     if (!edit) return;
 
     const fetchData = async () => {
+      const client = getClient(sid!)
+
       const vars: TutorialAvailabilitysQueryVariables = {
         id: closeupID!,
       };
@@ -132,6 +134,8 @@ export function TutorialsTable({
   }, [edit]);
 
   const registerForEvent = async (tutorial: Tutorial) => {
+    const client = getClient(sid!)
+
     const vars: AddStudentRegistrationForEventMutationVariables = {
       registration: {
         eventID: closeupID!,
@@ -148,6 +152,8 @@ export function TutorialsTable({
   };
 
   const unregisterFromEvent = async (tutorial: Tutorial) => {
+    const client = getClient(sid!)
+
     const vars: DeleteStudentRegistrationForEventMutationVariables = {
       registration: {
         eventID: closeupID!,

@@ -97,6 +97,8 @@ models:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Building
   NewUser:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.User
+  UpdateUser:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.User
   NewEvent:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Event
   NewLabel:

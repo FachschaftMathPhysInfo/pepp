@@ -11,7 +11,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import Filter from "@/components/filter";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { client } from "@/lib/graphql";
+import { getClient } from "@/lib/graphql";
 import { CopyTextArea } from "@/components/copy-text-area";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { Planner } from "@/components/planner";
@@ -46,6 +46,8 @@ export default function IndexPage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+
+      const client = getClient();
 
       const vars: PlannerEventsQueryVariables = {
         umbrellaID: umbrellaID ?? 0,
