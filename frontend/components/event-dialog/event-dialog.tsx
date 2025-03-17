@@ -7,6 +7,7 @@ import {
   EventCloseupQueryVariables,
   EventToUserAssignment,
   NewEvent,
+  Role,
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
@@ -157,7 +158,7 @@ export default function EventDialog() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(updateEvent)}>
           <DialogContent className="sm:min-w-[600px]">
-            {user && (
+            {user?.role === Role.Admin && (
               <DialogAction>
                 {edit ? (
                   <>

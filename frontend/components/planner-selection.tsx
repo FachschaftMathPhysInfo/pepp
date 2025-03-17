@@ -2,6 +2,7 @@
 
 import {
   Event,
+  Role,
   UmbrellasDocument,
   UmbrellasQuery,
   UmbrellasQueryVariables,
@@ -111,7 +112,7 @@ export function PlannerHeader() {
           <ChevronsUpDown className="ml-8 h-7 w-7 shrink-0 opacity-40" />
         </Button>
       </UmbrellaPopoverSelection>
-      {user && (
+      {user?.role === Role.Admin && (
         <>
           <div className="lg:w-full" />
           <Tabs
