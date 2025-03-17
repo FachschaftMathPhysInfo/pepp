@@ -63,8 +63,8 @@ export function RoomHoverCard({ room }: RoomHoverCardProps) {
         <MapPreview
           height="100%"
           width="100%"
-          latitude={room.building.latitude ?? 0}
-          longitude={room.building.longitude ?? 0}
+          latitude={room.building.latitude}
+          longitude={room.building.longitude}
           zoom={room.building.zoomLevel}
           className="rounded-tr-lg rounded-br-lg"
         />

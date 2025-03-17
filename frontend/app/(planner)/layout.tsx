@@ -9,7 +9,7 @@ interface PlannerLayoutProps {
 export default function PlannerLayout({ children }: PlannerLayoutProps) {
   return (
     <div className="flex min-h-screen flex-col">
-      <main className="flex-1 mt-[90px] space-y-4 pl-6 pr-6">
+      <main className="flex-1 mt-[100px] space-y-4 pl-6 pr-6">
         <PlannerHeader />
         <EventDialog />
         {children}

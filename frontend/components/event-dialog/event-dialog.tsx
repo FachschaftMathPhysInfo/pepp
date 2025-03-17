@@ -181,7 +181,7 @@ export default function EventDialog() {
               </div>
             ) : (
               <div className="space-y-4">
-                <DialogHeader>
+                <DialogHeader className="pr-10">
                   <DialogTitle>
                     <FormField
                       control={form.control}

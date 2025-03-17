@@ -100,7 +100,7 @@ export function TutorialsTable({
     if (!edit) return;
 
     const fetchData = async () => {
-      const client = getClient(sid!)
+      const client = getClient(sid!);
 
       const vars: TutorialAvailabilitysQueryVariables = {
         id: closeupID!,
@@ -134,7 +134,7 @@ export function TutorialsTable({
   }, [edit]);
 
   const registerForEvent = async (tutorial: Tutorial) => {
-    const client = getClient(sid!)
+    const client = getClient(sid!);
 
     const vars: AddStudentRegistrationForEventMutationVariables = {
       registration: {
@@ -152,7 +152,7 @@ export function TutorialsTable({
   };
 
   const unregisterFromEvent = async (tutorial: Tutorial) => {
-    const client = getClient(sid!)
+    const client = getClient(sid!);
 
     const vars: DeleteStudentRegistrationForEventMutationVariables = {
       registration: {

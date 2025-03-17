@@ -84,7 +84,7 @@ export default function Header() {
   const groupedEvents = groupEventsByUmbrellaId();
 
   return (
-    <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md">
+    <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
       <div
         className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400"
         onClick={() => router.push("/")}
