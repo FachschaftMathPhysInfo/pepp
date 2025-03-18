@@ -1,6 +1,6 @@
 "use client";
 
-import { Computer, LogIn, Moon, SquareCheckBig, Sun } from "lucide-react";
+import { LogIn, Moon, SquareCheckBig, Sun } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
@@ -31,6 +31,21 @@ import {
 import { useUmbrella, useUser } from "./providers";
 import { getClient } from "@/lib/graphql";
 import { useRouter } from "next/navigation";
+
+export const profileNavItems = [
+  {
+    title: "Einstellungen",
+    href: "/profile"
+  },
+  {
+    title: "Tutorien",
+    href: "/profile/tutorials",
+  },
+  {
+    title: "Anmeldungen",
+    href: "/profile/registrations",
+  },
+];
 
 export default function Header() {
   const router = useRouter();
@@ -183,16 +198,12 @@ export default function Header() {
               <Moon className="h-[1rem] w-auto mr-2" />
               Dunkel
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme("system")}>
-              <Computer className="h-[1rem] w-auto mr-2" />
-              System
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Avatar className="cursor-pointer">
+              <Avatar className="cursor-pointer ml-1">
                 <AvatarFallback>
                   {user.fn[0]}
                   {user.sn[0]}
@@ -207,7 +218,11 @@ export default function Header() {
                 <p className="text-muted-foreground text-xs">{user.mail}</p>
               </div>
               <Separator />
-              <DropdownMenuItem>Einstellungen</DropdownMenuItem>
+              {profileNavItems.map(i => (
+                <DropdownMenuItem key={i.title} onClick={() => router.push(i.href)}>
+                  {i.title}
+                </DropdownMenuItem>
+              ))}
               <Separator />
               <DropdownMenuItem onClick={() => setUser(null)}>
                 Abmelden

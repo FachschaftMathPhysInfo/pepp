@@ -35,7 +35,6 @@ FROM_ADDRESS=vorkurs@example.de
 <details>
     <summary>To get some data to work with, paste the mutation in the GraphQL Playground</summary>
 
-    ```
     mutation exampleData {
       tutor1: addUser(user: {mail: "tutor1@example.de", fn: "Tutorin", sn: "One", password: "test1"}) {
         mail
@@ -159,7 +158,6 @@ FROM_ADDRESS=vorkurs@example.de
       s19: addSetting(setting: {key: "email-assignment-intro", value: "Hier ist deine Zuteilung", type: STRING}) { key }
       s20: addSetting(setting: {key: "email-assignment-outro", value: "Viel Erfolg!", type: STRING}) { key }
     }
-    ```
 </details>
 
 ## contributions

@@ -258,6 +258,7 @@ export default function EventDialog() {
                   </div>
                 )}
                 <TutorialsTable
+                  event={event!}
                   tutorials={event?.tutorials ?? []}
                   capacities={
                     event?.tutorials?.map((t) => t.room.capacity ?? 1) ||

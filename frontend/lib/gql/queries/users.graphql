@@ -1,5 +1,17 @@
 query loginUser($sid: String!) {
   users(mail: [$sid]) {
+    tutorials {
+      event {
+        ID
+        title
+      }
+      room {
+        number
+        building {
+          ID
+        }
+      }
+    }
     registrations {
       event {
         ID

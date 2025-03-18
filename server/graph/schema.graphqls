@@ -27,6 +27,7 @@ type Tutorial {
   tutors: [User!]!
   room: Room!
   registrations: Int!
+  students: [User!]
 }
 
 type User {
@@ -300,7 +301,7 @@ type Mutation {
   addRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room! @auth(role: ADMIN)
   updateRoomForTutorial(newRoomNumber: String!, newBuildingID: Int!, eventID: Int!, oldRoomNumber: String!, oldBuildingID: Int!): Event! @auth(role: ADMIN)
   deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room! @auth(role: ADMIN)
-  addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): Tutorial!
+  addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): String!
   deleteStudentRegistrationForEvent(registration: NewUserToEventRegistration!): String!
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
   deleteStudentApplicationForEvent(mail: String!, eventID: Int!): User!

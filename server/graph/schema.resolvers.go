@@ -626,19 +626,14 @@ func (r *mutationResolver) DeleteRoomAvailabilityForEvent(ctx context.Context, a
 }
 
 // AddStudentRegistrationForEvent is the resolver for the addStudentRegistrationForEvent field.
-func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (*model.Tutorial, error) {
+func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (string, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&registration).
 		Exec(ctx); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	tut, err := r.Query().Tutorials(ctx, []int{int(registration.EventID)}, nil, nil, []string{registration.UserMail})
-	if err != nil {
-		return nil, err
-	}
-
-	return tut[0], nil
+	return registration.UserMail, nil
 }
 
 // DeleteStudentRegistrationForEvent is the resolver for the deleteStudentRegistrationForEvent field.
@@ -1016,21 +1011,29 @@ func (r *queryResolver) Tutorials(ctx context.Context, eventID []int, umbrellaID
 		if room, exists := tutorialMap[roomKey]; exists {
 			room.Tutors = append(room.Tutors, eventToUserAssignment.User)
 		} else {
-			registrationsCount, err := r.DB.NewSelect().
-				Model((*models.UserToEventRegistration)(nil)).
+			var userToEventRegistrations []*models.UserToEventRegistration
+			err := r.DB.NewSelect().
+				Model(&userToEventRegistrations).
+				Relation("User").
 				Where("event_id = ?", eventToUserAssignment.EventID).
 				Where("room_number = ?", eventToUserAssignment.Room.Number).
 				Where("building_id = ?", eventToUserAssignment.BuildingID).
-				Count(ctx)
+				Scan(ctx)
 			if err != nil {
 				return nil, err
 			}
 
+			var students []*models.User
+			for _, UserToEventRegistration := range userToEventRegistrations {
+				students = append(students, UserToEventRegistration.User)
+			}
+
 			tutorialMap[roomKey] = &model.Tutorial{
 				Tutors:        []*models.User{eventToUserAssignment.User},
+				Students:      students,
 				Room:          eventToUserAssignment.Room,
 				Event:         eventToUserAssignment.Event,
-				Registrations: registrationsCount,
+				Registrations: len(userToEventRegistrations),
 			}
 		}
 	}

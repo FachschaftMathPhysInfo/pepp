@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  defaultRoom,
-  defaultTutorial,
-  defaultUser,
-  defaultEvent,
-} from "@/types/defaults";
+import { defaultRoom, defaultTutorial, defaultUser } from "@/types/defaults";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +17,7 @@ import {
   DeleteStudentRegistrationForEventDocument,
   DeleteStudentRegistrationForEventMutation,
   DeleteStudentRegistrationForEventMutationVariables,
+  Event,
   EventToUserAssignment,
   MutationUpdateRoomForTutorialArgs,
   Room,
@@ -45,11 +41,14 @@ import { Table, TableBody, TableCell, TableRow } from "../ui/table";
 import { TutorSelection } from "./tutor-selection";
 import { RoomSelection } from "./room-selection";
 import { RoomHoverCard } from "../room-hover-card";
+import { useRouter } from "next/navigation";
+import {slugify} from "@/lib/utils";
 
 interface TutorialsTableProps {
   tutorials: Tutorial[];
   capacities: number[];
   edit: boolean;
+  event: Event;
   deleteAssignments: EventToUserAssignment[];
   setDeleteAssignments: React.Dispatch<
     React.SetStateAction<EventToUserAssignment[]>
@@ -61,14 +60,18 @@ interface TutorialsTableProps {
 }
 
 export function TutorialsTable({
+  event,
   tutorials,
   capacities,
   edit,
 }: TutorialsTableProps) {
+  const router = useRouter();
+
   const { user, setUser, sid } = useUser();
   const { closeupID } = useUmbrella();
   const [loading, setLoading] = useState(false);
   const [registration, setRegistration] = useState<Tutorial | undefined>();
+  const [usersTutorials, setUsersTutorials] = useState<Tutorial[]>();
   const [cap, setCap] = useState<number[]>(capacities);
   const [availableTutors, setAvailableTutors] = useState<User[]>([]);
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
@@ -83,6 +86,7 @@ export function TutorialsTable({
   useEffect(() => {
     if (!user) return;
     setRegistration(user.registrations?.find((r) => r.event.ID === closeupID));
+    setUsersTutorials(user.tutorials?.filter((t) => t.event.ID === closeupID));
   }, [user]);
 
   const groupRoomsByBuildingID = () => {
@@ -281,6 +285,13 @@ export function TutorialsTable({
                 const isRegisteredEvent =
                   e.room.number === registration?.room.number &&
                   e.room.building.ID === registration?.room.building.ID;
+                const isTutor = usersTutorials?.find(
+                  (t) =>
+                    t.room.number === e.room.number &&
+                    t.room.building.ID === e.room.building.ID
+                )
+                  ? true
+                  : false;
 
                 return (
                   <TableRow key={e.room?.number} className="relative">
@@ -428,6 +439,7 @@ export function TutorialsTable({
                       ) : (
                         <Button
                           disabled={
+                            (usersTutorials && !isTutor) ||
                             (!isRegisteredEvent && utilization == 100) ||
                             !user ||
                             loading
@@ -438,13 +450,19 @@ export function TutorialsTable({
                               : "outline"
                           }
                           onClick={() => {
-                            handleRegistrationChange(e);
+                            if (isTutor) {
+                              router.push(`/profile/tutorials/${slugify(event.title)}-${event.ID}`);
+                            } else {
+                              handleRegistrationChange(e);
+                            }
                           }}
                         >
                           {loading && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           )}
-                          {registration && user
+                          {isTutor
+                            ? "Verwalten"
+                            : registration && user
                             ? isRegisteredEvent
                               ? "Austragen"
                               : "Wechseln"

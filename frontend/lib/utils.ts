@@ -73,3 +73,20 @@ export const calculateEventDurationInHours = (from: string, to: string) => {
   const durationMs = toDate.getTime() - fromDate.getTime();
   return durationMs / (1000 * 60 * 60);
 };
+
+export const extractId = (slug: string) => {
+  const match = slug.match(/-(\d+)$/);
+  if (match && match[1]) {
+    return parseInt(match[1], 10);
+  }
+  return null;
+}
+
+export const slugify = (title: string) => {
+  let slug = title.toLowerCase();
+  slug = slug.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  slug = slug.replace(/[^a-z0-9\s-]/g, "");
+  slug = slug.replace(/[\s-]+/g, "-");
+  slug = slug.replace(/^-+|-+$/g, "");
+  return slug;
+}

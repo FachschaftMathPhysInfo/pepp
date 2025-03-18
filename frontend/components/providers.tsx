@@ -22,7 +22,9 @@ import {
 } from "@/lib/gql/generated/graphql";
 import {
   defaultApplication,
+  defaultBuilding,
   defaultEvent,
+  defaultRoom,
   defaultTutorial,
   defaultUser,
 } from "@/types/defaults";
@@ -78,6 +80,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           ...defaultTutorial,
           ...r,
           event: { ...defaultEvent, ...r.event },
+        })),
+        tutorials: user.tutorials?.map((t) => ({
+          ...defaultTutorial,
+          ...t,
+          event: { ...defaultEvent, ...t.event },
+          room: {
+            ...defaultRoom,
+            ...t.room,
+            building: { ...defaultBuilding, ...t.room.building },
+          },
         })),
         applications:
           user.applications?.map((a) => ({
