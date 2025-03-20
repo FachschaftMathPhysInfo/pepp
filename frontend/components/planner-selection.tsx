@@ -2,7 +2,6 @@
 
 import {
   Event,
-  Role,
   UmbrellasDocument,
   UmbrellasQuery,
   UmbrellasQueryVariables,
@@ -11,60 +10,17 @@ import React, { useEffect, useState } from "react";
 import { ChevronsUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { usePathname, useRouter } from "next/navigation";
 import { getClient } from "@/lib/graphql";
 import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUmbrella, useUser } from "./providers";
-
-type Tab = {
-  title: string;
-  value:
-    | "planner"
-    | "overview"
-    | "events"
-    | "tutorials"
-    | "applications"
-    | "settings";
-};
-
-const tabs: Tab[] = [
-  {
-    title: "Stundenplan",
-    value: "planner",
-  },
-  {
-    title: "Überblick",
-    value: "overview",
-  },
-  {
-    title: "Veranstaltungen",
-    value: "events",
-  },
-  {
-    title: "Tutorien",
-    value: "tutorials",
-  },
-  {
-    title: "Anmeldungen",
-    value: "applications",
-  },
-  {
-    title: "Einstellungen",
-    value: "settings",
-  },
-];
+import { useUmbrella } from "./providers";
 
 export function PlannerHeader() {
-  const { user } = useUser();
   const { umbrellaID, setUmbrellaID } = useUmbrella();
   const [umbrellas, setUmbrellas] = useState<Event[]>([]);
-  const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     const fetchData = async () => {
-      const client = getClient()
+      const client = getClient();
 
       const vars: UmbrellasQueryVariables = {
         onlyFuture: true,
@@ -95,10 +51,6 @@ export function PlannerHeader() {
     fetchData();
   }, [umbrellaID]);
 
-  const handleTabClick = (dest: string) => {
-    router.push(dest + "?e=" + umbrellaID);
-  };
-
   return (
     <section className="lg:flex lg:flex-row lg:items-end">
       <UmbrellaPopoverSelection umbrellas={umbrellas}>
@@ -112,33 +64,6 @@ export function PlannerHeader() {
           <ChevronsUpDown className="ml-8 h-7 w-7 shrink-0 opacity-40" />
         </Button>
       </UmbrellaPopoverSelection>
-      {user?.role === Role.Admin && (
-        <>
-          <div className="lg:w-full" />
-          <Tabs
-            defaultValue={
-              pathname.length - 1
-                ? pathname.slice(1, pathname.length)
-                : "planner"
-            }
-            className="md:mt-4"
-          >
-            <TabsList>
-              {tabs.map((t) => (
-                <TabsTrigger
-                  key={t.value}
-                  value={t.value}
-                  onClick={() =>
-                    handleTabClick(t.value === "planner" ? "/" : "/" + t.value)
-                  }
-                >
-                  {t.title}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </>
-      )}
     </section>
   );
 }
