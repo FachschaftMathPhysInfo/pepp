@@ -1,5 +1,4 @@
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
-import { useUmbrella } from "@/components/providers";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,19 +13,6 @@ import { Event } from "@/lib/gql/generated/graphql";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
-
-const TitleCell = ({ row }: { row: any }) => {
-  const { setCloseupID } = useUmbrella(); // Now inside a React component
-
-  return (
-    <p
-      className="hover:underline cursor-pointer"
-      onClick={() => setCloseupID(row.original.ID)}
-    >
-      {row.original.title}
-    </p>
-  );
-};
 
 export const columns: ColumnDef<Event>[] = [
   {
@@ -54,7 +40,7 @@ export const columns: ColumnDef<Event>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Titel" />
     ),
-    cell: ({ row }) => <TitleCell row={row} />,
+    cell: ({ row }) => row.original.title,
   },
   {
     accessorKey: "date",

@@ -5,7 +5,7 @@ import {
   getISOWeekNumber,
   groupEvents,
 } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -13,17 +13,17 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { useUmbrella, useUser } from "./providers";
+import { useUser } from "./providers";
 import { SquareCheckBig } from "lucide-react";
 import { RoomHoverCard } from "./room-hover-card";
 import { calculateFontColor } from "@/lib/utils/colorUtils";
 
 interface PlannerProps {
   events: Event[];
+  setCloseupID: React.Dispatch<React.SetStateAction<number>>
 }
 
-export function Planner({ events }: PlannerProps) {
-  const { setCloseupID } = useUmbrella();
+export function Planner({ events, setCloseupID }: PlannerProps) {
   const { user } = useUser();
 
   const groupedEvents = groupEvents(events);
@@ -114,7 +114,9 @@ export function Planner({ events }: PlannerProps) {
                             key={event.ID}
                             className={`rounded-lg p-4 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
                             style={{
-                              color: calculateFontColor(event.topic.color ?? ""),
+                              color: calculateFontColor(
+                                event.topic.color ?? ""
+                              ),
                               backgroundColor: event.topic.color ?? "",
                               height: `${eventDurationHours * 100}px`,
                             }}

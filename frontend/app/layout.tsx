@@ -6,13 +6,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
-import {
-  UserProvider,
-  ThemeProvider,
-  UmbrellaProvider,
-} from "@/components/providers";
+import { UserProvider, ThemeProvider } from "@/components/providers";
 import Header from "@/components/header";
 import { Suspense } from "react";
+import { Footer } from "@/components/footer";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -33,7 +30,7 @@ export const metadata = {
   creator: "Fachschaft MathPhysInfo",
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "de_DE",
     url: siteConfig.url,
     title: siteConfig.name,
     description: siteConfig.description,
@@ -47,12 +44,10 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="de" suppressHydrationWarning>
-      <head />
+    <html lang="de">
       <body
-        suppressHydrationWarning
         className={cn(
-          "min-h-screen bg-background font-sans antialiased max-w-xm",
+          "h-screen flex flex-col justify-between bg-background font-sans antialiased",
           fontSans.variable,
           fontHeading.variable
         )}
@@ -65,12 +60,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
               enableSystem
               disableTransitionOnChange
             >
-              <UmbrellaProvider>
-                <Header />
-                {children}
-                <Toaster />
-                <TailwindIndicator />
-              </UmbrellaProvider>
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <Toaster />
+              <TailwindIndicator />
             </ThemeProvider>
           </UserProvider>
         </Suspense>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   AddStudentApplicationForEventDocument,
   AddStudentApplicationForEventMutation,
@@ -40,8 +40,9 @@ import {
 import { toast } from "sonner";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { Dialog } from "@/components/ui/dialog";
-import { useUmbrella, useUser } from "@/components/providers";
+import { useUser } from "@/components/providers";
 import { SignInDialog } from "@/components/sign-in-dialog";
+import {extractId} from "@/lib/utils";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
@@ -64,9 +65,9 @@ const MultipleChoiceFormSchema = (required: boolean) =>
 export default function Registration() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname()
 
   const { user, setUser, sid } = useUser();
-  const { setUmbrellaID } = useUmbrella();
 
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
     null
@@ -83,14 +84,13 @@ export default function Registration() {
     }
   }, [responses]);
 
-  const eventID = parseInt(searchParams.get("e") ?? "0");
+  const eventID = extractId(pathname)
   useEffect(() => {
-    setUmbrellaID(eventID);
     const fetchData = async () => {
       const client = getClient();
 
       const vars: RegistrationFormQueryVariables = {
-        eventID: eventID,
+        eventID: eventID!,
       };
 
       const data = await client.request<RegistrationFormQuery>(
@@ -146,7 +146,7 @@ export default function Registration() {
 
     const application: NewUserToEventApplication = {
       userMail: user?.mail ?? "",
-      eventID: +eventID,
+      eventID: +eventID!,
       answers: responses,
     };
 

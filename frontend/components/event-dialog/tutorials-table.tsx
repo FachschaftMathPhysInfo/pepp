@@ -34,7 +34,7 @@ import {
   HoverCardTrigger,
 } from "../ui/hover-card";
 import { MailLinkWithLabel } from "../links/email";
-import { useUmbrella, useUser } from "../providers";
+import { useUser } from "../providers";
 import { getClient } from "@/lib/graphql";
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "../ui/table";
@@ -46,6 +46,7 @@ import {slugify} from "@/lib/utils";
 
 interface TutorialsTableProps {
   tutorials: Tutorial[];
+  id: number;
   capacities: number[];
   edit: boolean;
   event: Event;
@@ -64,11 +65,11 @@ export function TutorialsTable({
   tutorials,
   capacities,
   edit,
+  id,
 }: TutorialsTableProps) {
   const router = useRouter();
 
   const { user, setUser, sid } = useUser();
-  const { closeupID } = useUmbrella();
   const [loading, setLoading] = useState(false);
   const [registration, setRegistration] = useState<Tutorial | undefined>();
   const [usersTutorials, setUsersTutorials] = useState<Tutorial[]>();
@@ -85,8 +86,8 @@ export function TutorialsTable({
 
   useEffect(() => {
     if (!user) return;
-    setRegistration(user.registrations?.find((r) => r.event.ID === closeupID));
-    setUsersTutorials(user.tutorials?.filter((t) => t.event.ID === closeupID));
+    setRegistration(user.registrations?.find((r) => r.event.ID === id));
+    setUsersTutorials(user.tutorials?.filter((t) => t.event.ID === id));
   }, [user]);
 
   const groupRoomsByBuildingID = () => {
@@ -107,7 +108,7 @@ export function TutorialsTable({
       const client = getClient(sid!);
 
       const vars: TutorialAvailabilitysQueryVariables = {
-        id: closeupID!,
+        id: id!,
       };
 
       const eventData = await client.request<TutorialAvailabilitysQuery>(
@@ -142,7 +143,7 @@ export function TutorialsTable({
 
     const vars: AddStudentRegistrationForEventMutationVariables = {
       registration: {
-        eventID: closeupID!,
+        eventID: id!,
         userMail: user!.mail,
         roomNumber: tutorial.room.number,
         buildingID: tutorial.room.building.ID,
@@ -160,7 +161,7 @@ export function TutorialsTable({
 
     const vars: DeleteStudentRegistrationForEventMutationVariables = {
       registration: {
-        eventID: closeupID!,
+        eventID: id!,
         userMail: user!.mail,
         roomNumber: tutorial.room.number,
         buildingID: tutorial.room.building.ID,
@@ -325,7 +326,7 @@ export function TutorialsTable({
                               ? true
                               : false;
                             const assignment: EventToUserAssignment = {
-                              eventID: closeupID ?? 0,
+                              eventID: id ?? 0,
                               userMail: tutor.mail,
                               roomNumber: selectedRooms[i]?.number ?? "",
                               buildingID: selectedRooms[i]?.building.ID ?? 0,
@@ -387,7 +388,7 @@ export function TutorialsTable({
                                   setUpdateRooms((prev) => [
                                     ...prev,
                                     {
-                                      eventID: closeupID ?? 0,
+                                      eventID: id ?? 0,
                                       oldBuildingID: e.room.building.ID,
                                       oldRoomNumber: e.room.number,
                                       newBuildingID: room!.building.ID,

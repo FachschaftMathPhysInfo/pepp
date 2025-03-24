@@ -11,7 +11,13 @@ import {
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import { ChevronsUpDown, Edit3, Save } from "lucide-react";
+import {
+  ArrowDown,
+  ChevronDown,
+  ChevronsUpDown,
+  Edit3,
+  Save,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { SignInDialog } from "@/components/sign-in-dialog";
-import { useUmbrella, useUser } from "../providers";
+import { useUser } from "../providers";
 import { getClient } from "@/lib/graphql";
 import TextareaAutosize from "react-textarea-autosize";
 import { z } from "zod";
@@ -62,7 +68,12 @@ const FormSchema = z.object({
   description: z.string(),
 });
 
-export default function EventDialog() {
+interface EventDialogProps {
+  id: number;
+  setID: React.Dispatch<React.SetStateAction<number>>;
+}
+
+export default function EventDialog({ id, setID }: EventDialogProps) {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -70,7 +81,6 @@ export default function EventDialog() {
   }, []);
 
   const { user } = useUser();
-  const { closeupID, setCloseupID } = useUmbrella();
   const [loading, setLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [event, setEvent] = useState<Event>();
@@ -108,14 +118,14 @@ export default function EventDialog() {
   };
 
   useEffect(() => {
-    if (!closeupID) return;
+    if (!id) return;
     const fetchData = async () => {
       setLoading(true);
 
-      const client = getClient()
+      const client = getClient();
 
       const vars: EventCloseupQueryVariables = {
-        id: closeupID,
+        id: id,
       };
 
       const eventData = await client.request<EventCloseupQuery>(
@@ -131,7 +141,7 @@ export default function EventDialog() {
           tutorials: e.tutorials?.map((t) => ({
             ...defaultTutorial,
             ...t,
-            event: {...defaultEvent, ID: closeupID},
+            event: { ...defaultEvent, ID: id },
             tutors: t.tutors.map((tu) => ({ ...defaultUser, ...tu })),
           })),
         });
@@ -142,7 +152,7 @@ export default function EventDialog() {
 
     setOpen(true);
     fetchData();
-  }, [closeupID]);
+  }, [id]);
 
   return (
     <Dialog
@@ -150,8 +160,8 @@ export default function EventDialog() {
       onOpenChange={(open) => {
         setOpen(open);
         if (!open) {
-          setCloseupID(null);
           setEdit(false);
+          setID(0)
         }
       }}
     >
@@ -193,7 +203,7 @@ export default function EventDialog() {
                               placeholder="Veranstaltungstitel"
                               defaultValue={event?.title}
                               disabled={!edit}
-                              className="disabled:cursor-text w-full bg-transparent resize-none focus:outline-none border-solid border-b-2 disabled:border-none"
+                              className="disabled:cursor-text w-full bg-transparent resize-none focus:outline-none border-dashed border-b-2 disabled:border-none pb-2"
                               {...field}
                             />
                           </FormControl>
@@ -202,7 +212,7 @@ export default function EventDialog() {
                       )}
                     />
                   </DialogTitle>
-                  <DialogDescription className="space-y-2">
+                  <DialogDescription className="space-y-4">
                     <FormField
                       control={form.control}
                       name="description"
@@ -213,7 +223,7 @@ export default function EventDialog() {
                               placeholder="Beschreibung der Veranstaltung"
                               defaultValue={event?.description ?? ""}
                               disabled={!edit}
-                              className="disabled:cursor-text w-full bg-transparent resize-none focus:outline-none border-solid border-b-2 disabled:border-none"
+                              className="disabled:cursor-text w-full bg-transparent resize-none focus:outline-none border-dashed border-b-2 disabled:border-none pb-1"
                               {...field}
                             />
                           </FormControl>
@@ -258,11 +268,11 @@ export default function EventDialog() {
                   </div>
                 )}
                 <TutorialsTable
+                  id={id}
                   event={event!}
                   tutorials={event?.tutorials ?? []}
                   capacities={
-                    event?.tutorials?.map((t) => t.room.capacity ?? 1) ||
-                    []
+                    event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
                   }
                   edit={edit}
                   newAssignments={newAssignments}

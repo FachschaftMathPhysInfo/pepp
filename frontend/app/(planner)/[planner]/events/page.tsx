@@ -1,6 +1,5 @@
 "use client";
 
-import { useUmbrella } from "@/components/providers";
 import { DataTable } from "./data-table";
 import {
   Event,
@@ -12,12 +11,16 @@ import { getClient } from "@/lib/graphql";
 import { useEffect, useState } from "react";
 import { columns } from "./columns";
 import { TableSkeleton } from "@/components/table-skeleton";
+import {Button} from "@/components/ui/button";
+import {usePathname} from "next/navigation";
+import {PlusCircle} from "lucide-react";
+import {extractId} from "@/lib/utils";
 
 export default function EventsPage() {
+  const pathname = usePathname()
+  const umbrellaID = extractId(pathname)
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
-
-  const { umbrellaID } = useUmbrella();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -51,6 +54,10 @@ export default function EventsPage() {
           <TableSkeleton />
         ) : (
           <>
+            <Button className="w-auto">
+              <PlusCircle />
+              Event hinzufügen
+            </Button>
             <DataTable columns={columns} data={events} />
           </>
         )}

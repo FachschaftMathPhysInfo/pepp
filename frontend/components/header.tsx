@@ -28,7 +28,7 @@ import {
   FutureEventsDocument,
   FutureEventsQuery,
 } from "@/lib/gql/generated/graphql";
-import { useUmbrella, useUser } from "./providers";
+import { useUser } from "./providers";
 import { getClient } from "@/lib/graphql";
 import { useRouter } from "next/navigation";
 
@@ -55,7 +55,6 @@ export default function Header() {
     null
   );
 
-  const { setCloseupID } = useUmbrella();
   const { setTheme } = useTheme();
   const { user, setUser } = useUser();
 
@@ -161,7 +160,6 @@ export default function Header() {
                             key={e.ID}
                             onSelect={() => {
                               setSearchOpen(false);
-                              setCloseupID(e.ID);
                             }}
                           >
                             {e.title}
