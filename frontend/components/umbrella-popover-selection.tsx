@@ -18,14 +18,14 @@ import React, { useState } from "react";
 import {Button} from "./ui/button";
 import {usePathname, useRouter} from "next/navigation";
 
-interface UmbrellaPopoverSelectionProps {
+interface UmbrellaPopoverSelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   umbrellas: Event[];
   heading?: Boolean;
 }
 
 export function UmbrellaPopoverSelection({
   umbrellas,
-  heading
+  className
 }: UmbrellaPopoverSelectionProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -34,15 +34,15 @@ export function UmbrellaPopoverSelection({
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger asChild className="p-6">
         <Button
           variant="outline"
           role="combobox"
-          className={"justify-between " + (heading ? "w-auto h-auto justify-between text-4xl font-bold" : "text-sm")}
+          className={cn(className)}
         >
           {umbrellas.find((u) => u.ID == umbrellaID)?.title ??
             "Event auswählen..."}
-          <ChevronsUpDown className="ml-8 h-7 w-7 shrink-0 opacity-40" />
+          <ChevronsUpDown className="h-7 w-7 shrink-0 opacity-40" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">

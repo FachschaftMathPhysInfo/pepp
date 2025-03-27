@@ -2,6 +2,7 @@
 
 import { useUser } from "@/components/providers";
 import { SidebarNav } from "@/components/sidebar-nav";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
 import {
   Event,
@@ -15,6 +16,8 @@ import { slugify } from "@/lib/utils";
 import { defaultEvent } from "@/types/defaults";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AdminSidebar } from "./sidebar";
+import { Footer } from "@/components/footer";
 
 interface PlannerLayoutProps {
   children: React.ReactNode;
@@ -26,7 +29,7 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
   const { user } = useUser();
   const [umbrellas, setUmbrellas] = useState<Event[]>([]);
 
-  const basePath = "/" + pathname.split("/")[1]
+  const basePath = "/" + pathname.split("/")[1];
 
   const adminNav = [
     {
@@ -79,23 +82,27 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
   }, [basePath]);
 
   return (
-    <div className="flex flex-col pt-[100px]">
-      <main className="flex-1 space-y-4 pl-6 pr-6">
-        {user?.role === Role.Admin ? (
-          <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-            <aside className="-mx-4 w-1/5 space-y-4">
-              <UmbrellaPopoverSelection umbrellas={umbrellas} />
-              <SidebarNav items={adminNav} />
-            </aside>
-            <div className="flex-1">{children}</div>
-          </div>
-        ) : (
-          <>
-            <UmbrellaPopoverSelection umbrellas={umbrellas} heading={true} />
-            {children}
-          </>
-        )}
-      </main>
-    </div>
+    <>
+      {user?.role === Role.Admin ? (
+        <SidebarProvider>
+          <AdminSidebar umbrellas={umbrellas} />
+          <main className="flex-1 mt-[80px]">
+            <div className="p-5">
+              <SidebarTrigger className="mb-2" />
+              {children}
+            </div>
+            <Footer />
+          </main>
+        </SidebarProvider>
+      ) : (
+        <main className="space-y-5 p-5 mt-[80px]">
+          <UmbrellaPopoverSelection
+            umbrellas={umbrellas}
+            className="text-4xl font-bold"
+          />
+          {children}
+        </main>
+      )}
+    </>
   );
 }

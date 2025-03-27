@@ -47,7 +47,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="de">
       <body
         className={cn(
-          "h-screen flex flex-col justify-between bg-background font-sans antialiased",
+          "flex flex-col bg-background font-sans antialiased",
           fontSans.variable,
           fontHeading.variable
         )}
@@ -61,8 +61,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               disableTransitionOnChange
             >
               <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
+              {children}
               <Toaster />
               <TailwindIndicator />
             </ThemeProvider>
