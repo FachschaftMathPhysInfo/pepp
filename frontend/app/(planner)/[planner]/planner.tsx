@@ -6,6 +6,7 @@ import {
   PlannerEventsDocument,
   PlannerEventsQuery,
   PlannerEventsQueryVariables,
+  Role,
 } from "@/lib/gql/generated/graphql";
 import React, { useCallback, useEffect, useState } from "react";
 
@@ -20,7 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ChevronRight, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { defaultEvent, defaultLabel } from "@/types/defaults";
-import EventDialog from "@/components/event-dialog/event-dialog";
+import EditPlannerSection from "./edit-planner-section";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -41,9 +42,6 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [icalPath, setIcalPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
-  const [closeupID, setCloseupID] = useState<number>(
-    parseInt(searchParams.get("e") ?? "0")
-  );
 
   const createQueryString = useCallback((name: string, values: string[]) => {
     const params = new URLSearchParams(values.map((v) => [name, v]));
@@ -83,7 +81,6 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       setLoading(false);
     };
 
-
     fetchData();
   }, [toFilter, tyFilter, umbrellaID]);
 
@@ -95,7 +92,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         (tyFilter.length && toFilter.length ? "&" : "") +
         createQueryString("ty", tyFilter)
     );
-  }, [toFilter, tyFilter, closeupID])
+  }, [toFilter, tyFilter]);
 
   useEffect(() => {
     setTyFilter([]);
@@ -112,7 +109,11 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
   return (
     <>
-      <EventDialog id={closeupID} setID={setCloseupID} />
+      {user?.role === Role.Admin && (
+        <section className="mb-[20px] space-y-5">
+          <EditPlannerSection umbrellaID={umbrellaID} />
+        </section>
+      )}
 
       {events.length > 0 && (
         <section className="sm:flex sm:flex-row sm:items-end sm:justify-between">
@@ -167,7 +168,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         {loading ? (
           <CardSkeleton />
         ) : (
-          <Planner events={events} setCloseupID={setCloseupID} />
+          <Planner events={events} />
         )}
       </section>
     </>

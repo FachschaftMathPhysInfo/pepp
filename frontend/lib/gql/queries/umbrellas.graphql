@@ -4,3 +4,13 @@ query umbrellas($onlyFuture: Boolean, $id: [Int!]) {
     title
   }
 }
+
+query umbrellaDetail($id: Int!) {
+  umbrellas(id: [$id]) {
+    ID
+    title
+    description
+    from
+    to
+  }
+}

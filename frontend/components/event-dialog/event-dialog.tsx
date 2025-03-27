@@ -6,18 +6,16 @@ import {
   EventCloseupQuery,
   EventCloseupQueryVariables,
   EventToUserAssignment,
-  NewEvent,
+  Label,
+  LabelKind,
+  LabelsDocument,
+  LabelsQuery,
+  LabelsQueryVariables,
   Role,
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import {
-  ArrowDown,
-  ChevronDown,
-  ChevronsUpDown,
-  Edit3,
-  Save,
-} from "lucide-react";
+import { Check, ChevronDown, ChevronsUpDown, Edit3, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,6 +55,14 @@ import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
 import { FullDateDescription } from "../full-date-description";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../ui/command";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -69,30 +75,29 @@ const FormSchema = z.object({
 });
 
 interface EventDialogProps {
-  id: number;
-  setID: React.Dispatch<React.SetStateAction<number>>;
+  id?: number;
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  modify?: boolean;
 }
 
-export default function EventDialog({ id, setID }: EventDialogProps) {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
+export default function EventDialog({
+  id,
+  open,
+  setOpen,
+  modify,
+}: EventDialogProps) {
   const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [event, setEvent] = useState<Event>();
-  const [open, setOpen] = useState(false);
-  const [edit, setEdit] = useState(false);
+  const [edit, setEdit] = useState(modify ?? false);
   const [newAssignments, setNewAssignments] = useState<EventToUserAssignment[]>(
     []
   );
   const [deleteAssignments, setDeleteAssignments] = useState<
     EventToUserAssignment[]
   >([]);
-  const [newEvent, setNewEvent] = useState<NewEvent>();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -117,15 +122,21 @@ export default function EventDialog({ id, setID }: EventDialogProps) {
     };
   };
 
+  const newEvent = async (data: z.infer<typeof FormSchema>) => {};
+
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       setLoading(true);
 
       const client = getClient();
 
       const vars: EventCloseupQueryVariables = {
-        id: id,
+        id: id!,
       };
 
       const eventData = await client.request<EventCloseupQuery>(
@@ -150,7 +161,6 @@ export default function EventDialog({ id, setID }: EventDialogProps) {
       }
     };
 
-    setOpen(true);
     fetchData();
   }, [id]);
 
@@ -161,12 +171,11 @@ export default function EventDialog({ id, setID }: EventDialogProps) {
         setOpen(open);
         if (!open) {
           setEdit(false);
-          setID(0)
         }
       }}
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(updateEvent)}>
+        <form onSubmit={form.handleSubmit(id ? updateEvent : newEvent)}>
           <DialogContent className="sm:min-w-[600px]">
             {user?.role === Role.Admin && (
               <DialogAction>
@@ -212,7 +221,7 @@ export default function EventDialog({ id, setID }: EventDialogProps) {
                       )}
                     />
                   </DialogTitle>
-                  <DialogDescription className="space-y-4">
+                  <DialogDescription className="space-y-2">
                     <FormField
                       control={form.control}
                       name="description"
@@ -232,17 +241,40 @@ export default function EventDialog({ id, setID }: EventDialogProps) {
                       )}
                     />
                     <div className="space-x-2">
-                      <Badge variant="event" color={event?.topic.color || ""}>
-                        {event?.topic.name}
-                      </Badge>
-                      <Badge variant="event" color={event?.type.color || ""}>
-                        {event?.type.name}
-                      </Badge>
+                      {edit ? (
+                        <>
+                          <BadgePicker
+                            kind={LabelKind.Topic}
+                            labelKindDescription="Thema"
+                            selected={event?.topic}
+                          />
+                          <BadgePicker
+                            kind={LabelKind.EventType}
+                            labelKindDescription="Veranstaltungstyp"
+                            selected={event?.type}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <Badge
+                            variant="event"
+                            color={event?.topic.color || ""}
+                          >
+                            {event?.topic.name}
+                          </Badge>
+                          <Badge
+                            variant="event"
+                            color={event?.type.color || ""}
+                          >
+                            {event?.type.name}
+                          </Badge>
+                        </>
+                      )}
                     </div>
                     {edit ? (
                       <DatePicker
-                        from={new Date(event?.from)}
-                        to={new Date(event?.to)}
+                        from={event ? new Date(event.from) : undefined}
+                        to={event ? new Date(event.to) : undefined}
                       />
                     ) : (
                       <FullDateDescription
@@ -267,24 +299,26 @@ export default function EventDialog({ id, setID }: EventDialogProps) {
                     <span>, um dich eintragen zu können.</span>
                   </div>
                 )}
-                <TutorialsTable
-                  id={id}
-                  event={event!}
-                  tutorials={event?.tutorials ?? []}
-                  capacities={
-                    event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
-                  }
-                  edit={edit}
-                  newAssignments={newAssignments}
-                  setNewAssignments={setNewAssignments}
-                  deleteAssignments={deleteAssignments}
-                  setDeleteAssignments={setDeleteAssignments}
-                />
+                {id && (
+                  <TutorialsTable
+                    id={id!}
+                    event={event!}
+                    tutorials={event?.tutorials ?? []}
+                    capacities={
+                      event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
+                    }
+                    edit={edit}
+                    newAssignments={newAssignments}
+                    setNewAssignments={setNewAssignments}
+                    deleteAssignments={deleteAssignments}
+                    setDeleteAssignments={setDeleteAssignments}
+                  />
+                )}
                 {edit && (
                   <div className="flex flex-row space-x-2">
                     <Checkbox checked={event?.needsTutors} />
                     <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Benötigt noch Tutoren
+                      Benötigt Tutoren
                     </label>
                   </div>
                 )}
@@ -297,22 +331,113 @@ export default function EventDialog({ id, setID }: EventDialogProps) {
   );
 }
 
+interface BadgePickerProps {
+  kind: LabelKind;
+  labelKindDescription?: string;
+  selected: Label | undefined;
+}
+
+function BadgePicker({
+  kind,
+  labelKindDescription,
+  selected,
+}: BadgePickerProps) {
+  const [sel, setSel] = useState<Label | undefined>(selected);
+  const [labels, setLabels] = useState<Label[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (labels.length) return;
+    const fetchData = async () => {
+      setLoading(true);
+      const client = getClient();
+
+      const vars: LabelsQueryVariables = {
+        kind: kind,
+      };
+
+      const labelData = await client.request<LabelsQuery>(LabelsDocument, vars);
+
+      setLabels(labelData.labels);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [open]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
+      <PopoverTrigger asChild>
+        <Badge
+          variant="event"
+          color={sel?.color ?? "grey"}
+          className="space-x-2 hover:cursor-pointer"
+        >
+          {sel ? (
+            <p>{sel.name}</p>
+          ) : (
+            <p>{labelKindDescription ?? "Label"} auswählen</p>
+          )}
+          <ChevronDown className="opacity-50 h-4 w-4" />
+        </Badge>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <CommandInput placeholder="Label..." />
+          <CommandList>
+            <CommandEmpty>Nichts gefunden.</CommandEmpty>
+            <CommandGroup>
+              {labels.map((label) => (
+                <CommandItem
+                  key={label.name}
+                  value={label.name}
+                  onSelect={() => {
+                    setSel(label);
+                    setOpen(false);
+                  }}
+                >
+                  <div
+                    className="rounded-full w-3 h-3 mr-2"
+                    style={{ backgroundColor: label.color ?? "#FFFFFF" }}
+                  />
+                  {label.name}
+                  <Check
+                    className={cn(
+                      "ml-auto h-4 w-4",
+                      label === sel ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface DatePickerProps {
-  from: Date;
-  to: Date;
+  from?: Date;
+  to?: Date;
 }
 
 function DatePicker({ from, to }: DatePickerProps) {
   const [date, setDate] = useState<Date | undefined>(from);
 
   return (
-    <Popover>
+    <Popover modal={true}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
           className={cn("w-fit h-fit text-start space-x-2")}
         >
-          <FullDateDescription from={from} to={to} />
+          {date ? (
+            <FullDateDescription from={from!} to={to!} />
+          ) : (
+            <p>Pick a date</p>
+          )}
           <ChevronsUpDown className="h-4 w-4" />
         </Button>
       </PopoverTrigger>

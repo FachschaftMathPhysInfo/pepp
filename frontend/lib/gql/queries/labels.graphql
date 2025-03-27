@@ -1,0 +1,6 @@
+query labels($kind: LabelKind!) {
+  labels(kind: [$kind]) {
+    name
+    color
+  }
+}

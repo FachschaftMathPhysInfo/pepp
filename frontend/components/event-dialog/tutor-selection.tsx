@@ -30,11 +30,11 @@ export function TutorSelection({
   const [selected, setSelected] = useState(selectedTutors ?? []);
 
   useEffect(() => {
-    setSelected(selectedTutors ?? [])
-  }, [selectedTutors])
+    setSelected(selectedTutors ?? []);
+  }, [selectedTutors]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"

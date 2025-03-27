@@ -4,18 +4,27 @@ import { useUser } from "@/components/providers";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Separator } from "@/components/ui/separator";
 import {slugify} from "@/lib/utils";
-import React from "react";
+import {useRouter} from "next/navigation";
+import React, {useEffect} from "react";
 
 interface ProfileTutorialsLayoutProps {
   children: React.ReactNode;
 }
 
 export default function ProfileTutorialsLayout({children}: ProfileTutorialsLayoutProps) {
+  const router = useRouter()
+
   const { user } = useUser();
   const tutorials = user?.tutorials?.map((u) => ({
     title: u.event.title,
     href: `/profile/tutorials/${slugify(u.event.title)}-${u.event.ID}`,
   }));
+
+  useEffect(() => {
+    if (tutorials?.length) {
+      router.push(tutorials[0].href)
+    }
+  }, [tutorials])
 
   return (
     <div className="">
