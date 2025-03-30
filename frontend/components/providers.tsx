@@ -24,6 +24,7 @@ import {
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { type ThemeProviderProps } from "next-themes/dist/types";
 import { getClient } from "@/lib/graphql";
+import { setCookie, deleteCookie, getCookie } from "@/lib/cookie";
 
 type UserContextType = {
   user: User | null;
@@ -47,8 +48,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [sid, setSid] = useState<string | null>(null);
 
   useEffect(() => {
+    setSid(getCookie("sid"))
+  }, [])
+
+  useEffect(() => {
     if (!sid) {
       setUser(null);
+      deleteCookie("sid");
       return;
     }
 
@@ -92,6 +98,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       });
     };
 
+    setCookie("sid", sid, 10);
     fetchUser();
   }, [sid]);
 

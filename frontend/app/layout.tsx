@@ -9,7 +9,6 @@ import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { UserProvider, ThemeProvider } from "@/components/providers";
 import Header from "@/components/header";
 import { Suspense } from "react";
-import { Footer } from "@/components/footer";
 
 const fontSans = FontSans({
   subsets: ["latin"],
