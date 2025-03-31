@@ -2,9 +2,11 @@
 > **P**raktische **E**rsti-**P**rogramm**p**lanung
 
 ## build
-1. `cp .env .env.local`
-2. `docker compose build`
-3. `docker compose up -d && docker compose logs -f`
+```bash
+cp .env .env.local
+docker compose build
+docker compose up -d && docker compose logs -f
+```
 
 - Frontend: [localhost:8080](http://localhost:8080)
 - ICal Calendar: [localhost:8080/ical?e=1&ty=Tutorium&to=Informatik](http://localhost:8080/ical?e=1&ty=Tutorium&to=Informatik)
@@ -13,27 +15,39 @@
 
 ### dev
 #### frontend
-1. `cd frontend`
-2. `npm i`
-3. `npm run codegen`
-4. `npm run dev`
+```bash
+cd frontend
+npm i
+npm run codegen
+npm run dev
+```
 
 #### backend
-1. `cd server`
-2. `go generate ./...`
-3. `go run server.go`
-
-The backend sends emails (confirmation, ...). You need provide a smtp server inside your `.env.local`, e.g.:
-```
-SMTP_HOST=smtp.example.de
-SMTP_USER=example@example.de
-SMTP_PASSWORD=1234
-SMTP_PORT=465
-FROM_ADDRESS=vorkurs@example.de
+```bash
+cd server
+go generate ./...
+go run server.go
 ```
 
+#### example data
+1. visit [localhost:8080/playground](http://localhost:8080/playground)
+2. get a session id for the generated admin user by doing a login query
+    ```
+    {
+      login (
+        mail: "admin@pepp.local"
+        password: "<generated password from backend logs>"
+      )
+    }
+    ```
+3. in the playground go to the headers tab and paste the session id
+    ```
+    {
+      "SID": "<session id>"
+    }
+    ```
 <details>
-    <summary>To get some data to work with, paste the mutation in the GraphQL Playground</summary>
+    <summary>4. trigger the following mutation</summary>
 
     mutation exampleData {
       tutor1: addUser(user: {mail: "tutor1@example.de", fn: "Tutorin", sn: "One", password: "test1"}) {
@@ -159,6 +173,24 @@ FROM_ADDRESS=vorkurs@example.de
       s20: addSetting(setting: {key: "email-assignment-outro", value: "Viel Erfolg!", type: STRING}) { key }
     }
 </details>
+
+## env vars
+
+| Key | Description |
+| - | - |
+| `LOG_LEVEL` (optional) | Default is `Info`. Set to `Debug` for more information |
+| `PUBLIC_URL` (required) | The domain under which pepp is deployed |
+| `PEPPER_KEY` (required) | Generate a random 64 characters long string for password security |
+| `POSTGRES_HOST` (optional) | When given tries to connect. Creates a SQLite per default |
+| `POSTGRES_PASSWORD` (optional) | Required if `POSTGRES_HOST` is given |
+| `POSTGRES_PORT` (optional) | Required if `POSTGRES_HOST` is given |
+| `POSTGRES_USER` (optional) | Required if `POSTGRES_HOST` is given |
+| `POSTGRES_DB` (optional) | Required if `POSTGRES_HOST` is given |
+| `SMTP_HOST` (required) |  E-Mail provider, e.g. `smtp.example.de` |
+| `SMTP_USER` (required) | E.g. `alice@example.de` |
+| `SMTP_PASSWORD` (required) | The password to log into the SMTP Server |
+| `SMTP_PORT` (required) | Mostly `465` |
+| `FROM_ADDRESS` (required) | Address from which mails are send, e.g. `vorkurs@example.de` |
 
 ## contributions
 1. [create an issue](https://github.com/FachschaftMathPhysInfo/pepp/issues/new)
