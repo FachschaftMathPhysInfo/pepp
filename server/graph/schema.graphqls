@@ -273,8 +273,6 @@ type Mutation {
   addUser(user: NewUser!): String!
   updateUser(user: UpdateUser!): User!
   deleteUser(mail: [String!]!): Int! @auth(rule: IS_USER)
-  addTutor(tutor: NewUser!, availability: NewUserToEventAvailability!): User!
-  addStudent(student: NewUser!, application: NewUserToEventApplication!): User!
   addEvent(event: NewEvent!): Event! @auth(role: ADMIN)
   updateEvent(id: Int!, event: NewEvent!): Event! @auth(role: ADMIN)
   deleteEvent(id: [Int!]!): Int! @auth(role: ADMIN)

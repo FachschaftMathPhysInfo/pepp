@@ -144,34 +144,6 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, mail []string) (int, 
 	return int(rowsAffected), nil
 }
 
-// AddTutor is the resolver for the addTutor field.
-func (r *mutationResolver) AddTutor(ctx context.Context, tutor models.User, availability model.NewUserToEventAvailability) (*models.User, error) {
-	if _, err := r.Mutation().AddUser(ctx, tutor); err != nil {
-		return nil, err
-	}
-
-	user, err := r.Mutation().AddTutorAvailabilityForEvent(ctx, availability)
-	if err != nil {
-		return nil, err
-	}
-
-	return user, nil
-}
-
-// AddStudent is the resolver for the addStudent field.
-func (r *mutationResolver) AddStudent(ctx context.Context, student models.User, application model.NewUserToEventApplication) (*models.User, error) {
-	if _, err := r.Mutation().AddUser(ctx, student); err != nil {
-		return nil, err
-	}
-
-	newUser, err := r.Mutation().AddStudentApplicationForEvent(ctx, application)
-	if err != nil {
-		return nil, err
-	}
-
-	return newUser, nil
-}
-
 // AddEvent is the resolver for the addEvent field.
 func (r *mutationResolver) AddEvent(ctx context.Context, event models.Event) (*models.Event, error) {
 	if _, err := r.DB.NewInsert().
