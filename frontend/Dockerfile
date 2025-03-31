@@ -1,13 +1,13 @@
 FROM node:20-alpine AS builder
 
+COPY server/graph/schema.graphqls /app/schema.graphqls
+
 WORKDIR /app
 
-COPY package*.json ./
+COPY frontend/ .
 
 RUN npm install
-
-COPY . .
-
+RUN npm run codegen
 RUN npm run build
 
 FROM node:20-alpine
