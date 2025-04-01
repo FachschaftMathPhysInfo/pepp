@@ -46,6 +46,11 @@ query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
     from
     to
     topic {
+      name
+      color
+    }
+    type {
+      name
       color
     }
   }

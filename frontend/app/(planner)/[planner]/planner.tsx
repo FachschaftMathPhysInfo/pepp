@@ -18,13 +18,32 @@ import { CardSkeleton } from "@/components/card-skeleton";
 import { Planner } from "@/components/planner";
 import { useUser } from "@/components/providers";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ChevronRight, TriangleAlert } from "lucide-react";
+import {
+  Check,
+  ChevronRight,
+  ChevronsUpDown,
+  TriangleAlert,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { defaultEvent, defaultLabel } from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DataTable } from "./data-table";
+import { columns } from "./columns";
+import { cn } from "@/lib/utils";
 
 interface PlannerPageProps {
   umbrellaID: number;
+}
+
+enum View {
+  planner = "Stundenplan",
+  table = "Tabelle",
 }
 
 export function PlannerPage({ umbrellaID }: PlannerPageProps) {
@@ -42,11 +61,21 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [icalPath, setIcalPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
+  const [view, setView] = useState(View.planner);
 
   const createQueryString = useCallback((name: string, values: string[]) => {
     const params = new URLSearchParams(values.map((v) => [name, v]));
     return params.toString();
   }, []);
+
+  const renderView = () => {
+    switch (view) {
+      case View.planner:
+        return <Planner events={events} />;
+      case View.table:
+        return <DataTable columns={columns} data={events} />;
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -117,26 +146,54 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
       {events.length > 0 && (
         <section className="sm:flex sm:flex-row sm:items-end sm:justify-between">
-          {(topics.length >= 2 || types.length >= 2) && (
-            <div className="space-y-2 mb-2">
-              {topics.length >= 2 && (
-                <Filter
-                  title="Thema"
-                  options={topics.map((t) => t.name)}
-                  filter={toFilter}
-                  setFilter={setToFilter}
-                />
-              )}
-              {types.length >= 2 && (
-                <Filter
-                  title="Veranstaltungsart"
-                  options={types.map((t) => t.name)}
-                  filter={tyFilter}
-                  setFilter={setTyFilter}
-                />
-              )}
-            </div>
-          )}
+          <div className="space-y-2 mb-2">
+            {(topics.length >= 2 || types.length >= 2) && (
+              <>
+                {topics.length >= 2 && (
+                  <Filter
+                    title="Thema"
+                    options={topics.map((t) => t.name)}
+                    filter={toFilter}
+                    setFilter={setToFilter}
+                  />
+                )}
+                {types.length >= 2 && (
+                  <Filter
+                    title="Veranstaltungsart"
+                    options={types.map((t) => t.name)}
+                    filter={tyFilter}
+                    setFilter={setTyFilter}
+                  />
+                )}
+              </>
+            )}
+            {user?.role === Role.Admin && (
+              <>
+                <p className="font-bold text-xs">Ansicht</p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      {view}
+                      <ChevronsUpDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {Object.values(View).map((v) => (
+                      <DropdownMenuItem key={v} onClick={() => setView(v)}>
+                        <Check
+                          className={cn(
+                            "h-4 w-4 mr-2",
+                            v === view ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {v}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            )}
+          </div>
           <CopyTextArea label="ICS-Kalender" text={icalPath} />
         </section>
       )}
@@ -164,12 +221,8 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         </section>
       )}
 
-      <section>
-        {loading ? (
-          <CardSkeleton />
-        ) : (
-          <Planner events={events} />
-        )}
+      <section className="mt-5">
+        {loading ? <CardSkeleton /> : renderView()}
       </section>
     </>
   );
