@@ -60,7 +60,7 @@ export function TutorSelection({
         <Command>
           <CommandInput placeholder="Name oder E-Mail..." />
           <CommandList>
-            <CommandEmpty>Keine Tutor/innen verfügbar.</CommandEmpty>
+            <CommandEmpty>Niemanden gefunden.</CommandEmpty>
             <CommandGroup>
               {availableTutors.map((tutor) => {
                 const isSelected = selected.find((t) => t.mail === tutor.mail)

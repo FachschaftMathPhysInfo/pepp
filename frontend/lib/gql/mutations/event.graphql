@@ -3,3 +3,9 @@ mutation updateEvent($id: Int!, $event: NewEvent!) {
     ID
   }
 }
+
+mutation addEvent($event: NewEvent!) {
+  addEvent(event: $event) {
+    ID
+  }
+}

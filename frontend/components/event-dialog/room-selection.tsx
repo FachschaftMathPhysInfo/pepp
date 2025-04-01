@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Room } from "@/lib/gql/generated/graphql";
-import { ArrowDownToDot, Check, ChevronsUpDown, Move, Users } from "lucide-react";
+import { ArrowDownToDot, Check, ChevronsUpDown, Users } from "lucide-react";
 import React, { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
@@ -65,7 +65,7 @@ export function RoomSelection({
         <Command>
           <CommandInput placeholder="Raum oder Gebäude..." />
           <CommandList>
-            <CommandEmpty>Keine Räume verfügbar.</CommandEmpty>
+            <CommandEmpty>Keinen Raum gefunden.</CommandEmpty>
             {Object.keys(rooms).map((bID) => {
               const building = rooms[bID][0].building;
               return (

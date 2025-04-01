@@ -1,23 +1,20 @@
 "use client";
 
 import {
+  AddEventDocument,
+  AddEventMutation,
+  AddEventMutationVariables,
   Event,
   EventCloseupDocument,
   EventCloseupQuery,
   EventCloseupQueryVariables,
   EventToUserAssignment,
-  Label,
   LabelKind,
-  LabelsDocument,
-  LabelsQuery,
-  LabelsQueryVariables,
   Role,
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import { Check, ChevronDown, ChevronsUpDown, Edit3, Save } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
+import { Edit3, Save } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DialogHeader,
@@ -39,57 +36,50 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { cn, extractId } from "@/lib/utils";
 import { TutorialsTable } from "./tutorials-table";
 import { Input } from "../ui/input";
-import { Checkbox } from "../ui/checkbox";
 import { FullDateDescription } from "../full-date-description";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "../ui/command";
+import { usePathname } from "next/navigation";
+import { Switch } from "../ui/switch";
+import { BadgePicker } from "../badge-picker";
+import { DatePicker } from "../date-picker";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
     message: "Titel darf nicht leer sein.",
   }),
-  date: z.date({
-    required_error: "Bitte Veranstaltungsdatum angeben.",
-  }),
+  date: z.date(),
+  from: z.string(),
+  to: z.string(),
+  topic: z.string(),
+  type: z.string(),
   description: z.string(),
+  needsTutors: z.boolean(),
 });
 
 interface EventDialogProps {
   id?: number;
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   modify?: boolean;
+  children: React.ReactNode;
 }
 
 export default function EventDialog({
   id,
-  open,
-  setOpen,
   modify,
+  children,
 }: EventDialogProps) {
-  const { user } = useUser();
+  const pathname = usePathname();
+
+  const { user, sid } = useUser();
   const [loading, setLoading] = useState(true);
-  const [updateLoading, setUpdateLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
   const [event, setEvent] = useState<Event>();
   const [edit, setEdit] = useState(modify ?? false);
   const [newAssignments, setNewAssignments] = useState<EventToUserAssignment[]>(
@@ -105,11 +95,16 @@ export default function EventDialog({
       title: event?.title,
       description: event?.description!,
       date: event?.from,
+      from: event?.from,
+      to: event?.to,
+      needsTutors: event?.needsTutors,
+      topic: event?.topic.name,
+      type: event?.type.name,
     },
   });
 
   const updateEvent = async (data: z.infer<typeof FormSchema>) => {
-    setUpdateLoading(true);
+    setSaveLoading(true);
 
     const vars: UpdateEventMutationVariables = {
       id: event?.ID ?? 0,
@@ -122,7 +117,21 @@ export default function EventDialog({
     };
   };
 
-  const newEvent = async (data: z.infer<typeof FormSchema>) => {};
+  const newEvent = async (data: z.infer<typeof FormSchema>) => {
+    setSaveLoading(true);
+
+    const vars: AddEventMutationVariables = {
+      event: { ...data, umbrellaID: extractId(pathname) },
+    };
+
+    const sendData = async () => {
+      const client = getClient(sid!);
+      await client.request<AddEventMutation>(AddEventDocument, vars);
+    };
+
+    sendData();
+    setSaveLoading(false);
+  };
 
   useEffect(() => {
     if (!id) {
@@ -166,14 +175,13 @@ export default function EventDialog({
 
   return (
     <Dialog
-      open={open}
       onOpenChange={(open) => {
-        setOpen(open);
         if (!open) {
           setEdit(false);
         }
       }}
     >
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(id ? updateEvent : newEvent)}>
           <DialogContent className="sm:min-w-[600px]">
@@ -181,7 +189,11 @@ export default function EventDialog({
               <DialogAction>
                 {edit ? (
                   <>
-                    <Save className="h-4 w-4" onClick={() => setEdit(false)} />
+                    <Save
+                      type="submit"
+                      className="h-4 w-4"
+                      onClick={() => setEdit(false)}
+                    />
                     <span className="sr-only">Speichern</span>
                   </>
                 ) : (
@@ -200,7 +212,7 @@ export default function EventDialog({
               </div>
             ) : (
               <div className="space-y-4">
-                <DialogHeader className="pr-10">
+                <DialogHeader>
                   <DialogTitle>
                     <FormField
                       control={form.control}
@@ -221,7 +233,9 @@ export default function EventDialog({
                       )}
                     />
                   </DialogTitle>
-                  <DialogDescription className="space-y-2">
+                  <DialogDescription
+                    className={cn(edit ? "space-y-4" : "space-y-2")}
+                  >
                     <FormField
                       control={form.control}
                       name="description"
@@ -243,15 +257,29 @@ export default function EventDialog({
                     <div className="space-x-2">
                       {edit ? (
                         <>
-                          <BadgePicker
-                            kind={LabelKind.Topic}
-                            labelKindDescription="Thema"
-                            selected={event?.topic}
+                          <FormField
+                            control={form.control}
+                            name="topic"
+                            render={({ field }) => (
+                              <BadgePicker
+                                kind={LabelKind.Topic}
+                                labelKindDescription="Thema"
+                                selected={field.value}
+                                onChange={field.onChange}
+                              />
+                            )}
                           />
-                          <BadgePicker
-                            kind={LabelKind.EventType}
-                            labelKindDescription="Veranstaltungstyp"
-                            selected={event?.type}
+                          <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                              <BadgePicker
+                                kind={LabelKind.EventType}
+                                labelKindDescription="Veranstaltungstyp"
+                                selected={field.value}
+                                onChange={field.onChange}
+                              />
+                            )}
                           />
                         </>
                       ) : (
@@ -272,10 +300,59 @@ export default function EventDialog({
                       )}
                     </div>
                     {edit ? (
-                      <DatePicker
-                        from={event ? new Date(event.from) : undefined}
-                        to={event ? new Date(event.to) : undefined}
-                      />
+                      <div className="flex flex-row justify-between">
+                        <FormField
+                          control={form.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <DatePicker
+                                  selected={field.value}
+                                  onChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Datum der Veranstaltung
+                              </FormDescription>
+                            </FormItem>
+                          )}
+                        />
+                        <div className="flex flex-row space-x-2">
+                          <FormField
+                            control={form.control}
+                            name="from"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    aria-label="Time"
+                                    type="time"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormDescription>Von</FormDescription>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="to"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    aria-label="Time"
+                                    type="time"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormDescription>Bis</FormDescription>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <FullDateDescription
                         from={new Date(event?.from)}
@@ -315,12 +392,29 @@ export default function EventDialog({
                   />
                 )}
                 {edit && (
-                  <div className="flex flex-row space-x-2">
-                    <Checkbox checked={event?.needsTutors} />
-                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Benötigt Tutoren
-                    </label>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="needsTutors"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <div className="flex flex-row space-x-2 mt-10">
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                              Benötigt Tutoren
+                            </p>
+                          </div>
+                        </FormControl>
+                        <FormDescription>
+                          Personen können sich für diese Veranstaltung als
+                          verfügbare/r Tutor/in eintragen.
+                        </FormDescription>
+                      </FormItem>
+                    )}
+                  />
                 )}
               </div>
             )}
@@ -328,133 +422,5 @@ export default function EventDialog({
         </form>
       </Form>
     </Dialog>
-  );
-}
-
-interface BadgePickerProps {
-  kind: LabelKind;
-  labelKindDescription?: string;
-  selected: Label | undefined;
-}
-
-function BadgePicker({
-  kind,
-  labelKindDescription,
-  selected,
-}: BadgePickerProps) {
-  const [sel, setSel] = useState<Label | undefined>(selected);
-  const [labels, setLabels] = useState<Label[]>([]);
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (labels.length) return;
-    const fetchData = async () => {
-      setLoading(true);
-      const client = getClient();
-
-      const vars: LabelsQueryVariables = {
-        kind: kind,
-      };
-
-      const labelData = await client.request<LabelsQuery>(LabelsDocument, vars);
-
-      setLabels(labelData.labels);
-      setLoading(false);
-    };
-
-    fetchData();
-  }, [open]);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen} modal={true}>
-      <PopoverTrigger asChild>
-        <Badge
-          variant="event"
-          color={sel?.color ?? "grey"}
-          className="space-x-2 hover:cursor-pointer"
-        >
-          {sel ? (
-            <p>{sel.name}</p>
-          ) : (
-            <p>{labelKindDescription ?? "Label"} auswählen</p>
-          )}
-          <ChevronDown className="opacity-50 h-4 w-4" />
-        </Badge>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder="Label..." />
-          <CommandList>
-            <CommandEmpty>Nichts gefunden.</CommandEmpty>
-            <CommandGroup>
-              {labels.map((label) => (
-                <CommandItem
-                  key={label.name}
-                  value={label.name}
-                  onSelect={() => {
-                    setSel(label);
-                    setOpen(false);
-                  }}
-                >
-                  <div
-                    className="rounded-full w-3 h-3 mr-2"
-                    style={{ backgroundColor: label.color ?? "#FFFFFF" }}
-                  />
-                  {label.name}
-                  <Check
-                    className={cn(
-                      "ml-auto h-4 w-4",
-                      label === sel ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-interface DatePickerProps {
-  from?: Date;
-  to?: Date;
-}
-
-function DatePicker({ from, to }: DatePickerProps) {
-  const [date, setDate] = useState<Date | undefined>(from);
-
-  return (
-    <Popover modal={true}>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn("w-fit h-fit text-start space-x-2")}
-        >
-          {date ? (
-            <FullDateDescription from={from!} to={to!} />
-          ) : (
-            <p>Pick a date</p>
-          )}
-          <ChevronsUpDown className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 flex flex-row">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          disabled={(date) => date < new Date()}
-        />
-        <div className="p-2 space-y-4">
-          <div className="space-y-2">
-            Von
-            <Input aria-label="Time" type="time" />
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
   );
 }

@@ -23,7 +23,6 @@ export default function EditPlannerSection({
 }: EditPlannerSectionProps) {
   const [loading, setLoading] = useState(true);
   const [umbrella, setUmbrella] = useState<Event | null>(null);
-  const [addEventDialogOpen, setAddEventDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,24 +51,22 @@ export default function EditPlannerSection({
 
   return (
     <>
-      <EventDialog
-        open={addEventDialogOpen}
-        setOpen={setAddEventDialogOpen}
-        modify={true}
-      />
       <EditableTextfield
         value={umbrella.title}
         edit={true}
         className="w-auto text-3xl font-semibold tracking-tight"
       />
       <div className="flex flex-row justify-between">
-        <Button
-          className={cn("h-[40px] w-auto justify-start text-left font-normal")}
-          onClick={() => setAddEventDialogOpen(true)}
-        >
-          <PlusCircle />
-          Event hinzufügen
-        </Button>
+        <EventDialog modify={true}>
+          <Button
+            className={cn(
+              "h-[40px] w-auto justify-start text-left font-normal"
+            )}
+          >
+            <PlusCircle />
+            Event hinzufügen
+          </Button>
+        </EventDialog>
         <DatePickerWithRange from={umbrella.from} to={umbrella.to} />
       </div>
     </>
