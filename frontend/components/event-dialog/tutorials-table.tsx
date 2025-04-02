@@ -33,7 +33,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "../ui/hover-card";
-import { MailLinkWithLabel } from "../links/email";
+import { MailLinkWithLabel } from "@/components/email-link";
 import { useUser } from "../providers";
 import { getClient } from "@/lib/graphql";
 import React, { useEffect, useState } from "react";
@@ -42,7 +42,7 @@ import { TutorSelection } from "./tutor-selection";
 import { RoomSelection } from "./room-selection";
 import { RoomHoverCard } from "../room-hover-card";
 import { useRouter } from "next/navigation";
-import {slugify} from "@/lib/utils";
+import { slugify } from "@/lib/utils";
 
 interface TutorialsTableProps {
   tutorials: Tutorial[];
@@ -452,7 +452,11 @@ export function TutorialsTable({
                           }
                           onClick={() => {
                             if (isTutor) {
-                              router.push(`/profile/tutorials/${slugify(event.title)}-${event.ID}`);
+                              router.push(
+                                `/profile/tutorials/${slugify(event.title)}-${
+                                  event.ID
+                                }`
+                              );
                             } else {
                               handleRegistrationChange(e);
                             }

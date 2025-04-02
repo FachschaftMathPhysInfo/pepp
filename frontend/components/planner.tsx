@@ -1,9 +1,11 @@
 import { Event } from "@/lib/gql/generated/graphql";
 import {
   calculateEventDurationInHours,
+  cn,
   formatDateToDDMM,
   getISOWeekNumber,
   groupEvents,
+  hexToRGBA,
 } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import {
@@ -14,7 +16,7 @@ import {
   CardTitle,
 } from "./ui/card";
 import { useUser } from "./providers";
-import { SquareCheckBig } from "lucide-react";
+import { Clock, SquareCheckBig } from "lucide-react";
 import { RoomHoverCard } from "./room-hover-card";
 import { calculateFontColor } from "@/lib/utils/colorUtils";
 import EventDialog from "./event-dialog/event-dialog";
@@ -114,12 +116,12 @@ export function Planner({ events }: PlannerProps) {
                               ></div>
                               <li
                                 key={event.ID}
-                                className={`rounded-lg p-4 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
+                                className={`rounded-lg p-2 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
                                 style={{
-                                  color: calculateFontColor(
-                                    event.topic.color ?? ""
+                                  backgroundColor: hexToRGBA(
+                                    event.topic.color ?? "#FFF",
+                                    0.3
                                   ),
-                                  backgroundColor: event.topic.color ?? "",
                                   height: `${eventDurationHours * 100}px`,
                                 }}
                                 role="button"
@@ -129,24 +131,39 @@ export function Planner({ events }: PlannerProps) {
                                   setEventDialogOpen(true);
                                 }}
                               >
-                                <div>
-                                  <p className="text-sm font-bold">
-                                    {event.title}
-                                  </p>
-                                  <p className="text-sm">
-                                    {new Date(event.from).toLocaleTimeString(
-                                      [],
-                                      {
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      }
-                                    )}{" "}
-                                    -{" "}
-                                    {new Date(event.to).toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </p>
+                                <div className="flex flex-row">
+                                  <div
+                                    className="h-full w-1 rounded-lg mr-2"
+                                    style={{
+                                      backgroundColor:
+                                        event.topic.color ?? "#FFF",
+                                    }}
+                                  />
+
+                                  <div>
+                                    <p className="text-sm font-bold">
+                                      {event.title}
+                                    </p>
+                                    <div className="flex flex-row items-center space-x-1">
+                                      <Clock className="h-3 w-3" />
+                                      <p className="text-sm">
+                                        {new Date(
+                                          event.from
+                                        ).toLocaleTimeString([], {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })}{" "}
+                                        -{" "}
+                                        {new Date(event.to).toLocaleTimeString(
+                                          [],
+                                          {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                          }
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
                                 </div>
                                 {registration && (
                                   <div className="flex flex-row space-x-2 mt-2 w-fit h-fit py-1 px-2 rounded-lg text-black bg-white border-l-4 border-green-500">
