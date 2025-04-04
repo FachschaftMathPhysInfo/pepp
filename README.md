@@ -50,12 +50,8 @@ go run server.go
     <summary>4. trigger the following mutation</summary>
 
     mutation exampleData {
-      tutor1: addUser(user: {mail: "tutor1@example.de", fn: "Tutorin", sn: "One", password: "test1"}) {
-        mail
-      }
-      tutor2: addUser(user: {mail: "tutor2@example.de", fn: "Tutor", sn: "Two", password: "test2"}) {
-        mail
-      }
+      tutor1: addUser(user: {mail: "tutor1@example.de", fn: "Tutorin", sn: "One", password: "test1"})
+      tutor2: addUser(user: {mail: "tutor2@example.de", fn: "Tutor", sn: "Two", password: "test2"})
       mmk: addBuilding(
         building: {name: "Mathematikon", street: "INF", number: "205", city: "Heidelberg", zip: "69115", latitude: 49.417493, longitude: 8.675197, zoomLevel: 17}
       ) {
@@ -136,13 +132,23 @@ go run server.go
       ) {
         ID
       }
-      t2sr2: addEventAssignmentForTutor(
+      t2sr1: addEventAssignmentForTutor(
         assignment: {eventID: 3, userMail: "tutor2@example.de", roomNumber: "101", buildingID: 1}
+      ) {
+        ID
+      }
+  		t2sr2: addEventAssignmentForTutor(
+        assignment: {eventID: 3, userMail: "tutor2@example.de", roomNumber: "2.141", buildingID: 1}
       ) {
         ID
       }
       t1vk: addTutorAvailabilityForEvent(
         availability: {userMail: "tutor1@example.de", eventID: [3, 4]}
+      ) {
+        mail
+      }
+  		t2vk: addTutorAvailabilityForEvent(
+        availability: {userMail: "tutor2@example.de", eventID: [3, 4]}
       ) {
         mail
       }
