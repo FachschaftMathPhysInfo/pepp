@@ -45,16 +45,15 @@ export const useUser = () => {
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [sid, setSid] = useState<string | null>(null);
+  const [sid, setSid] = useState<string | null>(getCookie("sid"));
 
   useEffect(() => {
-    setSid(getCookie("sid"))
-  }, [])
+    if (!user) deleteCookie("sid");
+  }, [user]);
 
   useEffect(() => {
     if (!sid) {
       setUser(null);
-      deleteCookie("sid");
       return;
     }
 
