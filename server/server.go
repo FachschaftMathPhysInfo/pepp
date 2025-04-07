@@ -145,11 +145,7 @@ func main() {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			sid := r.Header.Get("SID")
 			if sid != "" {
-				ctx, err = auth.ValidateUser(ctx, sid, db)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusUnauthorized)
-					return
-				}
+				ctx = auth.ValidateUser(ctx, sid, db)
 			}
 			h.ServeHTTP(w, r.WithContext(ctx))
 		})
