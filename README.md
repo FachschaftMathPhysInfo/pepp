@@ -187,6 +187,7 @@ go run server.go
 | `LOG_LEVEL` (optional) | Default is `Info`. Set to `Debug` for more information |
 | `PUBLIC_URL` (required) | The domain under which pepp is deployed |
 | `PEPPER_KEY` (required) | Generate a random 64 characters long string for password security |
+| `ADMIN_USER` (optional) | Default is `admin@pepp.local`. Generated on initial startup |
 | `POSTGRES_HOST` (optional) | When given tries to connect. Creates a SQLite per default |
 | `POSTGRES_PASSWORD` (optional) | Required if `POSTGRES_HOST` is given |
 | `POSTGRES_PORT` (optional) | Required if `POSTGRES_HOST` is given |
