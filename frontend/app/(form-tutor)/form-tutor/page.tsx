@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { columns } from "@/app/(form-tutor)/form-tutor/columns"
-import {DataTable} from "@/app/(form-tutor)/form-tutor/data-table";
+import {EventTable} from "@/app/(form-tutor)/form-tutor/event-table";
 import {useEffect, useState} from "react";
 import {getClient} from "@/lib/graphql";
 import {
@@ -35,9 +35,6 @@ const tutorRegistrationFormSchema = z.object({
   email: z.string().email("Invalid email address").min(1, {
     message: "Please enter an email",
   }),
-  selectedEvents: z.array(z.string()).min(1, {
-    message: "Please check at least one event",
-  })
 })
 
 export function TutorRegistrationForm() {
@@ -47,12 +44,12 @@ export function TutorRegistrationForm() {
       firstname: "",
       lastname: "",
       email: "",
-      selectedEvents: [],
     },
   })
   const [events, setEvents] = useState<Event[]>([])
   const [loading , setLoading] = useState(true)
-  const [selectedEvents, setSelectedEvents] = useState<number[]>([])
+  const [selectedEventIds, setSelectedEventIds] = useState<number[]>([])
+  const [showEventSelectedError, setShowEventSelectedError] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,8 +79,12 @@ export function TutorRegistrationForm() {
 
 
   function onSubmit(values: z.infer<typeof tutorRegistrationFormSchema>) {
+    setShowEventSelectedError(selectedEventIds.length == 0)
 
-    console.log(values)
+    if(!showEventSelectedError) {
+      setSelectedEventIds([])
+      form.reset()
+    }
   }
 
 
@@ -135,8 +136,7 @@ export function TutorRegistrationForm() {
             )}
           />
           <FormField
-            control={form.control}
-            name="selectedEvents"
+            name = "selectedEvents"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>I can help here:</FormLabel>
@@ -144,20 +144,18 @@ export function TutorRegistrationForm() {
                   {loading?(
                     <p>Loading...</p>
                   ):(
-                  <DataTable key={'table'} columns={columns} data={events} onChangeSelectedAction={setSelectedEvents} {...field}/>
+                    <EventTable key={'table'} columns={columns} data={events} onChangeSelectedAction={setSelectedEventIds} {...field}/>
                   )}
                 </FormControl>
-                <FormMessage />
+                {(showEventSelectedError) && (
+                  <p>Ich bin ein Fehler!</p>
+                )}
               </FormItem>
             )}
           />
           <Button type="submit">Submit</Button>
         </form>
       </Form>
-      <p>{selectedEvents.map((selectedEvent) => (
-          selectedEvent
-          ))}
-      </p>
     </div>
   )
 }

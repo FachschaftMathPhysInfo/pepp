@@ -26,15 +26,15 @@ import {DataTablePagination} from "@/components/data-table-pagination";
 import {DataTableViewOptions} from "@/components/data-table-view-options";
 import {Event} from "@/lib/gql/generated/graphql"
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<Event, TValue>[];
+interface DataTableProps {
+  columns: ColumnDef<Event>[];
   data: Event[];
   onChangeSelectedAction: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
-export function DataTable<TData, TValue>({
+export function EventTable({
                                            columns, data, onChangeSelectedAction,
-                                         }: DataTableProps<TData, TValue>) {
+                                         }: DataTableProps) {
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -50,9 +50,7 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: (newRowSelection) => {
-      setRowSelection(newRowSelection);
-    },
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
@@ -66,6 +64,7 @@ export function DataTable<TData, TValue>({
       .getSelectedRowModel()
       .rows
       .map(row => row.original.ID)
+
     onChangeSelectedAction(selectedIDs)
   }, [table, rowSelection, onChangeSelectedAction]);
 
