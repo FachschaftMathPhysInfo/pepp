@@ -129,7 +129,12 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   }, [umbrellaID]);
 
   useEffect(() => {
-    setIcalPath(window.location.origin + "/ical/?" + searchParams);
+    setIcalPath(
+      window.location.origin +
+        "/ical/?e=" +
+        umbrellaID +
+        (searchParams.size ? "&" + searchParams : "")
+    );
   }, [searchParams]);
 
   const application = user?.applications?.find(
