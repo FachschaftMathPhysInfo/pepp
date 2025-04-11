@@ -24,6 +24,7 @@ import {
   TableEventsQuery,
   TableEventsQueryVariables
 } from "@/lib/gql/generated/graphql";
+import {RowSelectionState} from "@tanstack/react-table";
 
 const tutorRegistrationFormSchema = z.object({
   firstname: z.string().min(2, {
@@ -50,6 +51,8 @@ export function TutorRegistrationForm() {
   const [loading , setLoading] = useState(true)
   const [selectedEventIds, setSelectedEventIds] = useState<number[]>([])
   const [showEventSelectedError, setShowEventSelectedError] = useState(false)
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -77,16 +80,19 @@ export function TutorRegistrationForm() {
     fetchData();
   }, []);
 
-
-  function onSubmit(values: z.infer<typeof tutorRegistrationFormSchema>) {
-    setShowEventSelectedError(selectedEventIds.length == 0)
-
+  const resetForm = () => {
     if(!showEventSelectedError) {
-      setSelectedEventIds([])
+      setSelectedEventIds([]);
+      setRowSelection({});
       form.reset()
     }
   }
 
+
+  function onSubmit(values: z.infer<typeof tutorRegistrationFormSchema>) {
+    setShowEventSelectedError(selectedEventIds.length == 0)
+    resetForm()
+  }
 
 
   return (
@@ -144,9 +150,17 @@ export function TutorRegistrationForm() {
                   {loading?(
                     <p>Loading...</p>
                   ):(
-                    <EventTable key={'table'} columns={columns} data={events} onChangeSelectedAction={setSelectedEventIds} {...field}/>
+                    <EventTable
+                      key={'table'}
+                      columns={columns}
+                      data={events}
+                      setSelectedEvents={setSelectedEventIds}
+                      rowSelection={rowSelection}
+                      setRowSelection={setRowSelection}
+                      {...field}/>
                   )}
                 </FormControl>
+                {/* FIXME: this error does not show correctly*/}
                 {(showEventSelectedError) && (
                   <p>Ich bin ein Fehler!</p>
                 )}
