@@ -439,6 +439,7 @@ export function TutorialsTable({
                         </DropdownMenu>
                       ) : (
                         <Button
+                          className="w-full"
                           disabled={
                             (usersTutorials && !isTutor) ||
                             (!isRegisteredEvent && utilization == 100) ||

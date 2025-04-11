@@ -18,7 +18,6 @@ import {
 import { useUser } from "./providers";
 import { Clock, SquareCheckBig } from "lucide-react";
 import { RoomHoverCard } from "./room-hover-card";
-import { calculateFontColor } from "@/lib/utils/colorUtils";
 import EventDialog from "./event-dialog/event-dialog";
 
 interface PlannerProps {

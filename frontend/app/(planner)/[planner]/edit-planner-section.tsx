@@ -1,5 +1,4 @@
 import { DatePickerWithRange } from "@/components/date-picker-with-range";
-import EditableTextfield from "@/components/editable-textfield";
 import EventDialog from "@/components/event-dialog/event-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,11 +50,12 @@ export default function EditPlannerSection({
 
   return (
     <>
-      <EditableTextfield
-        value={umbrella.title}
-        edit={true}
-        className="w-auto text-3xl font-semibold tracking-tight"
+      <input
+        className="w-full bg-transparent focus:outline-none font-semibold text-3xl"
+        placeholder="Veranstaltungstitel"
+        defaultValue={umbrella.title}
       />
+
       <div className="flex flex-row justify-between">
         <EventDialog modify={true}>
           <Button
