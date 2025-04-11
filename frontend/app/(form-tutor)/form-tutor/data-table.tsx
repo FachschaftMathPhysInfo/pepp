@@ -24,10 +24,11 @@ import React, {useEffect} from "react";
 import { Input } from "@/components/ui/input";
 import {DataTablePagination} from "@/components/data-table-pagination";
 import {DataTableViewOptions} from "@/components/data-table-view-options";
+import {Event} from "@/lib/gql/generated/graphql"
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  columns: ColumnDef<Event, TValue>[];
+  data: Event[];
   onChangeSelectedAction: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
@@ -61,10 +62,10 @@ export function DataTable<TData, TValue>({
   });
 
   useEffect(() => {
-    const selectedIDs: number[] = table.getSelectedRowModel().rows
-      // TODO: what do we do
-      // @ts-ignore
-      .map((row) => row.original.ID)
+    const selectedIDs: number[] = table
+      .getSelectedRowModel()
+      .rows
+      .map(row => row.original.ID)
     onChangeSelectedAction(selectedIDs)
   }, [table, rowSelection, onChangeSelectedAction]);
 
