@@ -1,70 +1,113 @@
-"use client";
-
-import { ColumnDef } from "@tanstack/react-table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { eventBroker } from "@/lib/eventBroker";
+import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Event } from "@/lib/gql/generated/graphql";
+import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal } from "lucide-react";
 
 export const columns: ColumnDef<Event>[] = [
   {
-    accessorKey: "isSelected",
-    header: "",
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Alle auswählen"
+      />
+    ),
     cell: ({ row }) => (
       <Checkbox
-        className={"mx-auto"}
         checked={row.getIsSelected()}
         onCheckedChange={(value) => {
-          row.toggleSelected(!!value);
-
-          if (row.getIsSelected()) {
-            eventBroker.removeEvent(row.original.ID);
-          } else {
-            eventBroker.addEvent(row.original.ID);
-          }
+          row.toggleSelected(!!value)
         }}
-        aria-label="Ich kann diese Veranstaltung halten"
+        aria-label="Reihe auswählen"
       />
     ),
   },
   {
     accessorKey: "title",
-    header: () => <div className="text-left">Veranstaltung</div>,
-    cell: ({ row }) => (
-      <div>
-        <div className={"mb-0.5"}>{row.original.title}</div>
-        <Badge color={row.original.type.color ?? ""}>{row.original.type.name}</Badge>
-      </div>
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Titel" />
     ),
+    cell: ({ row }) => row.original.title,
   },
   {
-    accessorKey: "from",
-    header: () => <div className="text-left">Datum</div>,
+    accessorKey: "date",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Datum" />
+    ),
     cell: ({ row }) => {
-      const date = new Date(row.getValue("from"));
-      return date.toLocaleDateString();
+      return formatDateToDDMM(new Date(row.original.from));
     },
   },
   {
     accessorKey: "from",
-    header: () => <div className="text-left">Von</div>,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Von" />
+    ),
     cell: ({ row }) => {
-      const time = new Date(row.getValue("from"));
-      return time.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      return formatDateToHHMM(new Date(row.original.from));
     },
   },
   {
     accessorKey: "to",
-    header: () => <div className="text-left">Bis</div>,
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Bis" />
+    ),
     cell: ({ row }) => {
-      const time = new Date(row.getValue("to"));
-      return time.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      return formatDateToHHMM(new Date(row.original.to));
+    },
+  },
+  {
+    accessorKey: "type",
+    header: "Art",
+    cell: ({ row }) => (
+      <Badge variant="event" color={row.original.type.color ?? ""}>
+        {row.original.type.name}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "topic",
+    header: "Thema",
+    cell: ({ row }) => (
+      <Badge variant="event" color={row.original.topic.color ?? ""}>
+        {row.original.topic.name}
+      </Badge>
+    ),
+  },
+  {
+    id: "actions",
+    enableHiding: false,
+    cell: ({ row }) => {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Menü öffnen</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Optionen</DropdownMenuLabel>
+            <DropdownMenuItem>Bearbeiten</DropdownMenuItem>
+            <DropdownMenuItem>Löschen</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
     },
   },
 ];
