@@ -62,6 +62,7 @@ export function DataTable<TData, TValue>({
 
   useEffect(() => {
     const selectedIDs: number[] = table.getSelectedRowModel().rows
+      // TODO: what do we do
       // @ts-ignore
       .map((row) => row.original.ID)
     onChangeSelectedAction(selectedIDs)
