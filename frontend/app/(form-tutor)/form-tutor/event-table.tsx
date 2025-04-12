@@ -46,6 +46,8 @@ export function EventTable({
   const table = useReactTable({
     data,
     columns,
+    // Makes the row IDs use the Event IDs
+    getRowId: row => String(row.ID),
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),

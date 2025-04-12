@@ -54,6 +54,7 @@ export function TutorRegistrationForm() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading , setLoading] = useState(true)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,21 +81,27 @@ export function TutorRegistrationForm() {
 
     fetchData();
   }, []);
-  
-  // FIXME: the error message does not disappear if we select an event. Maybe the bug is in here
+
   useEffect(() => {
-    const selectedIds = Object.keys(rowSelection).filter(k => rowSelection[k]).map(Number);
-    form.setValue("selectedEventIds", selectedIds)
-  }, [rowSelection, form])
+    if(!hasTriedToSubmit) return
+
+    const selectedIds = Object.keys(rowSelection).filter(k => rowSelection[k]).map(Number)
+    form.setValue("selectedEventIds", selectedIds, {shouldValidate: true})
+  }, [rowSelection, form, hasTriedToSubmit])
 
   const resetForm = () => {
     setRowSelection({});
     form.reset()
   }
 
-
-  function onSubmit(values: z.infer<typeof tutorRegistrationFormSchema>) {
+  function onValidSubmit(values: z.infer<typeof tutorRegistrationFormSchema>) {
     resetForm()
+    // This is a little ugly, it just removes the error from the table - form.clearErrors did not work
+    setHasTriedToSubmit(false)
+  }
+
+  function onInvalidSubmit() {
+    setHasTriedToSubmit(true);
   }
 
 
@@ -103,7 +110,7 @@ export function TutorRegistrationForm() {
       <h1 className={'text-3xl font-bold mb-2'}>Tutor Registration</h1>
       <p className={'mb-5'}>We are happy to hear that you wanna support us as a tutor in le Vorkurs, fill out the below form, so we can put you into a shift</p>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 w-[50%]">
+        <form onSubmit={form.handleSubmit(onValidSubmit, onInvalidSubmit)} className="space-y-5 w-[50%]">
           <FormField
             control={form.control}
             name="firstname"
@@ -163,6 +170,7 @@ export function TutorRegistrationForm() {
                   )}
                 </FormControl>
                 <FormMessage />
+                {Object.keys(rowSelection).filter(k => rowSelection[k]).map(Number)}
               </FormItem>
             )}
           />
