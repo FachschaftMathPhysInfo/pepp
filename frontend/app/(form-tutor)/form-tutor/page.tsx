@@ -34,7 +34,10 @@ const tutorRegistrationFormSchema = z.object({
     message: "Last name must be at least 2 characters long.",
   }),
   email: z.string().email("Invalid email address").min(1, {
-    message: "Please enter an email",
+    message: "Please enter an email.",
+  }),
+  selectedEventIds: z.array(z.number()).min(1, {
+    message: "Please select at least one event.",
   }),
 })
 
@@ -45,14 +48,12 @@ export function TutorRegistrationForm() {
       firstname: "",
       lastname: "",
       email: "",
+      selectedEventIds: [],
     },
   })
   const [events, setEvents] = useState<Event[]>([])
   const [loading , setLoading] = useState(true)
-  const [selectedEventIds, setSelectedEventIds] = useState<number[]>([])
-  const [showEventSelectedError, setShowEventSelectedError] = useState(false)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,18 +80,20 @@ export function TutorRegistrationForm() {
 
     fetchData();
   }, []);
+  
+  // FIXME: the error message does not disappear if we select an event. Maybe the bug is in here
+  useEffect(() => {
+    const selectedIds = Object.keys(rowSelection).filter(k => rowSelection[k]).map(Number);
+    form.setValue("selectedEventIds", selectedIds)
+  }, [rowSelection, form])
 
   const resetForm = () => {
-    if(!showEventSelectedError) {
-      setSelectedEventIds([]);
-      setRowSelection({});
-      form.reset()
-    }
+    setRowSelection({});
+    form.reset()
   }
 
 
   function onSubmit(values: z.infer<typeof tutorRegistrationFormSchema>) {
-    setShowEventSelectedError(selectedEventIds.length == 0)
     resetForm()
   }
 
@@ -142,7 +145,7 @@ export function TutorRegistrationForm() {
             )}
           />
           <FormField
-            name = "selectedEvents"
+            name = "selectedEventIds"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>I can help here:</FormLabel>
@@ -154,16 +157,12 @@ export function TutorRegistrationForm() {
                       key={'table'}
                       columns={columns}
                       data={events}
-                      setSelectedEvents={setSelectedEventIds}
                       rowSelection={rowSelection}
                       setRowSelection={setRowSelection}
                       {...field}/>
                   )}
                 </FormControl>
-                {/* FIXME: this error does not show correctly*/}
-                {(showEventSelectedError) && (
-                  <p>Ich bin ein Fehler!</p>
-                )}
+                <FormMessage />
               </FormItem>
             )}
           />

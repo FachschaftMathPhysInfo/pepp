@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import React, { useEffect } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import {DataTablePagination} from "@/components/data-table-pagination";
 import {DataTableViewOptions} from "@/components/data-table-view-options";
@@ -29,7 +29,6 @@ import {Event} from "@/lib/gql/generated/graphql"
 interface DataTableProps {
   columns: ColumnDef<Event>[];
   data: Event[];
-  setSelectedEvents: React.Dispatch<React.SetStateAction<number[]>>;
   rowSelection: RowSelectionState;
   setRowSelection: React.Dispatch<React.SetStateAction<RowSelectionState>>;
 }
@@ -37,7 +36,6 @@ interface DataTableProps {
 export function EventTable({
                              columns,
                              data,
-                             setSelectedEvents,
                              rowSelection,
                              setRowSelection,
                            }: DataTableProps) {
@@ -45,8 +43,6 @@ export function EventTable({
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-
-
   const table = useReactTable({
     data,
     columns,
@@ -64,15 +60,6 @@ export function EventTable({
       rowSelection,
     },
   });
-
-  useEffect(() => {
-    const selectedIDs: number[] = table
-      .getSelectedRowModel()
-      .rows
-      .map(row => row.original.ID)
-
-    setSelectedEvents(selectedIDs)
-  }, [table, rowSelection, setSelectedEvents]);
 
 
   return (
