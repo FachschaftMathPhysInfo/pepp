@@ -21,7 +21,7 @@ import {
 import React from "react";
 import { Input } from "@/components/ui/input";
 import {Event} from "@/lib/gql/generated/graphql"
-import {EventTablePagination} from "@/app/(form-tutor)/form-tutor/event-table-pagination";
+import {DataTablePagination} from "@/components/data-table-pagination";
 
 interface DataTableProps {
   columns: ColumnDef<Event>[];
@@ -123,7 +123,7 @@ export function EventTable({
           </TableBody>
         </Table>
       </div>
-      <EventTablePagination table={table} />
+      <DataTablePagination table={table} enableSelectionCounter={false} />
     </div>
   );
 }
