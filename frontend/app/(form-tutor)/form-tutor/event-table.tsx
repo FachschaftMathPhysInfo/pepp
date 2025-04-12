@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import {DataTablePagination} from "@/components/data-table-pagination";
 import {DataTableViewOptions} from "@/components/data-table-view-options";
 import {Event} from "@/lib/gql/generated/graphql"
+import {EventTablePagination} from "@/app/(form-tutor)/form-tutor/event-table-pagination";
 
 interface DataTableProps {
   columns: ColumnDef<Event>[];
@@ -75,7 +76,6 @@ export function EventTable({
           }
           className="max-w-sm"
         />
-        <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border overflow-hidden">
         <Table>
@@ -127,7 +127,7 @@ export function EventTable({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <EventTablePagination table={table} />
     </div>
   );
 }

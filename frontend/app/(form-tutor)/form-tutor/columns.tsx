@@ -1,18 +1,9 @@
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Event } from "@/lib/gql/generated/graphql";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
 
 export const columns: ColumnDef<Event>[] = [
   {
@@ -88,26 +79,5 @@ export const columns: ColumnDef<Event>[] = [
         {row.original.topic.name}
       </Badge>
     ),
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Menü öffnen</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Optionen</DropdownMenuLabel>
-            <DropdownMenuItem>Bearbeiten</DropdownMenuItem>
-            <DropdownMenuItem>Löschen</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
   },
 ];
