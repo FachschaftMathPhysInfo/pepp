@@ -148,7 +148,7 @@ export function EditEventView({ event, setOpen }: EditEventViewProps) {
     sendData();
     setSaveLoading(false);
     toast(`"${data.title}" erfolgreich erstellt!`, {
-      description: format(data.date, "PPP"),
+      description: `Am ${format(data.date, "PPP")}`,
     });
     setOpen(false)
   };
@@ -308,7 +308,6 @@ export function EditEventView({ event, setOpen }: EditEventViewProps) {
             <TutorialsTable
               id={event.ID}
               event={event!}
-              tutorials={event?.tutorials ?? []}
               capacities={
                 event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
               }

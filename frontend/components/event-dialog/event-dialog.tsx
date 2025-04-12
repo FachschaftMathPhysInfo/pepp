@@ -41,7 +41,6 @@ export default function EventDialog({
   children,
 }: EventDialogProps) {
   const { user } = useUser();
-  const [loading, setLoading] = useState(id ? true : false);
   const [event, setEvent] = useState<Event>();
   const [edit, setEdit] = useState(modify);
   const [open, setOpen] = useState(false);
@@ -53,10 +52,10 @@ export default function EventDialog({
   >([]);
 
   useEffect(() => {
-    setLoading(true);
-    const client = getClient();
+    if (!open) return;
 
     const fetchEventData = async () => {
+      const client = getClient();
       const vars: EventCloseupQueryVariables = {
         id: id!,
       };
@@ -81,9 +80,8 @@ export default function EventDialog({
       }
     };
 
-    if (id) fetchEventData()
-    setLoading(false);
-  }, [id]);
+    if (id) fetchEventData();
+  }, [id, open]);
 
   return (
     <Dialog
@@ -97,7 +95,7 @@ export default function EventDialog({
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:min-w-[600px]">
-        {loading ? (
+        {!event && id ? (
           <div className="flex flex-col space-y-3">
             <Skeleton className="h-5 w-[80px]" />
             <Skeleton className="h-3 w-[200px]" />
@@ -145,11 +143,10 @@ export default function EventDialog({
             <TutorialsTable
               id={id!}
               event={event!}
-              tutorials={event?.tutorials ?? []}
               capacities={
                 event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
               }
-              edit={edit}
+              edit={false}
               newAssignments={newAssignments}
               setNewAssignments={setNewAssignments}
               deleteAssignments={deleteAssignments}
