@@ -8,7 +8,7 @@ import { siteConfig } from "@/config/site";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
 import { UserProvider, ThemeProvider } from "@/components/providers";
 import Header from "@/components/header";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -22,6 +22,7 @@ const fontHeading = localFont({
 
 export const metadata = {
   title: {
+    template: "",
     default: siteConfig.name,
   },
   description: siteConfig.description,

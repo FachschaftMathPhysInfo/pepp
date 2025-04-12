@@ -1,5 +1,3 @@
-"use client";
-
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -22,8 +20,6 @@ import {
 } from "@/components/ui/table";
 import React from "react";
 import { Input } from "@/components/ui/input";
-import {DataTablePagination} from "@/components/data-table-pagination";
-import {DataTableViewOptions} from "@/components/data-table-view-options";
 import {Event} from "@/lib/gql/generated/graphql"
 import {EventTablePagination} from "@/app/(form-tutor)/form-tutor/event-table-pagination";
 
