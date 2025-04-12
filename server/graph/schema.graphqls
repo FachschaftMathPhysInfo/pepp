@@ -274,7 +274,7 @@ type Mutation {
   updateUser(user: UpdateUser!): User!
   deleteUser(mail: [String!]!): Int! @auth(rule: IS_USER)
   addEvent(event: NewEvent!): Event! @auth(role: ADMIN)
-  updateEvent(id: Int!, event: NewEvent!): Event! @auth(role: ADMIN)
+  updateEvent(id: Int!, event: NewEvent!): Int! @auth(role: ADMIN)
   deleteEvent(id: [Int!]!): Int! @auth(role: ADMIN)
   addBuilding(building: NewBuilding!): Building! @auth(role: ADMIN)
   updateBuilding(id: Int!, building: NewBuilding!): Building! @auth(role: ADMIN)
