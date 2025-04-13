@@ -45,7 +45,6 @@ import { useRouter } from "next/navigation";
 import { slugify } from "@/lib/utils";
 
 interface TutorialsTableProps {
-  tutorials: Tutorial[];
   id: number;
   capacities: number[];
   edit: boolean;
@@ -62,7 +61,6 @@ interface TutorialsTableProps {
 
 export function TutorialsTable({
   event,
-  tutorials,
   capacities,
   edit,
   id,
@@ -80,7 +78,7 @@ export function TutorialsTable({
     MutationUpdateRoomForTutorialArgs[]
   >([]);
   const [selectedRooms, setSelectedRooms] = useState<(Room | undefined)[]>([]);
-  const [tuts, setTuts] = useState(tutorials);
+  const [tuts, setTuts] = useState<Tutorial[]>(event.tutorials ?? []);
   const [newTutorialTutors, setNewTutorialTutors] = useState<User[]>([]);
   const [newTutorialRoom, setNewTutorialRoom] = useState<Room>();
 
@@ -123,7 +121,9 @@ export function TutorialsTable({
         })) ?? []
       );
 
-      setSelectedRooms(tutorials.map((t) => t.room));
+      if (event.tutorials) {
+        setSelectedRooms(event.tutorials.map((t) => t.room));
+      }
 
       setAvailableRooms(
         eventData.events[0].roomsAvailable
@@ -131,7 +131,7 @@ export function TutorialsTable({
             ...defaultRoom,
             ...r,
           }))
-          .filter((r) => tutorials.map((t) => t.room).includes(r)) ?? []
+          .filter((r) => event.tutorials?.map((t) => t.room).includes(r)) ?? []
       );
     };
 
@@ -439,6 +439,7 @@ export function TutorialsTable({
                         </DropdownMenu>
                       ) : (
                         <Button
+                          className="w-full"
                           disabled={
                             (usersTutorials && !isTutor) ||
                             (!isRegisteredEvent && utilization == 100) ||

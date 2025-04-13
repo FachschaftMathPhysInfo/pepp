@@ -9,7 +9,7 @@ docker compose up -d && docker compose logs -f
 ```
 
 - Frontend: [localhost:8080](http://localhost:8080)
-- ICal Calendar: [localhost:8080/ical?e=1&ty=Tutorium&to=Informatik](http://localhost:8080/ical?e=1&ty=Tutorium&to=Informatik)
+- ICal Calendar: [localhost:8080/ical](http://localhost:8080/ical)
 - API: [localhost:8080/api](http://localhost:8080/api)
 - GraphQL Playground: [localhost:8080/playground](http://localhost:8080/playground)
 
@@ -17,15 +17,15 @@ docker compose up -d && docker compose logs -f
 #### frontend
 ```bash
 cd frontend
-npm i
-npm run codegen
+npm i # on initial startup
+npm run codegen # on initial startup and when queries or mutations are changed
 npm run dev
 ```
 
 #### backend
 ```bash
 cd server
-go generate ./...
+go generate ./... # on initial startup and when schema.graphql is changed
 go run server.go
 ```
 

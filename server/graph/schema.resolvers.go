@@ -156,20 +156,15 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event models.Event) (*m
 }
 
 // UpdateEvent is the resolver for the updateEvent field.
-func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models.Event) (*models.Event, error) {
+func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models.Event) (int, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&event).
 		Where("id = ?", id).
 		Exec(ctx); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	updatedEvent, err := r.Query().Events(ctx, []int{id}, nil, nil, nil, nil, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedEvent[0], nil
+	return id, nil
 }
 
 // DeleteEvent is the resolver for the deleteEvent field.

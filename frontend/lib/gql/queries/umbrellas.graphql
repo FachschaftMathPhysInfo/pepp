@@ -14,3 +14,11 @@ query umbrellaDetail($id: Int!) {
     to
   }
 }
+
+query umbrellaDuration($id: Int!) {
+  umbrellas(id: [$id]) {
+    ID
+    from
+    to
+  }
+}

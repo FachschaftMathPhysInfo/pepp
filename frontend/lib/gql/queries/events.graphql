@@ -116,7 +116,7 @@ query tutorialAvailabilitys($id: Int!) {
       fn
       sn
     }
-		roomsAvailable {
+    roomsAvailable {
       floor
       number
       name

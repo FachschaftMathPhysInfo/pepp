@@ -1,8 +1,8 @@
 import { Event } from "@/lib/gql/generated/graphql";
 import {
   calculateEventDurationInHours,
-  cn,
   formatDateToDDMM,
+  formatDateToHHMM,
   getISOWeekNumber,
   groupEvents,
   hexToRGBA,
@@ -18,7 +18,6 @@ import {
 import { useUser } from "./providers";
 import { Clock, SquareCheckBig } from "lucide-react";
 import { RoomHoverCard } from "./room-hover-card";
-import { calculateFontColor } from "@/lib/utils/colorUtils";
 import EventDialog from "./event-dialog/event-dialog";
 
 interface PlannerProps {
@@ -30,7 +29,6 @@ export function Planner({ events }: PlannerProps) {
 
   const groupedEvents = groupEvents(events);
   const [currentMinutes, setCurrentMinutes] = useState(0);
-  const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [closeupID, setCloseupID] = useState<number>();
 
   useEffect(() => {
@@ -128,7 +126,6 @@ export function Planner({ events }: PlannerProps) {
                                 tabIndex={0}
                                 onClick={() => {
                                   setCloseupID(event.ID);
-                                  setEventDialogOpen(true);
                                 }}
                               >
                                 <div className="flex flex-row">
@@ -147,20 +144,9 @@ export function Planner({ events }: PlannerProps) {
                                     <div className="flex flex-row items-center space-x-1">
                                       <Clock className="h-3 w-3" />
                                       <p className="text-sm">
-                                        {new Date(
-                                          event.from
-                                        ).toLocaleTimeString([], {
-                                          hour: "2-digit",
-                                          minute: "2-digit",
-                                        })}{" "}
+                                        {formatDateToHHMM(new Date(event.from))}{" "}
                                         -{" "}
-                                        {new Date(event.to).toLocaleTimeString(
-                                          [],
-                                          {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                          }
-                                        )}
+                                        {formatDateToHHMM(new Date(event.to))}
                                       </p>
                                     </div>
                                   </div>

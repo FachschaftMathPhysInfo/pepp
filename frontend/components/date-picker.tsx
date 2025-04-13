@@ -13,10 +13,11 @@ import { format } from "date-fns";
 interface DatePickerProps {
   selected: Date | undefined;
   onChange: (date: Date | undefined) => void;
+  disabled: (date: Date) => boolean;
 }
 
-export function DatePicker({ selected, onChange }: DatePickerProps) {
-  const [open, setOpen] = useState(false)
+export function DatePicker({ selected, onChange, disabled }: DatePickerProps) {
+  const [open, setOpen] = useState(false);
   return (
     <Popover modal={true} open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -36,11 +37,12 @@ export function DatePicker({ selected, onChange }: DatePickerProps) {
           mode="single"
           selected={selected}
           onSelect={(date) => {
-            setOpen(false)
-            onChange(date)
+            setOpen(false);
+            onChange(date);
           }}
-          disabled={(date) => date < new Date()}
+          disabled={disabled}
           initialFocus
+          defaultMonth={selected}
         />
       </PopoverContent>
     </Popover>
