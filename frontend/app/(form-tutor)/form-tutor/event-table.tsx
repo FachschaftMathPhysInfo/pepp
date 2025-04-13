@@ -80,7 +80,7 @@ export function EventTable({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead  className={'text-center'} key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -101,7 +101,7 @@ export function EventTable({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell className={'[&:not(:first-child)]:pl-8'} key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
