@@ -79,12 +79,9 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
     try {
       const client = getClient();
       await client.request<AddTutorMutation>(AddTutorDocument, tutorData)
-      setUserMail(tutorData.email);
-      setSubmissionSuccess(true);
-      resetForm();
+      finishSubmission()
     } catch (error) {
-      console.log(error);
-      toast('Ein Fehler ist aufgetreten, sollte diese Mail schon verwendet werden, logge dich bitte mit deinem Konto ein');
+      handleError(String(error))
     }
   }
 
@@ -92,6 +89,21 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
     setRowSelection({});
     form.reset();
   };
+
+  const handleError = (error: string) => {
+    console.log(error);
+    if(error.includes("Error: constraint failed: UNIQUE constraint failed: users.mail")){
+      form.setError('email', {type: 'custom', message:'Diese E-Mail wird bereits verwendet, bitte melde dich an um deine Verfügbarkeiten zu ändern'})
+    } else {
+      finishSubmission()
+    }
+  }
+
+  const finishSubmission = () => {
+    setUserMail(form.getValues('email'))
+    setSubmissionSuccess(true)
+    resetForm();
+  }
 
   return (
     <div className={cn('max-w-[60vw] flex flex-col items-center')}>
