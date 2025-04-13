@@ -8,9 +8,16 @@ import { columns } from "@/app/(form-tutor)/form-tutor/columns";
 import { EventTable } from "@/app/(form-tutor)/form-tutor/event-table";
 import React, { useEffect, useState } from "react";
 import { getClient } from "@/lib/graphql";
-import { Event, TableEventsDocument, TableEventsQuery, TableEventsQueryVariables } from "@/lib/gql/generated/graphql";
+import {
+  AddTutorDocument, AddTutorMutation,
+  Event,
+  TableEventsDocument,
+  TableEventsQuery,
+  TableEventsQueryVariables
+} from "@/lib/gql/generated/graphql";
 import { RowSelectionState } from "@tanstack/react-table";
 import { cn } from "@/lib/utils/tailwindUtils";
+import {toast} from "sonner";
 
 interface TutorRegistrationFormProps {
   setSubmissionSuccess: React.Dispatch<React.SetStateAction<boolean>>;
@@ -19,26 +26,26 @@ interface TutorRegistrationFormProps {
 
 export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMail }: TutorRegistrationFormProps) {
   const tutorRegistrationFormSchema = z.object({
-    firstname: z.string().min(2, {
+    firstName: z.string().min(2, {
       message: "Bitte gib mindestens 2 Zeichen ein.",
     }),
-    lastname: z.string().min(2, {
+    lastName: z.string().min(2, {
       message: "Bitte gib mindestens 2 Zeichen ein.",
     }),
     email: z.string().email("Ungültiges E-Mail Format.").min(1, {
       message: "Bitte gib eine E-Mail an",
     }),
-    selectedEventIds: z.array(z.number()).min(1, {
+    eventsAvailable: z.array(z.number()).min(1, {
       message: "Bitte wähle mindestens eine Veranstaltung aus.",
     }),
   });
   const form = useForm<z.infer<typeof tutorRegistrationFormSchema>>({
     resolver: zodResolver(tutorRegistrationFormSchema),
     defaultValues: {
-      firstname: "",
-      lastname: "",
+      firstName: "",
+      lastName: "",
       email: "",
-      selectedEventIds: [],
+      eventsAvailable: [],
     },
   });
   const [events, setEvents] = useState<Event[]>([]);
@@ -65,14 +72,20 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
 
   useEffect(() => {
     const selectedIds = Object.keys(rowSelection).filter(k => rowSelection[k]).map(Number);
-    form.setValue("selectedEventIds", selectedIds, { shouldValidate: hasTriedToSubmit });
+    form.setValue("eventsAvailable", selectedIds, { shouldValidate: hasTriedToSubmit });
   }, [rowSelection, form, hasTriedToSubmit]);
 
-  function onValidSubmit(values: z.infer<typeof tutorRegistrationFormSchema>) {
-    setUserMail(values.email);
-    console.log(values);
-    setSubmissionSuccess(true);
-    resetForm();
+  async function onValidSubmit(tutorData: z.infer<typeof tutorRegistrationFormSchema>) {
+    try {
+      const client = getClient();
+      await client.request<AddTutorMutation>(AddTutorDocument, tutorData)
+      setUserMail(tutorData.email);
+      setSubmissionSuccess(true);
+      resetForm();
+    } catch (error) {
+      console.log(error);
+      toast('Ein Fehler ist aufgetreten, sollte diese Mail schon verwendet werden, logge dich bitte mit deinem Konto ein');
+    }
   }
 
   const resetForm = () => {
@@ -92,7 +105,7 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
         <form onSubmit={form.handleSubmit(onValidSubmit, () => setHasTriedToSubmit(true))} className="space-y-6 w-full">
           <FormField
             control={form.control}
-            name="firstname"
+            name="firstName"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Vorname</FormLabel>
@@ -105,7 +118,7 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
           />
           <FormField
             control={form.control}
-            name="lastname"
+            name="lastName"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nachname</FormLabel>
@@ -130,7 +143,7 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
             )}
           />
           <FormField
-            name="selectedEventIds"
+            name="eventsAvailable"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Bei diesen Veranstaltungen kann ich helfen</FormLabel>
