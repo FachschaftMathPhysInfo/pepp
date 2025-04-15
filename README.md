@@ -180,6 +180,9 @@ go run server.go
     }
 </details>
 
+### troubleshooting
+If you lost your admin password, delete the database `server/pepp.db` and rerun the server. The admin password is only shown on initial startup in your server logs.
+
 ## env vars
 
 | Key | Description |
