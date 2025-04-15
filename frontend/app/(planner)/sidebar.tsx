@@ -1,4 +1,4 @@
-import { BookCheck, Calendar, GraduationCap } from "lucide-react"
+import { BookCheck, Calendar, GraduationCap } from "lucide-react";
 
 import {
   Sidebar,
@@ -9,43 +9,47 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import {UmbrellaPopoverSelection} from "@/components/umbrella-popover-selection"
-import {Event} from "@/lib/gql/generated/graphql"
-import {usePathname} from "next/navigation"
+} from "@/components/ui/sidebar";
+import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
+import { Event } from "@/lib/gql/generated/graphql";
+import { usePathname } from "next/navigation";
 
 interface AdminSidebarProps {
-  umbrellas: Event[]
+  umbrellas: Event[];
 }
 
-export function AdminSidebar({umbrellas}: AdminSidebarProps) {
-  const pathname = usePathname()
+export function AdminSidebar({ umbrellas }: AdminSidebarProps) {
+  const pathname = usePathname();
 
-  const basePath = "/" + pathname.split("/")[1]
+  const basePath = "/" + pathname.split("/")[1];
 
-const items = [
-  {
-    title: "Stundenplan",
-    url: basePath,
-    icon: Calendar,
-  },
-  {
-    title: "Tutorien",
-    url: basePath + "/tutorials",
-    icon: GraduationCap,
-  },
-  {
-    title: "Anmeldungen",
-    url: basePath + "/registrations",
-    icon: BookCheck,
-  },
-]
+  const items = [
+    {
+      title: "Stundenplan",
+      url: basePath,
+      icon: Calendar,
+    },
+    {
+      title: "Tutorien",
+      url: basePath + "/tutorials",
+      icon: GraduationCap,
+    },
+    {
+      title: "Anmeldungen",
+      url: basePath + "/registrations",
+      icon: BookCheck,
+    },
+  ];
+
   return (
     <Sidebar>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <UmbrellaPopoverSelection umbrellas={umbrellas} className="w-full justify-between" />
+            <UmbrellaPopoverSelection
+              umbrellas={umbrellas}
+              className="w-full justify-between"
+            />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -68,5 +72,5 @@ const items = [
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

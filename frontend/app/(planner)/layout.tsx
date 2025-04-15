@@ -31,29 +31,6 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
 
   const basePath = "/" + pathname.split("/")[1];
 
-  const adminNav = [
-    {
-      title: "Stundenplan",
-      href: basePath,
-    },
-    {
-      title: "Überblick",
-      href: basePath + "/overview",
-    },
-    {
-      title: "Veranstaltungen",
-      href: basePath + "/events",
-    },
-    {
-      title: "Anmeldungen",
-      href: basePath + "/applications",
-    },
-    {
-      title: "Einstellungen",
-      href: basePath + "/settings",
-    },
-  ];
-
   useEffect(() => {
     const fetchData = async () => {
       const client = getClient();
