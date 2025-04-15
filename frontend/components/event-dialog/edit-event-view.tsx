@@ -89,11 +89,11 @@ export function EditEventView({ event, setOpen }: EditEventViewProps) {
       title: event?.title ?? "",
       description: event?.description ?? "",
       date: event?.from,
-      from: formatToHHMM(new Date(event?.from)),
-      to: formatToHHMM(new Date(event?.to)),
+      from: event?.from ? formatToHHMM(new Date(event.from)) : "",
+      to: event?.to ? formatToHHMM(new Date(event.to)) : "",
       needsTutors: event?.needsTutors,
-      topic: event?.topic.name,
-      type: event?.type.name,
+      topic: event?.topic.name ?? "",
+      type: event?.type.name ?? "",
     },
   });
 
