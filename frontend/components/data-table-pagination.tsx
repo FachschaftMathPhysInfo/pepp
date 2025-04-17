@@ -14,21 +14,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {cn} from "@/lib/utils";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>
+  enableSelectionCounter?: boolean,
 }
 
 export function DataTablePagination<TData>({
-  table,
+  table, enableSelectionCounter = true
 }: DataTablePaginationProps<TData>) {
   return (
-    <div className="flex items-center justify-between px-2">
-      <div className="flex-1 text-sm text-muted-foreground">
-        {table.getFilteredSelectedRowModel().rows.length} von{" "}
-        {table.getFilteredRowModel().rows.length} Zeile(n) ausgewählt.
-      </div>
-      <div className="flex items-center space-x-6 lg:space-x-8">
+    <div className={"flex items-center justify-between px-2"}>
+      { enableSelectionCounter && (
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} von{" "}
+          {table.getFilteredRowModel().rows.length} Zeile(n) ausgewählt.
+        </div>
+      )}
+      <div className={cn("flex items-center justify-between space-x-6 lg:space-x-8", !enableSelectionCounter ? "w-full" : "")}>
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Einträge pro Seite</p>
           <Select

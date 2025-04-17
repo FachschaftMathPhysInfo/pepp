@@ -10,3 +10,15 @@ mutation addTutor($firstName: String!, $lastName: String!, $email: String!, $eve
     fn
   }
 }
+
+mutation TutorRegistration($firstName: String!, $lastName: String!, $email: String!) {
+  addUser(user: {fn: $firstName, sn: $lastName, mail: $email})
+}
+
+mutation addEventAvailabilityOfTutor($email: String!, $eventsAvailable: [Int!]!) {
+  addTutorAvailabilityForEvent(
+    availability: {userMail: $email, eventID: $eventsAvailable}
+  ){
+    fn
+  }
+}
