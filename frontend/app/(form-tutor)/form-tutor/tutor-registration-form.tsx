@@ -137,7 +137,7 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
   }
 
   return (
-    <div className={cn('max-w-[60vw] flex flex-col items-center')}>
+    <div className={cn(' max-[800px]:max-w-[90vw] max-w-[70vw] flex flex-col items-center')}>
       <h1 className="text-4xl font-bold mb-4 text-center">Tutor:innen Registrierung</h1>
       <p className="mb-6 text-center">
         Es freut uns, dass Du Interesse hast uns beim Vorkurs zu unterstützen. Bitte gib uns hier deine Kontaktdaten und
@@ -213,7 +213,7 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
             disabled={!form.formState.isValid && hasTriedToSubmit}
             type="submit"
           >
-            Submit
+            Abschicken
           </Button>
         </form>
       </Form>
