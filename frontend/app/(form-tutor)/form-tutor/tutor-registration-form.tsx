@@ -20,6 +20,7 @@ import { RowSelectionState } from "@tanstack/react-table";
 import { cn } from "@/lib/utils/tailwindUtils";
 import {toast} from "sonner";
 
+
 interface TutorRegistrationFormProps {
   setSubmissionSuccess: React.Dispatch<React.SetStateAction<boolean>>;
   setUserMail: React.Dispatch<React.SetStateAction<string>>;
@@ -115,11 +116,17 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
   };
 
   const handleError = (error: string) => {
-    console.log(error);
     if(error.includes("Error: constraint failed: UNIQUE constraint failed: users.mail")){
       form.setError('email', {type: 'custom', message:'Diese E-Mail wird bereits verwendet, bitte melde dich an um deine Verfügbarkeiten zu ändern'})
-    } else {
+
+    // If the server has problems sending the mail, the user will still be added, should be discussed later
+    } else if (error.includes("failed to send email:") || error.includes("Error: dial tcp")) {
       finishSubmission()
+
+    } else {
+      toast.error(
+        'Ein Problem ist aufgetreten, sollte es später nicht funktionieren, melde dich bei vorkurs@mathphys.info'
+      );
     }
   }
 
