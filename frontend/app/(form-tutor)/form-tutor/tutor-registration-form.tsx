@@ -11,8 +11,7 @@ import { getClient } from "@/lib/graphql";
 import {
   AddEventAvailabilityOfTutorDocument,
   AddEventAvailabilityOfTutorMutation, AddEventAvailabilityOfTutorMutationVariables,
-  AddTutorDocument, AddTutorMutation,
-  Event, RegistrationDocument, RegistrationMutation,
+  Event,
   TableEventsDocument,
   TableEventsQuery,
   TableEventsQueryVariables, TutorRegistrationDocument, TutorRegistrationMutation, TutorRegistrationMutationVariables
@@ -20,7 +19,6 @@ import {
 import { RowSelectionState } from "@tanstack/react-table";
 import { cn } from "@/lib/utils/tailwindUtils";
 import {toast} from "sonner";
-import {useUser} from "@/components/providers";
 
 interface TutorRegistrationFormProps {
   setSubmissionSuccess: React.Dispatch<React.SetStateAction<boolean>>;
@@ -146,9 +144,9 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
             name="firstName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Vorname</FormLabel>
+                <FormLabel >Vorname</FormLabel>
                 <FormControl>
-                  <Input placeholder="Maxi" {...field} />
+                  <Input placeholder="Maxi" {...field} autoComplete={'given-name'} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -161,7 +159,7 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
               <FormItem>
                 <FormLabel>Nachname</FormLabel>
                 <FormControl>
-                  <Input placeholder="Musterperson" {...field} />
+                  <Input placeholder="Musterperson" {...field} autoComplete={'family-name'} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -174,7 +172,7 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
               <FormItem>
                 <FormLabel>E-Mail</FormLabel>
                 <FormControl>
-                  <Input placeholder="person@example.com" {...field} />
+                  <Input placeholder="person@example.com" {...field} autoComplete={'email'}/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
