@@ -882,7 +882,8 @@ func (r *queryResolver) Users(ctx context.Context, mail []string) ([]*models.Use
 		Model(&users).
 		Relation("EventsAssigned").
 		Relation("EventsRegistered").
-		Relation("Applications")
+		Relation("Applications").
+		Relation("Availabilities")
 
 	if mail != nil {
 		query = query.
