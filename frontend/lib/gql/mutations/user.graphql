@@ -20,4 +20,5 @@ mutation addEventAvailabilityOfTutor($email: String!, $eventsAvailable: [Int!]!)
     availability: {userMail: $email, eventID: $eventsAvailable}
   ){
     fn
-  }}
+  }
+}
