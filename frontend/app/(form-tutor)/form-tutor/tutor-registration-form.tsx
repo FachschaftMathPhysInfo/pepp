@@ -9,15 +9,18 @@ import { EventTable } from "@/app/(form-tutor)/form-tutor/event-table";
 import React, { useEffect, useState } from "react";
 import { getClient } from "@/lib/graphql";
 import {
+  AddEventAvailabilityOfTutorDocument,
+  AddEventAvailabilityOfTutorMutation, AddEventAvailabilityOfTutorMutationVariables,
   AddTutorDocument, AddTutorMutation,
-  Event,
+  Event, RegistrationDocument, RegistrationMutation,
   TableEventsDocument,
   TableEventsQuery,
-  TableEventsQueryVariables
+  TableEventsQueryVariables, TutorRegistrationDocument, TutorRegistrationMutation, TutorRegistrationMutationVariables
 } from "@/lib/gql/generated/graphql";
 import { RowSelectionState } from "@tanstack/react-table";
 import { cn } from "@/lib/utils/tailwindUtils";
 import {toast} from "sonner";
+import {useUser} from "@/components/providers";
 
 interface TutorRegistrationFormProps {
   setSubmissionSuccess: React.Dispatch<React.SetStateAction<boolean>>;
@@ -77,10 +80,33 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
 
   async function onValidSubmit(tutorData: z.infer<typeof tutorRegistrationFormSchema>) {
     try {
-      const client = getClient();
-      await client.request<AddTutorMutation>(AddTutorDocument, tutorData)
+      let client = getClient();
+      const tutorRegistrationData: TutorRegistrationMutationVariables = {
+        firstName: tutorData.firstName,
+        lastName: tutorData.lastName,
+        email: tutorData.email,
+      };
+
+      const sid = await client.request<TutorRegistrationMutation>(
+        TutorRegistrationDocument,
+        tutorRegistrationData
+      );
+
+      client = getClient(sid.addUser)
+
+      const availabilityData: AddEventAvailabilityOfTutorMutationVariables = {
+        email: tutorData.email,
+        eventsAvailable: tutorData.eventsAvailable
+      }
+
+      await client.request<AddEventAvailabilityOfTutorMutation>(
+        AddEventAvailabilityOfTutorDocument,
+        availabilityData
+      );
+
       finishSubmission()
     } catch (error) {
+      toast.error
       handleError(String(error))
     }
   }
