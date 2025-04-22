@@ -1,6 +1,38 @@
 "use client";
 
 import { Separator } from "@/components/ui/separator";
+import React, { useState} from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Save } from "lucide-react";
+import { useUmbrella } from "@/components/providers/umbrella-provider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { set } from "date-fns";
+import { send } from "process";
+
+const FormSchema = z.object({
+  title: z.string().min(9, {
+    message: "Bitte gib eine Valide E-Mail an.",
+  }),
+});
 
 export default function SettingsProfilePage() {
 
