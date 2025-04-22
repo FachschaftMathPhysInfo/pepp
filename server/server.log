@@ -1,0 +1,7 @@
+time="2025-04-22T10:45:31+02:00" level=info msg="tracing is disabled"
+time="2025-04-22T10:45:31+02:00" level=info msg="no database type specified, using default sqlite"
+time="2025-04-22T10:45:31+02:00" level=info msg="database connection successful"
+time="2025-04-22T10:45:31+02:00" level=info msg="started cronjobs"
+time="2025-04-22T10:45:31+02:00" level=info msg="router setup finished, ready to fire"
+time="2025-04-22T10:45:31+02:00" level=fatal msg="listen tcp :8080: bind: address already in use"
+exit status 1

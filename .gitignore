@@ -15,3 +15,5 @@ frontend/lib/gql/generated/
 *.key
 *.csr
 *.srl
+# macOS
+admin.md
