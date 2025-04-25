@@ -11,7 +11,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-func seedData(ctx context.Context, db *bun.DB) error {
+func SeedData(ctx context.Context, db *bun.DB) error {
 	users := []*models.User{
 		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true},
 		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true},
@@ -239,8 +239,6 @@ func insertData[T any](ctx context.Context, db *bun.DB, model T, data []T, descr
 			return fmt.Errorf("%s: %s", description, err)
 		}
 		log.Infof("%s seeded successfully\n", description)
-	} else {
-		log.Infof("%s already exists, skipping seed\n", description)
 	}
 	return nil
 }
