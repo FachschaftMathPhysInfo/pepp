@@ -61,10 +61,10 @@ const FormSchema = z.object({
 
 interface EditEventViewProps {
   event: Event | undefined;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>
+  setOpenAction: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export function EditEventView({ event, setOpen }: EditEventViewProps) {
+export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
   const pathname = usePathname();
 
   const { user, sid } = useUser();
@@ -150,7 +150,7 @@ export function EditEventView({ event, setOpen }: EditEventViewProps) {
     toast(`"${data.title}" erfolgreich erstellt!`, {
       description: `Am ${format(data.date, "PPP")}`,
     });
-    setOpen(false)
+    setOpenAction(false)
   };
 
   useEffect(() => {

@@ -102,7 +102,7 @@ export default function EventDialog({
             <Skeleton className="h-[125px] w-full rounded-xl" />
           </div>
         ) : edit ? (
-          <EditEventView event={event} setOpen={setOpen} />
+          <EditEventView event={event} setOpenAction={setOpen} />
         ) : (
           <div className="space-y-4">
             <DialogHeader>
