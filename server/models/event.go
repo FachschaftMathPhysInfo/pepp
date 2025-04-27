@@ -25,7 +25,6 @@ type Event struct {
 	Type             *Label `bun:"rel:belongs-to,join:type_name=name"`
 	TutorsAssigned   []User `bun:"m2m:event_to_user_assignments,join:Event=User"`
 	TutorsAvailable  []User `bun:"m2m:user_to_event_availabilities,join:Event=User"`
-	RoomsAvailable   []Room `bun:"m2m:room_to_event_availabilities,join:Event=Room"`
 	RegistrationForm *Form  `bun:"rel:has-one,join:id=event_id"`
 }
 

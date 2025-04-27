@@ -81,6 +81,35 @@ func (r *eventResolver) Tutorials(ctx context.Context, obj *models.Event) ([]*mo
 	return tutorials, nil
 }
 
+// RoomsAvailable is the resolver for the roomsAvailable field.
+func (r *eventResolver) RoomsAvailable(ctx context.Context, obj *models.Event) ([]*models.Room, error) {
+	subq := r.DB.NewSelect().
+		Model((*models.EventToUserAssignment)(nil)).
+		ColumnExpr("1").
+		Relation("Event").
+		Where("eta.event_id = ?", obj.ID).
+		Where("eta.room_number = r.number").
+		Where("eta.building_id = r.building_id").
+		WhereGroup(" AND ", func(sq *bun.SelectQuery) *bun.SelectQuery {
+			return sq.
+				Where(`"event"."to" BETWEEN ? AND ?`, obj.From, obj.To).
+				WhereOr(`"event"."from" BETWEEN ? AND ?`, obj.From, obj.To).
+				WhereOr(`? BETWEEN "event"."from" AND "event"."to"`, obj.From).
+				WhereOr(`? BETWEEN "event"."from" AND "event"."to"`, obj.To)
+		})
+
+	var rooms []*models.Room
+	if err := r.DB.NewSelect().
+		Model(&rooms).
+		Relation("Building").
+		Where("NOT EXISTS (?)", subq).
+		Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	return rooms, nil
+}
+
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (string, error) {
 	sessionID, err := auth.GenerateSessionID()
@@ -243,7 +272,7 @@ func (r *mutationResolver) UpdateRoom(ctx context.Context, room models.Room) (*m
 		return nil, err
 	}
 
-	updatedRoom, err := r.Query().Rooms(ctx, []string{room.Number}, int(room.BuildingID))
+	updatedRoom, err := r.Query().Rooms(ctx, []string{room.Number}, []int{int(room.BuildingID)})
 	if err != nil {
 		return nil, err
 	}
@@ -554,44 +583,6 @@ func (r *mutationResolver) DeleteTutorAvailabilityForEvent(ctx context.Context, 
 	return user[0], nil
 }
 
-// AddRoomAvailabilityForEvent is the resolver for the addRoomAvailabilityForEvent field.
-func (r *mutationResolver) AddRoomAvailabilityForEvent(ctx context.Context, availability models.RoomToEventAvailability) (*models.Room, error) {
-	if _, err := r.DB.NewInsert().
-		Model(&availability).
-		Exec(ctx); err != nil {
-		return nil, err
-	}
-
-	room, err := r.Query().Rooms(ctx, []string{availability.RoomNumber}, int(availability.BuildingID))
-	if err != nil {
-		return nil, err
-	}
-
-	return room[0], nil
-}
-
-// UpdateRoomForTutorial is the resolver for the updateRoomForTutorial field.
-func (r *mutationResolver) UpdateRoomForTutorial(ctx context.Context, newRoomNumber string, newBuildingID int, eventID int, oldRoomNumber string, oldBuildingID int) (*models.Event, error) {
-	panic(fmt.Errorf("not implemented: UpdateRoomForTutorial - updateRoomForTutorial"))
-}
-
-// DeleteRoomAvailabilityForEvent is the resolver for the deleteRoomAvailabilityForEvent field.
-func (r *mutationResolver) DeleteRoomAvailabilityForEvent(ctx context.Context, availability models.RoomToEventAvailability) (*models.Room, error) {
-	if _, err := r.DB.NewDelete().
-		Model(&availability).
-		WherePK().
-		Exec(ctx); err != nil {
-		return nil, err
-	}
-
-	room, err := r.Query().Rooms(ctx, []string{availability.RoomNumber}, int(availability.BuildingID))
-	if err != nil {
-		return nil, err
-	}
-
-	return room[0], nil
-}
-
 // AddStudentRegistrationForEvent is the resolver for the addStudentRegistrationForEvent field.
 func (r *mutationResolver) AddStudentRegistrationForEvent(ctx context.Context, registration models.UserToEventRegistration) (string, error) {
 	if _, err := r.DB.NewInsert().
@@ -706,8 +697,6 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("Topic").
 		Relation("Type").
 		Relation("TutorsAvailable").
-		Relation("RoomsAvailable").
-		Relation("RoomsAvailable.Building").
 		Relation("Umbrella").
 		Where(`"e"."umbrella_id" IS NOT NULL`).
 		Order("ASC")
@@ -795,13 +784,16 @@ func (r *queryResolver) Buildings(ctx context.Context, id []int) ([]*models.Buil
 }
 
 // Rooms is the resolver for the rooms field.
-func (r *queryResolver) Rooms(ctx context.Context, number []string, buildingID int) ([]*models.Room, error) {
+func (r *queryResolver) Rooms(ctx context.Context, number []string, buildingID []int) ([]*models.Room, error) {
 	var rooms []*models.Room
 
 	query := r.DB.NewSelect().
 		Model(&rooms).
-		Relation("Building").
-		Where("building_id = ?", buildingID)
+		Relation("Building")
+
+	if buildingID != nil {
+		query = query.Where("building_id IN (?)", bun.In(buildingID))
+	}
 
 	if number != nil {
 		query = query.Where("r.number IN (?)", bun.In(number))

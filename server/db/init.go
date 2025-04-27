@@ -27,8 +27,7 @@ var (
 		(*models.ApplicationToQuestion)(nil),
 		(*models.EventToUserAssignment)(nil),
 		(*models.UserToEventAvailability)(nil),
-		(*models.UserToEventRegistration)(nil),
-		(*models.RoomToEventAvailability)(nil)}
+		(*models.UserToEventRegistration)(nil)}
 
 	tables = []interface{}{
 		(*models.Label)(nil),
@@ -60,7 +59,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 	}
 
-	if os.Getenv("LOG_LEVEL") == "DEBUG" {
+	if os.Getenv("LOG_LEVEL") == "Debug" {
 		db.AddQueryHook(bundebug.NewQueryHook(
 			bundebug.WithVerbose(true),
 		))

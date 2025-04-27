@@ -146,7 +146,7 @@ type Query {
   events(id: [Int!], umbrellaID: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, onlyFuture: Boolean, userMail: [String!]): [Event!]!
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
   buildings(id: [Int!]): [Building!]!
-  rooms(number: [String!], buildingID: Int!): [Room!]!
+  rooms(number: [String!], buildingID: [Int!]): [Room!]!
   labels(name: [String!], kind: [LabelKind!], umbrellaID: [Int!]): [Label!]!
   settings(key: [String!], type: [ScalarType!]): [Setting!]! @auth(role: ADMIN)
   users(mail: [String!]): [User!]! @auth(rule: IS_USER)
@@ -296,9 +296,6 @@ type Mutation {
   deleteEventAssignmentForTutor(assignment: EventToUserAssignment!): Event! @auth(role: ADMIN)
   addTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
   deleteTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
-  addRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room! @auth(role: ADMIN)
-  updateRoomForTutorial(newRoomNumber: String!, newBuildingID: Int!, eventID: Int!, oldRoomNumber: String!, oldBuildingID: Int!): Event! @auth(role: ADMIN)
-  deleteRoomAvailabilityForEvent(availability: RoomToEventAvailability!): Room! @auth(role: ADMIN)
   addStudentRegistrationForEvent(registration: NewUserToEventRegistration!): String!
   deleteStudentRegistrationForEvent(registration: NewUserToEventRegistration!): String!
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
