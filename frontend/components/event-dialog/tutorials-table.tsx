@@ -126,12 +126,10 @@ export function TutorialsTable({
       }
 
       setAvailableRooms(
-        eventData.events[0].roomsAvailable
-          ?.map((r) => ({
-            ...defaultRoom,
-            ...r,
-          }))
-          .filter((r) => event.tutorials?.map((t) => t.room).includes(r)) ?? []
+        eventData.events[0].roomsAvailable?.map((r) => ({
+          ...defaultRoom,
+          ...r,
+        })) ?? []
       );
     };
 
