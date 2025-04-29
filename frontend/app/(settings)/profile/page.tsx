@@ -19,38 +19,64 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Save } from "lucide-react";
-import { useUmbrella } from "@/components/providers/umbrella-provider";
+// import { useUmbrella } from "@/components/providers/umbrella-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { string, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { set } from "date-fns";
 import { send } from "process";
+import { stat } from "fs";
 
-const FormSchema = z.object({
-  title: z.string().min(9, {
+
+const FormEmailSchema = z.object({
+  title: z.string().email( {
     message: "Bitte gib eine Valide E-Mail an.",
+  }),
+});
+
+const FormVerificationSchema = z.object({
+  title: z.string().min( 2,{
+    message: "Verifikationscode ist Falsch!",
   }),
 });
 
 export default function SettingsProfilePage() {
 
   const [personInfo, Spi] =useState("test@email.de");
-  const [dialogTy ,setdialogTy] =useState(false);
-  const [EmailDl, setEmaiDl] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [EmailDialog, setEmaiDialog] = useState(false);
+  const [EmailVerificationDialog, setEmailVerificationDialog] = useState(false);
+  const [ChangePasswordDialog, setChangePasswordDialog] = useState(false);
+  const [DeleteAccountDialog, setDeleteAccountDialog] = useState(false);
   const [umbrella, setUmbrella] = useState<Event | null>(null);
 
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
+  const formEmail = useForm<z.infer<typeof FormEmailSchema>>({
+    resolver: zodResolver(FormEmailSchema),
     defaultValues: {
       title: umbrella?.title ?? "",
     },
   });
 
-  function sendVerifikationEmail(data: z.infer<typeof FormSchema>) {
-    Spi(data.title);
-    setEmaiDl(false);
+  const formVerification = useForm<z.infer<typeof FormVerificationSchema>>({
+    resolver: zodResolver(FormEmailSchema),
+    defaultValues: {
+      title: umbrella?.title ?? "",
+    },
+  });
+
+
+
+  function sendVerifikationEmail(data: z.infer<typeof FormEmailSchema>) {
+    setNewEmail(data.title);
+    setEmaiDialog(false);
+    setEmailVerificationDialog(true);
+  }
+  function updateEmail() {
+    Spi(newEmail);
+    // implement ubdating the email in the database
+    setEmailVerificationDialog(false);
   }
   
   return (
@@ -63,33 +89,35 @@ export default function SettingsProfilePage() {
       </div>
 
       <Separator />
-      <h3> Email:  {personInfo}</h3>
+      <h3> Email:  {personInfo} {umbrella?.type} </h3>
          
-      <Dialog open={EmailDl} onOpenChange={setEmaiDl}>
+      <Dialog open={EmailDialog} onOpenChange={setEmaiDialog}>
         <DialogTrigger asChild>
           <Button //variant="ghost" 
           > change E-Mail
           </Button>
         </DialogTrigger>
         <DialogContent >
-          <Form {...form}>
+          <DialogTitle>Gebe deine neue Emailadresse an</DialogTitle>
+          <Form {...formEmail}>
             <form
-              onSubmit={form.handleSubmit(sendVerifikationEmail)}
+              onSubmit={formEmail.handleSubmit(sendVerifikationEmail)}
               className="w-2/3 space-y-6"
             >
               <FormField
-                control={form.control}
+                control={formEmail.control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
                       <FormControl>
                         <Input
                           placeholder={"Name"}
+                          
                           {...field}
                         />
                       </FormControl>
                       <FormDescription>
-                        Helper text
+                        Give a avlid E-Mail address. A verifikation code will be sent to this address.
                       </FormDescription>
                       <FormMessage />
                   </FormItem>
@@ -103,9 +131,50 @@ export default function SettingsProfilePage() {
         </DialogContent>
       </Dialog>
       
+      <Dialog open={EmailVerificationDialog} onOpenChange={setEmailVerificationDialog}>
+        <DialogContent>
+          <DialogTitle>Gebe den Verifikations code ein.</DialogTitle>
+          <Form {...formVerification}>
+            <form
+              onSubmit ={formVerification.handleSubmit(updateEmail)}
+              className="w-2/3 space-y-6"
+              >
+                <FormField
+                control={formVerification.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Verifikationscode eingeben</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={"Name"}
+                          content=""
+                          
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Input th verifikation code you received in your E-Mail
+                      </FormDescription>
+                      <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">
+                Check E-Mail Verifikation
+              </Button>
+              <Button  onClick={() => {setEmailVerificationDialog(false); setEmaiDialog(true)}}>
+                Switch E-Mail
+              </Button>
+              
+              
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
       
       {"\n"}
-      <Dialog open={false} onOpenChange={false}>
+      <Dialog open={ChangePasswordDialog} onOpenChange={setChangePasswordDialog}>
       <DialogTrigger asChild>
           <Button //variant="ghost" 
           > Change Passwort
@@ -114,7 +183,7 @@ export default function SettingsProfilePage() {
       </Dialog>
 
       {"\n"}
-      <Dialog open={false} onOpenChange={false}>
+      <Dialog open={DeleteAccountDialog} onOpenChange={setDeleteAccountDialog}>
       <DialogTrigger asChild>
           <Button //variant="ghost" 
           > delete Account
