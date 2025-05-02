@@ -38,9 +38,10 @@ export const defaultRoom: Room = {
 };
 
 export const defaultTutorial: Tutorial = {
+  ID: 0,
   event: defaultEvent,
   tutors: [],
-  registrations: 0,
+  registrationCount: 0,
   room: defaultRoom,
 };
 

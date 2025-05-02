@@ -5,15 +5,15 @@ import {
   AddEventMutation,
   AddEventMutationVariables,
   Event,
-  EventToUserAssignment,
   LabelKind,
+  TutorialToUserAssignment,
   UmbrellaDurationDocument,
   UmbrellaDurationQuery,
   UmbrellaDurationQueryVariables,
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import { Edit3, PlusCircle, Save, Trash, Trash2 } from "lucide-react";
+import { PlusCircle, Save, Trash2 } from "lucide-react";
 import {
   DialogHeader,
   DialogDescription,
@@ -34,10 +34,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { cn, extractId } from "@/lib/utils";
+import { extractId } from "@/lib/utils";
 import { TutorialsTable } from "./tutorials-table";
 import { Input } from "../ui/input";
-import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
+import { defaultEvent } from "@/types/defaults";
 import { Switch } from "../ui/switch";
 import { BadgePicker } from "../badge-picker";
 import { DatePicker } from "../date-picker";
@@ -67,14 +67,14 @@ interface EditEventViewProps {
 export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
   const pathname = usePathname();
 
-  const { user, sid } = useUser();
+  const { sid } = useUser();
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
-  const [newAssignments, setNewAssignments] = useState<EventToUserAssignment[]>(
+  const [newAssignments, setNewAssignments] = useState<TutorialToUserAssignment[]>(
     []
   );
   const [deleteAssignments, setDeleteAssignments] = useState<
-    EventToUserAssignment[]
+    TutorialToUserAssignment[]
   >([]);
 
   function formatToHHMM(date: Date): string {

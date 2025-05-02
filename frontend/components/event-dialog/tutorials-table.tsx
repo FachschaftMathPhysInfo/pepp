@@ -11,20 +11,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import {
-  AddStudentRegistrationForEventDocument,
-  AddStudentRegistrationForEventMutation,
-  AddStudentRegistrationForEventMutationVariables,
-  DeleteStudentRegistrationForEventDocument,
-  DeleteStudentRegistrationForEventMutation,
-  DeleteStudentRegistrationForEventMutationVariables,
+  AddStudentApplicationForEventMutation,
+  AddStudentRegistrationForTutorialDocument,
+  AddStudentRegistrationForTutorialMutationVariables,
+  DeleteStudentRegistrationForTutorialDocument,
+  DeleteStudentRegistrationForTutorialMutation,
+  DeleteStudentRegistrationForTutorialMutationVariables,
   Event,
-  EventToUserAssignment,
-  MutationUpdateRoomForTutorialArgs,
   Room,
   Tutorial,
   TutorialAvailabilitysDocument,
   TutorialAvailabilitysQuery,
   TutorialAvailabilitysQueryVariables,
+  TutorialToUserAssignment,
   User,
 } from "@/lib/gql/generated/graphql";
 import { Loader2, MoreVertical, Plus, Trash2 } from "lucide-react";
@@ -43,19 +42,20 @@ import { RoomSelection } from "./room-selection";
 import { RoomHoverCard } from "../room-hover-card";
 import { useRouter } from "next/navigation";
 import { slugify } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface TutorialsTableProps {
   id: number;
   capacities: number[];
   edit: boolean;
   event: Event;
-  deleteAssignments: EventToUserAssignment[];
+  deleteAssignments: TutorialToUserAssignment[];
   setDeleteAssignments: React.Dispatch<
-    React.SetStateAction<EventToUserAssignment[]>
+    React.SetStateAction<TutorialToUserAssignment[]>
   >;
-  newAssignments: EventToUserAssignment[];
+  newAssignments: TutorialToUserAssignment[];
   setNewAssignments: React.Dispatch<
-    React.SetStateAction<EventToUserAssignment[]>
+    React.SetStateAction<TutorialToUserAssignment[]>
   >;
 }
 
@@ -74,9 +74,6 @@ export function TutorialsTable({
   const [cap, setCap] = useState<number[]>(capacities);
   const [availableTutors, setAvailableTutors] = useState<User[]>([]);
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
-  const [updateRooms, setUpdateRooms] = useState<
-    MutationUpdateRoomForTutorialArgs[]
-  >([]);
   const [selectedRooms, setSelectedRooms] = useState<(Room | undefined)[]>([]);
   const [tuts, setTuts] = useState<Tutorial[]>(event.tutorials ?? []);
   const [newTutorialTutors, setNewTutorialTutors] = useState<User[]>([]);
@@ -126,12 +123,10 @@ export function TutorialsTable({
       }
 
       setAvailableRooms(
-        eventData.events[0].roomsAvailable
-          ?.map((r) => ({
-            ...defaultRoom,
-            ...r,
-          }))
-          .filter((r) => event.tutorials?.map((t) => t.room).includes(r)) ?? []
+        eventData.events[0].roomsAvailable?.map((r) => ({
+          ...defaultRoom,
+          ...r,
+        })) ?? []
       );
     };
 
@@ -141,37 +136,46 @@ export function TutorialsTable({
   const registerForEvent = async (tutorial: Tutorial) => {
     const client = getClient(sid!);
 
-    const vars: AddStudentRegistrationForEventMutationVariables = {
+    const vars: AddStudentRegistrationForTutorialMutationVariables = {
       registration: {
-        eventID: id!,
+        tutorialID: tutorial.ID,
         userMail: user!.mail,
-        roomNumber: tutorial.room.number,
-        buildingID: tutorial.room.building.ID,
       },
     };
 
-    await client.request<AddStudentRegistrationForEventMutation>(
-      AddStudentRegistrationForEventDocument,
-      vars
-    );
+    try {
+      await client.request<AddStudentApplicationForEventMutation>(
+        AddStudentRegistrationForTutorialDocument,
+        vars
+      );
+    } catch {
+      toast.error(
+        `Beim Eintragen in eine Veranstaltung aus "${event.title}" ist ein Fehler aufgetreten.`
+      );
+    }
   };
 
   const unregisterFromEvent = async (tutorial: Tutorial) => {
     const client = getClient(sid!);
 
-    const vars: DeleteStudentRegistrationForEventMutationVariables = {
+    const vars: DeleteStudentRegistrationForTutorialMutationVariables = {
       registration: {
-        eventID: id!,
+        tutorialID: tutorial.ID,
         userMail: user!.mail,
-        roomNumber: tutorial.room.number,
-        buildingID: tutorial.room.building.ID,
       },
     };
 
-    await client.request<DeleteStudentRegistrationForEventMutation>(
-      DeleteStudentRegistrationForEventDocument,
-      vars
-    );
+    try {
+      await client.request<DeleteStudentRegistrationForTutorialMutation>(
+        DeleteStudentRegistrationForTutorialDocument,
+        vars
+      );
+    } catch (err) {
+      toast.error(
+        `Beim Austragen aus einer Veranstaltung in "${event.title}" ist ein Fehler aufgetreten.`
+      );
+      console.log(err);
+    }
   };
 
   const isSameTutorial = (first: Tutorial, second: Tutorial) => {
@@ -198,7 +202,7 @@ export function TutorialsTable({
         setTuts(
           tuts.map((t) => {
             if (isSameTutorial(t, tutorial)) {
-              t.registrations -= 1;
+              t.registrationCount -= 1;
             }
             return t;
           })
@@ -220,9 +224,9 @@ export function TutorialsTable({
         setTuts(
           tuts.map((t) => {
             if (isSameTutorial(t, tutorial)) {
-              t.registrations += 1;
+              t.registrationCount += 1;
             } else if (isSameTutorial(t, registration)) {
-              t.registrations -= 1;
+              t.registrationCount -= 1;
             }
             return t;
           })
@@ -239,7 +243,7 @@ export function TutorialsTable({
       setTuts(
         tuts.map((t) => {
           if (isSameTutorial(t, tutorial)) {
-            t.registrations += 1;
+            t.registrationCount += 1;
           }
           return t;
         })
@@ -282,7 +286,7 @@ export function TutorialsTable({
             <>
               {tuts.map((e, i) => {
                 const capacity = cap[i];
-                const utilization = (e.registrations / capacity) * 100;
+                const utilization = (e.registrationCount / capacity) * 100;
                 const isRegisteredEvent =
                   e.room.number === registration?.room.number &&
                   e.room.building.ID === registration?.room.building.ID;
@@ -317,21 +321,9 @@ export function TutorialsTable({
                     <TableCell className="relative z-1">
                       {edit ? (
                         <TutorSelection
-                          selectedTutors={e.tutors}
+                          selectedTutors={e.tutors!}
                           availableTutors={availableTutors}
-                          onSelectedTutorsChange={(tutor) => {
-                            const isAlreadySelectedTutor = e.tutors.find(
-                              (t) => t.mail === tutor.mail
-                            )
-                              ? true
-                              : false;
-                            const assignment: EventToUserAssignment = {
-                              eventID: id ?? 0,
-                              userMail: tutor.mail,
-                              roomNumber: selectedRooms[i]?.number ?? "",
-                              buildingID: selectedRooms[i]?.building.ID ?? 0,
-                            };
-                          }}
+                          onSelectedTutorsChange={() => {}}
                         />
                       ) : (
                         <>
@@ -359,13 +351,7 @@ export function TutorialsTable({
                           groupedRooms={groupedRooms}
                           selectedRoom={selectedRooms[i]}
                           onSelectedRoomChange={(room) => {
-                            const u = updateRooms.find(
-                              (r) =>
-                                r.oldBuildingID === room?.building.ID &&
-                                r.oldRoomNumber === room?.number
-                            );
                             const oldRoom = selectedRooms[i];
-
                             handleAvailableRoomsChange(room, oldRoom);
 
                             if (room !== oldRoom) {
@@ -377,30 +363,6 @@ export function TutorialsTable({
                                 prev[i] = room;
                                 return prev;
                               });
-                              if (
-                                room?.number !== e.room.number &&
-                                room?.building.ID !== e.room.building.ID
-                              ) {
-                                if (u) {
-                                  u.newRoomNumber = room!.number;
-                                  u.newBuildingID = room!.building.ID;
-                                } else {
-                                  setUpdateRooms((prev) => [
-                                    ...prev,
-                                    {
-                                      eventID: id ?? 0,
-                                      oldBuildingID: e.room.building.ID,
-                                      oldRoomNumber: e.room.number,
-                                      newBuildingID: room!.building.ID,
-                                      newRoomNumber: room!.number,
-                                    },
-                                  ]);
-                                }
-                              } else {
-                                setUpdateRooms((prev) =>
-                                  prev.filter((r) => r !== u)
-                                );
-                              }
                             } else {
                               setCap((prev) => {
                                 prev[i] = 0;
@@ -418,7 +380,7 @@ export function TutorialsTable({
                       )}
                     </TableCell>
                     <TableCell className="relative z-1">
-                      {e.registrations}/{capacity !== 0 ? capacity : "?"}
+                      {e.registrationCount}/{capacity !== 0 ? capacity : "?"}
                     </TableCell>
                     <TableCell className="relative z-1">
                       {edit ? (

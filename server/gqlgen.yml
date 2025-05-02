@@ -89,6 +89,8 @@ models:
       - github.com/99designs/gqlgen/graphql.Int32
   NewAnswer:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Answer
+  NewTutorial:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Tutorial
   NewQuestion:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Question
   NewForm:

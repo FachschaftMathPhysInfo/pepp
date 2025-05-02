@@ -25,10 +25,9 @@ var (
 	err       error
 	relations = []interface{}{
 		(*models.ApplicationToQuestion)(nil),
-		(*models.EventToUserAssignment)(nil),
+		(*models.TutorialToUserAssignment)(nil),
 		(*models.UserToEventAvailability)(nil),
-		(*models.UserToEventRegistration)(nil),
-		(*models.RoomToEventAvailability)(nil)}
+		(*models.UserToTutorialRegistration)(nil)}
 
 	tables = []interface{}{
 		(*models.Label)(nil),
@@ -40,6 +39,7 @@ var (
 		(*models.Question)(nil),
 		(*models.Answer)(nil),
 		(*models.Application)(nil),
+		(*models.Tutorial)(nil),
 		(*models.Setting)(nil)}
 )
 
@@ -60,7 +60,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 	}
 
-	if os.Getenv("LOG_LEVEL") == "DEBUG" {
+	if os.Getenv("LOG_LEVEL") == "Debug" {
 		db.AddQueryHook(bundebug.NewQueryHook(
 			bundebug.WithVerbose(true),
 		))

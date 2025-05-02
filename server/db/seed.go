@@ -134,22 +134,22 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
-	availableRooms := []*models.RoomToEventAvailability{
-		{RoomNumber: "101", BuildingID: 1, EventID: 3},
-		{RoomNumber: "2.141", BuildingID: 1, EventID: 3},
-		{RoomNumber: "503", BuildingID: 2, EventID: 5},
+	tutorials := []*models.Tutorial{
+		{EventID: 3, RoomNumber: "101", BuildingID: 1},
+		{EventID: 3, RoomNumber: "2.141", BuildingID: 1},
+		{EventID: 5, RoomNumber: "503", BuildingID: 2},
 	}
-	if err := insertData(ctx, db, (*models.RoomToEventAvailability)(nil), availableRooms, "Room to Event availabilitys"); err != nil {
+	if err := insertData(ctx, db, (*models.Tutorial)(nil), tutorials, "Tutorials"); err != nil {
 		return err
 	}
 
-	assignments := []*models.EventToUserAssignment{
-		{EventID: 3, UserMail: "tutor1@example.de", RoomNumber: "101", BuildingID: 1},
-		{EventID: 3, UserMail: "tutor2@example.de", RoomNumber: "101", BuildingID: 1},
-		{EventID: 3, UserMail: "tutor2@example.de", RoomNumber: "2.141", BuildingID: 1},
-		{EventID: 5, UserMail: "tutor2@example.de", RoomNumber: "503", BuildingID: 2},
+	assignments := []*models.TutorialToUserAssignment{
+		{TutorialID: 1, UserMail: "tutor1@example.de"},
+		{TutorialID: 1, UserMail: "tutor2@example.de"},
+		{TutorialID: 2, UserMail: "tutor2@example.de"},
+		{TutorialID: 3, UserMail: "tutor2@example.de"},
 	}
-	if err := insertData(ctx, db, (*models.EventToUserAssignment)(nil), assignments, "Event to User assignments"); err != nil {
+	if err := insertData(ctx, db, (*models.TutorialToUserAssignment)(nil), assignments, "Tutorial to User assignments"); err != nil {
 		return err
 	}
 
