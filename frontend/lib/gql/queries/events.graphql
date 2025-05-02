@@ -81,6 +81,7 @@ query eventCloseup($id: Int!) {
       color
     }
     tutorials {
+      ID
       tutors {
         fn
         sn
@@ -104,7 +105,7 @@ query eventCloseup($id: Int!) {
           zoomLevel
         }
       }
-      registrations
+      registrationCount
     }
   }
 }

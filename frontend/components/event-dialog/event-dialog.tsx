@@ -5,8 +5,8 @@ import {
   EventCloseupDocument,
   EventCloseupQuery,
   EventCloseupQueryVariables,
-  EventToUserAssignment,
   Role,
+  TutorialToUserAssignment,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
 import { Edit3 } from "lucide-react";
@@ -44,11 +44,11 @@ export default function EventDialog({
   const [event, setEvent] = useState<Event>();
   const [edit, setEdit] = useState(modify);
   const [open, setOpen] = useState(false);
-  const [newAssignments, setNewAssignments] = useState<EventToUserAssignment[]>(
+  const [newAssignments, setNewAssignments] = useState<TutorialToUserAssignment[]>(
     []
   );
   const [deleteAssignments, setDeleteAssignments] = useState<
-    EventToUserAssignment[]
+    TutorialToUserAssignment[]
   >([]);
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export default function EventDialog({
             ...defaultTutorial,
             ...t,
             event: { ...defaultEvent, ID: id! },
-            tutors: t.tutors.map((tu) => ({ ...defaultUser, ...tu })),
+            tutors: t.tutors?.map((tu) => ({ ...defaultUser, ...tu })),
           })),
         });
       }
