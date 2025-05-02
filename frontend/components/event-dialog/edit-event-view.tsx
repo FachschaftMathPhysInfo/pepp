@@ -61,7 +61,7 @@ const FormSchema = z.object({
 
 interface EditEventViewProps {
   event: Event | undefined;
-  setOpenAction: React.Dispatch<React.SetStateAction<boolean>>
+  setOpenAction: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
@@ -70,9 +70,9 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
   const { sid } = useUser();
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
-  const [newAssignments, setNewAssignments] = useState<TutorialToUserAssignment[]>(
-    []
-  );
+  const [newAssignments, setNewAssignments] = useState<
+    TutorialToUserAssignment[]
+  >([]);
   const [deleteAssignments, setDeleteAssignments] = useState<
     TutorialToUserAssignment[]
   >([]);
@@ -88,7 +88,7 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
     defaultValues: {
       title: event?.title ?? "",
       description: event?.description ?? "",
-      date: event?.from,
+      date: new Date(event?.from),
       from: event?.from ? formatToHHMM(new Date(event.from)) : "",
       to: event?.to ? formatToHHMM(new Date(event.to)) : "",
       needsTutors: event?.needsTutors,
@@ -150,10 +150,12 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
     toast(`"${data.title}" erfolgreich erstellt!`, {
       description: `Am ${format(data.date, "PPP")}`,
     });
-    setOpenAction(false)
+    setOpenAction(false);
   };
 
   useEffect(() => {
+    if (event) return;
+
     const client = getClient();
 
     const fetchUmbrellaDuration = async () => {
