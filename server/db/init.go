@@ -20,21 +20,39 @@ import (
 )
 
 var (
-	db    *bun.DB
-	sqldb *sql.DB
-	err   error
+	db        *bun.DB
+	sqldb     *sql.DB
+	err       error
+	relations = []interface{}{
+		(*models.ApplicationToQuestion)(nil),
+		(*models.EventToUserAssignment)(nil),
+		(*models.UserToEventAvailability)(nil),
+		(*models.UserToEventRegistration)(nil),
+		(*models.RoomToEventAvailability)(nil)}
+
+	tables = []interface{}{
+		(*models.Label)(nil),
+		(*models.Event)(nil),
+		(*models.User)(nil),
+		(*models.Building)(nil),
+		(*models.Room)(nil),
+		(*models.Form)(nil),
+		(*models.Question)(nil),
+		(*models.Answer)(nil),
+		(*models.Application)(nil),
+		(*models.Setting)(nil)}
 )
 
 func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, error) {
-	switch os.Getenv("DATABASE_TYPE") {
-	case "PostgreSQL":
+	if os.Getenv("POSTGRES_HOST") != "" {
+		log.Info("connecting to postgres instance...")
 		sqldb, err = connectTCPSocket()
 		if err != nil {
 			log.Panic("postgres connection failed: ", err)
 		}
 		db = bun.NewDB(sqldb, pgdialect.New())
-	default:
-		log.Info("no database type specified, using default sqlite")
+	} else {
+		log.Info("no db host specified: connecting to default sqlite...")
 		sqldb, err = sql.Open(sqliteshim.ShimName, "./pepp.db")
 		if err != nil {
 			log.Panic("sqlite creation failed: ", err)
@@ -55,25 +73,6 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		))
 	}
 
-	relations := []interface{}{
-		(*models.ApplicationToQuestion)(nil),
-		(*models.EventToUserAssignment)(nil),
-		(*models.UserToEventAvailability)(nil),
-		(*models.UserToEventRegistration)(nil),
-		(*models.RoomToEventAvailability)(nil)}
-
-	tables := []interface{}{
-		(*models.Label)(nil),
-		(*models.Event)(nil),
-		(*models.User)(nil),
-		(*models.Building)(nil),
-		(*models.Room)(nil),
-		(*models.Form)(nil),
-		(*models.Question)(nil),
-		(*models.Answer)(nil),
-		(*models.Application)(nil),
-		(*models.Setting)(nil)}
-
 	for _, relation := range relations {
 		db.RegisterModel(relation)
 	}
@@ -86,22 +85,21 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		log.Panic("unable to insert basic connetcion relations in DB: ", err)
 	}
 
-	if err := initAdminUser(ctx); err != nil {
-		log.Panic("error crating admin user: ", err)
-	}
-
 	return db, sqldb, nil
 }
 
-func initAdminUser(ctx context.Context) error {
+func InitAdminUser(ctx context.Context, db *bun.DB) error {
 	mail := os.Getenv("ADMIN_USER")
 	if mail == "" {
 		mail = "admin@pepp.local"
 	}
 
-	password, err := auth.GenerateSalt(32)
-	if err != nil {
-		return err
+	password := "admin"
+	if os.Getenv("ENV") == "Production" {
+		password, err = auth.GenerateSalt(32)
+		if err != nil {
+			return err
+		}
 	}
 
 	hash, salt, err := auth.Hash(password)
@@ -159,15 +157,23 @@ func connectTCPSocket() (*sql.DB, error) {
 		dbUser = mustGetenv("POSTGRES_USER")
 		dbPwd  = mustGetenv("POSTGRES_PASSWORD")
 		dbName = mustGetenv("POSTGRES_DB")
+		dbURI  string
 	)
 
-	dbURI := fmt.Sprintf("host=%s user=%s password=%s database=%s sslmode=verify-full sslrootcert=root.crt sslcert=client.crt sslkey=client.key",
-		dbHost, dbUser, dbPwd, dbName)
+	if _, err := os.Stat("client.crt"); err == nil {
+		dbURI = fmt.Sprintf("host=%s user=%s password=%s database=%s sslmode=verify-full sslrootcert=root.crt sslcert=client.crt sslkey=client.key",
+			dbHost, dbUser, dbPwd, dbName)
+	} else {
+
+		dbURI = fmt.Sprintf("host=%s user=%s password=%s database=%s",
+			dbHost, dbUser, dbPwd, dbName)
+	}
 
 	dbPool, err := sql.Open("postgres", dbURI)
 	if err != nil {
 		return nil, fmt.Errorf("sql.Open: %w", err)
 	}
+
 	if err = dbPool.Ping(); err != nil {
 		log.Fatalf("DB unreachable: %s", err)
 	}

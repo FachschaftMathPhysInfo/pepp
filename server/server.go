@@ -7,14 +7,16 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
-	"github.com/FachschaftMathPhysInfo/pepp/server/db"
+	database "github.com/FachschaftMathPhysInfo/pepp/server/db"
 	"github.com/FachschaftMathPhysInfo/pepp/server/directives"
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph"
+	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/ical"
 	"github.com/FachschaftMathPhysInfo/pepp/server/maintenance"
 	"github.com/FachschaftMathPhysInfo/pepp/server/tracing"
@@ -30,22 +32,23 @@ import (
 )
 
 const (
-	defaultPort = "8080"
+	defaultPort     = "8080"
+	sessionIdHeader = "SID"
 )
 
 var (
-	resolver graph.Resolver
+	resolver      graph.Resolver
+	port          = os.Getenv("PORT")
+	env           = os.Getenv("ENV")
+	enableTracing = os.Getenv("ENABLE_TRACING") == "true"
 )
 
 func main() {
 	ctx := context.Background()
 
-	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
-
-	enableTracing := os.Getenv("ENABLE_TRACING") == "true"
 
 	var apiTracer, routerTracer, databaseTracer, maintenanceTracer *sdktrace.TracerProvider
 	if enableTracing {
@@ -59,11 +62,22 @@ func main() {
 	}
 
 	// Initialize database
-	db, sqldb, err := db.Init(ctx, databaseTracer)
+	db, sqldb, err := database.Init(ctx, databaseTracer)
 	defer sqldb.Close()
 	defer db.Close()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if env != "Production" {
+		err = database.SeedData(ctx, db)
+		if err != nil {
+			log.Fatal("seed failed: ", err)
+		}
+	}
+	err = database.InitAdminUser(ctx, db)
+	if err != nil {
+		log.Fatal("unable to create admin user: ", err)
 	}
 
 	resolver = graph.Resolver{
@@ -75,8 +89,6 @@ func main() {
 	if err := resolver.FetchSettings(ctx); err != nil {
 		log.Fatal("unable to get settings: ", err)
 	}
-
-	log.Info("database connection successful")
 
 	// Set up cronjobs
 	c := cron.New()
@@ -132,7 +144,13 @@ func main() {
 	})
 
 	gc := graph.Config{Resolvers: &resolver}
-	gc.Directives.Auth = directives.Auth
+	if env == "Production" {
+		gc.Directives.Auth = directives.Auth
+	} else {
+		gc.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver, rule *model.Rule, role *model.Role) (res interface{}, err error) {
+			return next(ctx)
+		}
+	}
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(gc))
 	srv.AddTransport(transport.POST{})
@@ -143,7 +161,7 @@ func main() {
 
 	router.With(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			sid := r.Header.Get("SID")
+			sid := r.Header.Get(sessionIdHeader)
 			if sid != "" {
 				ctx = auth.ValidateUser(ctx, sid, db)
 			}
@@ -151,8 +169,10 @@ func main() {
 		})
 	}).Handle("/api", srv)
 
-	router.Handle("/playground", playground.Handler("GraphQL playground", "/api"))
+	if env != "Production" {
+		router.Handle("/playground", playground.Handler("GraphQL playground", "/api"))
+	}
 
-	log.Info("router setup finished, ready to fire")
+	log.Info("startup finished, server is ready")
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
