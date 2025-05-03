@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, Moon, SquareCheckBig, Sun } from "lucide-react";
+import { LogIn, Moon, SquareCheckBig, Sun, Search } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
@@ -57,6 +57,8 @@ export default function Header() {
 
   const { setTheme } = useTheme();
   const { user, setUser } = useUser();
+  const [isMobile, setIsMobile] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -97,7 +99,18 @@ export default function Header() {
 
   const groupedEvents = groupEventsByUmbrellaId();
 
-  return (
+    // Detect screen size
+    useEffect(() => {
+      const handleResize = () => {
+        setIsMobile(window.innerWidth <= 768); // Mobile if width <= 768px
+      };
+  
+      handleResize(); // Initial check
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+  const DesktopHeader = () => (
     <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
       <div
         className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400"
@@ -240,4 +253,147 @@ export default function Header() {
       </div>
     </header>
   );
+
+  const MobileHeader = () => (
+    <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
+      <div
+        className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400"
+        onClick={() => router.push("/")}
+      >
+        <Image
+          src="/logo.png"
+          alt="Pepp Logo"
+          width="0"
+          height="0"
+          sizes="100vw"
+          className="h-10 w-auto pr-2"
+        />
+        <div className="pl-3">
+          <Image
+            src="/fs-logo-light.png"
+            alt="Fachschaft MathPhysInfo Logo"
+            width="0"
+            height="0"
+            sizes="100vw"
+            className="h-10 w-auto block dark:hidden"
+          />
+          <Image
+            src="/fs-logo-dark.png"
+            alt="Fachschaft MathPhysInfo Logo"
+            width="0"
+            height="0"
+            sizes="100vw"
+            className="h-10 w-auto hidden dark:block"
+          />
+        </div>
+      </div>
+      <div className="flex flex-row">
+        {/* Search Button */}
+    <Button
+      variant="ghost"
+      onClick={() => setSearchOpen(true)}
+      className="w-fit"
+    >
+      <Search className="h-[1.2rem] w-[1.2rem]" />
+      <span className="sr-only">Suche öffnen</span>
+      <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+    </Button>
+    <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+      <CommandInput placeholder="Suche nach Veranstaltungen..." />
+      <CommandList>
+        <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
+        {groupedEvents &&
+          Object.keys(groupedEvents).map((uID) => (
+            <CommandGroup
+              key={uID}
+              heading={groupedEvents[uID][0]?.umbrella?.title || ""}
+            >
+              {groupedEvents[uID].map((e) => (
+                <CommandItem
+                  className="justify-between"
+                  key={e.ID}
+                  onSelect={() => {
+                    setSearchOpen(false);
+                  }}
+                >
+                  {e.title}
+                  {user?.registrations?.find((r) => r.event.ID === e.ID) && (
+                    <SquareCheckBig className="w-2 h-2 text-green-700" />
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ))}
+      </CommandList>
+    </CommandDialog>
+
+          {/* Theme Toggle */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="ml-2">
+                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Thema wechseln</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTheme("light")}>
+                <Sun className="h-[1rem] w-auto mr-2" />
+                Hell
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")}>
+                <Moon className="h-[1rem] w-auto mr-2" />
+                Dunkel
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        {/* User Avatar or Login Button */}
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="cursor-pointer ml-1">
+                <AvatarFallback>
+                  {user.fn[0]}
+                  {user.sn[0]}
+                </AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <div className="m-2">
+                <p className="font-bold text-sm">
+                  {user.fn} {user.sn}
+                </p>
+                <p className="text-muted-foreground text-xs">{user.mail}</p>
+              </div>
+              <Separator />
+              {profileNavItems.map(i => (
+                <DropdownMenuItem key={i.title} onClick={() => router.push(i.href)}>
+                  {i.title}
+                </DropdownMenuItem>
+              ))}
+              <Separator />
+              <DropdownMenuItem onClick={() => setUser(null)}>
+                Abmelden
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <LogIn className="h-[1.2rem] w-[1.2rem]" />
+              </Button>
+            </DialogTrigger>
+            <SignInDialog />
+          </Dialog>
+        )}
+      </div>
+      
+    </header>
+  );     
+
+
+return isMobile ? <MobileHeader /> : <DesktopHeader />;
 }
