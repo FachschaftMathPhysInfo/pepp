@@ -3,6 +3,8 @@ name: Build & Publish Docker Image
 on:
   push:
     branches: [ main ]
+    
+  workflow_dispatch: {}
 
 permissions:
   contents: read
