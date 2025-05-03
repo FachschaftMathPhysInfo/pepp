@@ -25,12 +25,22 @@ npm run dev
 #### backend
 > [!IMPORTANT]  
 > In development, the backend creates some example data and creates an admin user:
-> Mail: `admin@pepp.local`
+> Mail: `admin@pepp.local`, 
 > Password: `admin`
 ```bash
 cd server
 go generate ./...
 go run server.go
+```
+
+## deployment via docker compose
+```bash
+services:
+  pepp:
+    image: ghcr.io/fachschaftmathphysinfo/pepp
+    ports:
+      - 8080:8080
+    env_file: .env
 ```
 
 ## env vars
