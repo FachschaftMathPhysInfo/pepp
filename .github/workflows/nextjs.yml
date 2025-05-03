@@ -10,7 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       node-version:
-        description: 'Manually run the workflow. The node.js version to use can be specified. \n If not specified, the default is 20.x'
+        description: |
+          Manually run the workflow. The node.js version to use can be specified.
+          If not specified, the default is 20.x
         required: true
         default: '20.x'
 
