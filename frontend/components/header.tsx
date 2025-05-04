@@ -97,16 +97,6 @@ export default function Header() {
 
   const groupedEvents = groupEventsByUmbrellaId();
 
-    // // Detect screen size
-    // useEffect(() => {
-    //   const handleResize = () => {
-    //     setIsMobile(window.innerWidth <= 768); // Mobile if width <= 768px
-    //   };
-  
-    //   handleResize(); // Initial check
-    //   window.addEventListener("resize", handleResize);
-    //   return () => window.removeEventListener("resize", handleResize);
-    // }, []);
 
 
     const HeaderContent = () => (
