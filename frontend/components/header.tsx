@@ -137,7 +137,7 @@ export default function Header() {
         <Search className="h-[1.2rem] w-[1.2rem]" />
       </Button>
     </div>
-    
+
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
           <CommandInput placeholder="Suche nach Veranstaltungen..." />
           <CommandList>
@@ -262,8 +262,8 @@ export default function Header() {
             />
           </div>
         </div>
-        <div className="hidden lg:flex">{HeaderContent()}</div>
-        <div className="flex lg:hidden">{HeaderContent()}</div>
+        <div className="hidden md:flex">{HeaderContent()}</div>
+        <div className="flex md:hidden">{HeaderContent()}</div>
       </header>
     );
   }
