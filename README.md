@@ -49,8 +49,7 @@ services:
 
 | Key | Description |
 | - | - |
-| `PUBLIC_URL` | The domain under which pepp is deployed |
-| `PEPPER_KEY` | Generate a random 64 characters long string for password security |
+| `PEPPER_KEY` | Generate a random 32 characters long string for password security |
 | `SMTP_HOST` |  E-Mail provider, e.g. `smtp.example.de` |
 | `SMTP_USER` | E.g. `alice@example.de` |
 | `SMTP_PASSWORD` | The password to log into the SMTP Server |

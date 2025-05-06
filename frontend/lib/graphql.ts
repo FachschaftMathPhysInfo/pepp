@@ -1,11 +1,16 @@
 import { GraphQLClient } from "graphql-request";
 
-const endpoint = "http://localhost:8080/api";
+const getEndpoint = () => {
+  if (typeof window !== "undefined") {
+    return new URL("/api", window.location.origin).toString();
+  }
+  return "";
+};
 
 export const getClient = (sid?: string) => {
-  return new GraphQLClient(endpoint, {
+  return new GraphQLClient(getEndpoint(), {
     headers: {
       SID: sid ?? "",
     },
   });
-}
+};
