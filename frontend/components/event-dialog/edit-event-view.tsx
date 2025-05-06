@@ -88,7 +88,7 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
     defaultValues: {
       title: event?.title ?? "",
       description: event?.description ?? "",
-      date: new Date(event?.from),
+      date: event ?  new Date(event?.from) : new Date(),
       from: event?.from ? formatToHHMM(new Date(event.from)) : "",
       to: event?.to ? formatToHHMM(new Date(event.to)) : "",
       needsTutors: event?.needsTutors,
@@ -97,19 +97,7 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
     },
   });
 
-  const updateEvent = async (data: z.infer<typeof FormSchema>) => {
-    setSaveLoading(true);
-
-    const vars: UpdateEventMutationVariables = {
-      id: event?.ID ?? 0,
-      event: {
-        title: data.title,
-        needsTutors: true,
-        from: "",
-        to: "",
-      },
-    };
-  };
+  const updateEvent = async (data: z.infer<typeof FormSchema>) => {};
 
   const newEvent = async (data: z.infer<typeof FormSchema>) => {
     setSaveLoading(true);
@@ -163,20 +151,23 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
         id: extractId(pathname)!,
       };
 
-      const umbrellaData = await client.request<UmbrellaDurationQuery>(
-        UmbrellaDurationDocument,
-        vars
-      );
+      try {
+        const umbrellaData = await client.request<UmbrellaDurationQuery>(
+          UmbrellaDurationDocument,
+          vars
+        );
 
-      const umbrellaEvent = umbrellaData.umbrellas[0];
+        const umbrellaEvent = umbrellaData.umbrellas[0];
+        form.reset({ date: new Date(umbrellaEvent.from) });
 
-      form.reset({ date: new Date(umbrellaEvent.from) });
-
-      setUmbrella({ ...defaultEvent, ...umbrellaEvent });
+        setUmbrella({ ...defaultEvent, ...umbrellaEvent });
+      } catch {
+        toast.error("Fehler beim Laden des Zeitrahmens für die Veranstaltung.");
+      }
     };
 
     fetchUmbrellaDuration();
-  }, [event]);
+  }, []);
 
   return (
     <Form {...form}>
