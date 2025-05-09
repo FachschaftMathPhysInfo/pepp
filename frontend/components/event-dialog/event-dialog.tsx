@@ -17,33 +17,28 @@ import {
   DialogDescription,
   DialogTitle,
   Dialog,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { SignInDialog } from "@/components/sign-in-dialog";
 import { useUser } from "../providers";
 import { getClient } from "@/lib/graphql";
 import { TutorialsTable } from "./tutorials-table";
 import { FullDateDescription } from "../full-date-description";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { Button } from "../ui/button";
-import { EditEventView } from "./edit-event-view";
+import Link from "next/link";
 
 interface EventDialogProps {
   id?: number;
   modify?: boolean;
-  children: React.ReactNode;
 }
 
 export default function EventDialog({
   id,
   modify = false,
-  children,
 }: EventDialogProps) {
   const { user } = useUser();
   const [event, setEvent] = useState<Event>();
   const [edit, setEdit] = useState(modify);
-  const [open, setOpen] = useState(false);
   const [newAssignments, setNewAssignments] = useState<TutorialToUserAssignment[]>(
     []
   );
@@ -52,8 +47,6 @@ export default function EventDialog({
   >([]);
 
   useEffect(() => {
-    if (!open) return;
-
     const fetchEventData = async () => {
       const client = getClient();
       const vars: EventCloseupQueryVariables = {
@@ -81,19 +74,11 @@ export default function EventDialog({
     };
 
     if (id) fetchEventData();
-  }, [id, open]);
+  }, [id]);
 
   return (
     <Dialog
-      open={open}
-      onOpenChange={(open) => {
-        setOpen(open);
-        if (!open && id) {
-          setEdit(false);
-        }
-      }}
     >
-      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:min-w-[600px]">
         {!event && id ? (
           <div className="flex flex-col space-y-3">
@@ -102,7 +87,7 @@ export default function EventDialog({
             <Skeleton className="h-[125px] w-full rounded-xl" />
           </div>
         ) : edit ? (
-          <EditEventView event={event} setOpenAction={setOpen} />
+                <></>
         ) : (
           <div className="space-y-4">
             <DialogHeader>
@@ -129,14 +114,7 @@ export default function EventDialog({
             {!user && event?.tutorials?.length && (
               <div>
                 <span>Bitte </span>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <span className="cursor-pointer text-blue-500 hover:underline">
-                      anmelden
-                    </span>
-                  </DialogTrigger>
-                  <SignInDialog />
-                </Dialog>
+                <Link href="/login">anmelden</Link>
                 <span>, um dich eintragen zu können.</span>
               </div>
             )}

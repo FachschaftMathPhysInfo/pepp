@@ -1,6 +1,6 @@
-import { DialogDescription, DialogHeader } from "@/components/ui/dialog";
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -57,13 +57,16 @@ const RegisterFormSchema = SignInFormSchema.extend({
   message: "Passwörter stimmen nicht überein.",
 });
 
-export const SignInDialog = () => {
-  const client = getClient()
+interface LoginFormProps {
+  isRegistering: boolean;
+}
 
-  const { setUser, setSid } = useUser();
+export default function LoginForm({ isRegistering }: LoginFormProps) {
+  const client = getClient();
+
+  const { setSid } = useUser();
   const [correct, setCorrect] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
 
   const activeSchema = isRegistering ? RegisterFormSchema : SignInFormSchema;
 
@@ -86,17 +89,14 @@ export const SignInDialog = () => {
     }
 
     const credentials: LoginQueryVariables = {
-        mail: data.email,
-        password: data.password,
+      mail: data.email,
+      password: data.password,
     };
 
     try {
-      const sid = await client.request<LoginQuery>(
-        LoginDocument,
-        credentials
-      );
+      const sid = await client.request<LoginQuery>(LoginDocument, credentials);
 
-      setSid(sid.login)
+      setSid(sid.login);
     } catch {
       setCorrect(false);
     }
@@ -116,19 +116,7 @@ export const SignInDialog = () => {
   });
 
   return (
-    <DialogContent className="sm:max-w-[550px]">
-      <DialogHeader>
-        <DialogTitle>{isRegistering ? "Registrieren" : "Anmelden"}</DialogTitle>
-        <DialogDescription>
-          <span>{isRegistering ? "Zurück zur" : "Noch kein Konto?"} </span>
-          <span
-            onClick={() => setIsRegistering(isRegistering ? false : true)}
-            className="text-blue-500 hover:underline cursor-pointer"
-          >
-            {isRegistering ? "Anmeldung" : "Registrieren"}
-          </span>
-        </DialogDescription>
-      </DialogHeader>
+    <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {isRegistering && (
@@ -214,6 +202,6 @@ export const SignInDialog = () => {
           </div>
         </form>
       </Form>
-    </DialogContent>
+    </>
   );
-};
+}

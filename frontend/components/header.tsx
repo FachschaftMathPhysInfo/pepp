@@ -19,9 +19,6 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { Dialog } from "./ui/dialog";
-import { DialogTrigger } from "@radix-ui/react-dialog";
-import { SignInDialog } from "./sign-in-dialog";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import {
@@ -35,7 +32,7 @@ import { useRouter } from "next/navigation";
 export const profileNavItems = [
   {
     title: "Einstellungen",
-    href: "/profile"
+    href: "/profile",
   },
   {
     title: "Tutorien",
@@ -60,7 +57,7 @@ export default function Header() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const client = getClient()
+      const client = getClient();
 
       const eventData = await client.request<FutureEventsQuery>(
         FutureEventsDocument
@@ -216,8 +213,11 @@ export default function Header() {
                 <p className="text-muted-foreground text-xs">{user.mail}</p>
               </div>
               <Separator />
-              {profileNavItems.map(i => (
-                <DropdownMenuItem key={i.title} onClick={() => router.push(i.href)}>
+              {profileNavItems.map((i) => (
+                <DropdownMenuItem
+                  key={i.title}
+                  onClick={() => router.push(i.href)}
+                >
                   {i.title}
                 </DropdownMenuItem>
               ))}
@@ -228,14 +228,13 @@ export default function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <LogIn className="h-[1.2rem] w-[1.2rem]" />
-              </Button>
-            </DialogTrigger>
-            <SignInDialog />
-          </Dialog>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push("/login")}
+          >
+            <LogIn className="h-[1.2rem] w-[1.2rem]" />
+          </Button>
         )}
       </div>
     </header>
