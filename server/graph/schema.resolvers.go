@@ -176,10 +176,16 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event models.Event) (*m
 
 // UpdateEvent is the resolver for the updateEvent field.
 func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models.Event) (int, error) {
+	event.ID = int32(id)
 	if _, err := r.DB.NewUpdate().
 		Model(&event).
-		Where("id = ?", id).
+		// needed, because submitting false will be
+		// omitted by OmitZero()
+		Set("needs_tutors = ?", event.NeedsTutors).
+		OmitZero().
+		WherePK().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, err
 	}
 
