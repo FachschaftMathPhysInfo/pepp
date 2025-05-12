@@ -1,6 +1,5 @@
 import { DataTableColumnHeader } from "@/components/data-table-column-header";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent, DropdownMenuItem,
@@ -19,9 +18,10 @@ import React, {useEffect} from "react";
 interface UserColumnProps {
   handleDeleteUser: (mail: string) => Promise<void>,
   handleRoleChange: (mail: string, fn: string, sn: string, newRole: Role) => Promise<void>
+  refreshData: () => void,
 }
 
-export function UserColumns( {handleDeleteUser, handleRoleChange} : UserColumnProps): ColumnDef<User>[] {
+export function UserColumns( {handleDeleteUser, handleRoleChange, refreshData} : UserColumnProps): ColumnDef<User>[] {
   const [makeAdminDialogIsOpen,  setMakeAdminDialogIsOpen] = React.useState<boolean>( false );
   const [removeAdminDialogIsOpen, setRemoveAdminDialogIsOpen] = React.useState<boolean>( false );
   const [deleteUserDialogIsOpen, setDeleteUserDialogIsOpen] = React.useState<boolean>( false );
@@ -41,16 +41,6 @@ export function UserColumns( {handleDeleteUser, handleRoleChange} : UserColumnPr
 
 
   return [
-    {
-      id: "select",
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Reihe auswählen"
-        />
-      ),
-    },
     {
       accessorKey: "sn",
       header: ({ column }) => (
@@ -129,9 +119,33 @@ export function UserColumns( {handleDeleteUser, handleRoleChange} : UserColumnPr
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum Admin machen'} onConfirm={ () =>handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.Admin)} isOpen={makeAdminDialogIsOpen} />
-            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum normalen User machen'} onConfirm={ () =>handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.User)} isOpen={removeAdminDialogIsOpen} />
-            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' unwiederruflich löschen'} onConfirm={ () =>handleDeleteUser(row.original.mail)} isOpen={deleteUserDialogIsOpen} />
+            <ConfirmationDialog
+              description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum Admin machen'}
+              onConfirm={ async () => {
+                await handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.Admin)
+                refreshData()
+              }}
+              isOpen={makeAdminDialogIsOpen}
+              setIsOpen={setMakeAdminDialogIsOpen}
+            />
+            <ConfirmationDialog
+              description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum normalen User machen'}
+              onConfirm={ async () =>{
+                await handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.User)
+                refreshData()
+              }}
+              isOpen={removeAdminDialogIsOpen}
+              setIsOpen={setRemoveAdminDialogIsOpen}
+            />
+            <ConfirmationDialog
+              description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' unwiederruflich löschen'}
+              onConfirm={ async () => {
+                await handleDeleteUser(row.original.mail)
+                refreshData()
+              }}
+              isOpen={deleteUserDialogIsOpen}
+              setIsOpen={setDeleteUserDialogIsOpen}
+            />
           </>
         );
       },

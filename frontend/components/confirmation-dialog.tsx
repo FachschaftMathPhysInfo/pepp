@@ -1,5 +1,5 @@
 import {
-  Dialog, DialogClose,
+  Dialog,
   DialogContent,
   DialogDescription, DialogFooter,
   DialogHeader,
@@ -13,20 +13,30 @@ interface ConfirmationDialogProps {
   description: string,
   onConfirm: () => Promise<void>,
   isOpen: boolean,
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function ConfirmationDialog( {description, onConfirm, isOpen }: ConfirmationDialogProps ) {
+export default function ConfirmationDialog( {description, onConfirm, isOpen, setIsOpen }: ConfirmationDialogProps ) {
   return (
     <Dialog open={isOpen}>
-    <DialogContent>
-      <DialogClose/>
-      <DialogHeader>
-        <DialogTitle>Bist du sicher?</DialogTitle>
-        <DialogDescription>{description}</DialogDescription>
-      </DialogHeader>
-      <DialogFooter>
-        <Button onClick={() => onConfirm()}></Button>
-      </DialogFooter>
+      <DialogContent className="[&>button:last-child]:hidden">
+        <DialogHeader>
+          <DialogTitle>Bist du sicher?</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <div className={'w-full flex justify-between items-center pt-8'}>
+            <Button onClick={() => {setIsOpen(false)}} variant={"outline"}>Abbrechen</Button>
+            <Button
+              onClick={async () => {
+                await onConfirm()
+                setIsOpen(false)
+              }}
+              variant={"destructive"}
+            >
+              Bestätigen</Button>
+          </div>
+        </DialogFooter>
     </DialogContent>
   </Dialog>
   )

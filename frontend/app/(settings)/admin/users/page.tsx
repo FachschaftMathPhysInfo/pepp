@@ -17,29 +17,29 @@ export default function UserSettingsPage() {
   const { sid } = useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const fetchData = async () => {
 
-  useEffect(() => {
-    const fetchData = async () => {
+    setLoading(true);
+    const client = getClient(String(sid));
+    const userData = await client.request<AllUsersQuery>(AllUsersDocument)
 
-      setLoading(true);
-      const client = getClient(String(sid));
-      const userData = await client.request<AllUsersQuery>(AllUsersDocument)
-
-      if (userData.users){
-        setUsers(userData.users.map((user) => ({
-          ...defaultUser,
-          ...user,
-          tutorials: user.tutorials?.map((t) => ({
-            ...defaultTutorial,
-            ...t,
-            event: {...defaultEvent, ...t.event}
-          }))
-        })))
-      }
-
-      setLoading(false);
+    if (userData.users){
+      setUsers(userData.users.map((user) => ({
+        ...defaultUser,
+        ...user,
+        tutorials: user.tutorials?.map((t) => ({
+          ...defaultTutorial,
+          ...t,
+          event: {...defaultEvent, ...t.event}
+        }))
+      })))
     }
 
+    setLoading(false);
+  }
+
+  // FIXME: this needs to refetch after updating users
+  useEffect(() => {
     void fetchData()
   }, [sid])
 
@@ -51,7 +51,7 @@ export default function UserSettingsPage() {
       <Separator className={'my-12'}/>
       {loading ?
         (<div>Lade User Tabelle</div>) :
-        (<UserTable data={users} />)
+        (<UserTable data={users} refreshData={fetchData}/>)
       }
     </>
   )

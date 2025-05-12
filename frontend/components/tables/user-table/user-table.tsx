@@ -34,9 +34,10 @@ import {useUser} from "@/components/providers";
 
 interface DataTableProps {
   data: User[];
+  refreshData: () => void;
 }
 
-export function UserTable({data}: DataTableProps) {
+export function UserTable({data, refreshData}: DataTableProps) {
   const { sid } = useUser()
   const [client, setClient] = useState<GraphQLClient>(getClient());
   useEffect(() => {
@@ -56,7 +57,7 @@ export function UserTable({data}: DataTableProps) {
     })
   }
 
-  const columns = UserColumns({handleDeleteUser, handleRoleChange});
+  const columns = UserColumns({handleDeleteUser, handleRoleChange, refreshData});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const table = useReactTable({
@@ -78,10 +79,10 @@ export function UserTable({data}: DataTableProps) {
     <div className="space-y-4">
       <div className="flex items-center">
         <Input
-          placeholder="Veranstaltungstitel filtern..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          placeholder="Nachnamen filtern..."
+          value={(table.getColumn("sn")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
+            table.getColumn("sn")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -136,7 +137,7 @@ export function UserTable({data}: DataTableProps) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} enableSelectionCounter={true} />
+      <DataTablePagination table={table} />
     </div>
   );
 }
