@@ -47,3 +47,18 @@ query loginUser($sid: String!) {
     }
   }
 }
+
+query AllUsers {
+  users {
+    fn
+    sn
+    mail
+    role
+    confirmed
+    tutorials {
+      event {
+        ID
+      }
+    }
+  }
+}

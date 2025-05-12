@@ -1,0 +1,142 @@
+import {
+  ColumnFiltersState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable
+} from "@tanstack/react-table";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import React, {useEffect, useState} from "react";
+import { Input } from "@/components/ui/input";
+import {
+  DeleteUserDocument,
+  DeleteUserMutation,
+  Role,
+  UpdateRoleDocument,
+  UpdateRoleMutation,
+  User
+} from "@/lib/gql/generated/graphql"
+import {DataTablePagination} from "@/components/data-table-pagination";
+import {UserColumns} from "@/components/tables/user-table/user-columns";
+import {GraphQLClient} from "graphql-request";
+import {getClient} from "@/lib/graphql";
+import {useUser} from "@/components/providers";
+
+interface DataTableProps {
+  data: User[];
+}
+
+export function UserTable({data}: DataTableProps) {
+  const { sid } = useUser()
+  const [client, setClient] = useState<GraphQLClient>(getClient());
+  useEffect(() => {
+    setClient(getClient(String(sid)))
+  }, [sid]);
+
+  const handleDeleteUser = async (mail: string): Promise<void> => {
+    await client.request<DeleteUserMutation>(DeleteUserDocument, {email: mail})
+  }
+
+  const handleRoleChange = async (mail: string, fn: string, sn: string, newRole: Role): Promise<void> => {
+    await client.request<UpdateRoleMutation>(UpdateRoleDocument, {
+      email: mail,
+      fn: fn,
+      sn: sn,
+      newRole: newRole
+    })
+  }
+
+  const columns = UserColumns({handleDeleteUser, handleRoleChange});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      columnFilters,
+      columnVisibility,
+    },
+  });
+
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center">
+        <Input
+          placeholder="Veranstaltungstitel filtern..."
+          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("title")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
+      </div>
+      <div className="rounded-md border overflow-hidden">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead  className={'text-center'} key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell className={'[&:not(:first-child)]:pl-8'} key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Keine Ergebnisse.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <DataTablePagination table={table} enableSelectionCounter={true} />
+    </div>
+  );
+}
