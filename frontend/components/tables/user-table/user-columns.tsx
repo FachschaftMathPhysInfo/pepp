@@ -22,23 +22,22 @@ interface UserColumnProps {
 }
 
 export function UserColumns( {handleDeleteUser, handleRoleChange} : UserColumnProps): ColumnDef<User>[] {
-  const [makeAdminDialogOpen,  setMakeAdminDialogOpen] = React.useState<boolean>( false );
-  const [removeAdminDialogOpen, setRemoveAdminDialogOpen] = React.useState<boolean>( false );
-  const [changeRoleDialogOpen, setChangeRoleDialogOpen] = React.useState<boolean>( false );
+  const [makeAdminDialogIsOpen,  setMakeAdminDialogIsOpen] = React.useState<boolean>( false );
+  const [removeAdminDialogIsOpen, setRemoveAdminDialogIsOpen] = React.useState<boolean>( false );
+  const [deleteUserDialogIsOpen, setDeleteUserDialogIsOpen] = React.useState<boolean>( false );
 
-  // With this only one dialog can be open at the same time
   useEffect(() => {
-    if(makeAdminDialogOpen) {
-      setRemoveAdminDialogOpen(false);
-      setChangeRoleDialogOpen(false);
-    } else if (removeAdminDialogOpen) {
-      setMakeAdminDialogOpen(false);
-      setChangeRoleDialogOpen(false);
-    } else {
-      setMakeAdminDialogOpen(false);
-      setRemoveAdminDialogOpen(false);
+    if(makeAdminDialogIsOpen) {
+      setRemoveAdminDialogIsOpen(false)
+      setDeleteUserDialogIsOpen(false)
+    } else if (removeAdminDialogIsOpen) {
+      setMakeAdminDialogIsOpen(false)
+      setDeleteUserDialogIsOpen(false)
+    } else if (deleteUserDialogIsOpen){
+      setMakeAdminDialogIsOpen(false)
+      setRemoveAdminDialogIsOpen(false)
     }
-  }, [makeAdminDialogOpen, removeAdminDialogOpen, changeRoleDialogOpen]);
+  }, [makeAdminDialogIsOpen, removeAdminDialogIsOpen, deleteUserDialogIsOpen]);
 
 
   return [
@@ -122,17 +121,17 @@ export function UserColumns( {handleDeleteUser, handleRoleChange} : UserColumnPr
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {row.original.role === Role.Admin ? (
-                  <DropdownMenuItem onClick={() => setRemoveAdminDialogOpen(!removeAdminDialogOpen)}>Admin entfernen</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setRemoveAdminDialogIsOpen(!removeAdminDialogIsOpen)}>Admin entfernen</DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem onClick={() => setMakeAdminDialogOpen(!makeAdminDialogOpen)}>Admin machen</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setMakeAdminDialogIsOpen(!makeAdminDialogIsOpen)}>Admin machen</DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => setChangeRoleDialogOpen(!changeRoleDialogOpen)}>Löschen</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDeleteUserDialogIsOpen(!deleteUserDialogIsOpen)}>Löschen</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum Admin machen'} onConfirm={ () =>handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.Admin)} isOpen={makeAdminDialogOpen} />
-            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum normalen User machen'} onConfirm={ () =>handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.User)} isOpen={removeAdminDialogOpen} />
-            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' unwiederruflich löschen'} onConfirm={ () =>handleDeleteUser(row.original.mail)} isOpen={makeAdminDialogOpen} />
+            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum Admin machen'} onConfirm={ () =>handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.Admin)} isOpen={makeAdminDialogIsOpen} />
+            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum normalen User machen'} onConfirm={ () =>handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.User)} isOpen={removeAdminDialogIsOpen} />
+            <ConfirmationDialog description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' unwiederruflich löschen'} onConfirm={ () =>handleDeleteUser(row.original.mail)} isOpen={deleteUserDialogIsOpen} />
           </>
         );
       },
