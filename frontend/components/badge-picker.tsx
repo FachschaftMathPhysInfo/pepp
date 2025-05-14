@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Label,
   LabelKind,
@@ -41,12 +39,10 @@ export function BadgePicker({
 }: BadgePickerProps) {
   const [labels, setLabels] = useState<Label[]>([]);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (labels.length) return;
     const fetchData = async () => {
-      setLoading(true);
       const client = getClient();
 
       const vars: LabelsQueryVariables = {
@@ -56,11 +52,10 @@ export function BadgePicker({
       const labelData = await client.request<LabelsQuery>(LabelsDocument, vars);
 
       setLabels(labelData.labels);
-      setLoading(false);
     };
 
-    fetchData();
-  }, [open]);
+    void fetchData();
+  }, [kind, labels.length, open]);
 
   const sel = labels.find((label) => label.name === selected);
 

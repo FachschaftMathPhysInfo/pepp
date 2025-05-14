@@ -7,7 +7,6 @@ import {
   getSortedRowModel,
   useReactTable
 } from "@tanstack/react-table";
-
 import {
   Table,
   TableBody,
@@ -34,6 +33,7 @@ import {useUser} from "@/components/providers";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import {toast} from "sonner";
 
+
 interface DataTableProps {
   data: User[];
   refreshData: () => void;
@@ -42,9 +42,6 @@ interface DataTableProps {
 export function UserTable({data, refreshData}: DataTableProps) {
   const { sid } = useUser()
   const [client, setClient] = useState<GraphQLClient>(getClient());
-  useEffect(() => {
-    setClient(getClient(String(sid)))
-  }, [sid]);
   const handleDeleteUser = async (mail: string): Promise<void> => {
     await client.request<DeleteUserMutation>(DeleteUserDocument, {email: mail})
   }
@@ -76,6 +73,10 @@ export function UserTable({data, refreshData}: DataTableProps) {
       columnVisibility,
     },
   });
+
+  useEffect(() => {
+    setClient(getClient(String(sid)))
+  }, [sid]);
 
   function closeDialog() {
     setDialogState({mode: null})
