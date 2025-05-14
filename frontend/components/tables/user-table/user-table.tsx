@@ -123,7 +123,7 @@ export function UserTable({data, refreshData}: DataTableProps) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className={'[&:not(:first-child)]:pl-8 first:flex first:justify-center first:items-center'} key={cell.id}>
+                    <TableCell className={'[&:not(:first-child)]:ml-8'} key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

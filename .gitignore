@@ -3,6 +3,7 @@ pepp.db
 server/graph/generated.go
 server/graph/model/
 frontend/lib/gql/generated/
+frontend/package-lock.json
 
 # vscode
 .vscode/

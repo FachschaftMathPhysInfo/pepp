@@ -27,7 +27,7 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <Shield/>
+                    <Shield/>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Admin</p>
@@ -61,29 +61,29 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
     },
     {
       accessorKey: "confirmed",
-      header: "Registriert",
+      header: () => (<div className={'w-full text-center'}>Registriert</div>),
       cell: ({ row }) => (
-        <>
+        <div className={'flex justify-center w-full'}>
           {row.original.confirmed ? (
             <BadgeCheck/>
           ) : (
             <BadgeX/>
           )
           }
-        </>
+        </div>
       ),
     },
     {
       accessorKey: "tutorials",
-      header: "Tutor*in",
+      header: () => (<div className={'w-full text-center'}>Tutor:in</div>),
       cell: ({ row }) => (
-        <>
+        <div className={'flex justify-center w-full'}>
           {(row.original.tutorials && row.original.tutorials.length > 0) ? (
             <Check/>
           ) : (
             <X/>
           )}
-        </>
+        </div>
       ),
     },
     {
