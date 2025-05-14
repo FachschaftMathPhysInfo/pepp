@@ -13,10 +13,10 @@ interface ConfirmationDialogProps {
   description: string,
   onConfirm: () => Promise<void>,
   isOpen: boolean,
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  closeDialog: () => void;
 }
 
-export default function ConfirmationDialog( {description, onConfirm, isOpen, setIsOpen }: ConfirmationDialogProps ) {
+export default function ConfirmationDialog( {description, onConfirm, isOpen, closeDialog }: ConfirmationDialogProps ) {
   return (
     <Dialog open={isOpen}>
       <DialogContent className="[&>button:last-child]:hidden">
@@ -26,11 +26,11 @@ export default function ConfirmationDialog( {description, onConfirm, isOpen, set
         </DialogHeader>
         <DialogFooter>
           <div className={'w-full flex justify-between items-center pt-8'}>
-            <Button onClick={() => {setIsOpen(false)}} variant={"outline"}>Abbrechen</Button>
+            <Button onClick={() => closeDialog()} variant={"outline"}>Abbrechen</Button>
             <Button
               onClick={async () => {
                 await onConfirm()
-                setIsOpen(false)
+                closeDialog()
               }}
               variant={"destructive"}
             >

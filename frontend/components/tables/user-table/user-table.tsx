@@ -31,6 +31,8 @@ import {UserColumns} from "@/components/tables/user-table/user-columns";
 import {GraphQLClient} from "graphql-request";
 import {getClient} from "@/lib/graphql";
 import {useUser} from "@/components/providers";
+import ConfirmationDialog from "@/components/confirmation-dialog";
+import {toast} from "sonner";
 
 interface DataTableProps {
   data: User[];
@@ -43,11 +45,9 @@ export function UserTable({data, refreshData}: DataTableProps) {
   useEffect(() => {
     setClient(getClient(String(sid)))
   }, [sid]);
-
   const handleDeleteUser = async (mail: string): Promise<void> => {
     await client.request<DeleteUserMutation>(DeleteUserDocument, {email: mail})
   }
-
   const handleRoleChange = async (mail: string, fn: string, sn: string, newRole: Role): Promise<void> => {
     await client.request<UpdateRoleMutation>(UpdateRoleDocument, {
       email: mail,
@@ -56,8 +56,11 @@ export function UserTable({data, refreshData}: DataTableProps) {
       newRole: newRole
     })
   }
-
-  const columns = UserColumns({handleDeleteUser, handleRoleChange, refreshData});
+  const [dialogState, setDialogState] = useState<{
+    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | null,
+    user?: {mail: string, fn: string, sn: string, newRole: Role}
+  }>({mode: null});
+  const columns = UserColumns({setDialogState});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const table = useReactTable({
@@ -73,6 +76,10 @@ export function UserTable({data, refreshData}: DataTableProps) {
       columnVisibility,
     },
   });
+
+  function closeDialog() {
+    setDialogState({mode: null})
+  }
 
 
   return (
@@ -94,7 +101,7 @@ export function UserTable({data, refreshData}: DataTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead  className={'text-center'} key={header.id}>
+                    <TableHead  className={'text-left'} key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -115,7 +122,7 @@ export function UserTable({data, refreshData}: DataTableProps) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className={'[&:not(:first-child)]:pl-8'} key={cell.id}>
+                    <TableCell className={'[&:not(:first-child)]:pl-8 first:flex first:justify-center first:items-center'} key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -138,6 +145,48 @@ export function UserTable({data, refreshData}: DataTableProps) {
         </Table>
       </div>
       <DataTablePagination table={table} />
+
+      <ConfirmationDialog
+        description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} zum Admin machen`}
+        onConfirm={ async () => {
+          if(dialogState.user){
+            await handleRoleChange(dialogState.user.mail, dialogState.user.fn, dialogState.user.sn, dialogState.user.newRole)
+          }
+          refreshData()
+          toast.info(`${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zum Admin gemacht`)
+        }}
+        isOpen={dialogState.mode === "makeAdmin"}
+        closeDialog={closeDialog}
+      />
+      <ConfirmationDialog
+        description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} zum normalen User machen`}
+        onConfirm={ async () =>{
+
+          if(dialogState.user){
+            await handleRoleChange(dialogState.user.mail, dialogState.user.fn, dialogState.user.sn, dialogState.user.newRole)
+          }
+
+          refreshData()
+          toast.info(`${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zu User gemacht`)
+        }}
+        isOpen={dialogState.mode === "removeAdmin"}
+        closeDialog={closeDialog}
+      />
+      <ConfirmationDialog
+        description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} unwiederruflich löschen`}
+        onConfirm={ async () => {
+
+          if(dialogState.user){
+            await handleDeleteUser(dialogState.user.mail)
+          }
+
+          refreshData()
+          toast.info(`${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich entfernt`)
+        }}
+        isOpen={dialogState.mode === "deleteUser"}
+        closeDialog={closeDialog}
+      />
+
     </div>
   );
 }

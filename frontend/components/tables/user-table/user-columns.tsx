@@ -1,46 +1,43 @@
-import { DataTableColumnHeader } from "@/components/data-table-column-header";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Role,
-  User
-} from "@/lib/gql/generated/graphql";
-import { ColumnDef } from "@tanstack/react-table";
-import {BadgeCheck, BadgeX, Check, MoreHorizontal, X} from "lucide-react";
-import ConfirmationDialog from "@/components/confirmation-dialog";
-import React, {useEffect} from "react";
+import {DataTableColumnHeader} from "@/components/data-table-column-header";
+import {Button} from "@/components/ui/button";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {Role, User} from "@/lib/gql/generated/graphql";
+import {ColumnDef} from "@tanstack/react-table";
+import {BadgeCheck, BadgeX, Check, MoreHorizontal, Shield, X} from "lucide-react";
+import React, {SetStateAction} from "react";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
 
 
 interface UserColumnProps {
-  handleDeleteUser: (mail: string) => Promise<void>,
-  handleRoleChange: (mail: string, fn: string, sn: string, newRole: Role) => Promise<void>
-  refreshData: () => void,
+  setDialogState: React.Dispatch<SetStateAction<{
+    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | null,
+    user?: {mail: string, fn: string, sn: string, newRole: Role}
+  }>>;
 }
 
-export function UserColumns( {handleDeleteUser, handleRoleChange, refreshData} : UserColumnProps): ColumnDef<User>[] {
-  const [makeAdminDialogIsOpen,  setMakeAdminDialogIsOpen] = React.useState<boolean>( false );
-  const [removeAdminDialogIsOpen, setRemoveAdminDialogIsOpen] = React.useState<boolean>( false );
-  const [deleteUserDialogIsOpen, setDeleteUserDialogIsOpen] = React.useState<boolean>( false );
-
-  useEffect(() => {
-    if(makeAdminDialogIsOpen) {
-      setRemoveAdminDialogIsOpen(false)
-      setDeleteUserDialogIsOpen(false)
-    } else if (removeAdminDialogIsOpen) {
-      setMakeAdminDialogIsOpen(false)
-      setDeleteUserDialogIsOpen(false)
-    } else if (deleteUserDialogIsOpen){
-      setMakeAdminDialogIsOpen(false)
-      setRemoveAdminDialogIsOpen(false)
-    }
-  }, [makeAdminDialogIsOpen, removeAdminDialogIsOpen, deleteUserDialogIsOpen]);
-
+export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>[] {
 
   return [
+    {
+      accessorKey: "role",
+      header: "",
+      cell: ({row}) => (
+        <>
+          {row.original.role === Role.Admin && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Shield/>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Admin</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </>
+      )
+    },
     {
       accessorKey: "sn",
       header: ({ column }) => (
@@ -61,13 +58,6 @@ export function UserColumns( {handleDeleteUser, handleRoleChange, refreshData} :
         <DataTableColumnHeader column={column} title="E-Mail"/>
       ),
       cell: ({row}) => row.original.mail
-    },
-    {
-      accessorKey: "role",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Rolle" />
-      ),
-      cell: ({ row }) => row.original.role
     },
     {
       accessorKey: "confirmed",
@@ -111,41 +101,37 @@ export function UserColumns( {handleDeleteUser, handleRoleChange, refreshData} :
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {row.original.role === Role.Admin ? (
-                  <DropdownMenuItem onClick={() => setRemoveAdminDialogIsOpen(!removeAdminDialogIsOpen)}>Admin entfernen</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDialogState({
+                    mode: "removeAdmin",
+                    user: {
+                      mail: row.original.mail,
+                      fn: row.original.fn,
+                      sn: row.original.sn,
+                      newRole: Role.User
+                    }
+                  })}>Admin entfernen</DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem onClick={() => setMakeAdminDialogIsOpen(!makeAdminDialogIsOpen)}>Admin machen</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDialogState({
+                    mode: "makeAdmin",
+                    user: {
+                      mail: row.original.mail,
+                      fn: row.original.fn,
+                      sn: row.original.sn,
+                      newRole: Role.Admin
+                    }
+                  })}>Admin machen</DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => setDeleteUserDialogIsOpen(!deleteUserDialogIsOpen)}>Löschen</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDialogState({
+                  mode: "deleteUser",
+                  user: {
+                    mail: row.original.mail,
+                    fn: row.original.fn,
+                    sn: row.original.sn,
+                    newRole: Role.Admin
+                  }
+                })}>Löschen</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <ConfirmationDialog
-              description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum Admin machen'}
-              onConfirm={ async () => {
-                await handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.Admin)
-                refreshData()
-              }}
-              isOpen={makeAdminDialogIsOpen}
-              setIsOpen={setMakeAdminDialogIsOpen}
-            />
-            <ConfirmationDialog
-              description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' zum normalen User machen'}
-              onConfirm={ async () =>{
-                await handleRoleChange(row.original.mail, row.original.fn, row.original.sn, Role.User)
-                refreshData()
-              }}
-              isOpen={removeAdminDialogIsOpen}
-              setIsOpen={setRemoveAdminDialogIsOpen}
-            />
-            <ConfirmationDialog
-              description={'Dies wird ' + row.original.fn + ' ' + row.original.sn + ' unwiederruflich löschen'}
-              onConfirm={ async () => {
-                await handleDeleteUser(row.original.mail)
-                refreshData()
-              }}
-              isOpen={deleteUserDialogIsOpen}
-              setIsOpen={setDeleteUserDialogIsOpen}
-            />
           </>
         );
       },
