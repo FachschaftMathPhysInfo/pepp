@@ -6,6 +6,7 @@ import {
   getISOWeekNumber,
   groupEvents,
   hexToRGBA,
+  slugify,
 } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import {
@@ -125,7 +126,7 @@ export function Planner({ events }: PlannerProps) {
                               role="button"
                               tabIndex={0}
                               onClick={() => {
-                                router.push(`${pathname}/${event.ID}`)
+                                router.push(`event/${slugify(event.title)}-${event.ID}`)
                               }}
                             >
                               <div className="flex flex-row">

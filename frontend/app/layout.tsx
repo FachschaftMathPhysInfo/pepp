@@ -39,10 +39,11 @@ export const metadata = {
 };
 
 interface RootLayoutProps {
+  auth: React.ReactNode;
   children: React.ReactNode;
 }
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({ children, auth }: RootLayoutProps) {
   return (
     <html lang="de">
       <body
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             >
               <Header />
               {children}
+              {auth}
               <Toaster richColors/>
               <TailwindIndicator />
             </ThemeProvider>

@@ -39,10 +39,8 @@ import {
 } from "@/components/ui/form";
 import { toast } from "sonner";
 import { CardSkeleton } from "@/components/card-skeleton";
-import { Dialog } from "@/components/ui/dialog";
 import { useUser } from "@/components/providers";
-import { SignInDialog } from "@/components/sign-in-dialog";
-import {extractId} from "@/lib/utils";
+import { extractId } from "@/lib/utils";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
@@ -63,11 +61,10 @@ const MultipleChoiceFormSchema = (required: boolean) =>
   });
 
 export default function Registration() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const pathname = usePathname()
+  const pathname = usePathname();
 
-  const { user, setUser, sid } = useUser();
+  const { user, sid } = useUser();
 
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
     null
@@ -79,12 +76,16 @@ export default function Registration() {
   const [responses, setResponses] = useState<NewQuestionResponsePair[]>([]);
 
   useEffect(() => {
+    if (!user) router.push("/login");
+  }, []);
+
+  useEffect(() => {
     if (responses.length > 0) {
       onSubmit();
     }
   }, [responses]);
 
-  const eventID = extractId(pathname)
+  const eventID = extractId(pathname);
   useEffect(() => {
     const fetchData = async () => {
       const client = getClient();
@@ -155,7 +156,7 @@ export default function Registration() {
     };
 
     try {
-      const client = getClient(sid!)
+      const client = getClient(sid!);
       await client.request<AddStudentApplicationForEventMutation>(
         AddStudentApplicationForEventDocument,
         vars
@@ -211,9 +212,6 @@ export default function Registration() {
 
   return (
     <>
-      <Dialog open={user ? false : true}>
-        <SignInDialog />
-      </Dialog>
       {loading ? (
         <CardSkeleton />
       ) : (

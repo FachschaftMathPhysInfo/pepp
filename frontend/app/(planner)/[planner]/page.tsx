@@ -1,6 +1,5 @@
 import { extractId } from "@/lib/utils";
 import { PlannerPage } from "./planner";
-import Link from "next/link";
 
 export default async function IndexPage({
   params,

@@ -216,7 +216,9 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
               <Button
                 variant="secondary"
                 className="mt-2 w-fit h-fit"
-                onClick={() => router.push(`${pathname}/register`)}
+                onClick={() =>
+                  router.push(`${pathname}/register`)
+                }
               >
                 Zur Anmeldung
                 <ChevronRight />

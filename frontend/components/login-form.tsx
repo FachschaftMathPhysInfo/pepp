@@ -24,6 +24,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { getClient } from "@/lib/graphql";
 import { useUser } from "./providers";
+import {useRouter} from "next/navigation";
 
 const SignInFormSchema = z.object({
   email: z.string().min(4, {
@@ -59,9 +60,10 @@ const RegisterFormSchema = SignInFormSchema.extend({
 
 interface LoginFormProps {
   isRegistering: boolean;
+  onSuccessAuth: () => void;
 }
 
-export default function LoginForm({ isRegistering }: LoginFormProps) {
+export default function LoginForm({ isRegistering, onSuccessAuth }: LoginFormProps) {
   const client = getClient();
 
   const { setSid } = useUser();
@@ -102,6 +104,7 @@ export default function LoginForm({ isRegistering }: LoginFormProps) {
     }
 
     setLoading(false);
+    onSuccessAuth();
   };
 
   const form = useForm<z.infer<typeof activeSchema>>({

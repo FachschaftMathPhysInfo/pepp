@@ -1,7 +1,7 @@
 "use client";
 
 import { DatePickerWithRange } from "@/components/date-picker-with-range";
-import EventDialog from "@/components/event-dialog/event-dialog";
+import {EditEventView} from "@/components/event";
 import { useUser } from "@/components/providers";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,6 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -34,8 +33,8 @@ import { getClient } from "@/lib/graphql";
 import { cn, slugify } from "@/lib/utils";
 import { defaultEvent } from "@/types/defaults";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit2, Edit3, PlusCircle, Save } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Edit3, PlusCircle, Save } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -195,16 +194,21 @@ export default function EditPlannerSection({
       </div>
 
       <div className="flex flex-row justify-between">
-        <EventDialog modify={true}>
-          <Button
-            className={cn(
-              "h-[40px] w-auto justify-start text-left font-normal"
-            )}
-          >
-            <PlusCircle />
-            Event hinzufügen
-          </Button>
-        </EventDialog>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              className={cn(
+                "h-[40px] w-auto justify-start text-left font-normal"
+              )}
+            >
+              <PlusCircle />
+              Event hinzufügen
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <EditEventView event={undefined}/>
+          </DialogContent>
+        </Dialog>
         <DatePickerWithRange
           from={umbrella.from}
           to={umbrella.to}
