@@ -156,7 +156,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} enableSelectionCounter={false}/>
 
       <ConfirmationDialog
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} zum Admin machen`}
