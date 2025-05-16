@@ -1,6 +1,6 @@
 ---
-volumes:
-  data:
+# volumes:
+#   data:
 
 services:
   # postgres:
@@ -14,29 +14,14 @@ services:
   #   command: -c config_file=/etc/postgresql/config/postgresql.conf
   #   env_file: .env.local
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib
-    volumes:
-      - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
-
-  server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-      # volumes:
-      #   - ./tls/certs/client.crt:/client.crt:ro
-      #   - ./tls/certs/client.key:/client.key:ro
-      #   - ./tls/certs/root.crt:/root.crt:ro
-    env_file: .env.local
+  # otel-collector:
+  #   image: otel/opentelemetry-collector-contrib
+  #   volumes:
+  #     - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
+  
+  pepp:
+    build: .
+    image: pepp:latest
     ports:
       - 8080:8080
-    depends_on:
-      # - postgres
-      - otel-collector
-
-  frontend:
-    build:
-      dockerfile: ./frontend/Dockerfile
     env_file: .env.local
-    depends_on:
-      - server

@@ -25,12 +25,22 @@ npm run dev
 #### backend
 > [!IMPORTANT]  
 > In development, the backend creates some example data and creates an admin user:
-> Mail: `admin@pepp.local`
+> Mail: `admin@pepp.local`, 
 > Password: `admin`
 ```bash
 cd server
 go generate ./...
 go run server.go
+```
+
+## deployment via docker compose
+```bash
+services:
+  pepp:
+    image: ghcr.io/fachschaftmathphysinfo/pepp
+    ports:
+      - 8080:8080
+    env_file: .env
 ```
 
 ## env vars
@@ -39,8 +49,8 @@ go run server.go
 
 | Key | Description |
 | - | - |
-| `PUBLIC_URL` | The domain under which pepp is deployed |
-| `PEPPER_KEY` | Generate a random 64 characters long string for password security |
+| `PUBLIC_URL` | Domain under which pepp is deployed |
+| `PEPPER_KEY` | Generate a random 32 characters long string for password security |
 | `SMTP_HOST` |  E-Mail provider, e.g. `smtp.example.de` |
 | `SMTP_USER` | E.g. `alice@example.de` |
 | `SMTP_PASSWORD` | The password to log into the SMTP Server |

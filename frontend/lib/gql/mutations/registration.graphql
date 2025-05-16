@@ -1,7 +1,7 @@
-mutation addStudentRegistrationForEvent($registration:NewUserToEventRegistration!) {
-  addStudentRegistrationForEvent(registration: $registration)
+mutation addStudentRegistrationForTutorial($registration: UserToTutorialRegistration!) {
+  addStudentRegistrationForTutorial(registration: $registration)
 }
 
-mutation deleteStudentRegistrationForEvent($registration: NewUserToEventRegistration!) {
-  deleteStudentRegistrationForEvent(registration: $registration)
+mutation deleteStudentRegistrationForTutorial($registration: UserToTutorialRegistration!) {
+  deleteStudentRegistrationForTutorial(registration: $registration)
 }

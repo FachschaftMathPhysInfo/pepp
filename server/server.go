@@ -132,7 +132,7 @@ func main() {
 
 	router.Use(middleware.Logger)
 
-	frontendUrl, _ := url.Parse("http://frontend:3000")
+	frontendUrl, _ := url.Parse("http://localhost:3000")
 	router.Handle("/*", httputil.NewSingleHostReverseProxy(frontendUrl))
 
 	router.Get("/confirm/{sessionID}", func(w http.ResponseWriter, r *http.Request) {

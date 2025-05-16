@@ -5,15 +5,18 @@ import {
   AddEventMutation,
   AddEventMutationVariables,
   Event,
-  EventToUserAssignment,
   LabelKind,
+  NewEvent,
+  TutorialToUserAssignment,
   UmbrellaDurationDocument,
   UmbrellaDurationQuery,
   UmbrellaDurationQueryVariables,
+  UpdateEventDocument,
+  UpdateEventMutation,
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import { Edit3, PlusCircle, Save, Trash, Trash2 } from "lucide-react";
+import { PlusCircle, Save, Trash2 } from "lucide-react";
 import {
   DialogHeader,
   DialogDescription,
@@ -34,17 +37,16 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { cn, extractId } from "@/lib/utils";
+import { extractId } from "@/lib/utils";
 import { TutorialsTable } from "./tutorials-table";
 import { Input } from "../ui/input";
-import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
+import { defaultEvent } from "@/types/defaults";
 import { Switch } from "../ui/switch";
 import { BadgePicker } from "../badge-picker";
 import { DatePicker } from "../date-picker";
 import { Button } from "../ui/button";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { format } from "date-fns";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -61,20 +63,19 @@ const FormSchema = z.object({
 
 interface EditEventViewProps {
   event: Event | undefined;
-  setOpenAction: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
+export function EditEventView({ event }: EditEventViewProps) {
   const pathname = usePathname();
 
-  const { user, sid } = useUser();
+  const { sid } = useUser();
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
-  const [newAssignments, setNewAssignments] = useState<EventToUserAssignment[]>(
-    []
-  );
+  const [newAssignments, setNewAssignments] = useState<
+    TutorialToUserAssignment[]
+  >([]);
   const [deleteAssignments, setDeleteAssignments] = useState<
-    EventToUserAssignment[]
+    TutorialToUserAssignment[]
   >([]);
 
   function formatToHHMM(date: Date): string {
@@ -83,12 +84,34 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
     return `${hours}:${minutes}`;
   }
 
+  const mergeDateAndTime = (date: Date, time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+
+    const mergedDate = new Date(date);
+    mergedDate.setHours(hours, minutes, 0, 0);
+
+    return mergedDate;
+  };
+
+  function getNewEvent(data: z.infer<typeof FormSchema>): NewEvent {
+    return {
+      title: data.title,
+      description: data.description,
+      topicName: data.topic,
+      typeName: data.type,
+      needsTutors: data.needsTutors,
+      umbrellaID: umbrella?.ID,
+      from: mergeDateAndTime(data.date, data.from),
+      to: mergeDateAndTime(data.date, data.to),
+    };
+  }
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: event?.title ?? "",
       description: event?.description ?? "",
-      date: event?.from,
+      date: event ? new Date(event?.from) : new Date(),
       from: event?.from ? formatToHHMM(new Date(event.from)) : "",
       to: event?.to ? formatToHHMM(new Date(event.to)) : "",
       needsTutors: event?.needsTutors,
@@ -99,61 +122,56 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
 
   const updateEvent = async (data: z.infer<typeof FormSchema>) => {
     setSaveLoading(true);
-
     const vars: UpdateEventMutationVariables = {
-      id: event?.ID ?? 0,
-      event: {
-        title: data.title,
-        needsTutors: true,
-        from: "",
-        to: "",
-      },
+      event: getNewEvent(data),
+      id: event?.ID!,
     };
+
+    const sendData = async () => {
+      const client = getClient(sid!);
+      try {
+        await client.request<UpdateEventMutation>(UpdateEventDocument, vars);
+        toast.info(`"${data.title}" erfolgreich gespeichert!`);
+        // TODO: this is ugly and to be solved with intercepting routes
+        location.reload()
+      } catch (err) {
+        toast.error(
+          "Beim Speichern der Veranstaltung ist ein Fehler aufgetreten."
+        );
+      }
+    };
+    sendData();
+    setSaveLoading(false);
   };
 
   const newEvent = async (data: z.infer<typeof FormSchema>) => {
     setSaveLoading(true);
 
-    const mergeDateAndTime = (date: Date, time: string) => {
-      const [hours, minutes] = time.split(":").map(Number);
-
-      const mergedDate = new Date(date);
-      mergedDate.setHours(hours, minutes, 0, 0);
-
-      return mergedDate;
-    };
-
     const vars: AddEventMutationVariables = {
-      event: {
-        title: data.title,
-        description: data.description,
-        topicName: data.topic,
-        typeName: data.type,
-        needsTutors: data.needsTutors,
-        umbrellaID: umbrella?.ID,
-        from: mergeDateAndTime(data.date, data.from),
-        to: mergeDateAndTime(data.date, data.to),
-      },
+      event: getNewEvent(data),
     };
 
     const sendData = async () => {
       const client = getClient(sid!);
       try {
         await client.request<AddEventMutation>(AddEventDocument, vars);
+        toast.info(`"${data.title}" erfolgreich erstellt!`);
+        // TODO: this is ugly and to be solved with intercepting routes
+        location.reload()
       } catch (err) {
-        console.log(err);
+        toast.error(
+          "Beim Erstellen der Veranstaltung ist ein Fehler aufgetreten."
+        );
       }
     };
 
     sendData();
     setSaveLoading(false);
-    toast(`"${data.title}" erfolgreich erstellt!`, {
-      description: `Am ${format(data.date, "PPP")}`,
-    });
-    setOpenAction(false)
   };
 
   useEffect(() => {
+    if (event) return;
+
     const client = getClient();
 
     const fetchUmbrellaDuration = async () => {
@@ -161,20 +179,23 @@ export function EditEventView({ event, setOpenAction }: EditEventViewProps) {
         id: extractId(pathname)!,
       };
 
-      const umbrellaData = await client.request<UmbrellaDurationQuery>(
-        UmbrellaDurationDocument,
-        vars
-      );
+      try {
+        const umbrellaData = await client.request<UmbrellaDurationQuery>(
+          UmbrellaDurationDocument,
+          vars
+        );
 
-      const umbrellaEvent = umbrellaData.umbrellas[0];
+        const umbrellaEvent = umbrellaData.umbrellas[0];
+        form.reset({ date: new Date(umbrellaEvent.from) });
 
-      form.reset({ date: new Date(umbrellaEvent.from) });
-
-      setUmbrella({ ...defaultEvent, ...umbrellaEvent });
+        setUmbrella({ ...defaultEvent, ...umbrellaEvent });
+      } catch {
+        toast.error("Fehler beim Laden des Zeitrahmens für die Veranstaltung.");
+      }
     };
 
     fetchUmbrellaDuration();
-  }, [event]);
+  }, []);
 
   return (
     <Form {...form}>
