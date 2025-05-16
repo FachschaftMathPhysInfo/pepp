@@ -45,10 +45,7 @@ const RegisterFormSchema = SignInFormSchema.extend({
     .string()
     .min(4, {
       message: "Bitte gib deine E-Mail Adresse an.",
-    })
-    .regex(new RegExp( "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"),
-      { message: "Bitte gib eine gültige E-Mail Adresse an." }
-    ),
+    }),
   password: z
     .string()
     .min(8, { message: "Muss mindestens 8 Zeichen lang sein." })
