@@ -23,10 +23,8 @@ mutation addEventAvailabilityOfTutor($email: String!, $eventsAvailable: [Int!]!)
   }
 }
 
-mutation updateRole($email: String!, $fn: String!, $sn: String!, $newRole: String!) {
-  updateUser(user: {mail: $email fn: $fn, sn: $sn, role: $newRole}) {
-    role
-  }
+mutation updateUser($email: String!, $fn: String!, $sn: String!, $role: String!) {
+  updateUser(user: {mail: $email fn: $fn, sn: $sn, role: $role})
 }
 
 mutation deleteUser($email: [String!]!) {

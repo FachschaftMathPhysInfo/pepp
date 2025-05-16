@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -15,51 +15,60 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   DeleteUserDocument,
   DeleteUserMutation,
   Role,
-  UpdateRoleDocument,
-  UpdateRoleMutation,
-  User
-} from "@/lib/gql/generated/graphql"
-import {DataTablePagination} from "@/components/data-table-pagination";
-import {UserColumns} from "@/components/tables/user-table/user-columns";
-import {GraphQLClient} from "graphql-request";
-import {getClient} from "@/lib/graphql";
-import {useUser} from "@/components/providers";
+  UpdateUserDocument,
+  UpdateUserMutation,
+  User,
+} from "@/lib/gql/generated/graphql";
+import { DataTablePagination } from "@/components/data-table-pagination";
+import { UserColumns } from "@/components/tables/user-table/user-columns";
+import { GraphQLClient } from "graphql-request";
+import { getClient } from "@/lib/graphql";
+import { useUser } from "@/components/providers";
 import ConfirmationDialog from "@/components/confirmation-dialog";
-import {toast} from "sonner";
-
+import { toast } from "sonner";
 
 interface DataTableProps {
   data: User[];
   refreshData: () => void;
 }
 
-export function UserTable({data, refreshData}: DataTableProps) {
-  const { sid } = useUser()
+export function UserTable({ data, refreshData }: DataTableProps) {
+  const { sid } = useUser();
   const [client, setClient] = useState<GraphQLClient>(getClient());
   const handleDeleteUser = async (mail: string): Promise<void> => {
-    await client.request<DeleteUserMutation>(DeleteUserDocument, {email: mail})
-  }
-  const handleRoleChange = async (mail: string, fn: string, sn: string, newRole: Role): Promise<void> => {
-    await client.request<UpdateRoleMutation>(UpdateRoleDocument, {
+    await client.request<DeleteUserMutation>(DeleteUserDocument, {
+      email: mail,
+    });
+  };
+  const handleRoleChange = async (
+    mail: string,
+    fn: string,
+    sn: string,
+    newRole: Role
+  ): Promise<void> => {
+    await client.request<UpdateUserMutation>(UpdateUserDocument, {
       email: mail,
       fn: fn,
       sn: sn,
-      newRole: newRole
-    })
-  }
+      role: newRole,
+    });
+  };
   const [dialogState, setDialogState] = useState<{
-    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | null,
-    user?: {mail: string, fn: string, sn: string, newRole: Role}
-  }>({mode: null});
-  const columns = UserColumns({setDialogState});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | null;
+    user?: { mail: string; fn: string; sn: string; newRole: Role };
+  }>({ mode: null });
+  const columns = UserColumns({ setDialogState });
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const table = useReactTable({
     data,
     columns,
@@ -75,13 +84,12 @@ export function UserTable({data, refreshData}: DataTableProps) {
   });
 
   useEffect(() => {
-    setClient(getClient(String(sid)))
+    setClient(getClient(String(sid)));
   }, [sid]);
 
   function closeDialog() {
-    setDialogState({mode: null})
+    setDialogState({ mode: null });
   }
-
 
   return (
     <div className="space-y-4">
@@ -102,13 +110,13 @@ export function UserTable({data, refreshData}: DataTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead  className={'text-left'} key={header.id}>
+                    <TableHead className={"text-left"} key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
                   );
                 })}
@@ -123,7 +131,10 @@ export function UserTable({data, refreshData}: DataTableProps) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className={'[&:not(:first-child)]:ml-8'} key={cell.id}>
+                    <TableCell
+                      className={"[&:not(:first-child)]:ml-8"}
+                      key={cell.id}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -149,45 +160,58 @@ export function UserTable({data, refreshData}: DataTableProps) {
 
       <ConfirmationDialog
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} zum Admin machen`}
-        onConfirm={ async () => {
-          if(dialogState.user){
-            await handleRoleChange(dialogState.user.mail, dialogState.user.fn, dialogState.user.sn, dialogState.user.newRole)
+        onConfirm={async () => {
+          if (dialogState.user) {
+            await handleRoleChange(
+              dialogState.user.mail,
+              dialogState.user.fn,
+              dialogState.user.sn,
+              dialogState.user.newRole
+            );
           }
-          refreshData()
-          toast.info(`${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zum Admin gemacht`)
+          refreshData();
+          toast.info(
+            `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zum Admin gemacht`
+          );
         }}
         isOpen={dialogState.mode === "makeAdmin"}
         closeDialog={closeDialog}
       />
       <ConfirmationDialog
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} zum normalen User machen`}
-        onConfirm={ async () =>{
-
-          if(dialogState.user){
-            await handleRoleChange(dialogState.user.mail, dialogState.user.fn, dialogState.user.sn, dialogState.user.newRole)
+        onConfirm={async () => {
+          if (dialogState.user) {
+            await handleRoleChange(
+              dialogState.user.mail,
+              dialogState.user.fn,
+              dialogState.user.sn,
+              dialogState.user.newRole
+            );
           }
 
-          refreshData()
-          toast.info(`${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zu User gemacht`)
+          refreshData();
+          toast.info(
+            `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zu User gemacht`
+          );
         }}
         isOpen={dialogState.mode === "removeAdmin"}
         closeDialog={closeDialog}
       />
       <ConfirmationDialog
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} unwiederruflich löschen`}
-        onConfirm={ async () => {
-
-          if(dialogState.user){
-            await handleDeleteUser(dialogState.user.mail)
+        onConfirm={async () => {
+          if (dialogState.user) {
+            await handleDeleteUser(dialogState.user.mail);
           }
 
-          refreshData()
-          toast.info(`${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich entfernt`)
+          refreshData();
+          toast.info(
+            `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich entfernt`
+          );
         }}
         isOpen={dialogState.mode === "deleteUser"}
         closeDialog={closeDialog}
       />
-
     </div>
   );
 }
