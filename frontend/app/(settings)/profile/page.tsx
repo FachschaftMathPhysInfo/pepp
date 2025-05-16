@@ -1,7 +1,8 @@
 "use client";
 
 import { Separator } from "@/components/ui/separator";
-import React, { useState} from "react";
+import React, { use, useState} from "react";
+import { useUser } from "@/components/providers";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Save } from "lucide-react";
+import { FormInput, Save } from "lucide-react";
+import { getClient } from "@/lib/graphql";
 // import { useUmbrella } from "@/components/providers/umbrella-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +28,7 @@ import { useForm } from "react-hook-form";
 import { string, z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { set } from "date-fns";
-import { send } from "process";
+import { send, title } from "process";
 import { stat } from "fs";
 
 
@@ -36,33 +38,61 @@ const FormEmailSchema = z.object({
   }),
 });
 
-const FormVerificationSchema = z.object({
-  title: z.string().min( 2,{
-    message: "Verifikationscode ist Falsch!",
+const FormPlaceholder = z.object({
+  VerifikationCode: z.string().min(1, {
+    message: "Bitte gib eine Validen Verifikations code ein.",
   }),
 });
 
-export default function SettingsProfilePage() {
+const FormDeleteAccount = z.object({
+  pl: (z.string())
 
+
+});
+
+
+export default function SettingsProfilePage() {
+  const { sid, user } = useUser();  
   const [personInfo, Spi] =useState("test@email.de");
   const [newEmail, setNewEmail] = useState("");
   const [EmailDialog, setEmaiDialog] = useState(false);
   const [EmailVerificationDialog, setEmailVerificationDialog] = useState(false);
   const [ChangePasswordDialog, setChangePasswordDialog] = useState(false);
   const [DeleteAccountDialog, setDeleteAccountDialog] = useState(false);
-  const [umbrella, setUmbrella] = useState<Event | null>(null);
+  /*
+  useEffect(() => {
+    const fetchUser = async () => {
+      const client = getClient(sid!);
 
+      const vars: UserDetailQueryVariables = {
+        tutorMail: user?.mail!,
+      };
+      const tutorialsData = await client.request<>(
+        vars
+      );
+      
+    };
+    fetchUser();	
+    },[0]);
+  */
   const formEmail = useForm<z.infer<typeof FormEmailSchema>>({
     resolver: zodResolver(FormEmailSchema),
     defaultValues: {
-      title: umbrella?.title ?? "",
+      title: "",
     },
   });
 
-  const formVerification = useForm<z.infer<typeof FormVerificationSchema>>({
-    resolver: zodResolver(FormEmailSchema),
+   const formVerification = useForm<z.infer<typeof FormPlaceholder>>({
+    resolver: zodResolver(FormPlaceholder),
     defaultValues: {
-      title: umbrella?.title ?? "",
+      VerifikationCode: "",
+    },
+  });
+
+  const formDeleteAccount = useForm<z.infer<typeof FormDeleteAccount>>({
+    resolver: zodResolver(FormDeleteAccount),
+    defaultValues: {
+      pl: "",
     },
   });
 
@@ -73,10 +103,14 @@ export default function SettingsProfilePage() {
     setEmaiDialog(false);
     setEmailVerificationDialog(true);
   }
-  function updateEmail() {
+  function updateEmail(data: z.infer<typeof FormPlaceholder>) {
     Spi(newEmail);
     // implement ubdating the email in the database
     setEmailVerificationDialog(false);
+  }
+  function deleteAccount(data: z.infer<typeof FormDeleteAccount>) {
+    // implement deleting the account in the database
+    setDeleteAccountDialog(false);
   }
   
   return (
@@ -89,7 +123,7 @@ export default function SettingsProfilePage() {
       </div>
 
       <Separator />
-      <h3> Email:  {personInfo} {umbrella?.type} </h3>
+      <h3> Email:  {personInfo}  </h3>
          
       <Dialog open={EmailDialog} onOpenChange={setEmaiDialog}>
         <DialogTrigger asChild>
@@ -111,8 +145,8 @@ export default function SettingsProfilePage() {
                   <FormItem>
                       <FormControl>
                         <Input
-                          placeholder={"Name"}
-                          
+                          placeholder={"E-Mail"}
+                          content=""
                           {...field}
                         />
                       </FormControl>
@@ -132,6 +166,9 @@ export default function SettingsProfilePage() {
       </Dialog>
       
       <Dialog open={EmailVerificationDialog} onOpenChange={setEmailVerificationDialog}>
+        <DialogTrigger>
+          
+        </DialogTrigger>
         <DialogContent>
           <DialogTitle>Gebe den Verifikations code ein.</DialogTitle>
           <Form {...formVerification}>
@@ -141,15 +178,14 @@ export default function SettingsProfilePage() {
               >
                 <FormField
                 control={formVerification.control}
-                name="title"
-                render={({ field }) => (
+                name="VerifikationCode"
+                render={({field}) => (
                   <FormItem>
                       <FormLabel>Verifikationscode eingeben</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder={"Name"}
+                          placeholder={"Verifikationscode"}
                           content=""
-                          
                           {...field}
                         />
                       </FormControl>
@@ -160,7 +196,7 @@ export default function SettingsProfilePage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit">
+              <Button type="submit" onClick={()=>{updateEmail}}>
                 Check E-Mail Verifikation
               </Button>
               <Button  onClick={() => {setEmailVerificationDialog(false); setEmaiDialog(true)}}>
@@ -189,6 +225,38 @@ export default function SettingsProfilePage() {
           > delete Account
           </Button>
         </DialogTrigger>
+        <DialogContent>
+          <DialogTitle>Account löschen</DialogTitle>
+          <Form {...formDeleteAccount}>
+            <form
+              onSubmit={formDeleteAccount.handleSubmit(deleteAccount)}
+              className="w-2/3 space-y-6"
+            >
+              <FormField
+                control={formDeleteAccount.control}
+                name="pl"
+                render={({ field }) => (
+                  <FormItem>
+                      <FormControl>
+                        <Input
+                          placeholder={"Passwort"}
+                          content=""
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Gebe dein Passwort ein um dein Account zu löschen.
+                      </FormDescription>
+                      <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">
+                Delete Account
+              </Button>
+            </form>
+          </Form>
+          </DialogContent>
       </Dialog>
     </div>
   );
