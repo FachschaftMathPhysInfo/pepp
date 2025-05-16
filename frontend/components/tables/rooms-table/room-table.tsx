@@ -12,9 +12,16 @@ import React, {useState} from "react";
 import {Input} from "@/components/ui/input";
 import {DataTablePagination} from "@/components/data-table-pagination";
 import {toast} from "sonner";
-import {Building, Room} from "@/lib/gql/generated/graphql";
+import {
+  Building,
+  DeleteBuildingDocument,
+  DeleteBuildingMutation, DeleteRoomDocument,
+  DeleteRoomMutation,
+  Room
+} from "@/lib/gql/generated/graphql";
 import {RoomColumn} from "@/components/tables/rooms-table/room-columns";
 import ConfirmationDialog from "@/components/confirmation-dialog";
+import {getClient} from "@/lib/graphql";
 
 
 interface DataTableProps {
@@ -52,6 +59,21 @@ export function RoomTable({data, refreshData}: DataTableProps) {
     setDialogState({mode: null})
   }
 
+  async function handleDeleteBuilding(buildingID: number) {
+    const client = getClient()
+    await client.request<DeleteBuildingMutation>(DeleteBuildingDocument, {ID: buildingID})
+  }
+
+  async function handleDeleteRoom(building: number, number: string) {
+    const client = getClient()
+    await client.request<DeleteRoomMutation>(
+      DeleteRoomDocument,
+      {
+        building: building,
+        roomNumber: number,
+      }
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -115,12 +137,14 @@ export function RoomTable({data, refreshData}: DataTableProps) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} enableSelectionCounter={false}/>
+
       <ConfirmationDialog
         description={`Dies wird das Gebäude ${dialogState.building?.name} unwiederruflich löschen`}
         onConfirm={ async () =>{
 
           if(dialogState.building){
+            void handleDeleteBuilding(dialogState.building.ID)
           }
 
           refreshData()
@@ -133,13 +157,14 @@ export function RoomTable({data, refreshData}: DataTableProps) {
         description={`Dies wird den Raum ${dialogState.room?.name} unwiederruflich löschen`}
         onConfirm={ async () =>{
 
-          if(dialogState.building){
+          if(dialogState.building && dialogState.room){
+            void handleDeleteRoom(dialogState.building.ID, dialogState.room.number)
           }
 
           refreshData()
           toast.info(`${dialogState.room?.name} wurde erfolgreich gelöscht`)
         }}
-        isOpen={dialogState.mode === "deleteBuilding"}
+        isOpen={dialogState.mode === "deleteRoom"}
         closeDialog={closeDialog}
       />
 

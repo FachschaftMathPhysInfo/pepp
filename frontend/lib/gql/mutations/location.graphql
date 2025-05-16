@@ -1,0 +1,7 @@
+mutation deleteBuilding($ID: [Int!]!) {
+    deleteBuilding(id: $ID)
+}
+
+mutation deleteRoom($building: Int!, $number: [String!]!) {
+    deleteRoom(number: $number, buildingID: $building)
+}

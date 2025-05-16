@@ -1,7 +1,7 @@
 import {Building} from "@/lib/gql/generated/graphql";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
-import {Pencil} from "lucide-react";
+import {Pencil, Map as MapIcon} from "lucide-react";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {RoomTable} from "@/components/tables/rooms-table/room-table";
 
@@ -23,7 +23,10 @@ export default function BuildingSection({building, className, refreshData} : Bui
             <span className={'mx-2'}>|</span>
             <span>{building.zip} {building.city}</span>
           </div>
-          <div className={'text-muted-foreground/80 text-sm'}>{building.latitude} °N, {building.longitude} °W</div>
+          <a className={'text-muted-foreground/80 text-sm hover:underline'} href={`https://www.openstreetmap.org/#map=19/${building.latitude}/${building.longitude}`}>
+            <MapIcon className={'inline w-3 h-3 mr-1'}/>
+            {building.latitude} °N, {building.longitude} °W
+          </a>
         </div>
         <div>
           <Button variant={"outline"} className={'border-0 hover:bg-background'}>
@@ -33,9 +36,14 @@ export default function BuildingSection({building, className, refreshData} : Bui
       </div>
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
-            <AccordionTrigger>Räume im Gebäude</AccordionTrigger>
+            <AccordionTrigger className={'hover:no-underline'}>Räume im Gebäude</AccordionTrigger>
             <AccordionContent>
-              <RoomTable data={building.rooms ? building.rooms : []} refreshData={refreshData} />
+              {building.rooms ? (
+                <RoomTable data={building.rooms} refreshData={refreshData} />
+              ) : (
+                // TODO: add button to create new room
+                <div className={'w-full text-center border rounded-lg p-10'}>Dieses Gebäude hat noch keine Räume eingetragen</div>
+              )}
             </AccordionContent>
           </AccordionItem>
         </Accordion>

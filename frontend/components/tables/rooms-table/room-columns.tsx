@@ -14,7 +14,7 @@ interface RoomColumnProps {
   }>>;
 }
 
-export function RoomColumn({setDialogState} : RoomColumnProps): ColumnDef<Room>[] {
+export function RoomColumn({setDialogState}: RoomColumnProps): ColumnDef<Room>[] {
 
   //FIXME: "Nummern sollten rechts-aligned sein" - Jan
   return [
@@ -24,41 +24,48 @@ export function RoomColumn({setDialogState} : RoomColumnProps): ColumnDef<Room>[
       cell: ({row}) => row.original.floor
     },
     {
+      accessorKey: "number",
+      header: "Nummer",
+      cell: ({row}) => row.original.number
+    },
+    {
       accessorKey: "name",
       header: "Name",
-      cell: ({ row }) => row.original.name,
+      cell: ({row}) => row.original.name,
     },
     {
       accessorKey: "capacity",
       header: "Kapazität",
-      cell: ({ row }) => row.original.capacity
+      cell: ({row}) => row.original.capacity
     },
     {
       id: "actions",
       enableHiding: false,
-      cell: ({ row }) => {
+      cell: ({row}) => {
         return (
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
                   <span className="sr-only">Menü öffnen</span>
-                  <MoreHorizontal className="h-4 w-4" />
+                  <MoreHorizontal className="h-4 w-4"/>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setDialogState({
-                      mode: "editRoom",
-                      room: row.original
-                    })}
-                  >
-                    Bearbeiten
-                  </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setDialogState({
+                    mode: "editRoom",
+                    room: row.original,
+                    building: row.original.building
+                  })}
+                >
+                  Bearbeiten
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => setDialogState({
                     mode: "deleteRoom",
-                    room: row.original
+                    room: row.original,
+                    building: row.original.building
                   })}
                 >
                   Löschen

@@ -31,19 +31,24 @@ export default function Settings() {
     void fetchBuildings();
   })
 
-  // FIXME: Dialogs for Editing Buildings and Rooms
+  // TODO: Dialogs for Editing Buildings and Rooms
   return (
     <div className="space-y-6">
       <div>
         <h3 className="text-3xl font-bold">Raum und Gebäudeverwaltung</h3>
         <p className="text-sm text-muted-foreground">
-          Füge neue Orte hinzu und bearbeite vorhandene .
+          Füge neue Orte hinzu und bearbeite vorhandene.
         </p>
       </div>
       <Separator />
-      {buildings.map((building) => (
-        <BuildingSection key={building.ID} building={building} refreshData={fetchBuildings}/>
-      ))}
+      {buildings.length === 0 ? (
+        <div className={'w-full p-10 border rounded-lg'}>Es sind noch keine Gebäude eingetragen</div>
+      ) : (
+        buildings.map((building) => (
+          <BuildingSection key={building.ID} building={building} refreshData={fetchBuildings}/>
+        ))
+      )}
+
     </div>
   );
 }
