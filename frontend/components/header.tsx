@@ -1,3 +1,4 @@
+
 "use client";
 
 import { LogIn, Moon, SquareCheckBig, Sun, Search } from "lucide-react";
@@ -97,63 +98,92 @@ export default function Header() {
 
   const groupedEvents = groupEventsByUmbrellaId();
 
-
-
-    const HeaderContent = () => (
+  return (
+    <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
+      <div
+        className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400"
+        onClick={() => router.push("/")}
+      >
+        <Image
+          src="/logo.png"
+          alt="Pepp Logo"
+          width="0"
+          height="0"
+          sizes="100vw"
+          className="h-10 w-auto pr-2"
+        />
+        <div className="pl-3">
+          <Image
+            src="/fs-logo-light.png"
+            alt="Fachschaft MathPhysInfo Logo"
+            width="0"
+            height="0"
+            sizes="100vw"
+            className="h-10 w-auto block dark:hidden"
+          />
+          <Image
+            src="/fs-logo-dark.png"
+            alt="Fachschaft MathPhysInfo Logo"
+            width="0"
+            height="0"
+            sizes="100vw"
+            className="h-10 w-auto hidden dark:block"
+          />
+        </div>
+      </div>
       <div className="flex flex-row">
-            {/* Desktop Search Bar */}
-    <div className="hidden lg:flex">
-      <Button
-        variant="secondary"
-        onClick={() => setSearchOpen(true)}
-        className="space-x-4 w-fit"
-      >
-        <p>Suche nach Veranstaltungen...</p>
-        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </Button>
-    </div>
+        <Button
+          variant="secondary"
+          onClick={() => setSearchOpen(true)}
+          className="space-x-4 w-fit "
+        >
+           <Search className="h-[1.2rem] w-[1.2rem]" />
+           <div
+            className="hidden md:flex text-sm font-medium leading-none text-muted-foreground">
 
-      
-    {/* Mobile Search Icon */}
-    <div className="flex lg:hidden">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setSearchOpen(true)}
-        className="ml-2"
-      >
-        <Search className="h-[1.2rem] w-[1.2rem]" />
-      </Button>
-    </div>
-
+          <p>Suche nach Veranstaltungen...</p>
+          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+      </div>
+        </Button>
+            
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
           <CommandInput placeholder="Suche nach Veranstaltungen..." />
           <CommandList>
             <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
-            {groupedEvents &&
-              Object.keys(groupedEvents).map((uID) => (
-                <CommandGroup
-                  key={uID}
-                  heading={groupedEvents[uID][0]?.umbrella?.title || ""}
-                >
-                  {groupedEvents[uID].map((e) => (
-                    <CommandItem
-                      className="justify-between"
-                      key={e.ID}
-                      onSelect={() => {
-                        setSearchOpen(false);
-                      }}
-                    >
-                      {e.title}
-                      {user?.registrations?.find((r) => r.event.ID === e.ID) && (
-                        <SquareCheckBig className="w-2 h-2 text-green-700" />
-                      )}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              ))}
+            {groupedEvents
+              ? Object.keys(groupedEvents).map((uID) => (
+                  <CommandGroup
+                    key={uID}
+                    heading={
+                      groupedEvents ? groupedEvents[uID][0].umbrella?.title : ""
+                    }
+                  >
+                    {groupedEvents
+                      ? groupedEvents[uID].map((e) => (
+                          <CommandItem
+                            className="justify-between"
+                            key={e.ID}
+                            onSelect={() => {
+                              setSearchOpen(false);
+                            }}
+                          >
+                            {e.title}
+                            {user &&
+                            user?.registrations?.find(
+                              (r) => r.event.ID === e.ID
+                            )
+                              ? true
+                              : false && (
+                                  <SquareCheckBig className="w-2 h-2 text-green-700" />
+                                )}
+                          </CommandItem>
+                        ))
+                      : ""}
+                  </CommandGroup>
+                ))
+              : ""}
           </CommandList>
         </CommandDialog>
         <DropdownMenu>
@@ -193,11 +223,8 @@ export default function Header() {
                 <p className="text-muted-foreground text-xs">{user.mail}</p>
               </div>
               <Separator />
-              {profileNavItems.map((i) => (
-                <DropdownMenuItem
-                  key={i.title}
-                  onClick={() => router.push(i.href)}
-                >
+              {profileNavItems.map(i => (
+                <DropdownMenuItem key={i.title} onClick={() => router.push(i.href)}>
                   {i.title}
                 </DropdownMenuItem>
               ))}
@@ -218,43 +245,6 @@ export default function Header() {
           </Dialog>
         )}
       </div>
-    );
-    return (
-      <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
-        <div
-          className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400"
-          onClick={() => router.push("/")}
-        >
-          <Image
-            src="/logo.png"
-            alt="Pepp Logo"
-            width="0"
-            height="0"
-            sizes="100vw"
-            className="h-10 w-auto pr-2"
-          />
-          <div className="pl-3">
-            <Image
-              src="/fs-logo-light.png"
-              alt="Fachschaft MathPhysInfo Logo"
-              width="0"
-              height="0"
-              sizes="100vw"
-              className="h-10 w-auto block dark:hidden"
-            />
-            <Image
-              src="/fs-logo-dark.png"
-              alt="Fachschaft MathPhysInfo Logo"
-              width="0"
-              height="0"
-              sizes="100vw"
-              className="h-10 w-auto hidden dark:block"
-            />
-          </div>
-        </div>
-        <div className="hidden md:flex">{HeaderContent()}</div>
-        <div className="flex md:hidden">{HeaderContent()}</div>
-      </header>
-    );
-  }
-  
+    </header>
+  );
+}
