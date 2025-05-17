@@ -135,6 +135,23 @@ func main() {
 	frontendUrl, _ := url.Parse("http://localhost:3000")
 	router.Handle("/*", httputil.NewSingleHostReverseProxy(frontendUrl))
 
+	if os.Getenv("OIDC_LOGIN_PROVIDER_URL") != "" {
+		log.Info("starting oidc endpoint...")
+
+		oidcConfig, oidcProvider, _, err := auth.GetOIDCClientConfig(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		router.Get("/sso/oidc", func(w http.ResponseWriter, r *http.Request) {
+			auth.HandleOIDCRedirect(w, r, oidcConfig)
+		})
+
+		router.Get("/sso/oidc/callback", func(w http.ResponseWriter, r *http.Request) {
+			auth.HandleOIDCCallback(w, r, ctx, oidcProvider, oidcConfig)
+		})
+	}
+
 	router.Get("/confirm/{sessionID}", func(w http.ResponseWriter, r *http.Request) {
 		email.Confirm(ctx, w, r, db)
 	})
