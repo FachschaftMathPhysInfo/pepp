@@ -6,6 +6,7 @@ import {ColumnDef} from "@tanstack/react-table";
 import {BadgeCheck, BadgeX, Check, MoreHorizontal, Shield, X} from "lucide-react";
 import React, {SetStateAction} from "react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import { useUser } from "@/components/providers";
 
 
 interface UserColumnProps {
@@ -16,6 +17,7 @@ interface UserColumnProps {
 }
 
 export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>[] {
+  const {user}=useUser();
 
   return [
     {
@@ -92,6 +94,8 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
       cell: ({ row }) => {
         return (
           <>
+          {/*Mail is a unique identifier.*/}
+          {!(row.original.mail === user?.mail) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -144,6 +148,7 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
               )}
               </DropdownMenuContent>
             </DropdownMenu>
+          )} 
           </>
         );
       },
