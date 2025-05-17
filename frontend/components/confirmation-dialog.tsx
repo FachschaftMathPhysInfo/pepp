@@ -21,8 +21,8 @@ export default function ConfirmationDialog( {description, onConfirm, isOpen, clo
     <Dialog open={isOpen}>
       <DialogContent className="[&>button:last-child]:hidden">
         <DialogHeader>
-          <DialogTitle>Bist du sicher?</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle className={'text-3xl mb-3'}>Bist du sicher?</DialogTitle>
+          <DialogDescription className={'text-lg'}>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <div className={'w-full flex justify-between items-center pt-8'}>

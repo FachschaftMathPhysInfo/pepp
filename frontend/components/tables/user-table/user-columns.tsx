@@ -10,7 +10,7 @@ import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/compon
 
 interface UserColumnProps {
   setDialogState: React.Dispatch<SetStateAction<{
-    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | null,
+    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | "deleteAdmin"| null,
     user?: {mail: string, fn: string, sn: string, newRole: Role}
   }>>;
 }
@@ -121,7 +121,8 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
                     }
                   })}>Admin machen</DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => setDialogState({
+                {row.original.role === Role.User ? (
+                  <DropdownMenuItem onClick={() => setDialogState({
                   mode: "deleteUser",
                   user: {
                     mail: row.original.mail,
@@ -130,6 +131,17 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
                     newRole: Role.Admin
                   }
                 })}>Löschen</DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => setDialogState({
+                  mode: "deleteAdmin",
+                  user: {
+                    mail: row.original.mail,
+                    fn: row.original.fn,
+                    sn: row.original.sn,
+                    newRole: Role.Admin
+                  }
+                })}>Löschen</DropdownMenuItem>
+              )}
               </DropdownMenuContent>
             </DropdownMenu>
           </>
