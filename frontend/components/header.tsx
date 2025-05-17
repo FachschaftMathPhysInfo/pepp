@@ -1,6 +1,7 @@
+
 "use client";
 
-import { LogIn, Moon, SquareCheckBig, Sun } from "lucide-react";
+import { LogIn, Moon, SquareCheckBig, Sun, Search } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
@@ -134,12 +135,17 @@ export default function Header() {
         <Button
           variant="secondary"
           onClick={() => setSearchOpen(true)}
-          className="space-x-4 w-fit"
+          className="w-fit"
         >
+           <Search className="h-[1.2rem] w-[1.2rem] md:hidden" />
+           <div
+            className="hidden md:flex text-sm font-medium leading-none text-muted-foreground space-x-4">
+
           <p>Suche nach Veranstaltungen...</p>
-          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
             <span className="text-xs">⌘</span>K
           </kbd>
+      </div>
         </Button>
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
           <CommandInput placeholder="Suche nach Veranstaltungen..." />
