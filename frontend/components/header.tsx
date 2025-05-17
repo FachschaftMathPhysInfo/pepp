@@ -1,4 +1,3 @@
-
 "use client";
 
 import { LogIn, Moon, SquareCheckBig, Sun, Search } from "lucide-react";
@@ -32,11 +31,12 @@ import {
 import { useUser } from "./providers";
 import { getClient } from "@/lib/graphql";
 import { useRouter } from "next/navigation";
+import EventDialog from "./event-dialog/event-dialog";
 
 export const profileNavItems = [
   {
     title: "Einstellungen",
-    href: "/profile"
+    href: "/profile",
   },
   {
     title: "Tutorien",
@@ -52,6 +52,8 @@ export default function Header() {
   const router = useRouter();
 
   const [searchOpen, setSearchOpen] = useState(false);
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const [closeupID, setCloseupID] = useState(0);
   const [events, setEvents] = useState<FutureEventsQuery["events"] | null>(
     null
   );
@@ -61,7 +63,7 @@ export default function Header() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const client = getClient()
+      const client = getClient();
 
       const eventData = await client.request<FutureEventsQuery>(
         FutureEventsDocument
@@ -137,16 +139,17 @@ export default function Header() {
           onClick={() => setSearchOpen(true)}
           className="w-fit"
         >
-           <Search className="h-[1.2rem] w-[1.2rem] md:hidden" />
-           <div
-            className="hidden md:flex text-sm font-medium leading-none text-muted-foreground space-x-4">
-
-          <p>Suche nach Veranstaltungen...</p>
-          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-            <span className="text-xs">⌘</span>K
-          </kbd>
-      </div>
+          <Search className="h-[1.2rem] w-[1.2rem] md:hidden" />
+          <div className="hidden md:flex text-sm font-medium leading-none text-muted-foreground space-x-4">
+            <p>Suche nach Veranstaltungen...</p>
+            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </div>
         </Button>
+        <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
+          <EventDialog id={closeupID} open={eventDialogOpen} />
+        </Dialog>
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
           <CommandInput placeholder="Suche nach Veranstaltungen..." />
           <CommandList>
@@ -166,6 +169,8 @@ export default function Header() {
                             key={e.ID}
                             onSelect={() => {
                               setSearchOpen(false);
+                              setCloseupID(e.ID);
+                              setEventDialogOpen(true);
                             }}
                           >
                             {e.title}
@@ -222,8 +227,11 @@ export default function Header() {
                 <p className="text-muted-foreground text-xs">{user.mail}</p>
               </div>
               <Separator />
-              {profileNavItems.map(i => (
-                <DropdownMenuItem key={i.title} onClick={() => router.push(i.href)}>
+              {profileNavItems.map((i) => (
+                <DropdownMenuItem
+                  key={i.title}
+                  onClick={() => router.push(i.href)}
+                >
                   {i.title}
                 </DropdownMenuItem>
               ))}
