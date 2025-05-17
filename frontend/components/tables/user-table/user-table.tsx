@@ -31,6 +31,7 @@ import { GraphQLClient } from "graphql-request";
 import { getClient } from "@/lib/graphql";
 import { useUser } from "@/components/providers";
 import ConfirmationDialog from "@/components/confirmation-dialog";
+import InformationDialog from "@/components/information-dialog";
 import { toast } from "sonner";
 
 interface DataTableProps {
@@ -60,7 +61,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
     });
   };
   const [dialogState, setDialogState] = useState<{
-    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | null;
+    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | "deleteAdmin"| null;
     user?: { mail: string; fn: string; sn: string; newRole: Role };
   }>({ mode: null });
   const columns = UserColumns({ setDialogState });
@@ -210,6 +211,12 @@ export function UserTable({ data, refreshData }: DataTableProps) {
           );
         }}
         isOpen={dialogState.mode === "deleteUser"}
+        closeDialog={closeDialog}
+      />
+      <InformationDialog
+        information={`Admins können nicht gelöscht werden!`}
+        description={`Zum Löschen von Admins, müssen diese erst zu normalen Usern runtergestuft werden.`}
+        isOpen={dialogState.mode === "deleteAdmin"}
         closeDialog={closeDialog}
       />
     </div>

@@ -6,16 +6,18 @@ import {ColumnDef} from "@tanstack/react-table";
 import {BadgeCheck, BadgeX, Check, MoreHorizontal, Shield, X} from "lucide-react";
 import React, {SetStateAction} from "react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip";
+import { useUser } from "@/components/providers";
 
 
 interface UserColumnProps {
   setDialogState: React.Dispatch<SetStateAction<{
-    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | null,
+    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | "deleteAdmin"| null,
     user?: {mail: string, fn: string, sn: string, newRole: Role}
   }>>;
 }
 
 export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>[] {
+  const {user}=useUser();
 
   return [
     {
@@ -92,6 +94,8 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
       cell: ({ row }) => {
         return (
           <>
+          {/*Mail is a unique identifier.*/}
+          {!(row.original.mail === user?.mail) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -121,7 +125,8 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
                     }
                   })}>Admin machen</DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => setDialogState({
+                {row.original.role === Role.User ? (
+                  <DropdownMenuItem onClick={() => setDialogState({
                   mode: "deleteUser",
                   user: {
                     mail: row.original.mail,
@@ -130,8 +135,20 @@ export function UserColumns({setDialogState} : UserColumnProps): ColumnDef<User>
                     newRole: Role.Admin
                   }
                 })}>Löschen</DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => setDialogState({
+                  mode: "deleteAdmin",
+                  user: {
+                    mail: row.original.mail,
+                    fn: row.original.fn,
+                    sn: row.original.sn,
+                    newRole: Role.Admin
+                  }
+                })}>Löschen</DropdownMenuItem>
+              )}
               </DropdownMenuContent>
             </DropdownMenu>
+          )} 
           </>
         );
       },
