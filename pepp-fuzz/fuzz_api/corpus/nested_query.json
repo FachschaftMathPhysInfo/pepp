@@ -1,0 +1,1 @@
+{"query":"{ events { id title participants { id name } } }"}

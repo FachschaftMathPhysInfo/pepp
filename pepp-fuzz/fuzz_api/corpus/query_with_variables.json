@@ -1,0 +1,4 @@
+{
+  "query": "query($id: ID!) { event(id: $id) { id title } }",
+  "variables": { "id": "1" }
+}

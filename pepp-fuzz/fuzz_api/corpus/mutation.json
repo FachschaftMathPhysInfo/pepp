@@ -1,0 +1,1 @@
+{"query":"mutation { createUser(name: \"Alice\") { id name } }"}

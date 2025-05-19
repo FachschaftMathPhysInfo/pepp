@@ -1,0 +1,1 @@
+{"query":"{ event(id: \"1\") { id title description } }"}

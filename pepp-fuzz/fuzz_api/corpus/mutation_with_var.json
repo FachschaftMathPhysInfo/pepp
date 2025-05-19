@@ -1,0 +1,4 @@
+{
+  "query": "mutation($name: String!) { createUser(name: $name) { id name } }",
+  "variables": { "name": "Bob" }
+}
