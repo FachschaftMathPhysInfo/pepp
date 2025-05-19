@@ -8,13 +8,16 @@ import React, {useState} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {Room, UpdateRoomDocument, UpdateRoomMutation} from "@/lib/gql/generated/graphql";
+import {Save} from "lucide-react";
+import {toast} from "sonner";
 
 
 interface RoomFormProps {
   room: Room;
+  closeDialog:  () => void;
 }
 
-export default function EditRoomForm({room}: RoomFormProps) {
+export default function EditRoomForm({room, closeDialog}: RoomFormProps) {
   const { sid } = useUser();
 
   const roomFormSchema = z.object({
@@ -22,8 +25,8 @@ export default function EditRoomForm({room}: RoomFormProps) {
     number: z.string().min(1, {
       message: "Bitte gib die Raum-Nummer an",
     }),
-    capacity: z.number().optional(),
-    floor: z.number().optional(),
+    capacity: z.coerce.number().optional(),
+    floor: z.coerce.number().optional(),
   });
   const form = useForm<z.infer<typeof roomFormSchema>>({
     resolver: zodResolver(roomFormSchema),
@@ -40,11 +43,13 @@ export default function EditRoomForm({room}: RoomFormProps) {
   async function onValidSubmit(roomData: z.infer<typeof roomFormSchema>) {
     const client = getClient(String(sid));
     await client.request<UpdateRoomMutation>(UpdateRoomDocument, roomData)
+    closeDialog();
+    toast.info('Raum wurde erfolgreich bearbeitet')
   }
 
   return (
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onValidSubmit, () => setHasTriedToSubmit(true))} className="space-y-6 w-full">
+        <form onSubmit={form.handleSubmit(onValidSubmit, () => setHasTriedToSubmit(true))} className="space-y-4 w-full">
           <FormField
             control={form.control}
             name="name"
@@ -97,13 +102,27 @@ export default function EditRoomForm({room}: RoomFormProps) {
               </FormItem>
             )}
           />
-          <Button
-            className="w-full"
-            disabled={!form.formState.isValid && hasTriedToSubmit}
-            type="submit"
-          >
-            Bestätigen
-          </Button>
+          {/* FIXME: add gap */}
+          <div className={'flex justify-between items-center gap-x-12 mt-8'}>
+            <Button
+              onClick={closeDialog}
+              variant={"outline"}
+              /* else this is treated as submit button */
+              type={"button"}
+              className={'flex-grow-[0.5]'}
+            >
+              Abbrechen
+            </Button>
+
+            <Button
+              disabled={!form.formState.isValid && hasTriedToSubmit}
+              type="submit"
+              className={'flex-grow'}
+            >
+              <Save/>
+              Speichern
+            </Button>
+          </div>
         </form>
       </Form>
   );

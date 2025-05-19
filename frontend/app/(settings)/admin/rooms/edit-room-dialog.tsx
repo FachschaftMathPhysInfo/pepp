@@ -1,8 +1,8 @@
-import {Room, UpdateRoomMutation} from "@/lib/gql/generated/graphql";
-import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {Room} from "@/lib/gql/generated/graphql";
+import {Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import EditRoomForm from "@/app/(settings)/admin/rooms/edit-room-form";
-import {Button} from "@/components/ui/button";
 import React from "react";
+import {Sprout} from "lucide-react";
 
 interface EditRoomDialogProps {
   room: Room;
@@ -14,17 +14,15 @@ export function EditRoomDialog( { room, isOpen, closeDialog}: EditRoomDialogProp
 
   return(
     <Dialog open={isOpen}>
-      <DialogContent>
+      <DialogContent className="[&>button]:hidden">
         <DialogHeader>
-          <DialogTitle>{room?.name} bearbeiten</DialogTitle>
+          <DialogTitle>
+            <Sprout className={'inline mr-3'}/>
+            Raum bearbeiten
+          </DialogTitle>
         </DialogHeader>
-        <EditRoomForm room={room} />
+        <EditRoomForm room={room} closeDialog={closeDialog}/>
       </DialogContent>
-      <DialogFooter>
-        <div className={'w-full flex justify-between items-center pt-8'}>
-          <Button onClick={() => closeDialog()} variant={"outline"}>Abbrechen</Button>
-        </div>
-      </DialogFooter>
     </Dialog>
   )
 }

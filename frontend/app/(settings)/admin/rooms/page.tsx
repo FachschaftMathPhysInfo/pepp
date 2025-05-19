@@ -17,6 +17,8 @@ import ConfirmationDialog from "@/components/confirmation-dialog";
 import {toast} from "sonner";
 import {GraphQLClient} from "graphql-request";
 import {useUser} from "@/components/providers";
+import {EditRoomDialog} from "@/app/(settings)/admin/rooms/edit-room-dialog";
+import {School} from "lucide-react";
 
 
 export type LocationDialogState = {
@@ -68,12 +70,12 @@ export default function Settings() {
     })
   }
 
-  // TODO: Dialogs for Editing Buildings and Rooms
+  // TODO: Dialogs for Editing & Creating Buildings
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-3xl font-bold">Raum und Gebäudeverwaltung</h3>
-        <p className="text-sm text-muted-foreground">
+        <h3 className="text-3xl font-bold"> <School className={'inline mr-3'} />Raum und Gebäudeverwaltung</h3>
+        <p className="text-sm text-muted-foreground mt-2">
           Füge neue Orte hinzu und bearbeite vorhandene.
         </p>
       </div>
@@ -102,6 +104,11 @@ export default function Settings() {
           toast.info(`Raum Nummer ${dialogState.room.name} wurde erfolgreich gelöscht`)
         }}
         isOpen={dialogState.mode === "deleteRoom"}
+        closeDialog={closeDialog}
+      />
+      <EditRoomDialog
+        room={dialogState.room}
+        isOpen={dialogState.mode === "editRoom"}
         closeDialog={closeDialog}
       />
 
