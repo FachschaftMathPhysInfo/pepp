@@ -1,13 +1,12 @@
 "use client";
 
-import { Separator } from "@/components/ui/separator";
+import {Separator} from "@/components/ui/separator";
 import {
   AllBuildingsDocument,
   AllBuildingsQuery,
-  Building,
+  Building, DeleteBuildingDocument, DeleteBuildingMutation,
   DeleteRoomDocument,
-  DeleteRoomMutation,
-  Room
+  DeleteRoomMutation
 } from "@/lib/gql/generated/graphql";
 import React, {useCallback, useEffect, useState} from "react";
 import {getClient} from "@/lib/graphql";
@@ -22,16 +21,24 @@ import {School} from "lucide-react";
 
 
 export type LocationDialogState = {
-  mode: "deleteBuilding" | "deleteRoom" | "addBuilding" | "addRoom" | "editBuilding" | "editRoom" | null;
+  mode: "deleteBuilding"
+    | "deleteRoom"
+    | "addBuilding"
+    | "addRoom"
+    | "editBuilding"
+    | "editRoom"
+    | "createRoom"
+    | "createBuilding"
+    | null;
   building:  Building;
-  room : Room;
+  roomNumber: string;
 }
 
-export default function Settings() {
+export default function LocationSettings() {
   const { sid } = useUser()
   const [client, setClient] = useState<GraphQLClient>(getClient());
   const [buildings, setBuildings] = useState<Building[]>([]);
-  const [dialogState, setDialogState] = useState<LocationDialogState>({mode: null, building: defaultBuilding, room: defaultRoom});
+  const [dialogState, setDialogState] = useState<LocationDialogState>({mode: null, building: defaultBuilding, roomNumber: ""});
 
   // Data Fetching
   useEffect(() => {
@@ -40,14 +47,13 @@ export default function Settings() {
 
   const fetchBuildings = useCallback(async() => {
     const buildingData = await client.request<AllBuildingsQuery>(AllBuildingsDocument)
-
     if (buildingData.buildings) {
       setBuildings(buildingData.buildings.map((building) => ({
         ...defaultBuilding,
         ...building,
-        rooms: building.rooms?.map((r) => ({
+        rooms: building.rooms?.map((room) => ({
           ...defaultRoom,
-          ...r
+          ...room,
         }))
       })))
     }
@@ -59,14 +65,16 @@ export default function Settings() {
   }, [fetchBuildings])
 
   // Dialog Handling
-  const closeDialog = () => setDialogState({mode: null, building: defaultBuilding, room: defaultRoom});
+  const closeDialog = () => setDialogState({mode: null, building: defaultBuilding, roomNumber: ""});
   const handleDeleteBuilding = async () => {
-
+    await client.request<DeleteBuildingMutation>(DeleteBuildingDocument, {
+      ID: dialogState.building.ID
+    })
   }
   const handleDeleteRoom = async () => {
     await client.request<DeleteRoomMutation>(DeleteRoomDocument, {
-      building: dialogState.building.ID,
-      number: dialogState.room.number
+      roomNumber: dialogState.building.rooms?.find(room => room.number === dialogState.roomNumber)?.number ?? defaultRoom.number,
+      buildingID: dialogState.building.ID
     })
   }
 
@@ -84,7 +92,11 @@ export default function Settings() {
         <div className={'w-full p-10 border rounded-lg'}>Es sind noch keine Gebäude eingetragen</div>
       ) : (
         buildings.map((building) => (
-          <BuildingSection key={building.ID} building={building} setDialogState={setDialogState}/>
+          <BuildingSection
+            key={building.ID}
+            building={building}
+            setDialogState={setDialogState}
+          />
         ))
       )}
 
@@ -92,24 +104,33 @@ export default function Settings() {
         description={`Dies wird das Gebäude ${dialogState.building.name} unwiederruflich löschen`}
         onConfirm={ async () =>{
           await handleDeleteBuilding();
-          toast.info(`${dialogState.building?.name} wurde erfolgreich gelöscht`)
+          closeDialog();
+          void fetchBuildings();
+          toast.info(`${dialogState.building.name} wurde erfolgreich gelöscht`)
         }}
         isOpen={dialogState.mode === "deleteBuilding"}
         closeDialog={closeDialog}
       />
       <ConfirmationDialog
-        description={`Dies wird den Raum Nummer ${dialogState.room.number} unwiederruflich löschen`}
+        description={`Dies wird den Raum Nummer ${dialogState.roomNumber} unwiederruflich löschen`}
         onConfirm={ async () =>{
           await handleDeleteRoom()
-          toast.info(`Raum Nummer ${dialogState.room.name} wurde erfolgreich gelöscht`)
+          closeDialog();
+          // implicitly rerenders the room table... maybe not that beautiful
+          void fetchBuildings();
+          toast.info(`Raum Nummer ${dialogState.roomNumber} wurde erfolgreich gelöscht`)
         }}
         isOpen={dialogState.mode === "deleteRoom"}
         closeDialog={closeDialog}
       />
       <EditRoomDialog
-        room={dialogState.room}
-        isOpen={dialogState.mode === "editRoom"}
+        room={dialogState.building.rooms?.find(room => room.number === dialogState.roomNumber) ?? defaultRoom}
+        currentBuilding={dialogState.building}
+        buildings={buildings}
+        isOpen={dialogState.mode === "editRoom" || dialogState.mode === "createRoom"}
         closeDialog={closeDialog}
+        refreshTable={fetchBuildings}
+        createMode = {dialogState.mode === "createRoom"}
       />
 
     </div>

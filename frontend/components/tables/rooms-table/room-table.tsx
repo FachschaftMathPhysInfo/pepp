@@ -11,7 +11,7 @@ import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/
 import React from "react";
 import {Input} from "@/components/ui/input";
 import {DataTablePagination} from "@/components/data-table-pagination";
-import {Room} from "@/lib/gql/generated/graphql";
+import {Building, Room} from "@/lib/gql/generated/graphql";
 import {RoomColumn} from "@/components/tables/rooms-table/room-columns";
 import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
 
@@ -19,10 +19,11 @@ import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
 interface DataTableProps {
   data: Room[];
   setDialogState: React.Dispatch<React.SetStateAction<LocationDialogState>>
+  currentBuilding: Building;
 }
 
-export function RoomTable({data, setDialogState}: DataTableProps) {
-  const columns = RoomColumn({setDialogState});
+export function RoomTable({data, setDialogState, currentBuilding}: DataTableProps) {
+  const columns = RoomColumn({ currentBuilding, setDialogState});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const table = useReactTable({

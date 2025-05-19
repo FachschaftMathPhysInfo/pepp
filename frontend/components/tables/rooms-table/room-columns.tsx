@@ -1,6 +1,6 @@
 import {Button} from "@/components/ui/button";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {Room} from "@/lib/gql/generated/graphql";
+import {Building, Room} from "@/lib/gql/generated/graphql";
 import {ColumnDef} from "@tanstack/react-table";
 import {MoreHorizontal} from "lucide-react";
 import React, {SetStateAction} from "react";
@@ -9,9 +9,10 @@ import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
 
 interface RoomColumnProps {
   setDialogState: React.Dispatch<SetStateAction<LocationDialogState>>;
+  currentBuilding: Building;
 }
 
-export function RoomColumn({setDialogState}: RoomColumnProps): ColumnDef<Room>[] {
+export function RoomColumn({currentBuilding, setDialogState}: RoomColumnProps): ColumnDef<Room>[] {
 
   //FIXME: "Nummern sollten rechts-aligned sein" - Jan
   return [
@@ -52,18 +53,21 @@ export function RoomColumn({setDialogState}: RoomColumnProps): ColumnDef<Room>[]
                 <DropdownMenuItem
                   onClick={() => setDialogState({
                     mode: "editRoom",
-                    room: row.original,
-                    building: row.original.building
+                    roomNumber: row.original.number,
+                    building: currentBuilding,
                   })}
                 >
                   Bearbeiten
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => setDialogState({
-                    mode: "deleteRoom",
-                    room: row.original,
-                    building: row.original.building
-                  })}
+                  onClick={() => {
+                    setDialogState({
+                      mode: "deleteRoom",
+                      roomNumber: row.original.number,
+                      building: currentBuilding
+                    })
+                  }
+                }
                 >
                   Löschen
                 </DropdownMenuItem>

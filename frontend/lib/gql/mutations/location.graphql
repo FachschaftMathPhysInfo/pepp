@@ -1,3 +1,9 @@
+mutation addRoom ($room : NewRoom!) {
+    addRoom(room: $room) {
+        number
+    }
+}
+
 mutation deleteBuilding($ID: [Int!]!) {
     deleteBuilding(id: $ID)
 }
