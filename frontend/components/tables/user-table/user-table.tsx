@@ -217,7 +217,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
       <ConfirmationDialog
         mode="information"
         information={`Admins können nicht gelöscht werden!`}
-        description={`Zum Löschen von Admins, müssen diese erst zu normalen Usern runtergestuft werden.`}
+        description={`Zum Löschen von Admins müssen diese erst zu normalen Usern heruntergestuft werden.`}
         isOpen={dialogState.mode === "deleteAdmin"}
         closeDialog={closeDialog}
       />

@@ -34,9 +34,7 @@ interface UserColumnProps {
   >;
 }
 
-export function UserColumns({
-  setDialogState,
-}: UserColumnProps): ColumnDef<User>[] {
+export function UserColumns({setDialogState}: UserColumnProps): ColumnDef<User>[] {
   const { user } = useUser();
 
   return [
