@@ -61,6 +61,7 @@ export default function EditPlannerSection({
   const [loading, setLoading] = useState(true);
   const [umbrella, setUmbrella] = useState<Event | null>(null);
   const [open, setOpen] = useState(false);
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -195,16 +196,16 @@ export default function EditPlannerSection({
       </div>
 
       <div className="flex flex-row justify-between">
-        <EventDialog modify={true}>
-          <Button
-            className={cn(
-              "h-[40px] w-auto justify-start text-left font-normal"
-            )}
-          >
-            <PlusCircle />
-            Event hinzufügen
-          </Button>
-        </EventDialog>
+        <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
+          <EventDialog open={eventDialogOpen} modify={true} />
+        </Dialog>
+        <Button
+          className={cn("h-[40px] w-auto justify-start text-left font-normal")}
+          onClick={() => setEventDialogOpen(true)}
+        >
+          <PlusCircle />
+          Event hinzufügen
+        </Button>
         <DatePickerWithRange
           from={umbrella.from}
           to={umbrella.to}

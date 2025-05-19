@@ -40,5 +40,4 @@ export default function ConfirmationDialog( {description, onConfirm, isOpen, clo
       </DialogContent>
     </Dialog>
   )
-
 }

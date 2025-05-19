@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Room } from "@/lib/gql/generated/graphql";
 import { ArrowDownToDot, Check, ChevronsUpDown, Users } from "lucide-react";

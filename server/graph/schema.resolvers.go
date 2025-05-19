@@ -138,15 +138,16 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 }
 
 // UpdateUser is the resolver for the updateUser field.
-func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User) (*models.User, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User) (string, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&user).
+		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return &user, nil
+	return user.Mail, nil
 }
 
 // DeleteUser is the resolver for the deleteUser field.
@@ -1014,7 +1015,7 @@ func (r *queryResolver) Login(ctx context.Context, mail string, password string)
 	}
 
 	user.LastLogin = time.Now()
-	user, err = r.Mutation().UpdateUser(ctx, *user)
+	_, err = r.Mutation().UpdateUser(ctx, *user)
 	if err != nil {
 		return "", err
 	}

@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { User } from "@/lib/gql/generated/graphql";
 import { ChevronsUpDown } from "lucide-react";
@@ -63,9 +61,7 @@ export function TutorSelection({
             <CommandEmpty>Niemanden gefunden.</CommandEmpty>
             <CommandGroup>
               {availableTutors.map((tutor) => {
-                const isSelected = selected.find((t) => t.mail === tutor.mail)
-                  ? true
-                  : false;
+                const isSelected = !!selected.find((t) => t.mail === tutor.mail);
                 return (
                   <CommandItem
                     key={tutor.mail}

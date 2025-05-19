@@ -19,6 +19,7 @@ import { useUser } from "./providers";
 import { Clock, SquareCheckBig } from "lucide-react";
 import { RoomHoverCard } from "./room-hover-card";
 import EventDialog from "./event-dialog/event-dialog";
+import { Dialog } from "./ui/dialog";
 
 interface PlannerProps {
   events: Event[];
@@ -29,7 +30,8 @@ export function Planner({ events }: PlannerProps) {
 
   const groupedEvents = groupEvents(events);
   const [currentMinutes, setCurrentMinutes] = useState(0);
-  const [closeupID, setCloseupID] = useState<number>();
+  const [closeupID, setCloseupID] = useState(0);
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
 
   useEffect(() => {
     const now = new Date();
@@ -45,6 +47,9 @@ export function Planner({ events }: PlannerProps) {
 
   return (
     <>
+      <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
+        <EventDialog id={closeupID} open={eventDialogOpen} />
+      </Dialog>
       <div className="lg:flex lg:flex-row lg:space-x-4 lg:space-y-0 md:space-y-4">
         {Object.entries(groupedEvents).map(([week, days], weekIndex) => (
           <div key={week} className="space-y-4 flex-1">
@@ -106,60 +111,58 @@ export function Planner({ events }: PlannerProps) {
                         );
 
                         return (
-                          <EventDialog id={closeupID} key={event.ID}>
-                            <div>
-                              <div
-                                className="bg-transparent"
-                                style={{ height: `${gap * 100}px` }}
-                              ></div>
-                              <li
-                                key={event.ID}
-                                className={`rounded-lg p-2 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
-                                style={{
-                                  backgroundColor: hexToRGBA(
-                                    event.topic.color ?? "#FFF",
-                                    0.3
-                                  ),
-                                  height: `${eventDurationHours * 100}px`,
-                                }}
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => {
-                                  setCloseupID(event.ID);
-                                }}
-                              >
-                                <div className="flex flex-row">
-                                  <div
-                                    className="h-full w-1 rounded-lg mr-2"
-                                    style={{
-                                      backgroundColor:
-                                        event.topic.color ?? "#FFF",
-                                    }}
-                                  />
+                          <div key={event.ID}>
+                            <div
+                              className="bg-transparent"
+                              style={{ height: `${gap * 100}px` }}
+                            ></div>
+                            <li
+                              key={event.ID}
+                              className={`rounded-lg p-2 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
+                              style={{
+                                backgroundColor: hexToRGBA(
+                                  event.topic.color ?? "#FFF",
+                                  0.3
+                                ),
+                                height: `${eventDurationHours * 100}px`,
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => {
+                                setCloseupID(event.ID);
+                                setEventDialogOpen(true);
+                              }}
+                            >
+                              <div className="flex flex-row">
+                                <div
+                                  className="h-full w-1 rounded-lg mr-2"
+                                  style={{
+                                    backgroundColor:
+                                      event.topic.color ?? "#FFF",
+                                  }}
+                                />
 
-                                  <div>
-                                    <p className="text-sm font-bold">
-                                      {event.title}
+                                <div>
+                                  <p className="text-sm font-bold">
+                                    {event.title}
+                                  </p>
+                                  <div className="flex flex-row items-center space-x-1">
+                                    <Clock className="h-3 w-3" />
+                                    <p className="text-sm">
+                                      {formatDateToHHMM(new Date(event.from))} -{" "}
+                                      {formatDateToHHMM(new Date(event.to))}
                                     </p>
-                                    <div className="flex flex-row items-center space-x-1">
-                                      <Clock className="h-3 w-3" />
-                                      <p className="text-sm">
-                                        {formatDateToHHMM(new Date(event.from))}{" "}
-                                        -{" "}
-                                        {formatDateToHHMM(new Date(event.to))}
-                                      </p>
-                                    </div>
                                   </div>
                                 </div>
-                                {registration && (
-                                  <div className="flex flex-row space-x-2 mt-2 w-fit h-fit py-1 px-2 rounded-lg text-black bg-white border-l-4 border-green-500">
-                                    <SquareCheckBig className="w-4 h-4 text-green-700" />
-                                    <RoomHoverCard room={registration.room} />
-                                  </div>
-                                )}
-                              </li>
-                            </div>
-                          </EventDialog>
+                              </div>
+                              {registration && (
+                                <div className="flex flex-row space-x-2 mt-2 w-fit h-fit py-1 px-2 rounded-lg text-black bg-white border-l-4 border-green-500">
+                                  <SquareCheckBig className="w-4 h-4 text-green-700" />
+                                  <RoomHoverCard room={registration.room} />
+                                </div>
+                              )}
+                            </li>
+                          </div>
                         );
                       })}
                     </ul>
