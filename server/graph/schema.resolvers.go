@@ -258,6 +258,7 @@ func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Buil
 func (r *mutationResolver) UpdateBuilding(ctx context.Context, id int, building models.Building) (*models.Building, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&building).
+		OmitZero().
 		Where("id = ?", id).
 		Exec(ctx); err != nil {
 		return nil, err
@@ -300,6 +301,7 @@ func (r *mutationResolver) AddRoom(ctx context.Context, room models.Room) (*mode
 func (r *mutationResolver) UpdateRoom(ctx context.Context, room models.Room) (*models.Room, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&room).
+		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {
 		return nil, err
