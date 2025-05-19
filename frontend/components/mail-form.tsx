@@ -32,13 +32,13 @@ export default function EditMailForm({ setting }: SettingFormProps) {
 
   const mailFormSchema = z.object({
     value: z.string().min(2, {
-      message: "Input must be at least 2 characters long",
+      message: "Input muss mindestens 2 Zeichen lang sein",
     }),
     key: z.string().min(2, {
-      message: "Input must be at least 2 characters long",
+      message: "Input muss mindestens 2 Zeichen lang sein",
     }),
     type: z.string().min(2, {
-      message: "Input must be at least 2 characters long",
+      message: "Input muss mindestens 2 Zeichen lang sein",
     }),
   });
   const form = useForm<z.infer<typeof mailFormSchema>>({
@@ -81,9 +81,13 @@ export default function EditMailForm({ setting }: SettingFormProps) {
                   name="value"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{setting.key}</FormLabel>
+                      <FormLabel>{setting.key
+                        .replace(/email/g," ")
+                        .replace(/-/g," ")
+                        .replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase())}
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="Seminarraum" {...field} />
+                        <Input placeholder="Input" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

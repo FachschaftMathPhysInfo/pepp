@@ -24,7 +24,7 @@ export default function SettingSection({
     >
       <div className={"w-full flex flex-row justify-between items-start"}>
         <div>
-          <Separator></Separator>
+          <Separator/>
           <div className={"font-bold text-xl"}>{setting.key}</div>
           <div className={"text-muted-foreground"}>
             <span>{setting.value}</span>

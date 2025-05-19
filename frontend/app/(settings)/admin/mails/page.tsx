@@ -24,16 +24,12 @@ export default function Settings() {
   const [settings, setMailSettings] = useState<Setting[]>([]);
   const [generalSettings, setGeneralMailSettings] = useState<Setting[]>([]);
   const [confirmSettings, setConfirmMailSettings] = useState<Setting[]>([]);
-  const [availablitySettings, setAvailabilityMailSettings] = useState<
-    Setting[]
-  >([]);
+  const [availablitySettings, setAvailabilityMailSettings] = useState<Setting[]>([]);
   const [assignSettings, setAssignMailSettings] = useState<Setting[]>([]);
 
   const fetchMails = useCallback(async () => {
     const client = getClient(String(sid));
-    const mailData = await client.request<AllSettingsQuery>(
-      AllSettingsDocument
-    );
+    const mailData = await client.request<AllSettingsQuery>(AllSettingsDocument);
 
     if (mailData.settings) {
       const filterSettingsToMailSettings = mailData.settings.filter((setting) =>
