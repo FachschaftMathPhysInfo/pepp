@@ -1,17 +1,14 @@
 import {Button} from "@/components/ui/button";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {Building, Room} from "@/lib/gql/generated/graphql";
+import {Room} from "@/lib/gql/generated/graphql";
 import {ColumnDef} from "@tanstack/react-table";
 import {MoreHorizontal} from "lucide-react";
 import React, {SetStateAction} from "react";
+import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
 
 
 interface RoomColumnProps {
-  setDialogState: React.Dispatch<SetStateAction<{
-    mode: "editRoom" | "deleteRoom" | "editBuilding" | "deleteBuilding" | null,
-    building?: Building,
-    room?: Room,
-  }>>;
+  setDialogState: React.Dispatch<SetStateAction<LocationDialogState>>;
 }
 
 export function RoomColumn({setDialogState}: RoomColumnProps): ColumnDef<Room>[] {

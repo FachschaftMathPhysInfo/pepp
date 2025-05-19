@@ -8,35 +8,20 @@ import {
   VisibilityState
 } from "@tanstack/react-table";
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
-import React, {useState} from "react";
+import React from "react";
 import {Input} from "@/components/ui/input";
 import {DataTablePagination} from "@/components/data-table-pagination";
-import {toast} from "sonner";
-import {
-  Building,
-  DeleteBuildingDocument,
-  DeleteBuildingMutation, DeleteRoomDocument,
-  DeleteRoomMutation,
-  Room
-} from "@/lib/gql/generated/graphql";
+import {Room} from "@/lib/gql/generated/graphql";
 import {RoomColumn} from "@/components/tables/rooms-table/room-columns";
-import ConfirmationDialog from "@/components/confirmation-dialog";
-import {getClient} from "@/lib/graphql";
+import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
 
 
 interface DataTableProps {
   data: Room[];
-  refreshData: () => void;
+  setDialogState: React.Dispatch<React.SetStateAction<LocationDialogState>>
 }
 
-export function RoomTable({data, refreshData}: DataTableProps) {
-
-
-  const [dialogState, setDialogState] = useState<{
-    mode: "editRoom" | "deleteRoom" | "editBuilding" | "deleteBuilding" | null,
-    building?: Building,
-    room?: Room,
-  }>({mode: null});
+export function RoomTable({data, setDialogState}: DataTableProps) {
   const columns = RoomColumn({setDialogState});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -53,27 +38,6 @@ export function RoomTable({data, refreshData}: DataTableProps) {
       columnVisibility,
     },
   });
-
-
-  function closeDialog() {
-    setDialogState({mode: null})
-  }
-
-  async function handleDeleteBuilding(buildingID: number) {
-    const client = getClient()
-    await client.request<DeleteBuildingMutation>(DeleteBuildingDocument, {ID: buildingID})
-  }
-
-  async function handleDeleteRoom(building: number, number: string) {
-    const client = getClient()
-    await client.request<DeleteRoomMutation>(
-      DeleteRoomDocument,
-      {
-        building: building,
-        roomNumber: number,
-      }
-    )
-  }
 
   return (
     <div className="space-y-4">
@@ -94,7 +58,7 @@ export function RoomTable({data, refreshData}: DataTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead  className={'text-left'} key={header.id}>
+                    <TableHead className={'text-left'} key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -138,36 +102,6 @@ export function RoomTable({data, refreshData}: DataTableProps) {
         </Table>
       </div>
       <DataTablePagination table={table} enableSelectionCounter={false}/>
-
-      <ConfirmationDialog
-        description={`Dies wird das Gebäude ${dialogState.building?.name} unwiederruflich löschen`}
-        onConfirm={ async () =>{
-
-          if(dialogState.building){
-            void handleDeleteBuilding(dialogState.building.ID)
-          }
-
-          refreshData()
-          toast.info(`${dialogState.building?.name} wurde erfolgreich gelöscht`)
-        }}
-        isOpen={dialogState.mode === "deleteBuilding"}
-        closeDialog={closeDialog}
-      />
-      <ConfirmationDialog
-        description={`Dies wird den Raum ${dialogState.room?.name} unwiederruflich löschen`}
-        onConfirm={ async () =>{
-
-          if(dialogState.building && dialogState.room){
-            void handleDeleteRoom(dialogState.building.ID, dialogState.room.number)
-          }
-
-          refreshData()
-          toast.info(`${dialogState.room?.name} wurde erfolgreich gelöscht`)
-        }}
-        isOpen={dialogState.mode === "deleteRoom"}
-        closeDialog={closeDialog}
-      />
-
     </div>
   );
 }

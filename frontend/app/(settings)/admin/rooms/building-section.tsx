@@ -4,15 +4,18 @@ import {Button} from "@/components/ui/button";
 import {Pencil, Map as MapIcon} from "lucide-react";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {RoomTable} from "@/components/tables/rooms-table/room-table";
+import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
+import React from "react";
+import {defaultRoom} from "@/types/defaults";
 
 
 interface BuildingSectionProps {
   building: Building;
   className?: string;
-  refreshData: () => void;
+  setDialogState: React.Dispatch<React.SetStateAction<LocationDialogState>>;
 }
 
-export default function BuildingSection({building, className, refreshData} : BuildingSectionProps) {
+export default function BuildingSection({building, className, setDialogState} : BuildingSectionProps) {
   return (
     <div className={cn('border border-muted-foreground/50 rounded-2xl p-8', className)}>
       <div className={'w-full flex flex-row justify-between items-start'}>
@@ -29,7 +32,11 @@ export default function BuildingSection({building, className, refreshData} : Bui
           </a>
         </div>
         <div>
-          <Button variant={"outline"} className={'border-0 hover:bg-background'}>
+          <Button
+            variant={"outline"}
+            className={'border-0 hover:bg-background'}
+            onClick={() => setDialogState({mode: "editBuilding", building: building, room: defaultRoom})}
+          >
             <Pencil/>
           </Button>
         </div>
@@ -39,7 +46,7 @@ export default function BuildingSection({building, className, refreshData} : Bui
             <AccordionTrigger className={'hover:no-underline'}>Räume im Gebäude</AccordionTrigger>
             <AccordionContent>
               {building.rooms ? (
-                <RoomTable data={building.rooms} refreshData={refreshData} />
+                <RoomTable data={building.rooms} setDialogState={setDialogState} />
               ) : (
                 // TODO: add button to create new room
                 <div className={'w-full text-center border rounded-lg p-10'}>Dieses Gebäude hat noch keine Räume eingetragen</div>
