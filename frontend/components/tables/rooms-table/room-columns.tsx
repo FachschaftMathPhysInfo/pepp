@@ -66,8 +66,7 @@ export function RoomColumn({currentBuilding, setDialogState}: RoomColumnProps): 
                       roomNumber: row.original.number,
                       building: currentBuilding
                     })
-                  }
-                }
+                  }}
                 >
                   Löschen
                 </DropdownMenuItem>

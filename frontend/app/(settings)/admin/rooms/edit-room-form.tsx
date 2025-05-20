@@ -41,7 +41,6 @@ export default function EditRoomForm({room, currentBuilding, closeDialog, refres
   });
   const form = useForm<z.infer<typeof roomFormSchema>>({
     resolver: zodResolver(roomFormSchema),
-    // TODO: undefined is probably not usable here
     defaultValues: {
       buildingID: currentBuilding.ID,
       number: createMode ? "" : room.number,

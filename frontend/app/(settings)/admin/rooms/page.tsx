@@ -78,7 +78,6 @@ export default function LocationSettings() {
     })
   }
 
-  // TODO: Dialogs for Editing & Creating Buildings
   return (
     <div className="space-y-6">
       <div>
