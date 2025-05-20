@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
 import { Event } from "@/lib/gql/generated/graphql";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface AdminSidebarProps {
   umbrellas: Event[];
@@ -20,6 +20,7 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ umbrellas }: AdminSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const basePath = "/" + pathname.split("/")[1];
 
@@ -59,11 +60,15 @@ export function AdminSidebar({ umbrellas }: AdminSidebarProps) {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    onClick={() => router.push(item.url)}
+                    className="cursor-pointer"
+                  >
+                    <div>
                       <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                      {item.title}
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

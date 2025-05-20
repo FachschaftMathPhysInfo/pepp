@@ -22,9 +22,11 @@ import {
 } from "@/components/ui/sidebar";
 import { useUser } from "@/components/providers";
 import { Role } from "@/lib/gql/generated/graphql";
+import { useRouter } from "next/navigation";
 
 export function ProfileSidebar() {
   const { user } = useUser();
+  const router = useRouter();
 
   const userItems = [
     {
@@ -75,11 +77,15 @@ export function ProfileSidebar() {
             <SidebarMenu>
               {userItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    onClick={() => router.push(item.url)}
+                    className="cursor-pointer"
+                  >
+                    <div>
                       <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                      {item.title}
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -93,11 +99,15 @@ export function ProfileSidebar() {
               <SidebarMenu>
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a href={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      onClick={() => router.push(item.url)}
+                      className="cursor-pointer"
+                    >
+                      <div>
                         <item.icon />
-                        <span>{item.title}</span>
-                      </a>
+                        {item.title}
+                      </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
