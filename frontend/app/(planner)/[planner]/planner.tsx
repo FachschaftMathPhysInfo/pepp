@@ -8,34 +8,25 @@ import {
   PlannerEventsQueryVariables,
   Role,
 } from "@/lib/gql/generated/graphql";
-import React, { useCallback, useEffect, useState } from "react";
+import React, {useCallback, useEffect, useState} from "react";
 
 import Filter from "@/components/filter";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { getClient } from "@/lib/graphql";
-import { CopyTextArea } from "@/components/copy-text-area";
-import { CardSkeleton } from "@/components/card-skeleton";
-import { Planner } from "@/components/planner";
-import { useUser } from "@/components/providers";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Check,
-  ChevronRight,
-  ChevronsUpDown,
-  TriangleAlert,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { defaultEvent, defaultLabel } from "@/types/defaults";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {getClient} from "@/lib/graphql";
+import {CopyTextArea} from "@/components/copy-text-area";
+import {CardSkeleton} from "@/components/card-skeleton";
+import {Planner} from "@/components/planner";
+import {useUser} from "@/components/providers";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import {Check, ChevronRight, ChevronsUpDown, TriangleAlert,} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {defaultEvent, defaultLabel} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import { cn } from "@/lib/utils";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {DataTable} from "./data-table";
+import {columns} from "./columns";
+import {cn} from "@/lib/utils";
+import {Select, SelectContent, SelectTrigger, SelectValue} from "@/components/ui/select";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -46,12 +37,12 @@ enum View {
   table = "Tabelle",
 }
 
-export function PlannerPage({ umbrellaID }: PlannerPageProps) {
+export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const { user } = useUser();
+  const {user} = useUser();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
@@ -71,9 +62,9 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const renderView = () => {
     switch (view) {
       case View.planner:
-        return <Planner events={events} />;
+        return <Planner events={events}/>;
       case View.table:
-        return <DataTable columns={columns} data={events} />;
+        return <DataTable columns={columns} data={events}/>;
     }
   };
 
@@ -101,27 +92,27 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            topic: { ...defaultLabel, ...e.topic },
+            topic: {...defaultLabel, ...e.topic},
           }))
         );
-        setIsRestricted(eventData.umbrellas[0].registrationForm ? true : false);
+        setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
       setLoading(false);
     };
 
-    fetchData();
+    void fetchData();
   }, [toFilter, tyFilter, umbrellaID]);
 
   useEffect(() => {
     router.push(
       pathname +
-        "?" +
-        createQueryString("to", toFilter) +
-        (tyFilter.length && toFilter.length ? "&" : "") +
-        createQueryString("ty", tyFilter)
+      "?" +
+      createQueryString("to", toFilter) +
+      (tyFilter.length && toFilter.length ? "&" : "") +
+      createQueryString("ty", tyFilter)
     );
-  }, [toFilter, tyFilter]);
+  }, [createQueryString, pathname, router, toFilter, tyFilter]);
 
   useEffect(() => {
     setTyFilter([]);
@@ -131,11 +122,11 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   useEffect(() => {
     setIcalPath(
       window.location.origin +
-        "/ical/?e=" +
-        umbrellaID +
-        (searchParams.size ? "&" + searchParams : "")
+      "/ical/?e=" +
+      umbrellaID +
+      (searchParams.size ? "&" + searchParams : "")
     );
-  }, [searchParams]);
+  }, [searchParams, umbrellaID]);
 
   const application = user?.applications?.find(
     (a) => a.event.ID === umbrellaID
@@ -144,69 +135,92 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   return (
     <>
       {user?.role === Role.Admin && (
-        <section className="mb-[20px] space-y-5">
-          <EditPlannerSection umbrellaID={umbrellaID} />
+        <section className="mb-[20px] space-y-3">
+          <EditPlannerSection umbrellaID={umbrellaID}/>
         </section>
       )}
 
       {events.length > 0 && (
-        <section className="sm:flex sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2 mb-2">
-            {(topics.length >= 2 || types.length >= 2) && (
-              <>
-                {topics.length >= 2 && (
-                  <Filter
-                    title="Thema"
-                    options={topics.map((t) => t.name)}
-                    filter={toFilter}
-                    setFilter={setToFilter}
-                  />
-                )}
+        <section className="sm:flex sm:flex-row sm:items-end sm:justify-between mt-12">
+          <div className="flex flex-row justify-between items-end w-full">
+            <div className={'flex justify-between items-end gap-x-6'}>
+              {user?.role === Role.Admin && (
+                <span className={'space-y-2'}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          {view}
+                          <ChevronsUpDown className="h-4 w-4"/>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        {Object.values(View).map((v) => (
+                          <DropdownMenuItem key={v} onClick={() => setView(v)}>
+                            <Check
+                              className={cn(
+                                "h-4 w-4 mr-2",
+                                v === view ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {v}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </span>
+              )}
+
+              <span className={"flex justify-between items-end gap-x-3"}>
+                  {topics.length >= 2 && (
+                    <Select>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Themen"/>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <div className={'p-2'}>
+                          <Filter
+                            options={topics.map((t) => t.name)}
+                            filter={toFilter}
+                            setFilter={setToFilter}
+                            orientation={"column"}
+                          />
+                        </div>
+                      </SelectContent>
+                    </Select>
+                  )}
+
                 {types.length >= 2 && (
-                  <Filter
-                    title="Veranstaltungsart"
-                    options={types.map((t) => t.name)}
-                    filter={tyFilter}
-                    setFilter={setTyFilter}
-                  />
-                )}
-              </>
-            )}
-            {user?.role === Role.Admin && (
-              <>
-                <p className="font-bold text-xs">Ansicht</p>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      {view}
-                      <ChevronsUpDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {Object.values(View).map((v) => (
-                      <DropdownMenuItem key={v} onClick={() => setView(v)}>
-                        <Check
-                          className={cn(
-                            "h-4 w-4 mr-2",
-                            v === view ? "opacity-100" : "opacity-0"
-                          )}
+                  <Select>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Veranstaltungsarten"/>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <div className={'p-2'}>
+                        <Filter
+                          options={types.map((t) => t.name)}
+                          filter={tyFilter}
+                          setFilter={setTyFilter}
+                          orientation={"column"}
                         />
-                        {v}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
+                      </div>
+                    </SelectContent>
+                  </Select>
+                )}
+                </span>
+            </div>
+
+            <div>
+
+              <CopyTextArea label="ICS-Kalender" text={icalPath}/>
+            </div>
           </div>
-          <CopyTextArea label="ICS-Kalender" text={icalPath} />
         </section>
       )}
 
       {isRestricted && !application && (
         <section>
           <Alert variant="destructive">
-            <TriangleAlert className="h-4 w-4" />
+            <TriangleAlert className="h-4 w-4"/>
             <AlertTitle className="font-bold">
               Registrierung erforderlich!
             </AlertTitle>
@@ -219,7 +233,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
                 onClick={() => router.push(`${pathname}/register`)}
               >
                 Zur Anmeldung
-                <ChevronRight />
+                <ChevronRight/>
               </Button>
             </AlertDescription>
           </Alert>
@@ -227,7 +241,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       )}
 
       <section className="mt-5">
-        {loading ? <CardSkeleton /> : renderView()}
+        {loading ? <CardSkeleton/> : renderView()}
       </section>
     </>
   );
