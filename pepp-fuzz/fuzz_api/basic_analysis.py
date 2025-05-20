@@ -56,6 +56,8 @@ def run_fuzzer():
       process.wait()
       raise
     
+ 
+
     
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO)
@@ -64,7 +66,7 @@ if __name__ == "__main__":
   compile_fuzzer()
   corpus_setup()
   run_fuzzer()
-  corpus_cleanup()
+
   
   logging.info("Fuzzing completed.")
   
