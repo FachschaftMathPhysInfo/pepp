@@ -1,0 +1,7 @@
+query allSettings {
+  settings {
+    key
+    value
+    type
+  }
+}
