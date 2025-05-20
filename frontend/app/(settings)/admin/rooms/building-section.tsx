@@ -58,8 +58,15 @@ export default function BuildingSection({building, className, setDialogState}: B
               ? (<RoomTable data={building.rooms} setDialogState={setDialogState} currentBuilding={building}/>)
               : (
                 // TODO: add button to create new room
-                <div className={'w-full text-center border rounded-lg p-10'}>Dieses Gebäude hat noch keine Räume
-                  eingetragen</div>
+                <div className={'w-full text-center border rounded-lg p-10'}>
+                  Dieses Gebäude hat noch keine Räume eingetragen.
+                  <span
+                      onClick={() => setDialogState({mode: "createRoom", roomNumber: "", building: building})}
+                      className={'ml-1 text-blue-500 underlined cursor-pointer'}
+                  >
+                    Hier kannst du einen erstellen.
+                  </span>
+                </div>
               )
             }
           </AccordionContent>
