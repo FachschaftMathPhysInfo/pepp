@@ -60,7 +60,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
     });
   };
   const [dialogState, setDialogState] = useState<{
-    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | null;
+    mode: "makeAdmin" | "removeAdmin" | "deleteUser" | "deleteAdmin" | null;
     user?: { mail: string; fn: string; sn: string; newRole: Role };
   }>({ mode: null });
   const columns = UserColumns({ setDialogState });
@@ -156,9 +156,10 @@ export function UserTable({ data, refreshData }: DataTableProps) {
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} enableSelectionCounter={false}/>
+      <DataTablePagination table={table} enableSelectionCounter={false} />
 
       <ConfirmationDialog
+        mode="confirmation"
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} zum Admin machen`}
         onConfirm={async () => {
           if (dialogState.user) {
@@ -178,6 +179,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
         closeDialog={closeDialog}
       />
       <ConfirmationDialog
+        mode="confirmation"
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} zum normalen User machen`}
         onConfirm={async () => {
           if (dialogState.user) {
@@ -188,7 +190,6 @@ export function UserTable({ data, refreshData }: DataTableProps) {
               dialogState.user.newRole
             );
           }
-
           refreshData();
           toast.info(
             `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zu User gemacht`
@@ -198,6 +199,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
         closeDialog={closeDialog}
       />
       <ConfirmationDialog
+        mode="confirmation"
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} unwiederruflich löschen`}
         onConfirm={async () => {
           if (dialogState.user) {
@@ -210,6 +212,13 @@ export function UserTable({ data, refreshData }: DataTableProps) {
           );
         }}
         isOpen={dialogState.mode === "deleteUser"}
+        closeDialog={closeDialog}
+      />
+      <ConfirmationDialog
+        mode="information"
+        information={`Admins können nicht gelöscht werden!`}
+        description={`Zum Löschen von Admins müssen diese erst zu normalen Usern heruntergestuft werden.`}
+        isOpen={dialogState.mode === "deleteAdmin"}
         closeDialog={closeDialog}
       />
     </div>
