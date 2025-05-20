@@ -21,3 +21,4 @@ frontend/lib/gql/generated/
 workdir/
 crashers/
 suppressions/
+corpus/
