@@ -23,8 +23,8 @@ import {Button} from "@/components/ui/button";
 import {defaultEvent, defaultLabel} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {DataTable} from "./data-table";
-import {columns} from "./columns";
+import {PlannerTable} from "@/app/(planner)/table/planner-table";
+import {plannerColumns} from "@/app/(planner)/table/planner-columns";
 import {cn} from "@/lib/utils";
 import {Select, SelectContent, SelectTrigger, SelectValue} from "@/components/ui/select";
 
@@ -64,7 +64,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
       case View.planner:
         return <Planner events={events}/>;
       case View.table:
-        return <DataTable columns={columns} data={events}/>;
+        return <PlannerTable columns={plannerColumns} data={events}/>;
     }
   };
 
@@ -140,8 +140,9 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
         </section>
       )}
 
+      {/* TODO: fix mobile stuff */}
       {events.length > 0 && (
-        <section className="sm:flex sm:flex-row sm:items-end sm:justify-between mt-12">
+        <section className="sm:flex sm:flex-row sm:items-end sm:justify-between sm:flex-wrap mt-12">
           <div className="flex flex-row justify-between items-end w-full">
             <div className={'flex justify-between items-end gap-x-6'}>
               {user?.role === Role.Admin && (

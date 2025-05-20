@@ -14,7 +14,7 @@ import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 
-export const columns: ColumnDef<Event>[] = [
+export const plannerColumns: ColumnDef<Event>[] = [
   {
     id: "select",
     header: ({ table }) => (
