@@ -5,6 +5,8 @@ import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/co
 import {RoomTable} from "@/components/tables/rooms-table/room-table";
 import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
 import React from "react";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
+import Link from "next/link";
 
 interface BuildingSectionProps {
   building: Building;
@@ -14,64 +16,69 @@ interface BuildingSectionProps {
 
 export default function BuildingSection({building, className, setDialogState}: BuildingSectionProps) {
   return (
-    <div className={cn('border border-muted-foreground/50 rounded-2xl p-8', className)}>
-      <div className={'w-full flex flex-row justify-between items-start'}>
-        <div>
-          <div className={'font-bold text-xl'}>{building.name}</div>
-          <div className={'text-muted-foreground'}>
-            <span>{building.street} {building.number}</span>
-            <span className={'mx-2'}>|</span>
-            <span>{building.zip} {building.city}</span>
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <div className={'flex justify-between items-center'}>
+            {building.name}
+            <div>
+              <button
+                className={'mr-4'}
+                onClick={() => setDialogState({
+                  mode: "createRoom",
+                  roomNumber: '',
+                  building: building
+                })}
+              >
+                <CirclePlus className={'w-5'}/>
+              </button>
+              <button
+                className={'mr-4'}
+                onClick={() => setDialogState({mode: "editBuilding", building: building, roomNumber: ""})}
+              >
+                <Pencil className={'w-5'}/>
+              </button>
+            </div>
           </div>
-          <a className={'text-muted-foreground/80 text-sm hover:underline'}
-             href={`https://www.openstreetmap.org/#map=19/${building.latitude}/${building.longitude}`}>
+        </CardTitle>
+        <CardDescription>
+          <span>{building.street} {building.number}</span>
+          <span className={'mx-2'}>|</span>
+          <span>{building.zip} {building.city}</span>
+          <Link
+            className={'text-muted-foreground/80 text-sm hover:underline block mt-0.5'}
+            href={`https://www.openstreetmap.org/#map=19/${building.latitude}/${building.longitude}`}
+          >
             <MapIcon className={'inline w-3 h-3 mr-1'}/>
             {building.latitude} °N, {building.longitude} °W
-          </a>
-        </div>
-        <div>
-          <button
-            className={'mr-4'}
-            onClick={() => setDialogState({
-              mode: "createRoom",
-              roomNumber: '',
-              building: building
-            })}
-          >
-            <CirclePlus className={'w-5'} />
-          </button>
-          <button
-            className={'mr-4'}
-            onClick={() => setDialogState({mode: "editBuilding", building: building, roomNumber: ""})}
-          >
-            <Pencil className={'w-5'}/>
-          </button>
-        </div>
-      </div>
-      <Accordion type="single" collapsible>
-        <AccordionItem value="item-1">
-          <AccordionTrigger className={'hover:no-underline'}>
+          </Link>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Accordion type="single" collapsible>
+          <AccordionItem value="item-1">
+            <AccordionTrigger className={'hover:no-underline'}>
               Räume im Gebäude
-          </AccordionTrigger>
-          <AccordionContent>
-            {building.rooms
-              ? (<RoomTable data={building.rooms} setDialogState={setDialogState} currentBuilding={building}/>)
-              : (
-                // TODO: add button to create new room
-                <div className={'w-full text-center border rounded-lg p-10'}>
-                  Dieses Gebäude hat noch keine Räume eingetragen.
-                  <span
+            </AccordionTrigger>
+            <AccordionContent>
+              {building.rooms
+                ? (<RoomTable data={building.rooms} setDialogState={setDialogState} currentBuilding={building}/>)
+                : (
+                  <div className={'w-full text-center border rounded-lg p-10'}>
+                    Dieses Gebäude hat noch keine Räume eingetragen.
+                    <span
                       onClick={() => setDialogState({mode: "createRoom", roomNumber: "", building: building})}
                       className={'ml-1 text-blue-500 underlined cursor-pointer'}
-                  >
+                    >
                     Hier kannst du einen erstellen.
                   </span>
-                </div>
-              )
-            }
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </div>
+                  </div>
+                )
+              }
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </CardContent>
+    </Card>
   )
 }

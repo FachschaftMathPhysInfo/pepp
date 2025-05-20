@@ -320,7 +320,7 @@ func (r *mutationResolver) UpdateRoom(ctx context.Context, room models.Room) (*m
 func (r *mutationResolver) DeleteRoom(ctx context.Context, number []string, buildingID int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Room)(nil)).
-		Where("number = ?", bun.In(number)).
+		Where("number IN (?)", bun.In(number)).
 		Where("building_id = ?", buildingID).
 		Exec(ctx)
 	if err != nil {
