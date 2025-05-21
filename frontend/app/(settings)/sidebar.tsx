@@ -46,7 +46,7 @@ export function ProfileSidebar() {
     },
     {
       title: "Meine Verfügbarkeiten",
-      url: "/profile/registrations",
+      url: "/profile/availabilities",
       icon: CalendarCheck2,
     },
   ];
