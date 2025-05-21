@@ -259,6 +259,7 @@ func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Buil
 func (r *mutationResolver) UpdateBuilding(ctx context.Context, id int, building models.Building) (*models.Building, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&building).
+		OmitZero().
 		Where("id = ?", id).
 		Exec(ctx); err != nil {
 		return nil, err
@@ -276,7 +277,7 @@ func (r *mutationResolver) UpdateBuilding(ctx context.Context, id int, building 
 func (r *mutationResolver) DeleteBuilding(ctx context.Context, id []int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Building)(nil)).
-		Where("id = ?", id).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
 		return 0, err
@@ -301,6 +302,7 @@ func (r *mutationResolver) AddRoom(ctx context.Context, room models.Room) (*mode
 func (r *mutationResolver) UpdateRoom(ctx context.Context, room models.Room) (*models.Room, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&room).
+		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {
 		return nil, err
@@ -318,7 +320,7 @@ func (r *mutationResolver) UpdateRoom(ctx context.Context, room models.Room) (*m
 func (r *mutationResolver) DeleteRoom(ctx context.Context, number []string, buildingID int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Room)(nil)).
-		Where("number = ?", number).
+		Where("number IN (?)", bun.In(number)).
 		Where("building_id = ?", buildingID).
 		Exec(ctx)
 	if err != nil {
