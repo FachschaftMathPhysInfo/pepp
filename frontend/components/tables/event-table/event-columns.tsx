@@ -5,7 +5,7 @@ import { Event } from "@/lib/gql/generated/graphql";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 
-export const columns: ColumnDef<Event>[] = [
+export const eventColumns: ColumnDef<Event>[] = [
   {
     id: "select",
     header: ({ table }) => (
