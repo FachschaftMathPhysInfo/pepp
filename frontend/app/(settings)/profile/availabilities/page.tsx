@@ -5,7 +5,9 @@ import {
   AddEventAvailabilityOfTutorDocument,
   AddEventAvailabilityOfTutorMutation,
   AvailableEventIdsOfUserDocument,
-  AvailableEventIdsOfUserQuery, DeleteEventAvailabilityOfTutorDocument, DeleteEventAvailabilityOfTutorMutation,
+  AvailableEventIdsOfUserQuery,
+  DeleteEventAvailabilityOfTutorDocument,
+  DeleteEventAvailabilityOfTutorMutation,
   Event,
   TableEventsDocument,
   TableEventsQuery,
@@ -16,7 +18,7 @@ import {Separator} from "@/components/ui/separator"
 import {Button} from "@/components/ui/button"
 import {EventTable} from "@/components/tables/event-table/event-table";
 import {eventColumns} from "@/components/tables/event-table/event-columns";
-import {RowSelection, RowSelectionState} from "@tanstack/react-table";
+import {RowSelectionState} from "@tanstack/react-table";
 import {defaultEvent} from "@/types/defaults";
 import {Save} from "lucide-react";
 import {GraphQLClient} from "graphql-request";
@@ -24,7 +26,7 @@ import {toast} from "sonner";
 import {getIdsFromRowSelection} from "@/lib/utils/tableUtils";
 
 export default function Settings() {
-  const { user, sid } = useUser()
+  const {user, sid} = useUser()
   const [client, setClient] = useState<GraphQLClient>(getClient())
   const [events, setEvents] = useState<Event[]>([])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -32,37 +34,40 @@ export default function Settings() {
   const [selectedEventIds, setSelectedEventIds] = useState<number[]>([])
 
   const fetchEvents = useCallback(async () => {
-    const futureEventsData = await client.request<TableEventsQuery>(TableEventsDocument, {
-      needsTutors: true,
-      onlyFuture: true,
-    })
-    const futureEvents: Event[] = futureEventsData.events.map(e => ({
-      ...defaultEvent,
-      ...e
-    }))
+    if (user !== null) {
+      const futureEventsData = await client.request<TableEventsQuery>(TableEventsDocument, {
+        needsTutors: true,
+        onlyFuture: true,
+      })
+      const futureEvents: Event[] = futureEventsData.events.map(e => ({
+        ...defaultEvent,
+        ...e
+      }))
 
-    const availableEventsData = await client.request<AvailableEventIdsOfUserQuery>(
-      AvailableEventIdsOfUserDocument,
-      {mail: user?.mail}
-    )
+      const availableEventsData = await client.request<AvailableEventIdsOfUserQuery>(
+        AvailableEventIdsOfUserDocument,
+        {mail: user.mail}
+      )
 
-    const availableEvents = availableEventsData.users.map(u => u.availabilities)
+      const availableEvents = availableEventsData.users.map(u => u.availabilities)
 
-    // This is some nested Array fuckery
-    setPreviousEventIds(availableEvents.flatMap(usersEventList =>
-      (usersEventList || []).map(event => event.ID)))
+      const initialIds = availableEvents.flatMap(usersEventList =>
+        (usersEventList || []).map(event => event.ID))
 
-    setEvents(futureEvents);
-    setRowSelection(Object.fromEntries(previousEventIds.map(id => [id, true])))
-    setSelectedEventIds(getIdsFromRowSelection(rowSelection))
-  }, [client, user?.mail])
+      // This is some nested Array fuckery
+      setPreviousEventIds(initialIds)
+      setEvents(futureEvents);
+      setRowSelection(Object.fromEntries(initialIds.map(id => [id, true])))
+      setSelectedEventIds(initialIds)
+    }
+  }, [client, user])
 
   useEffect(() => {
-    if( sid ) setClient(getClient(sid))
+    if (sid) setClient(getClient(sid))
   }, [sid]);
 
   useEffect(() => {
-    if(sid) void fetchEvents()
+    if (sid) void fetchEvents()
   }, [fetchEvents, sid]);
 
   useEffect(() => {
@@ -75,17 +80,17 @@ export default function Settings() {
     const idsToRemove: number[] = previousEventIds.filter(id => !selectedEventIds.includes(id))
     const idsToAdd: number[] = selectedEventIds.filter(id => !previousEventIds.includes(id))
 
-    if(idsToRemove.length > 0) {
+    if (idsToRemove.length > 0) {
       await client.request<DeleteEventAvailabilityOfTutorMutation>(DeleteEventAvailabilityOfTutorDocument, {
-        mail:  user?.mail,
-        eventId: idsToRemove,
+        email: user?.mail,
+        eventsAvailable: idsToRemove,
       })
     }
 
-    if(idsToRemove.length > 0) {
+    if (idsToAdd.length > 0) {
       await client.request<AddEventAvailabilityOfTutorMutation>(AddEventAvailabilityOfTutorDocument, {
-        mail: user?.mail,
-        eventId: idsToAdd,
+        email: user?.mail,
+        eventsAvailable: idsToAdd,
       })
     }
 
@@ -101,7 +106,7 @@ export default function Settings() {
             Passe hier an für welche Tutorien du als Tutor:in verfügbar bist.
           </p>
         </div>
-        <Separator />
+        <Separator/>
         <div>
           <EventTable
             columns={eventColumns}
