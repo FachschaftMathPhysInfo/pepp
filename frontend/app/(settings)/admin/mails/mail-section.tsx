@@ -1,19 +1,15 @@
-import { Setting } from "@/lib/gql/generated/graphql";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Pencil, Map as MapIcon } from "lucide-react";
-import { Separator } from "@radix-ui/react-dropdown-menu";
+import {Setting} from "@/lib/gql/generated/graphql";
+import {cn} from "@/lib/utils";
+import {Separator} from "@radix-ui/react-dropdown-menu";
 
 interface MailSectionProps {
   setting: Setting;
   className?: string;
-  refreshData: () => void;
 }
 
 export default function SettingSection({
   setting,
   className,
-  refreshData,
 }: MailSectionProps) {
   return (
     <div
