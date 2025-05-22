@@ -16,8 +16,9 @@ import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {useRouter} from "next/navigation";
 import {useUser} from "@/components/providers";
-import React from "react";
+import React, {useState} from "react";
 import {DatePickerWithRange} from "@/components/date-picker-with-range";
+import {DateRange} from "react-day-picker";
 
 const PlannerFormSchema = z.object({
   title: z.string().min(1, {
@@ -27,11 +28,12 @@ const PlannerFormSchema = z.object({
 
 interface EditPlannerFormProps {
   umbrellaID: number;
-  umbrella: Event | null;
+  umbrella: Event;
+  setUmbrella: React.Dispatch<React.SetStateAction<Event | null>>;
   closeDialog: () => void;
 }
 
-export default function EditPlannerForm( {umbrellaID, umbrella, closeDialog}: EditPlannerFormProps ) {
+export default function EditPlannerForm( {umbrellaID, umbrella, setUmbrella, closeDialog}: EditPlannerFormProps ) {
   const router = useRouter();
   const { sid } = useUser();
   const form = useForm<z.infer<typeof PlannerFormSchema>>({
@@ -40,44 +42,24 @@ export default function EditPlannerForm( {umbrellaID, umbrella, closeDialog}: Ed
       title: umbrella?.title ?? "",
     },
   });
+  const [eventDuration, setEventDuration] = useState<DateRange>({from: umbrella.from, to: umbrella.to});
 
   if (!umbrella) return;
   
   function onDatePickerClose(from: Date | undefined, to: Date | undefined) {
-    if (!from || !to || (from === umbrella?.from && to === umbrella.to)) return;
-
-    const pushChanges = async () => {
-      const client = getClient(sid!);
-
-      const vars: UpdateEventMutationVariables = {
-        id: umbrellaID,
-        event: {
-          title: umbrella!.title,
-          needsTutors: false,
-          from: from,
-          to: to,
-        },
-      };
-
-      await client.request<UpdateEventMutation>(UpdateEventDocument, vars);
-    };
-
-    void pushChanges();
-    toast("Veranstaltungsdauer erfolgreich angepasst!");
+    setEventDuration({from: from,  to: to});
   }
 
-  // TODO: Date picker stuff should be submitted with save button
   function onSubmit(data: z.infer<typeof PlannerFormSchema>) {
     const pushChanges = async () => {
       const client = getClient(sid!);
-
       const vars: UpdateEventMutationVariables = {
         id: umbrellaID,
         event: {
           title: data.title,
           needsTutors: false,
-          from: umbrella?.from,
-          to: umbrella?.to,
+          from: eventDuration.from,
+          to: eventDuration.to,
         },
       };
 
@@ -86,6 +68,13 @@ export default function EditPlannerForm( {umbrellaID, umbrella, closeDialog}: Ed
 
     void pushChanges();
     toast("Veranstaltungstitel erfolgreich angepasst!");
+    setUmbrella({
+      ...umbrella,
+      title: data.title,
+      from: eventDuration.from,
+      to: eventDuration.to
+    })
+
     void router.push(slugify(data.title) + "-" + umbrellaID);
     closeDialog();
   }

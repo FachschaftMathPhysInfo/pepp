@@ -18,7 +18,7 @@ import {CardSkeleton} from "@/components/card-skeleton";
 import {Planner} from "@/components/planner";
 import {useUser} from "@/components/providers";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
-import {Check, ChevronRight, ChevronsUpDown, TriangleAlert,} from "lucide-react";
+import {Check, ChevronRight, ChevronsUpDown, FilterIcon, TriangleAlert,} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {defaultEvent, defaultLabel} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
@@ -26,7 +26,7 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {PlannerTable} from "@/app/(planner)/table/planner-table";
 import {plannerColumns} from "@/app/(planner)/table/planner-columns";
 import {cn} from "@/lib/utils";
-import {Select, SelectContent, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {Select, SelectContent, SelectTrigger} from "@/components/ui/select";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -135,19 +135,16 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
   return (
     <>
       {user?.role === Role.Admin && (
-        <section className="mb-[20px] space-y-3">
+        <section className="space-y-3 mb-12">
           <EditPlannerSection umbrellaID={umbrellaID}/>
         </section>
       )}
 
-      {/* TODO: fix mobile stuff */}
       {events.length > 0 && (
-        <section className="sm:flex sm:flex-row sm:items-end sm:justify-between sm:flex-wrap mt-12">
-          <div className="flex flex-row justify-between items-end w-full">
-            <div className={'flex justify-between items-end gap-x-6'}>
+        <div className="flex flex-row flex-wrap justify-between items-end space-y-6 w-full">
+            <div className={'flex justify-between items-end gap-x-6 mr-12'}>
               {user?.role === Role.Admin && (
-                <span className={'space-y-2'}>
-                    <DropdownMenu>
+                <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline">
                           {view}
@@ -168,17 +165,18 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </span>
               )}
 
-              <span className={"flex justify-between items-end gap-x-3"}>
-                  {topics.length >= 2 && (
-                    <Select>
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Themen"/>
-                      </SelectTrigger>
-                      <SelectContent>
+              {topics.length >= 2 && types.length >= 2 && (
+                <Select>
+                  <SelectTrigger className={'[&>svg:nth-of-type(2)]:hidden'}>
+                    <FilterIcon/>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <span className={"flex gap-x-3"}>
+                      {topics.length >= 2 && (
                         <div className={'p-2'}>
+                          <p className={'mb-2'}>Themen</p>
                           <Filter
                             options={topics.map((t) => t.name)}
                             filter={toFilter}
@@ -186,36 +184,26 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
                             orientation={"column"}
                           />
                         </div>
-                      </SelectContent>
-                    </Select>
-                  )}
+                      )}
 
-                {types.length >= 2 && (
-                  <Select>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Veranstaltungsarten"/>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <div className={'p-2'}>
-                        <Filter
-                          options={types.map((t) => t.name)}
-                          filter={tyFilter}
-                          setFilter={setTyFilter}
-                          orientation={"column"}
-                        />
-                      </div>
-                    </SelectContent>
-                  </Select>
-                )}
-                </span>
+                      {types.length >= 2 && (
+                        <div className={'p-2'}>
+                          <p className={'mb-2'}>Veranstaltungstypen</p>
+                          <Filter
+                            options={types.map((t) => t.name)}
+                            filter={tyFilter}
+                            setFilter={setTyFilter}
+                            orientation={"column"}
+                          />
+                        </div>
+                      )}
+                    </span>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-
-            <div>
-
-              <CopyTextArea label="ICS-Kalender" text={icalPath}/>
-            </div>
+            <CopyTextArea label="ICS-Kalender" text={icalPath}/>
           </div>
-        </section>
       )}
 
       {isRestricted && !application && (

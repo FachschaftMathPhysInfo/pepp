@@ -2,7 +2,7 @@
 
 import EventDialog from "@/components/event-dialog/event-dialog";
 import {Button} from "@/components/ui/button";
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
 import {
   Event,
   UmbrellaDetailDocument,
@@ -22,8 +22,8 @@ interface EditPlannerSectionProps {
 }
 
 export default function EditPlannerSection({
-  umbrellaID,
-}: EditPlannerSectionProps) {
+                                             umbrellaID,
+                                           }: EditPlannerSectionProps) {
 
   const [umbrella, setUmbrella] = useState<Event | null>(null);
   const [open, setOpen] = useState(false);
@@ -43,7 +43,7 @@ export default function EditPlannerSection({
         vars
       );
 
-      setUmbrella({ ...defaultEvent, ...umbrellaData.umbrellas[0] });
+      setUmbrella({...defaultEvent, ...umbrellaData.umbrellas[0]});
 
 
     };
@@ -54,37 +54,44 @@ export default function EditPlannerSection({
   if (!umbrella) return;
 
   return (
-      <div className="flex flex-row space-x-2">
-        <h1 className="text-3xl font-semibold">{umbrella.title}</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button variant="ghost">
-              <Edit3 className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w[425px]">
-            <DialogHeader>
-              <DialogTitle>Veranstaltung bearbeiten</DialogTitle>
-            </DialogHeader>
-            <EditPlannerForm
-              umbrellaID={umbrellaID}
-              umbrella={umbrella}
-              setUmbrella={setUmbrella}
-              closeDialog={() =>  setOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
-        <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
-          <EventDialog open={eventDialogOpen} modify={true} />
-        </Dialog>
+    <>
+      <div className="flex flex-row flex-wrap items-center">
+        <div className={'flex flex-row space-x-2 mr-2'}>
+          <h1 className="text-3xl font-semibold">{umbrella.title}</h1>
+          <Button
+            variant="ghost"
+            onClick={() => setOpen(true)}
+          >
+            <Edit3 className="h-4 w-4"/>
+          </Button>
+        </div>
+
         <Button
           variant={"secondary"}
-          className={cn("h-[40px] w-auto justify-start text-left font-normal")}
+          className={cn("p-4 text-left font-normal")}
           onClick={() => setEventDialogOpen(true)}
         >
-          <PlusCircle />
+          <PlusCircle/>
           Event hinzufügen
         </Button>
       </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w[425px]">
+          <DialogHeader>
+            <DialogTitle>Veranstaltung bearbeiten</DialogTitle>
+          </DialogHeader>
+          <EditPlannerForm
+            umbrellaID={umbrellaID}
+            umbrella={umbrella}
+            setUmbrella={setUmbrella}
+            closeDialog={() => setOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
+        <EventDialog open={eventDialogOpen} modify={true}/>
+      </Dialog>
+    </>
   );
 }
