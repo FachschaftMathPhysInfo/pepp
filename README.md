@@ -70,10 +70,11 @@ services:
 | `POSTGRES_PORT` | Required if `POSTGRES_HOST` is given | `5433` |
 | `POSTGRES_USER` | Required if `POSTGRES_HOST` is given | `postgres` |
 | `POSTGRES_DB` | Required if `POSTGRES_HOST` is given | `postgres` |
-| `OIDC_LOGIN_PROVIDER_URL` | When given, initializes an Open ID Endpoint at `/sso/oidc` | `auth.example.com` |
+| `OIDC_LOGIN_PROVIDER_URL` | When given, initializes an Open ID Endpoint at `/sso/oidc` | `https://auth.example.com` |
 | `OIDC_LOGIN_CLIENT_ID` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `pepp` |
 | `OIDC_LOGIN_CLIENT_SECRET` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `insecure_secret` |
 | `OIDC_LOGIN_SCOPES` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `openid profile email groups` |
+| `OIDC_LOGIN_CLAIM_MAPPING` | Required if `OIDC_LOGIN_PROVIDER_URL` is given. Map single name strings to `name` and splitted to `fn` and `sn` | `'{"mail":"email","name":"name"}'` |
 
 ## contributions
 1. [create an issue](https://github.com/FachschaftMathPhysInfo/pepp/issues/new)

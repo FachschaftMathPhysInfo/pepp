@@ -25,6 +25,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { type ThemeProviderProps } from "next-themes/dist/types";
 import { getClient } from "@/lib/graphql";
 import { setCookie, deleteCookie, getCookie } from "@/lib/cookie";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type UserContextType = {
   user: User | null;
@@ -44,8 +45,18 @@ export const useUser = () => {
 };
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [sid, setSid] = useState<string | null>(getCookie("sid"));
+
+  useEffect(() => {
+    const sid = searchParams.get("sid");
+    if (sid) {
+      setSid(sid);
+      router.push("/");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!user) deleteCookie("sid");

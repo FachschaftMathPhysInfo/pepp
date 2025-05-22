@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -25,4 +27,15 @@ func MustGetEnv(key string) string {
 	}
 
 	return s
+}
+
+func SetCookie(w http.ResponseWriter, r *http.Request, name, value string) {
+	c := &http.Cookie{
+		Name:     name,
+		Value:    value,
+		MaxAge:   int(time.Hour.Seconds()) * 24,
+		Secure:   r.TLS != nil,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, c)
 }
