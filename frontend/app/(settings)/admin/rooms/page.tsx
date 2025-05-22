@@ -101,7 +101,7 @@ export default function LocationSettings() {
 
       <ConfirmationDialog
         mode={"confirmation"}
-        description={`Dies wird das Gebäude ${dialogState.building.name} unwiederruflich löschen`}
+        description={`Dies wird das Gebäude ${dialogState.building.name} und alle darin enthaltenen Räume unwiederruflich löschen`}
         onConfirm={ async () =>{
           await handleDeleteBuilding();
           closeDialog();
