@@ -34,7 +34,7 @@ func GetOIDCClientConfig(ctx context.Context) (*oauth2.Config, *oidc.Provider, m
 	config := oauth2.Config{
 		ClientID:     utils.MustGetEnv("OIDC_LOGIN_CLIENT_ID"),
 		ClientSecret: utils.MustGetEnv("OIDC_LOGIN_CLIENT_SECRET"),
-		RedirectURL:  utils.MustGetEnv("OIDC_LOGIN_REDIRECT_URL"),
+		RedirectURL:  utils.MustGetEnv("PUBLIC_URL") + "/sso/oidc/callback",
 		Endpoint:     provider.Endpoint(),
 		Scopes:       strings.Split(utils.MustGetEnv("OIDC_LOGIN_SCOPES"), " "),
 	}
