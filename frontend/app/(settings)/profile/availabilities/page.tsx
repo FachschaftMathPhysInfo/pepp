@@ -23,7 +23,7 @@ import {defaultEvent} from "@/types/defaults";
 import {Save} from "lucide-react";
 import {GraphQLClient} from "graphql-request";
 import {toast} from "sonner";
-import {getIdsFromRowSelection} from "@/lib/utils/tableUtils";
+import {createRowSelectionFromEventIds, getEventIdsFromRowSelection} from "@/lib/utils/tableUtils";
 
 export default function Settings() {
   const {user, sid} = useUser()
@@ -57,7 +57,7 @@ export default function Settings() {
       // This is some nested Array fuckery
       setPreviousEventIds(initialIds)
       setEvents(futureEvents);
-      setRowSelection(Object.fromEntries(initialIds.map(id => [id, true])))
+      setRowSelection(createRowSelectionFromEventIds(initialIds))
       setSelectedEventIds(initialIds)
     }
   }, [client, user])
@@ -71,7 +71,7 @@ export default function Settings() {
   }, [fetchEvents, sid]);
 
   useEffect(() => {
-    setSelectedEventIds(getIdsFromRowSelection(rowSelection))
+    setSelectedEventIds(getEventIdsFromRowSelection(rowSelection))
   }, [rowSelection])
 
 
@@ -94,6 +94,7 @@ export default function Settings() {
       })
     }
 
+    setPreviousEventIds(selectedEventIds)
     toast.info("Deine Verfügbarkeiten wurden geupdated!")
   }
 
@@ -114,16 +115,24 @@ export default function Settings() {
             rowSelection={rowSelection}
             setRowSelection={setRowSelection}
           />
-          <Button
-            variant={"default"}
-            className={'mt-5 w-full'}
-            onClick={() => onSubmit()}
-            /*Mate idk either, but it works*/
-            disabled={String(selectedEventIds) === String(previousEventIds)}
-          >
-            <Save/>
-            Speichern
-          </Button>
+          <div className={'flex justify-between items-center mt-5 w-full gap-x-12'}>
+            <Button
+              variant={"outline"}
+              className={'flex-grow-[0.25]'}
+              onClick={() => setRowSelection(createRowSelectionFromEventIds(previousEventIds))}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant={"default"}
+              className={'flex-grow-[0.75]'}
+              onClick={() => onSubmit()}
+              disabled={String(selectedEventIds) === String(previousEventIds)}
+            >
+              <Save/>
+              Speichern
+            </Button></div>
         </div>
       </div>
     </>
