@@ -20,7 +20,7 @@ import {EventTable} from "@/components/tables/event-table/event-table";
 import {eventColumns} from "@/components/tables/event-table/event-columns";
 import {RowSelectionState} from "@tanstack/react-table";
 import {defaultEvent} from "@/types/defaults";
-import {Save} from "lucide-react";
+import {RotateCcw, Save} from "lucide-react";
 import {GraphQLClient} from "graphql-request";
 import {toast} from "sonner";
 import {createRowSelectionFromEventIds, getEventIdsFromRowSelection} from "@/lib/utils/tableUtils";
@@ -32,9 +32,9 @@ export default function Settings() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [previousEventIds, setPreviousEventIds] = useState<number[]>([])
   const [selectedEventIds, setSelectedEventIds] = useState<number[]>([])
-
+  const [hasSelectionChangedFromInit, setHasSelectionChangedFromInit] = useState<boolean>(false)
   const fetchEvents = useCallback(async () => {
-    if (user !== null) {
+    if (user) {
       const futureEventsData = await client.request<TableEventsQuery>(TableEventsDocument, {
         needsTutors: true,
         onlyFuture: true,
@@ -48,13 +48,10 @@ export default function Settings() {
         AvailableEventIdsOfUserDocument,
         {mail: user.mail}
       )
-
       const availableEvents = availableEventsData.users.map(u => u.availabilities)
-
       const initialIds = availableEvents.flatMap(usersEventList =>
         (usersEventList || []).map(event => event.ID))
 
-      // This is some nested Array fuckery
       setPreviousEventIds(initialIds)
       setEvents(futureEvents);
       setRowSelection(createRowSelectionFromEventIds(initialIds))
@@ -71,8 +68,10 @@ export default function Settings() {
   }, [fetchEvents, sid]);
 
   useEffect(() => {
-    setSelectedEventIds(getEventIdsFromRowSelection(rowSelection))
-  }, [rowSelection])
+    const newIds = getEventIdsFromRowSelection(rowSelection)
+    setSelectedEventIds(newIds)
+    setHasSelectionChangedFromInit(!(String(newIds) == String(previousEventIds)))
+  }, [previousEventIds, rowSelection])
 
 
   async function onSubmit() {
@@ -80,18 +79,25 @@ export default function Settings() {
     const idsToRemove: number[] = previousEventIds.filter(id => !selectedEventIds.includes(id))
     const idsToAdd: number[] = selectedEventIds.filter(id => !previousEventIds.includes(id))
 
-    if (idsToRemove.length > 0) {
-      await client.request<DeleteEventAvailabilityOfTutorMutation>(DeleteEventAvailabilityOfTutorDocument, {
-        email: user?.mail,
-        eventsAvailable: idsToRemove,
-      })
-    }
+    try {
+      if (idsToRemove.length > 0) {
+        await client.request<DeleteEventAvailabilityOfTutorMutation>(DeleteEventAvailabilityOfTutorDocument, {
+          email: user?.mail,
+          eventsAvailable: idsToRemove,
+        })
+      }
 
-    if (idsToAdd.length > 0) {
-      await client.request<AddEventAvailabilityOfTutorMutation>(AddEventAvailabilityOfTutorDocument, {
-        email: user?.mail,
-        eventsAvailable: idsToAdd,
-      })
+      if (idsToAdd.length > 0) {
+        await client.request<AddEventAvailabilityOfTutorMutation>(AddEventAvailabilityOfTutorDocument, {
+          email: user?.mail,
+          eventsAvailable: idsToAdd,
+        })
+      }
+    } catch (error) {
+      if(!String(error).toLowerCase().includes("no valid smtp")){
+        toast.error("Ein Fehler ist aufgetreten, lade die Seite neu oder versuche es später erneut")
+        return
+      }
     }
 
     setPreviousEventIds(selectedEventIds)
@@ -121,14 +127,15 @@ export default function Settings() {
               className={'flex-grow-[0.25]'}
               onClick={() => setRowSelection(createRowSelectionFromEventIds(previousEventIds))}
             >
-              Cancel
+              Zurücksetzen
+              <RotateCcw />
             </Button>
 
             <Button
               variant={"default"}
               className={'flex-grow-[0.75]'}
               onClick={() => onSubmit()}
-              disabled={String(selectedEventIds) === String(previousEventIds)}
+              disabled={!hasSelectionChangedFromInit}
             >
               <Save/>
               Speichern
