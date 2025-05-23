@@ -3,8 +3,8 @@
 import {Separator} from "@/components/ui/separator";
 import {
   AllBuildingsDocument,
-  AllBuildingsQuery,
-  Building, DeleteBuildingDocument, DeleteBuildingMutation,
+  AllBuildingsQuery, AllTutorialsBuildingsIdDocument, AllTutorialsBuildingsIdQuery,
+  Building, DeleteBuildingDocument, DeleteBuildingMutation, DeleteEventDocument, DeleteEventMutation,
   DeleteRoomDocument,
   DeleteRoomMutation
 } from "@/lib/gql/generated/graphql";
@@ -66,11 +66,19 @@ export default function LocationSettings() {
 
   // Dialog Handling
   const closeDialog = () => setDialogState({mode: null, building: defaultBuilding, roomNumber: ""});
+
   const handleDeleteBuilding = async () => {
+    const allTutorialsData = await client.request<AllTutorialsBuildingsIdQuery>(AllTutorialsBuildingsIdDocument)
+    const tutorialsToDelete = allTutorialsData.tutorials.filter(
+      tutorial => tutorial.room.building.ID == dialogState.building.ID
+    ).map(tutorial => tutorial.ID)
+
+    await client.request<DeleteEventMutation>(DeleteEventDocument, {eventIds: tutorialsToDelete})
     await client.request<DeleteBuildingMutation>(DeleteBuildingDocument, {
       ID: dialogState.building.ID
     })
   }
+
   const handleDeleteRoom = async () => {
     await client.request<DeleteRoomMutation>(DeleteRoomDocument, {
       roomNumber: dialogState.building.rooms?.find(room => room.number === dialogState.roomNumber)?.number ?? defaultRoom.number,
@@ -101,7 +109,7 @@ export default function LocationSettings() {
 
       <ConfirmationDialog
         mode={"confirmation"}
-        description={`Dies wird das Gebäude ${dialogState.building.name} und alle darin enthaltenen Räume unwiederruflich löschen`}
+        description={`Dies wird das Gebäude ${dialogState.building.name} und alle Tutorien die diesem Gebäude zugeordnet sind unwiederruflich löschen`}
         onConfirm={ async () =>{
           await handleDeleteBuilding();
           closeDialog();
