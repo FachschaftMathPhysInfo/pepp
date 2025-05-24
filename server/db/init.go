@@ -13,10 +13,10 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/dialect/sqlitedialect"
-	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/extra/bundebug"
 	"github.com/uptrace/bun/extra/bunotel"
 	"go.opentelemetry.io/otel/sdk/trace"
+	_ "modernc.org/sqlite"
 )
 
 var (
@@ -53,7 +53,7 @@ func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, 
 		db = bun.NewDB(sqldb, pgdialect.New())
 	} else {
 		log.Info("no db host specified: connecting to default sqlite...")
-		sqldb, err = sql.Open(sqliteshim.ShimName, "./pepp.db")
+		sqldb, err = sql.Open("sqlite", "file:pepp.db?_pragma=foreign_keys(1)")
 		if err != nil {
 			log.Panic("sqlite creation failed: ", err)
 		}
