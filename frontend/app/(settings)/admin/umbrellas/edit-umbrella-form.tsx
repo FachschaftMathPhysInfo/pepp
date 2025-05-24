@@ -46,7 +46,10 @@ export default function EditUmbrellaForm({umbrella, umbrellas, closeDialog, refr
     },
   });
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
-  const [duration, setDuration] = useState<{from: string, to: string}>({from: umbrella.from, to: umbrella.to});
+  const [duration, setDuration] = useState<{from: string, to: string}>({
+    from: umbrella.from === "" ? new Date() : umbrella.from,
+    to: umbrella.to === "" ? getNextWeek() : umbrella.to,
+  });
 
   function onDatePickerClose (from?: Date, to?: Date) {
     if (from && to) setDuration({from: from.toISOString(), to: to.toISOString()});
