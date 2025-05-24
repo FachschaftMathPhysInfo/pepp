@@ -17,6 +17,7 @@ import {GraphQLClient} from "graphql-request";
 import {useUser} from "@/components/providers";
 import {Umbrella} from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
+import {EditUmbrellaDialog} from "@/app/(settings)/admin/umbrellas/edit-umbrella-dialog";
 
 export type UmbrellaDialogState = {
   mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null
@@ -90,6 +91,14 @@ export default function UmbrellaSettings() {
         }}
         isOpen={dialogState.mode === "deleteUmbrella"}
         closeDialog={closeDialog}
+      />
+      <EditUmbrellaDialog
+        umbrella={{...defaultEvent, ...dialogState.umbrella}}
+        umbrellas={umbrellas}
+        isOpen={dialogState.mode === "editUmbrella" || dialogState.mode === "addUmbrella"}
+        closeDialog={closeDialog}
+        refreshTable={fetchUmbrellas}
+        createMode={dialogState.mode === "addUmbrella"}
       />
     </div>
   );

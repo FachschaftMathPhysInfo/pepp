@@ -40,6 +40,7 @@ export function DatePickerWithRange({
             onClose(date?.from, date?.to);
           }
         }}
+        modal={true}
       >
         <PopoverTrigger asChild>
           <Button
