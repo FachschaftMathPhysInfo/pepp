@@ -6,7 +6,7 @@ import {
   GraduationCap,
   Mail,
   School,
-  Settings,
+  Settings, Umbrella,
   Users,
 } from "lucide-react";
 
@@ -67,6 +67,11 @@ export function ProfileSidebar() {
       url: "/admin/rooms",
       icon: School,
     },
+    {
+      title: "Programme",
+      url: "/admin/umbrellas",
+      icon: Umbrella,
+    }
   ];
 
   return (

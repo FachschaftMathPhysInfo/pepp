@@ -109,3 +109,14 @@ export const hexToRGBA = (hex: string, alpha = 1) => {
 
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
+
+export function isoDateToReadableString(isoDate: string): string {
+  const date = new Date(isoDate);
+  const options: Intl.DateTimeFormatOptions = {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  };
+
+  return  new Intl.DateTimeFormat("de-DE", options).format(date);
+}
