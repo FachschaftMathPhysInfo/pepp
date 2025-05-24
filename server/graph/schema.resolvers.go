@@ -180,9 +180,6 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 	event.ID = int32(id)
 	if _, err := r.DB.NewUpdate().
 		Model(&event).
-		// needed, because submitting false will be
-		// omitted by OmitZero()
-		Set("needs_tutors = ?", event.NeedsTutors).
 		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {

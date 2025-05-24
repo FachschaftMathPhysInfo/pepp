@@ -19,8 +19,7 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { Dialog } from "./ui/dialog";
-import { DialogTrigger } from "@radix-ui/react-dialog";
+import { Dialog, DialogTrigger } from "./ui/dialog";
 import { SignInDialog } from "./sign-in-dialog";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Separator } from "./ui/separator";

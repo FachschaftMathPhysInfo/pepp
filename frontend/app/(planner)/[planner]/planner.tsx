@@ -16,7 +16,7 @@ import { getClient } from "@/lib/graphql";
 import { CopyTextArea } from "@/components/copy-text-area";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { Planner } from "@/components/planner";
-import { useUser } from "@/components/providers";
+import { useRefetch, useUser } from "@/components/providers";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Check,
@@ -52,6 +52,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const pathname = usePathname();
 
   const { user } = useUser();
+  const { refetchKey } = useRefetch();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
@@ -111,7 +112,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     };
 
     fetchData();
-  }, [toFilter, tyFilter, umbrellaID]);
+  }, [toFilter, tyFilter, umbrellaID, refetchKey]);
 
   useEffect(() => {
     router.push(
