@@ -7,12 +7,18 @@ import {Input} from "@/components/ui/input";
 import React, {useState} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
-import {Event, UpdateEventDocument, UpdateEventMutation} from "@/lib/gql/generated/graphql";
+import {
+  AddEventDocument,
+  AddEventMutation,
+  Event,
+  UpdateEventDocument,
+  UpdateEventMutation
+} from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {Textarea} from "@/components/ui/textarea";
 import {DatePickerWithRange} from "@/components/date-picker-with-range";
-import {defaultEvent} from "@/types/defaults";
+import {getNextWeek} from "@/lib/utils";
 
 
 interface RoomFormProps {
@@ -48,19 +54,22 @@ export default function EditUmbrellaForm({umbrella, umbrellas, closeDialog, refr
 
   async function onValidSubmit(umbrellaData: z.infer<typeof roomFormSchema>) {
     const client = getClient(String(sid));
+    const newEvent = {
+      title: umbrellaData.title,
+      description: umbrellaData.description,
+      from: duration.from,
+      to: duration.to,
+      needsTutors: false
+    }
 
     if(createMode) {
-      console.log('TBD')
+      await client.request<AddEventMutation>(AddEventDocument, {
+        event: newEvent,
+      })
     } else {
       await client.request<UpdateEventMutation>(UpdateEventDocument, {
         id: umbrella.ID,
-        event: {
-          title: umbrellaData.title,
-          description: umbrellaData.description,
-          from: duration.from,
-          to: duration.to,
-          needsTutors: false
-        }
+        event: newEvent
       })
     }
 
@@ -109,7 +118,7 @@ export default function EditUmbrellaForm({umbrella, umbrellas, closeDialog, refr
           <FormControl>
             <DatePickerWithRange
               from={createMode ? new Date() : new Date(umbrella.from)}
-              to={createMode ? new Date() : new Date(umbrella.to)}
+              to={createMode ? getNextWeek() : new Date(umbrella.to)}
               onClose={onDatePickerClose}
             />
           </FormControl>

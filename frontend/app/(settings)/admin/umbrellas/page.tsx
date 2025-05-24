@@ -15,9 +15,11 @@ import ConfirmationDialog from "@/components/confirmation-dialog";
 import {toast} from "sonner";
 import {GraphQLClient} from "graphql-request";
 import {useUser} from "@/components/providers";
-import {Umbrella} from "lucide-react";
+import {PlusCircle, Umbrella} from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
 import {EditUmbrellaDialog} from "@/app/(settings)/admin/umbrellas/edit-umbrella-dialog";
+import {cn} from "@/lib/utils";
+import {Button} from "@/components/ui/button";
 
 export type UmbrellaDialogState = {
   mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null
@@ -61,10 +63,20 @@ export default function UmbrellaSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-3xl font-bold flex items-center">
-          <Umbrella className={"inline mr-3"} />
-          Programmverwaltung
-        </h3>
+        <div className={'flex items-start justify-start gap-x-6'}>
+          <h3 className="text-3xl font-bold flex items-center">
+            <Umbrella className={"inline mr-3"} />
+            Programmverwaltung
+          </h3>
+          <Button
+            variant={"outline"}
+            className={cn("p-2 justify-start text-left font-normal")}
+            onClick={() => setDialogState({mode: "addUmbrella", umbrella: defaultEvent})}
+          >
+            <PlusCircle />
+            Programm hinzufügen
+          </Button>
+        </div>
         <p className="text-sm text-muted-foreground mt-2">
           Verwalte hier Deine Programme.
         </p>
