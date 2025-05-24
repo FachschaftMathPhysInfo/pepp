@@ -1,9 +1,12 @@
-import {Event} from "@/lib/gql/generated/graphql";
+import {Event, UmbrellaEventsTitlesDocument, UmbrellaEventsTitlesQuery} from "@/lib/gql/generated/graphql";
 import {Calendar, Pencil, Trash} from "lucide-react";
-import React from "react";
+import React, {useEffect} from "react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {UmbrellaDialogState} from "@/app/(settings)/admin/umbrellas/page";
 import {formatDateToDDMM} from "@/lib/utils";
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
+import {useUser} from "@/components/providers";
+import {getClient} from "@/lib/graphql";
 
 interface BuildingSectionProps {
   umbrella: Event;
@@ -11,8 +14,23 @@ interface BuildingSectionProps {
 }
 
 export default function UmbrellaSection({umbrella, setDialogState}: BuildingSectionProps) {
+  const { sid } = useUser()
   const readableFrom = formatDateToDDMM(new Date(umbrella.from))
   const readableTo = formatDateToDDMM(new Date(umbrella.to))
+  const [tutorialNames, setTutorialNames] = React.useState<string[]>([])
+
+  useEffect(() => {
+    const fetchEventNames = async () => {
+      const client = getClient(String(sid))
+      const tutorialNameData = await client.request(
+        UmbrellaEventsTitlesDocument,
+        {umbrellaID: umbrella.ID}
+      )
+      setTutorialNames(tutorialNameData.events.map(event => event.title))
+    }
+
+    void fetchEventNames()
+  }, [sid]);
 
   return (
     <Card>
@@ -45,6 +63,20 @@ export default function UmbrellaSection({umbrella, setDialogState}: BuildingSect
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <Accordion type={"single"} collapsible>
+          <AccordionItem value={'item-1'}>
+            <AccordionTrigger className={'hover:no-underline'}>
+              Veranstaltungen in diesem Programm
+            </AccordionTrigger>
+            <AccordionContent className={'pl-5'}>
+              <ul className={'list-disc decoration-1'}>
+                {tutorialNames.map(name => (
+                  <li key={name}>{name}</li>
+                ))}
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </CardContent>
     </Card>
   )

@@ -60,7 +60,7 @@ export default function UmbrellaSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-3xl font-bold">
+        <h3 className="text-3xl font-bold flex items-center">
           <Umbrella className={"inline mr-3"} />
           Programmverwaltung
         </h3>
