@@ -1,6 +1,6 @@
 import {Building} from "@/lib/gql/generated/graphql";
 import {cn} from "@/lib/utils";
-import {CirclePlus, Map as MapIcon, Pencil} from "lucide-react";
+import {CirclePlus, Map as MapIcon, Pencil, Trash} from "lucide-react";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {RoomTable} from "@/components/tables/rooms-table/room-table";
 import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
@@ -37,6 +37,12 @@ export default function BuildingSection({building, className, setDialogState}: B
                 onClick={() => setDialogState({mode: "editBuilding", building: building, roomNumber: ""})}
               >
                 <Pencil className={'w-5'}/>
+              </button>
+              <button
+                className={'mr-4'}
+                onClick={() => setDialogState({mode: "deleteBuilding", building: building, roomNumber: ""})}
+              >
+                <Trash className={'w-5 stroke-red-500'}/>
               </button>
             </div>
           </div>
