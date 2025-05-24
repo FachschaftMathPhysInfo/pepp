@@ -47,29 +47,34 @@ services:
 
 ### required
 
-| Key | Description |
-| - | - |
-| `PUBLIC_URL` | Domain under which pepp is deployed |
-| `PEPPER_KEY` | Generate a random 32 characters long string for password security |
-| `SMTP_HOST` |  E-Mail provider, e.g. `smtp.example.de` |
-| `SMTP_USER` | E.g. `alice@example.de` |
-| `SMTP_PASSWORD` | The password to log into the SMTP Server |
-| `SMTP_PORT` | Mostly `465` |
-| `FROM_ADDRESS` | Address from which mails are send, e.g. `vorkurs@example.de` |
+| Key | Description | Example |
+| - | - | - |
+| `PUBLIC_URL` | Domain under which pepp is deployed | `https://pepp.example.com` |
+| `PEPPER_KEY` | Generate a random 32 characters long string for password security | - |
+| `SMTP_HOST` | E-Mail provider | `smtp.example.com` |
+| `SMTP_USER` | The user to log into the SMTP Server | `alice@example.com` |
+| `SMTP_PASSWORD` | The password to log into the SMTP Server | - |
+| `SMTP_PORT` | The port of your SMTP Server | `465` |
+| `FROM_ADDRESS` | Address from which mails are send | `vorkurs@example.com` |
 
 ### optional
 
-| Key | Description |
-| - | - |
-| `LOG_LEVEL` | Default is `Info`. Set to `Debug` for more information |
-| `ENV` | Set to `Production` on deployment |
-| `ENABLE_TRACING` | Generate a random 64 characters long string for password security |
-| `ADMIN_USER` | Default is `admin@pepp.local`. Generated on initial startup |
-| `POSTGRES_HOST` | When given tries to connect. Creates a SQLite per default |
-| `POSTGRES_PASSWORD` | Required if `POSTGRES_HOST` is given |
-| `POSTGRES_PORT` | Required if `POSTGRES_HOST` is given |
-| `POSTGRES_USER` | Required if `POSTGRES_HOST` is given |
-| `POSTGRES_DB` | Required if `POSTGRES_HOST` is given |
+| Key | Description | Example |
+| - | - | - |
+| `LOG_LEVEL` | Default is `Info`. Set to `Debug` for more information | `Debug` |
+| `ENV` | Set to `Production` on deployment | `Production` |
+| `ENABLE_TRACING` | Application exports traces to an OpenTelemetry Collector | `true` |
+| `ADMIN_USER` | Default is `admin@pepp.local`. Generated on initial startup | `admin@example.com` |
+| `POSTGRES_HOST` | When given tries to connect. Creates a SQLite per default | `postgres` |
+| `POSTGRES_PASSWORD` | Required if `POSTGRES_HOST` is given | - |
+| `POSTGRES_PORT` | Required if `POSTGRES_HOST` is given | `5433` |
+| `POSTGRES_USER` | Required if `POSTGRES_HOST` is given | `postgres` |
+| `POSTGRES_DB` | Required if `POSTGRES_HOST` is given | `postgres` |
+| `OIDC_LOGIN_PROVIDER_URL` | When given, initializes an Open ID Endpoint at `/sso/oidc` | `https://auth.example.com` |
+| `OIDC_LOGIN_CLIENT_ID` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `pepp` |
+| `OIDC_LOGIN_CLIENT_SECRET` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `insecure_secret` |
+| `OIDC_LOGIN_SCOPES` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `openid profile email groups` |
+| `OIDC_LOGIN_CLAIM_MAPPING` | Required if `OIDC_LOGIN_PROVIDER_URL` is given. Map single name strings to `name` and splitted to `fn` and `sn` | `'{"mail":"email","name":"name"}'` |
 
 ## contributions
 1. [create an issue](https://github.com/FachschaftMathPhysInfo/pepp/issues/new)

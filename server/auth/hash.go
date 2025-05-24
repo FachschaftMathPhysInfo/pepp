@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func Hash(password string) (hash string, salt string, err error) {
-	salt, err = GenerateSalt(16)
+	salt, err = utils.RandString(16)
 	if err != nil {
 		return "", "", err
 	}

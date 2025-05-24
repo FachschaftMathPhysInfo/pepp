@@ -7,6 +7,7 @@ toolchain go1.24.0
 require (
 	github.com/99designs/gqlgen v0.17.73
 	github.com/arran4/golang-ical v0.3.2
+	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/lib/pq v1.10.9
 	github.com/matcornic/hermes/v2 v2.1.0
@@ -27,6 +28,7 @@ require (
 	go.opentelemetry.io/otel/sdk v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
 	golang.org/x/crypto v0.38.0
+	golang.org/x/oauth2 v0.28.0
 	google.golang.org/grpc v1.72.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	modernc.org/sqlite v1.36.0
@@ -44,6 +46,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect

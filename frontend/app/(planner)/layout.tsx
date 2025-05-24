@@ -1,7 +1,6 @@
 "use client";
 
 import { useUser } from "@/components/providers";
-import { SidebarNav } from "@/components/sidebar-nav";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
 import {

@@ -77,6 +77,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 
 	umbrellaID := int32(1)
 	umbrellaID2 := int32(2)
+	t := true
 	events := []*models.Event{
 		{
 			Title:       fmt.Sprintf("Vorkurs %s", strconv.Itoa(time.Now().Year())),
@@ -95,7 +96,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Informatik",
 			TypeName:    "Tutorium",
-			NeedsTutors: true,
+			NeedsTutors: &t,
 			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(time.Hour),
 			UmbrellaID:  &umbrellaID,
@@ -105,7 +106,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Mathe",
 			TypeName:    "Vorlesung",
-			NeedsTutors: true,
+			NeedsTutors: &t,
 			From:        time.Now().Add((24 * time.Hour) * 7),
 			To:          time.Now().Add((24*time.Hour)*7 + 2*time.Hour),
 			UmbrellaID:  &umbrellaID,
@@ -115,7 +116,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Allgemein",
 			TypeName:    "Vorlesung",
-			NeedsTutors: true,
+			NeedsTutors: &t,
 			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(time.Hour),
 			UmbrellaID:  &umbrellaID2,
@@ -125,7 +126,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Mathe",
 			TypeName:    "Tutorium",
-			NeedsTutors: true,
+			NeedsTutors: &t,
 			From:        time.Now().Add(2 * time.Hour),
 			To:          time.Now().Add(3 * time.Hour),
 			UmbrellaID:  &umbrellaID,

@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/uptrace/bun"
 )
 
 func GenerateSessionID() (string, error) {
-	return GenerateSalt(11)
+	return utils.RandString(11)
 }
 
 func ValidateUser(ctx context.Context, sid string, db *bun.DB) context.Context {

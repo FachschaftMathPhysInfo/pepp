@@ -8,6 +8,7 @@ import (
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
@@ -96,7 +97,7 @@ func InitAdminUser(ctx context.Context, db *bun.DB) error {
 
 	password := "admin"
 	if os.Getenv("ENV") == "Production" {
-		password, err = auth.GenerateSalt(32)
+		password, err = utils.RandString(32)
 		if err != nil {
 			return err
 		}
