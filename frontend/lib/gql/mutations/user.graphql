@@ -23,6 +23,12 @@ mutation addEventAvailabilityOfTutor($email: String!, $eventsAvailable: [Int!]!)
   }
 }
 
+mutation deleteEventAvailabilityOfTutor($email: String!, $eventsAvailable: [Int!]!) {
+  deleteTutorAvailabilityForEvent(availability: {userMail: $email, eventID: $eventsAvailable}) {
+    fn
+  }
+}
+
 mutation updateUser($email: String!, $fn: String!, $sn: String!, $role: String!) {
   updateUser(user: {mail: $email fn: $fn, sn: $sn, role: $role})
 }
