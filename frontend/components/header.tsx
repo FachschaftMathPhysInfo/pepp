@@ -59,7 +59,7 @@ export default function Header() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, []);
 
   useEffect(() => {
@@ -160,14 +160,9 @@ export default function Header() {
                             }}
                           >
                             {e.title}
-                            {user &&
-                            user?.registrations?.find(
-                              (r) => r.event.ID === e.ID
-                            )
-                              ? true
-                              : false && (
-                                  <SquareCheckBig className="w-2 h-2 text-green-700" />
-                                )}
+                            {user?.registrations?.some((r) => r.event.ID === e.ID) && (
+                              <SquareCheckBig className="w-2 h-2 text-green-700" />
+                            )}
                           </CommandItem>
                         ))
                       : ""}
