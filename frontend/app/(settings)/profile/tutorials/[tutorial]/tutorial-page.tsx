@@ -3,6 +3,7 @@
 import { useUser } from "@/components/providers";
 import { TableSkeleton } from "@/components/table-skeleton";
 import {
+  Event,
   Tutorial,
   TutorialDetailDocument,
   TutorialDetailQuery,
@@ -19,6 +20,10 @@ import {
 import { useEffect, useState } from "react";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
+import EventDescription from "@/components/event-dialog/event-description";
+import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
+import { RoomDetail } from "@/components/room-detail";
 
 interface TutorialPageProps {
   id: number;
@@ -29,29 +34,30 @@ export function TutorialPage({ id }: TutorialPageProps) {
 
   const [loading, setLoading] = useState(true);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [event, setEvent] = useState<Event | undefined>(undefined);
 
   useEffect(() => {
+    if (!user) return;
     const fetchTutorial = async () => {
       setLoading(true);
 
       const client = getClient(sid!);
 
       const vars: TutorialDetailQueryVariables = {
-        tutorMail: user?.mail!,
+        tutorMail: user.mail,
         eventID: id,
       };
 
-      const tutorialsData = await client.request<TutorialDetailQuery>(
-        TutorialDetailDocument,
-        vars
-      );
+      try {
+        const tutorialsData = await client.request<TutorialDetailQuery>(
+          TutorialDetailDocument,
+          vars
+        );
 
-      if (tutorialsData.tutorials.length) {
         setTutorials(
           tutorialsData.tutorials.map((t) => ({
             ...defaultTutorial,
             ...t,
-            event: { ...defaultEvent, ...t.event },
             room: {
               ...defaultRoom,
               ...t.room,
@@ -60,23 +66,35 @@ export function TutorialPage({ id }: TutorialPageProps) {
             students: t.students?.map((s) => ({ ...defaultUser, ...s })),
           }))
         );
+        setEvent({ ...defaultEvent, ...tutorialsData.events[0] });
+      } catch (err) {
+        toast.error("Beim Laden der Tutoriendaten ist ein Fehler aufgetreten.");
+        console.log(err);
       }
 
       setLoading(false);
     };
 
     fetchTutorial();
-  }, [id]);
+  }, [id, user]);
 
   return (
     <>
+      <section className="space-y-2">
+        <EventDescription event={event} />
+      </section>
+      <Separator className="mt-4 mb-4" />
       <section className="space-y-4">
         {loading ? (
           <TableSkeleton />
         ) : (
-          <>
-            <DataTable columns={columns} data={tutorials[0].students ?? []} />
-          </>
+          tutorials.map((t, i) => (
+            <div key={t.ID} className="space-y-4">
+              <RoomDetail room={t.room} className="flex flex-row space-x-4" />
+              <DataTable columns={columns} data={t.students ?? []} />
+              {i + 1 !== tutorials.length && <Separator />}
+            </div>
+          ))
         )}
       </section>
     </>

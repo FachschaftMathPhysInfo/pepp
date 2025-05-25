@@ -4,6 +4,7 @@ query loginUser($sid: String!) {
       event {
         ID
         title
+        from
       }
       room {
         number
