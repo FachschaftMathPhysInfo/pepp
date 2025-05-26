@@ -90,7 +90,7 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
             onValueChange={umbrellaId => setValues(parseInt(umbrellaId))}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Theme" />
+              <SelectValue placeholder="Programm" />
             </SelectTrigger>
             <SelectContent>
               {umbrellas.map(umb => (
@@ -132,7 +132,6 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
           <FormLabel>Zeitraum</FormLabel>
           <FormControl>
             <DatePickerWithRange
-              // FIXME: this does not re-render on changes
               from={new Date(duration.from)}
               to={new Date(duration.to)}
               onClose={onDatePickerClose}

@@ -33,6 +33,12 @@ export function DatePickerWithRange({
     to: to ?? addDays(new Date(2022, 0, 20), 20),
   });
 
+  useEffect(() => {
+    if (from && to) {
+      setDate({ from, to });
+    }
+  }, [from, to]);
+
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover
