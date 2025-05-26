@@ -4,7 +4,7 @@ import {Separator} from "@/components/ui/separator";
 import {
   DeleteEventDocument,
   DeleteEventMutation,
-  Event,
+  Event, TableEventsDocument, TableEventsQuery,
   UmbrellasDocument,
   UmbrellasQuery
 } from "@/lib/gql/generated/graphql";
@@ -17,7 +17,7 @@ import {GraphQLClient} from "graphql-request";
 import {useUser} from "@/components/providers";
 import {PlusCircle, Umbrella} from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
-import {EditUmbrellaDialog} from "@/app/(settings)/admin/umbrellas/edit-umbrella-dialog";
+import {UmbrellaDialog} from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 
@@ -104,7 +104,7 @@ export default function UmbrellaSettings() {
         isOpen={dialogState.mode === "deleteUmbrella"}
         closeDialog={closeDialog}
       />
-      <EditUmbrellaDialog
+      <UmbrellaDialog
         umbrella={{...defaultEvent, ...dialogState.umbrella}}
         umbrellas={umbrellas}
         isOpen={dialogState.mode === "editUmbrella" || dialogState.mode === "addUmbrella"}

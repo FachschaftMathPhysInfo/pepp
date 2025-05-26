@@ -23,14 +23,12 @@ import {getNextWeek} from "@/lib/utils";
 
 interface RoomFormProps {
   umbrella: Event;
-  // for copy function later
-  umbrellas: Event[];
   closeDialog: () => void;
   refreshTable: () => Promise<void>;
   createMode: boolean;
 }
 
-export default function EditUmbrellaForm({umbrella, umbrellas, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
+export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
   const {sid} = useUser()
   const roomFormSchema = z.object({
     title: z.string({
@@ -86,21 +84,19 @@ export default function EditUmbrellaForm({umbrella, umbrellas, closeDialog, refr
       <form onSubmit={form.handleSubmit(onValidSubmit, () => setHasTriedToSubmit(true))}
             className="space-y-4 w-full">
 
-        <div className={'flex justify-between w-full flex-wrap gap-x-4'}>
-          <FormField
-            control={form.control}
-            name="title"
-            render={({field}) => (
-              <FormItem className={'flex-grow-[0.75]'}>
-                <FormLabel>Titel</FormLabel>
-                <FormControl>
-                  <Input placeholder={umbrella.title} {...field}/>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="title"
+          render={({field}) => (
+            <FormItem className={'flex-grow'}>
+              <FormLabel>Titel</FormLabel>
+              <FormControl>
+                <Input placeholder={umbrella.title} {...field}/>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
