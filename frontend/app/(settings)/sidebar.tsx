@@ -6,9 +6,56 @@ import {
   GraduationCap,
   Mail,
   School,
-  Settings, Umbrella,
+  Settings,
+  Umbrella,
   Users,
 } from "lucide-react";
+
+export const userItems = [
+  {
+    title: "Einstellungen",
+    url: "/profile",
+    icon: Settings,
+  },
+  {
+    title: "Meine Anmeldungen",
+    url: "/profile/registrations",
+    icon: BookCheck,
+  },
+  {
+    title: "Meine Tutorien",
+    url: "/profile/tutorials",
+    icon: GraduationCap,
+  },
+  {
+    title: "Meine Verfügbarkeiten",
+    url: "/profile/availabilities",
+    icon: CalendarCheck2,
+  },
+];
+
+export const adminItems = [
+  {
+    title: "E-Mails",
+    url: "/admin/mails",
+    icon: Mail,
+  },
+  {
+    title: "Nutzerverwaltung",
+    url: "/admin/users",
+    icon: Users,
+  },
+  {
+    title: "Räume & Gebäude",
+    url: "/admin/rooms",
+    icon: School,
+  },
+  {
+    title: "Programme",
+    url: "/admin/umbrellas",
+    icon: Umbrella,
+  }
+];
 
 import {
   Sidebar,
@@ -27,52 +74,6 @@ import { useRouter } from "next/navigation";
 export function ProfileSidebar() {
   const { user } = useUser();
   const router = useRouter();
-
-  const userItems = [
-    {
-      title: "Einstellungen",
-      url: "/profile",
-      icon: Settings,
-    },
-    {
-      title: "Meine Anmeldungen",
-      url: "/profile/registrations",
-      icon: BookCheck,
-    },
-    {
-      title: "Meine Tutorien",
-      url: "/profile/tutorials",
-      icon: GraduationCap,
-    },
-    {
-      title: "Meine Verfügbarkeiten",
-      url: "/profile/availabilities",
-      icon: CalendarCheck2,
-    },
-  ];
-
-  const adminItems = [
-    {
-      title: "E-Mails",
-      url: "/admin/mails",
-      icon: Mail,
-    },
-    {
-      title: "Nutzerverwaltung",
-      url: "/admin/users",
-      icon: Users,
-    },
-    {
-      title: "Räume & Gebäude",
-      url: "/admin/rooms",
-      icon: School,
-    },
-    {
-      title: "Programme",
-      url: "/admin/umbrellas",
-      icon: Umbrella,
-    }
-  ];
 
   return (
     <Sidebar>

@@ -505,7 +505,13 @@ func (r *mutationResolver) AddTutorAssignmentForTutorial(ctx context.Context, as
 				tutorial.Room.Building.Street, tutorial.Room.Building.Number,
 				tutorial.Room.Building.Zip, tutorial.Room.Building.City)}}
 
-	if err := email.Send(*assignment.User, m, r.MailConfig); err != nil {
+	users, err := r.Query().Users(ctx, []string{assignment.UserMail})
+	if err != nil {
+		return "", err
+	}
+	user := users[0]
+
+	if err := email.Send(*user, m, r.MailConfig); err != nil {
 		return "", err
 	}
 
