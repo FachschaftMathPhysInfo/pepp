@@ -88,9 +88,7 @@ export default function UmbrellaSettings() {
         </div>
       ) : (
         umbrellas.map((umbrella) => (
-          <>
             <UmbrellaSection key={umbrella.ID} umbrella={umbrella} setDialogState={setDialogState}/>
-          </>
         ))
       )}
 

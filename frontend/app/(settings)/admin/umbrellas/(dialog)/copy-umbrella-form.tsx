@@ -42,6 +42,7 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
     from: umbrellas[0].from === "" ? new Date() : umbrellas[0].from,
     to: umbrellas[0].to === "" ? getNextWeek() : umbrellas[0].to,
   });
+  const [umbrellaToCopyFrom, setUmbrellaToCopyFrom] = useState<Event>(umbrellas[0]);
 
   function setValues(umbrellaId: number) {
     const umbrella = umbrellas.find((umbrella) => umbrella.ID === umbrellaId);
@@ -53,12 +54,15 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
       from: umbrella.from,
       to: umbrella.to,
     })
+    setUmbrellaToCopyFrom(umbrellas.find(umbrella => umbrella.ID === umbrellaId) ?? umbrellas[0])
   }
 
   function onDatePickerClose (from?: Date, to?: Date) {
     if (from && to) setDuration({from: from.toISOString(), to: to.toISOString()});
   }
 
+
+  // TODO: Copy needs to create NEW events etc
   async function onValidSubmit(umbrellaData: z.infer<typeof roomFormSchema>) {
     const client = getClient(String(sid));
     const newEvent = {
@@ -66,11 +70,13 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
       description: umbrellaData.description,
       from: duration.from,
       to: duration.to,
-      needsTutors: false
     }
 
     await client.request<AddEventMutation>(AddEventDocument, {
-      event: newEvent,
+      event: {
+        ...umbrellaToCopyFrom,
+        ...newEvent
+      },
     })
 
     void refreshTable();

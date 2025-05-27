@@ -1,15 +1,8 @@
-import {
-  Event,
-  TutorsOfEventDocument, TutorsOfEventOfUmbrellaDocument,
-  UmbrellaEventsTitlesDocument,
-  UmbrellaEventsTitlesQuery
-} from "@/lib/gql/generated/graphql";
+import {Event, TutorsOfEventOfUmbrellaDocument} from "@/lib/gql/generated/graphql";
 import {Calendar, Pencil, Trash} from "lucide-react";
 import React, {useEffect} from "react";
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {UmbrellaDialogState} from "@/app/(settings)/admin/umbrellas/page";
 import {formatDateToDDMM} from "@/lib/utils";
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 
@@ -48,7 +41,7 @@ export default function UmbrellaSection({umbrella, setDialogState}: BuildingSect
     }
 
     void fetchEventNames()
-  }, [sid]);
+  }, [sid, umbrella.ID]);
 
   return (
 
