@@ -30,7 +30,7 @@ export function RoomDetail({ room, className }: RoomDetailProps) {
             {room.name && (
               <p className="text-xs text-muted-foreground">{room.number}</p>
             )}
-            {room.floor !== null && (
+            {room.floor && (
               <p className="text-xs text-muted-foreground">
                 Ebene {room.floor}
               </p>

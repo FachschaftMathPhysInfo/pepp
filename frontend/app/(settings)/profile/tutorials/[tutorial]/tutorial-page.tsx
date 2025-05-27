@@ -18,7 +18,7 @@ import {
   defaultUser,
 } from "@/types/defaults";
 import { useEffect, useState } from "react";
-import { DataTable } from "./data-table";
+import { StudentsTable } from "./students-table";
 import { columns } from "./columns";
 import EventDescription from "@/components/event-dialog/event-description";
 import { toast } from "sonner";
@@ -75,8 +75,8 @@ export function TutorialPage({ id }: TutorialPageProps) {
       setLoading(false);
     };
 
-    fetchTutorial();
-  }, [id, user]);
+    void fetchTutorial();
+  }, [id, sid, user]);
 
   return (
     <>
@@ -91,7 +91,7 @@ export function TutorialPage({ id }: TutorialPageProps) {
           tutorials.map((t, i) => (
             <div key={t.ID} className="space-y-4">
               <RoomDetail room={t.room} className="flex flex-row space-x-4" />
-              <DataTable columns={columns} data={t.students ?? []} />
+              <StudentsTable columns={columns} data={t.students ?? []} />
               {i + 1 !== tutorials.length && <Separator />}
             </div>
           ))
