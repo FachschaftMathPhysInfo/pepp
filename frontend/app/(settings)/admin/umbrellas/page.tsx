@@ -4,7 +4,7 @@ import {Separator} from "@/components/ui/separator";
 import {
   DeleteEventDocument,
   DeleteEventMutation,
-  Event, TableEventsDocument, TableEventsQuery,
+  Event,
   UmbrellasDocument,
   UmbrellasQuery
 } from "@/lib/gql/generated/graphql";
@@ -17,7 +17,7 @@ import {GraphQLClient} from "graphql-request";
 import {useUser} from "@/components/providers";
 import {PlusCircle, Umbrella} from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
-import {UmbrellaDialog} from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
+import {UmbrellaDialog} from "@/app/(settings)/admin/umbrellas/(dialog)/umbrella-dialog";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 
@@ -88,7 +88,9 @@ export default function UmbrellaSettings() {
         </div>
       ) : (
         umbrellas.map((umbrella) => (
-          <UmbrellaSection key={umbrella.ID} umbrella={umbrella} setDialogState={setDialogState}/>
+          <>
+            <UmbrellaSection key={umbrella.ID} umbrella={umbrella} setDialogState={setDialogState}/>
+          </>
         ))
       )}
 

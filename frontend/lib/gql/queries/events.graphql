@@ -144,3 +144,13 @@ query tutorialAvailabilitys($id: Int!) {
     }
   }
 }
+
+query tutorsOfEventOfUmbrella($umbrellaID: [Int!]!) {
+  events(umbrellaID: $umbrellaID) {
+    tutorials {
+      tutors {
+        mail
+      }
+    }
+  }
+}
