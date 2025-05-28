@@ -6,7 +6,7 @@ import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/c
 import {useCallback, useEffect, useState} from "react";
 import {getClient} from "@/lib/graphql";
 import {useUser} from "@/components/providers";
-import MailForm from "@/components/mail-form";
+import MailForm from "@/app/(settings)/admin/mails/mail-form";
 
 export default function Settings() {
   const { sid } = useUser();

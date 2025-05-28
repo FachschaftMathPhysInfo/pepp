@@ -3,14 +3,14 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {Setting, UpdateSettingDocument, UpdateSettingMutation,} from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {ResetIcon} from "@radix-ui/react-icons";
+import {Textarea} from "@/components/ui/textarea";
 
 interface SettingFormProps {
   settings: Setting[];
@@ -20,7 +20,7 @@ export default function EditMailForm({ settings }: SettingFormProps) {
   const { sid } = useUser();
   const mailFormSchema = z.object({
     values: z.array(z.string().min(2, {
-      message: "Input muss mindestens 2 Zeichen lang sein",
+      message: "Mailabschnitt muss mindestens 2 Zeichen lang sein",
     }))
   });
   const form = useForm<z.infer<typeof mailFormSchema>>({
@@ -30,9 +30,15 @@ export default function EditMailForm({ settings }: SettingFormProps) {
     },
   });
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
+  const [initialValues, setInitalValues] = useState<string[]>(settings.map(setting => setting.value));
+  const [currentValues, setCurrentValues] = useState<string[]>(settings.map(setting => setting.value));
+
+  useEffect(() => {
+    setCurrentValues(form.getValues("values"))
+  }, [form]);
 
   function resetForm()  {
-    form.setValue('values', settings.map(setting => setting.value))
+    form.setValue('values', initialValues)
   }
 
   async function onValidSubmit(mailData: z.infer<typeof mailFormSchema>) {
@@ -50,11 +56,11 @@ export default function EditMailForm({ settings }: SettingFormProps) {
       });
     }
 
+    setInitalValues(currentValues)
     toast.info("Mailabschnitt wurde erfolgreich bearbeitet");
   }
 
   return (
-    <>
       <div className=" rounded-lg p-4 border-gray-800">
         <Form {...form}>
           <form
@@ -77,7 +83,7 @@ export default function EditMailForm({ settings }: SettingFormProps) {
                           .replace(/(^\w)|(\s+\w)/g, letter => letter.toUpperCase())}
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Input" {...field} />
+                        <Textarea placeholder="Input" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -97,7 +103,7 @@ export default function EditMailForm({ settings }: SettingFormProps) {
               </Button>
 
               <Button
-                disabled={!form.formState.isValid && hasTriedToSubmit}
+                disabled={!form.formState.isValid && hasTriedToSubmit || String(currentValues) === String(initialValues)}
                 type="submit"
                 className={'flex-grow-[0.6]'}
               >
@@ -109,6 +115,5 @@ export default function EditMailForm({ settings }: SettingFormProps) {
           </form>
         </Form>
       </div>
-    </>
   );
 }
