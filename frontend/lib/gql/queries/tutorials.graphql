@@ -25,6 +25,18 @@ query tutorialDetail($eventID: Int!, $tutorMail: String!){
       sn
       mail
     }
+  }
+}
+
+query tutorialsOfEvent ($eventID: Int!) {
+  tutorials(eventID: [$eventID]) {
+    ID
+    room {
+      number
+      building {
+        ID
+      }
+    }
     tutors {
       mail
     }

@@ -9,10 +9,14 @@ import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {
   AddEventDocument,
-  AddEventMutation, AddTutorialDocument, AddTutorialMutation,
-  Event,
+  AddEventMutation,
+  AddTutorialDocument,
+  AddTutorialMutation,
+  Event, NewEvent, NewTutorial,
   TableEventsDocument,
-  TableEventsQuery, TutorialDetailDocument, TutorialDetailQuery
+  TableEventsQuery,
+  TutorialsOfEventDocument,
+  TutorialsOfEventQuery
 } from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
@@ -49,12 +53,21 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
     from: umbrellas[0].from === "" ? new Date() : umbrellas[0].from,
     to: umbrellas[0].to === "" ? getNextWeek() : umbrellas[0].to,
   });
-  const [umbrellaToCopyFrom, setUmbrellaToCopyFrom] = useState<Event>(umbrellas[0]);
+  const [sourceUmbrella, setSourceUmbrella] = useState<Event>(umbrellas[0]);
   const [client, setClient] = useState<GraphQLClient>(getClient());
 
   useEffect(() => {
     setClient(getClient(String(sid)))
   }, [sid]);
+
+  async function fetchEventsofSourceUmbrella() {
+    const eventsToAddData = await client.request<TableEventsQuery>(
+      TableEventsDocument,
+      {umbrellaID: sourceUmbrella.ID}
+    )
+
+    return eventsToAddData.events ?? []
+  }
 
   function setValues(umbrellaId: number) {
     const umbrella = umbrellas.find((umbrella) => umbrella.ID === umbrellaId);
@@ -66,7 +79,7 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
       from: umbrella.from,
       to: umbrella.to,
     })
-    setUmbrellaToCopyFrom(umbrellas.find(umbrella => umbrella.ID === umbrellaId) ?? umbrellas[0])
+    setSourceUmbrella(umbrellas.find(umbrella => umbrella.ID === umbrellaId) ?? umbrellas[0])
   }
 
   function onDatePickerClose (from?: Date, to?: Date) {
@@ -77,8 +90,8 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
     const newUmbrella = {
       title: umbrellaData.title,
       description: umbrellaData.description,
-      topicName: umbrellaToCopyFrom.topic.name,
-      typeName: umbrellaToCopyFrom.type.name,
+      topicName: sourceUmbrella.topic.name,
+      typeName: sourceUmbrella.type.name,
       needsTutors: false,
       from: duration.from,
       to: duration.to,
@@ -89,15 +102,9 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
     return mutation.addEvent[0]
   }
 
-  async function createNewEvents(umbrellaID: number): Promise<number[]> {
-    console.log('Adding Events...')
-
-    const eventsToAddData = await client.request<TableEventsQuery>(
-      TableEventsDocument,
-      {umbrellaID: umbrellaID}
-    )
-
-    const eventsToAdd = eventsToAddData.events.map(
+  async function createNewEvents(umbrellaID: number) {
+    const sourceEvents = await fetchEventsofSourceUmbrella();
+    const eventsToAdd: NewEvent[] = sourceEvents.map(
       event => ({
         title: event.title,
         description: event.description,
@@ -109,40 +116,51 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
         umbrellaID: umbrellaID
       }))
 
-    const mutation = await client.request<AddEventMutation>(AddEventDocument, {
-      event: eventsToAdd,
-    })
+    if (!eventsToAdd) return;
+    console.log(eventsToAdd);
+    const mutation = await client.request<AddEventMutation>(AddEventDocument, {event: eventsToAdd})
 
     return mutation.addEvent
   }
 
   function createNewTutorials(events: number[]) {
     console.log('Creating Tutorials...')
-    const addTutorialsToEvent = async (eventID: number): Promise<number[]> =>{
-      const tutorialsToAddData  = await client.request<TutorialDetailQuery>(
-        TutorialDetailDocument,
-        {eventID: eventID}
+
+    async function addTutorialsToEvent(eventID: number, index: number){
+      console.log('Tutorial for event no: ', index)
+
+      const sourceEvents = await fetchEventsofSourceUmbrella()
+
+      const tutorialsToAddData  = await client.request<TutorialsOfEventQuery>(
+        TutorialsOfEventDocument,
+        {
+          eventID: sourceEvents.map(event => event.ID)[index],
+        }
       )
-      const tutorialsToAdd = tutorialsToAddData.tutorials.map((tutorial) => ({
+
+      const tutorialsToAdd: NewTutorial[] = tutorialsToAddData.tutorials.map((tutorial) => ({
         eventID: eventID,
         roomNumber: tutorial.room.number,
         buildingID: tutorial.room.building.ID,
         tutors: tutorial.tutors?.map((tutor) => tutor.mail)
       }))
-      const mutation = await client.request<AddTutorialMutation>(AddTutorialDocument, {tutorials: tutorialsToAdd})
 
-      return mutation.addTutorial
+      console.log('Tuts to add: ', tutorialsToAdd)
+
+      await client.request<AddTutorialMutation>(AddTutorialDocument, {tutorials: tutorialsToAdd})
     }
 
-    events.forEach(eventID => {
-      void addTutorialsToEvent(eventID)
+    events.forEach((eventID, index) => {
+      void addTutorialsToEvent(eventID, index)
     })
   }
 
   async function onValidSubmit(umbrellaData: z.infer<typeof umbrellaFormSchema>) {
     const newUmbrellaID = await createNewUmbrella(umbrellaData)
     const newEventIDs = await createNewEvents(newUmbrellaID)
-    void createNewTutorials(newEventIDs)
+    if(newEventIDs) {
+      void createNewTutorials(newEventIDs)
+    }
 
     void refreshTable();
     closeDialog();
