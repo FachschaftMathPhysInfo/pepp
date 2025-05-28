@@ -1,7 +1,6 @@
-import { DataTableColumnHeader } from "@/components/data-table-column-header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import {DataTableColumnHeader} from "@/components/data-table-column-header";
+import {Button} from "@/components/ui/button";
+import {Checkbox} from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,10 +8,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User } from "@/lib/gql/generated/graphql";
-import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
-import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
+import {User} from "@/lib/gql/generated/graphql";
+import {ColumnDef} from "@tanstack/react-table";
+import {MoreHorizontal} from "lucide-react";
 
 export const columns: ColumnDef<User>[] = [
   {
@@ -54,7 +52,7 @@ export const columns: ColumnDef<User>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => {
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

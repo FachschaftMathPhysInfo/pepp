@@ -24,6 +24,7 @@ import { SignInDialog } from "./sign-in-dialog";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import {
+  Event,
   FutureEventsDocument,
   FutureEventsQuery,
   Role,
@@ -33,6 +34,9 @@ import { getClient } from "@/lib/graphql";
 import { useRouter } from "next/navigation";
 import EventDialog from "./event-dialog/event-dialog";
 import { adminItems, userItems } from "@/app/(settings)/sidebar";
+import { defaultEvent } from "@/types/defaults";
+import {toast} from "sonner";
+import {groupEventsByUmbrellaId} from "@/lib/utils";
 
 export default function Header() {
   const router = useRouter();
@@ -40,9 +44,7 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [closeupID, setCloseupID] = useState(0);
-  const [events, setEvents] = useState<FutureEventsQuery["events"] | null>(
-    null
-  );
+  const [events, setEvents] = useState<Event[]>([]);
 
   const { setTheme } = useTheme();
   const { user, setUser } = useUser();
@@ -51,11 +53,19 @@ export default function Header() {
     const fetchData = async () => {
       const client = getClient();
 
-      const eventData = await client.request<FutureEventsQuery>(
-        FutureEventsDocument
-      );
-      if (eventData.events.length) {
-        setEvents(eventData.events);
+      try {
+        const eventData = await client.request<FutureEventsQuery>(
+          FutureEventsDocument
+        );
+        setEvents(
+          eventData.events.map((e) => ({
+            ...defaultEvent,
+            ...e,
+            umbrella: { ...defaultEvent, ...e.umbrella },
+          }))
+        );
+      } catch {
+        toast.error("Beim Laden der Veranstaltungen ist ein Fehler aufgetreten.")
       }
     };
 
@@ -73,18 +83,7 @@ export default function Header() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const groupEventsByUmbrellaId = () => {
-    return events?.reduce((acc, event) => {
-      const umbrellaId = event.umbrella?.ID;
-      if (!acc[umbrellaId ?? 0]) {
-        acc[umbrellaId ?? 0] = [];
-      }
-      acc[umbrellaId ?? 0].push(event);
-      return acc;
-    }, {} as { [key: string]: FutureEventsQuery["events"] });
-  };
-
-  const groupedEvents = groupEventsByUmbrellaId();
+  const groupedEvents = groupEventsByUmbrellaId(events)
 
   return (
     <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
@@ -160,7 +159,9 @@ export default function Header() {
                             }}
                           >
                             {e.title}
-                            {user?.registrations?.some((r) => r.event.ID === e.ID) && (
+                            {user?.registrations?.some(
+                              (r) => r.event.ID === e.ID
+                            ) && (
                               <SquareCheckBig className="w-2 h-2 text-green-700" />
                             )}
                           </CommandItem>

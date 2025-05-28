@@ -28,6 +28,7 @@ import { FullDateDescription } from "../full-date-description";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { Button } from "../ui/button";
 import { EditEventView } from "./edit-event-view";
+import EventDescription from "./event-description";
 
 interface EventDialogProps {
   id?: number;
@@ -107,21 +108,7 @@ export default function EventDialog({
           <DialogHeader>
             <DialogTitle>{event?.title}</DialogTitle>
             <DialogDescription className="space-y-2">
-              <p>{event?.description}</p>
-              <div className="space-x-2 flex flex-row">
-                <Badge variant="event" color={event?.topic.color || ""}>
-                  {event?.topic.name}
-                </Badge>
-                <Badge variant="event" color={event?.type.color || ""}>
-                  {event?.type.name}
-                </Badge>
-              </div>
-              {event && (
-                <FullDateDescription
-                  from={new Date(event.from)}
-                  to={new Date(event.to)}
-                />
-              )}
+              <EventDescription event={event} />
             </DialogDescription>
           </DialogHeader>
 
