@@ -2,6 +2,7 @@ query tableEvents($needsTutors: Boolean, $onlyFuture: Boolean, $umbrellaID: [Int
   events(needsTutors: $needsTutors, onlyFuture: $onlyFuture, umbrellaID: $umbrellaID) {
     ID
     title
+    description
     from
     to
     needsTutors

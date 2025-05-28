@@ -4,16 +4,23 @@ import {z} from "zod";
 import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
-import {AddEventDocument, AddEventMutation, Event} from "@/lib/gql/generated/graphql";
+import {
+  AddEventDocument,
+  AddEventMutation, AddTutorialDocument, AddTutorialMutation,
+  Event,
+  TableEventsDocument,
+  TableEventsQuery, TutorialDetailDocument, TutorialDetailQuery
+} from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {Textarea} from "@/components/ui/textarea";
 import {DatePickerWithRange} from "@/components/date-picker-with-range";
 import {getNextWeek} from "@/lib/utils";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {GraphQLClient} from "graphql-request";
 
 
 interface RoomFormProps {
@@ -24,14 +31,14 @@ interface RoomFormProps {
 
 export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}: RoomFormProps) {
   const {sid} = useUser()
-  const roomFormSchema = z.object({
+  const umbrellaFormSchema = z.object({
     title: z.string({
       required_error: "Bitte gib einen Titel für das Programm an"
     }),
     description: z.string().optional(),
   });
-  const form = useForm<z.infer<typeof roomFormSchema>>({
-    resolver: zodResolver(roomFormSchema),
+  const form = useForm<z.infer<typeof umbrellaFormSchema>>({
+    resolver: zodResolver(umbrellaFormSchema),
     defaultValues: {
       title: umbrellas[0].title,
       description: umbrellas[0].description ?? "",
@@ -43,6 +50,11 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
     to: umbrellas[0].to === "" ? getNextWeek() : umbrellas[0].to,
   });
   const [umbrellaToCopyFrom, setUmbrellaToCopyFrom] = useState<Event>(umbrellas[0]);
+  const [client, setClient] = useState<GraphQLClient>(getClient());
+
+  useEffect(() => {
+    setClient(getClient(String(sid)))
+  }, [sid]);
 
   function setValues(umbrellaId: number) {
     const umbrella = umbrellas.find((umbrella) => umbrella.ID === umbrellaId);
@@ -61,23 +73,76 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
     if (from && to) setDuration({from: from.toISOString(), to: to.toISOString()});
   }
 
-
-  // TODO: Copy needs to create NEW events etc
-  async function onValidSubmit(umbrellaData: z.infer<typeof roomFormSchema>) {
-    const client = getClient(String(sid));
-    const newEvent = {
+  async function createNewUmbrella(umbrellaData: z.infer<typeof umbrellaFormSchema>): Promise<number> {
+    const newUmbrella = {
       title: umbrellaData.title,
       description: umbrellaData.description,
+      topicName: umbrellaToCopyFrom.topic.name,
+      typeName: umbrellaToCopyFrom.type.name,
+      needsTutors: false,
       from: duration.from,
       to: duration.to,
     }
 
-    await client.request<AddEventMutation>(AddEventDocument, {
-      event: {
-        ...umbrellaToCopyFrom,
-        ...newEvent
-      },
+    const mutation = await client.request<AddEventMutation>(AddEventDocument, {event: newUmbrella})
+
+    return mutation.addEvent[0]
+  }
+
+  async function createNewEvents(umbrellaID: number): Promise<number[]> {
+    console.log('Adding Events...')
+
+    const eventsToAddData = await client.request<TableEventsQuery>(
+      TableEventsDocument,
+      {umbrellaID: umbrellaID}
+    )
+
+    const eventsToAdd = eventsToAddData.events.map(
+      event => ({
+        title: event.title,
+        description: event.description,
+        topicName: event.topic.name,
+        typeName: event.type.name,
+        needsTutors: event.needsTutors,
+        from: event.from,
+        to: event.to,
+        umbrellaID: umbrellaID
+      }))
+
+    const mutation = await client.request<AddEventMutation>(AddEventDocument, {
+      event: eventsToAdd,
     })
+
+    return mutation.addEvent
+  }
+
+  function createNewTutorials(events: number[]) {
+    console.log('Creating Tutorials...')
+    const addTutorialsToEvent = async (eventID: number): Promise<number[]> =>{
+      const tutorialsToAddData  = await client.request<TutorialDetailQuery>(
+        TutorialDetailDocument,
+        {eventID: eventID}
+      )
+      const tutorialsToAdd = tutorialsToAddData.tutorials.map((tutorial) => ({
+        eventID: eventID,
+        roomNumber: tutorial.room.number,
+        buildingID: tutorial.room.building.ID,
+        tutors: tutorial.tutors?.map((tutor) => tutor.mail)
+      }))
+      const mutation = await client.request<AddTutorialMutation>(AddTutorialDocument, {tutorials: tutorialsToAdd})
+
+      return mutation.addTutorial
+    }
+
+    events.forEach(eventID => {
+      void addTutorialsToEvent(eventID)
+    })
+  }
+
+  async function onValidSubmit(umbrellaData: z.infer<typeof umbrellaFormSchema>) {
+    const newUmbrellaID = await createNewUmbrella(umbrellaData)
+    const newEventIDs = await createNewEvents(newUmbrellaID)
+    void createNewTutorials(newEventIDs)
 
     void refreshTable();
     closeDialog();
