@@ -165,14 +165,19 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, mail []string) (int, 
 }
 
 // AddEvent is the resolver for the addEvent field.
-func (r *mutationResolver) AddEvent(ctx context.Context, event models.Event) (*models.Event, error) {
+func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) ([]int, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&event).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	return &event, nil
+	var ids []int
+	for _, e := range event {
+		ids = append(ids, int(e.ID))
+	}
+
+	return ids, nil
 }
 
 // UpdateEvent is the resolver for the updateEvent field.
@@ -205,14 +210,19 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, id []int) (int, erro
 }
 
 // AddTutorial is the resolver for the addTutorial field.
-func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial models.Tutorial) (*models.Tutorial, error) {
+func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*models.Tutorial) ([]int, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&tutorial).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	return &tutorial, nil
+	var ids []int
+	for _, t := range tutorial {
+		ids = append(ids, int(t.ID))
+	}
+
+	return ids, nil
 }
 
 // UpdateTutorial is the resolver for the updateTutorial field.
