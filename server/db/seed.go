@@ -15,6 +15,8 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 	users := []*models.User{
 		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true},
 		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true},
+		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: true},
+		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: true},
 	}
 	if err := insertData(ctx, db, (*models.User)(nil), users, "Users"); err != nil {
 		return err
@@ -161,6 +163,16 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{EventID: 5, UserMail: "tutor2@example.de"},
 	}
 	if err := insertData(ctx, db, (*models.UserToEventAvailability)(nil), availabilitys, "User to Event availabilitys"); err != nil {
+		return err
+	}
+
+	registrations := []*models.UserToTutorialRegistration{
+		{TutorialID: 1, UserMail: "student1@example.de"},
+		{TutorialID: 2, UserMail: "student2@example.de"},
+		{TutorialID: 3, UserMail: "student1@example.de"},
+		{TutorialID: 3, UserMail: "student2@example.de"},
+	}
+	if err := insertData(ctx, db, (*models.UserToTutorialRegistration)(nil), registrations, "User to Tutorial registrations"); err != nil {
 		return err
 	}
 
