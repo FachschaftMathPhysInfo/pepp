@@ -605,6 +605,28 @@ func (r *mutationResolver) DeleteTutorAvailabilityForEvent(ctx context.Context, 
 
 // AddStudentRegistrationForTutorial is the resolver for the addStudentRegistrationForTutorial field.
 func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context, registration models.UserToTutorialRegistration) (string, error) {
+	tutorial := new(models.Tutorial)
+	if err := r.DB.NewSelect().
+		Model(tutorial).
+		Where("id = ?", registration.TutorialID).
+		Scan(ctx); err != nil {
+		return "", err
+	}
+
+	count, err := r.DB.NewSelect().
+		Model((*models.UserToTutorialRegistration)(nil)).
+		Relation("Tutorial").
+		Where("user_mail = ?", registration.UserMail).
+		Where("tutorial.event_id = ?", tutorial.EventID).
+		Count(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if count != 0 {
+		return "", fmt.Errorf("student is not allowed to be registered in multiple tutorials in one event")
+	}
+
 	if _, err := r.DB.NewInsert().
 		Model(&registration).
 		Exec(ctx); err != nil {
