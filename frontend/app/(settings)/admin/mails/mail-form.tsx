@@ -29,13 +29,8 @@ export default function EditMailForm({ settings }: SettingFormProps) {
       values: settings.map(setting => setting.value)
     },
   });
-  const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
   const [initialValues, setInitalValues] = useState<string[]>(settings.map(setting => setting.value));
-  const [currentValues, setCurrentValues] = useState<string[]>(settings.map(setting => setting.value));
 
-  useEffect(() => {
-    setCurrentValues(form.getValues("values"))
-  }, [form]);
 
   function resetForm()  {
     form.setValue('values', initialValues)
@@ -56,7 +51,11 @@ export default function EditMailForm({ settings }: SettingFormProps) {
       });
     }
 
+    const currentValues = form.getValues("values");
     setInitalValues(currentValues)
+    form.reset({
+      values: currentValues,
+    });
     toast.info("Mailabschnitt wurde erfolgreich bearbeitet");
   }
 
@@ -64,9 +63,7 @@ export default function EditMailForm({ settings }: SettingFormProps) {
       <div className=" rounded-lg p-4 border-gray-800">
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit(onValidSubmit, () =>
-              setHasTriedToSubmit(true)
-            )}
+            onSubmit={form.handleSubmit(onValidSubmit)}
             className="space-y-4 w-full flex flex-col items-end"
           >
             {settings.map((setting, index) => (
@@ -103,7 +100,7 @@ export default function EditMailForm({ settings }: SettingFormProps) {
               </Button>
 
               <Button
-                disabled={!form.formState.isValid && hasTriedToSubmit || String(currentValues) === String(initialValues)}
+                disabled={!form.formState.isValid || !form.formState.isDirty}
                 type="submit"
                 className={'flex-grow-[0.6]'}
               >
