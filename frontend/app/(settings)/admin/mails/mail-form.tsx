@@ -98,7 +98,7 @@ export default function EditMailForm({ settings }: SettingFormProps) {
                 className={'flex-grow-[0.4]'}
                 onClick={resetForm}
               >
-                Reset
+                Zurücksetzen
                 <ResetIcon />
               </Button>
 
