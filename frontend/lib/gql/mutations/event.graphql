@@ -3,9 +3,7 @@ mutation updateEvent($id: Int!, $event: NewEvent!) {
 }
 
 mutation addEvent($event: NewEvent!) {
-  addEvent(event: $event) {
-    ID
-  }
+  addEvent(event: [$event])
 }
 
 mutation deleteEvent($eventIds: [Int!]!) {

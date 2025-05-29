@@ -2,6 +2,9 @@ query umbrellas($onlyFuture: Boolean, $id: [Int!]) {
   umbrellas(onlyFuture: $onlyFuture, id: $id) {
     ID
     title
+    description
+    from
+    to
   }
 }
 
@@ -20,5 +23,11 @@ query umbrellaDuration($id: Int!) {
     ID
     from
     to
+  }
+}
+
+query umbrellaEventsTitles($umbrellaID: [Int!]!) {
+  events(umbrellaID: $umbrellaID) {
+    title
   }
 }
