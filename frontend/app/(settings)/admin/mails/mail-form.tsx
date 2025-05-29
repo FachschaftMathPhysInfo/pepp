@@ -3,7 +3,7 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {Setting, UpdateSettingDocument, UpdateSettingMutation,} from "@/lib/gql/generated/graphql";
