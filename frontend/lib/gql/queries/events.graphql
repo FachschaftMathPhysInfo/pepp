@@ -24,13 +24,21 @@ query tableEvents(
   }
 }
 
-query futureEvents {
-  events(onlyFuture: true) {
+query futureEvents($needsTutors: Boolean) {
+  events(onlyFuture: true, needsTutors: $needsTutors) {
     ID
     title
     umbrella {
       ID
       title
+    }
+  }
+}
+
+query availableEventIdsOfUser($mail: [String!]!) {
+  users(mail: $mail) {
+    availabilities {
+      ID
     }
   }
 }

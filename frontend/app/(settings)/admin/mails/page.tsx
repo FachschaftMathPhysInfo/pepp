@@ -1,22 +1,11 @@
 "use client";
 
-import { Separator } from "@/components/ui/separator";
-import {
-  AllSettingsDocument,
-  AllSettingsQuery,
-  AllSettingsQueryVariables,
-  Setting,
-} from "@/lib/gql/generated/graphql";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { useEffect, useState, useCallback } from "react";
-import { getClient } from "@/lib/graphql";
-import MailSection from "@/app/(settings)/admin/mails/mail-section";
-import { useUser } from "@/components/providers";
+import {Separator} from "@/components/ui/separator";
+import {AllSettingsDocument, AllSettingsQuery, Setting,} from "@/lib/gql/generated/graphql";
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
+import {useCallback, useEffect, useState} from "react";
+import {getClient} from "@/lib/graphql";
+import {useUser} from "@/components/providers";
 import MailForm from "@/components/mail-form";
 
 export default function Settings() {
@@ -66,7 +55,7 @@ export default function Settings() {
       <div>
         <h3 className="text-3xl font-bold">Mailverwaltung</h3>
         <p className="text-sm text-muted-foreground">
-          Bearbeite vorhandene Mailabschnitte.
+          Bearbeite die Templates der automatisiert verschickten Mails.
         </p>
       </div>
       <Separator />

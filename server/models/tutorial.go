@@ -22,6 +22,7 @@ var _ bun.BeforeCreateTableHook = (*Tutorial)(nil)
 
 func (*Tutorial) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
 	query.ForeignKey(`("event_id") REFERENCES "events" ("id") ON DELETE CASCADE`)
+	query.ForeignKey(`("room_number", "building_id") REFERENCES "rooms" ("number", "building_id") ON DELETE CASCADE`)
 	return nil
 }
 

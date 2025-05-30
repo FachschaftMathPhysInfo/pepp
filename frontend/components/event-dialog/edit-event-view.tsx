@@ -22,8 +22,9 @@ import {
   DialogDescription,
   DialogTitle,
   DialogFooter,
+  DialogContent,
 } from "@/components/ui/dialog";
-import { useUser } from "../providers";
+import { useRefetch, useUser } from "../providers";
 import { getClient } from "@/lib/graphql";
 import TextareaAutosize from "react-textarea-autosize";
 import { z } from "zod";
@@ -45,7 +46,7 @@ import { Switch } from "../ui/switch";
 import { BadgePicker } from "../badge-picker";
 import { DatePicker } from "../date-picker";
 import { Button } from "../ui/button";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 const FormSchema = z.object({
@@ -69,6 +70,8 @@ export function EditEventView({ event }: EditEventViewProps) {
   const pathname = usePathname();
 
   const { sid } = useUser();
+  const { triggerRefetch } = useRefetch();
+
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
   const [newAssignments, setNewAssignments] = useState<
@@ -132,8 +135,7 @@ export function EditEventView({ event }: EditEventViewProps) {
       try {
         await client.request<UpdateEventMutation>(UpdateEventDocument, vars);
         toast.info(`"${data.title}" erfolgreich gespeichert!`);
-        // TODO: this is ugly and to be solved with intercepting routes
-        location.reload()
+        triggerRefetch();
       } catch (err) {
         toast.error(
           "Beim Speichern der Veranstaltung ist ein Fehler aufgetreten."
@@ -156,8 +158,7 @@ export function EditEventView({ event }: EditEventViewProps) {
       try {
         await client.request<AddEventMutation>(AddEventDocument, vars);
         toast.info(`"${data.title}" erfolgreich erstellt!`);
-        // TODO: this is ugly and to be solved with intercepting routes
-        location.reload()
+        triggerRefetch();
       } catch (err) {
         toast.error(
           "Beim Erstellen der Veranstaltung ist ein Fehler aufgetreten."
@@ -198,193 +199,203 @@ export function EditEventView({ event }: EditEventViewProps) {
   }, []);
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(event ? updateEvent : newEvent)}>
-        <div className="space-y-4">
-          <DialogHeader>
-            <DialogTitle>
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <input
-                        className="disabled:border-none disabled:cursor-text border-dashed border-b-2 w-full bg-transparent focus:outline-none"
-                        placeholder="Veranstaltungstitel"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </DialogTitle>
-            <DialogDescription className="space-y-4">
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <TextareaAutosize
-                        placeholder="Beschreibung der Veranstaltung"
-                        className="disabled:cursor-text w-full bg-transparent resize-none focus:outline-none border-dashed border-b-2 disabled:border-none pb-1"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="space-x-2 flex flex-row">
-                <FormField
-                  control={form.control}
-                  name="topic"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <BadgePicker
-                          kind={LabelKind.Topic}
-                          labelKindDescription="Thema"
-                          selected={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <BadgePicker
-                          kind={LabelKind.EventType}
-                          labelKindDescription="Veranstaltungstyp"
-                          selected={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex flex-row justify-between space-x-2">
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <DatePicker
-                          selected={field.value}
-                          onChange={field.onChange}
-                          disabled={(date) =>
-                            date < new Date(umbrella?.from) ||
-                            date > new Date(umbrella?.to)
-                          }
-                        />
-                      </FormControl>
-                      <FormDescription>Datum der Veranstaltung</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex flex-row space-x-2">
+    <>
+      <DialogContent className="sm:min-w-[800px]">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(event ? updateEvent : newEvent)}>
+            <div className="space-y-4">
+              <DialogHeader>
+                <DialogTitle>
                   <FormField
                     control={form.control}
-                    name="from"
+                    name="title"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input aria-label="Time" type="time" {...field} />
+                          <input
+                            className="disabled:border-none disabled:cursor-text border-dashed border-b-2 w-full bg-transparent focus:outline-none"
+                            placeholder="Veranstaltungstitel"
+                            {...field}
+                          />
                         </FormControl>
-                        <FormDescription>Von</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                </DialogTitle>
+                <DialogDescription className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="to"
+                    name="description"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Input aria-label="Time" type="time" {...field} />
+                          <TextareaAutosize
+                            placeholder="Beschreibung der Veranstaltung"
+                            className="disabled:cursor-text w-full bg-transparent resize-none focus:outline-none border-dashed border-b-2 disabled:border-none pb-1"
+                            {...field}
+                          />
                         </FormControl>
-                        <FormDescription>Bis</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          {event && (
-            <TutorialsTable
-              id={event.ID}
-              event={event!}
-              capacities={
-                event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
-              }
-              edit={true}
-              newAssignments={newAssignments}
-              setNewAssignments={setNewAssignments}
-              deleteAssignments={deleteAssignments}
-              setDeleteAssignments={setDeleteAssignments}
-            />
-          )}
-          <FormField
-            control={form.control}
-            name="needsTutors"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <div className="flex flex-row space-x-2 mt-10">
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                  <div className="space-x-2 flex flex-row">
+                    <FormField
+                      control={form.control}
+                      name="topic"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <BadgePicker
+                              kind={LabelKind.Topic}
+                              labelKindDescription="Thema"
+                              selected={field.value}
+                              onChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Benötigt Tutoren
-                    </p>
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <BadgePicker
+                              kind={LabelKind.EventType}
+                              labelKindDescription="Veranstaltungstyp"
+                              selected={field.value}
+                              onChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                </FormControl>
-                <FormDescription>
-                  Personen können sich für diese Veranstaltung als verfügbare/r
-                  Tutor/in eintragen.
-                </FormDescription>
-              </FormItem>
-            )}
-          />
-          <DialogFooter>
-            <Button type="submit" variant="secondary" disabled={saveLoading}>
-              {event ? (
-                <>
-                  <Save className="h-4 w-4" />
-                  Speichern
-                </>
-              ) : (
-                <>
-                  <PlusCircle className="h-4 w-4" />
-                  Hinzufügen
-                </>
+                  <div className="flex flex-row justify-between space-x-2">
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <DatePicker
+                              selected={field.value}
+                              onChange={field.onChange}
+                              disabled={(date) =>
+                                date < new Date(umbrella?.from) ||
+                                date > new Date(umbrella?.to)
+                              }
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Datum der Veranstaltung
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="flex flex-row space-x-2">
+                      <FormField
+                        control={form.control}
+                        name="from"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input aria-label="Time" type="time" {...field} />
+                            </FormControl>
+                            <FormDescription>Von</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="to"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input aria-label="Time" type="time" {...field} />
+                            </FormControl>
+                            <FormDescription>Bis</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+              {event && (
+                <TutorialsTable
+                  id={event.ID}
+                  event={event!}
+                  capacities={
+                    event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
+                  }
+                  edit={true}
+                  newAssignments={newAssignments}
+                  setNewAssignments={setNewAssignments}
+                  deleteAssignments={deleteAssignments}
+                  setDeleteAssignments={setDeleteAssignments}
+                />
               )}
-            </Button>
-            {event && (
-              <Button variant="destructive">
-                <Trash2 className="h-4 w-4" />
-                Löschen
-              </Button>
-            )}
-          </DialogFooter>
-        </div>
-      </form>
-    </Form>
+              <FormField
+                control={form.control}
+                name="needsTutors"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="flex flex-row space-x-2 mt-10">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          Benötigt Tutoren
+                        </p>
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Personen können sich für diese Veranstaltung als
+                      verfügbare/r Tutor/in eintragen.
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  disabled={saveLoading}
+                >
+                  {event ? (
+                    <>
+                      <Save className="h-4 w-4" />
+                      Speichern
+                    </>
+                  ) : (
+                    <>
+                      <PlusCircle className="h-4 w-4" />
+                      Hinzufügen
+                    </>
+                  )}
+                </Button>
+                {event && (
+                  <Button variant="destructive">
+                    <Trash2 className="h-4 w-4" />
+                    Löschen
+                  </Button>
+                )}
+              </DialogFooter>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </>
   );
 }

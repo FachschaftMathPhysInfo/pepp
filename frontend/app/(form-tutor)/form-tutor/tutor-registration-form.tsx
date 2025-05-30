@@ -4,8 +4,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { columns } from "@/app/(form-tutor)/form-tutor/columns";
-import { EventTable } from "@/app/(form-tutor)/form-tutor/event-table";
+import { eventColumns } from "@/components/tables/event-table/event-columns";
+import { EventTable } from "@/components/tables/event-table/event-table";
 import React, { useEffect, useState } from "react";
 import { getClient } from "@/lib/graphql";
 import {
@@ -17,7 +17,7 @@ import {
   TableEventsQueryVariables, TutorRegistrationDocument, TutorRegistrationMutation, TutorRegistrationMutationVariables
 } from "@/lib/gql/generated/graphql";
 import { RowSelectionState } from "@tanstack/react-table";
-import { cn } from "@/lib/utils/tailwindUtils";
+import { cn } from "@/lib/utils";
 import {toast} from "sonner";
 
 
@@ -196,7 +196,7 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
                   ) : (
                     <EventTable
                       key="table"
-                      columns={columns}
+                      columns={eventColumns}
                       data={events}
                       rowSelection={rowSelection}
                       setRowSelection={setRowSelection}

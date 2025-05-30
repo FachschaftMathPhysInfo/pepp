@@ -10,6 +10,47 @@ import {
   Users,
 } from "lucide-react";
 
+export const userItems = [
+  {
+    title: "Einstellungen",
+    url: "/profile",
+    icon: Settings,
+  },
+  {
+    title: "Meine Anmeldungen",
+    url: "/profile/registrations",
+    icon: BookCheck,
+  },
+  {
+    title: "Meine Tutorien",
+    url: "/profile/tutorials",
+    icon: GraduationCap,
+  },
+  {
+    title: "Meine Verfügbarkeiten",
+    url: "/profile/availabilities",
+    icon: CalendarCheck2,
+  },
+];
+
+export const adminItems = [
+  {
+    title: "E-Mails",
+    url: "/admin/mails",
+    icon: Mail,
+  },
+  {
+    title: "Nutzerverwaltung",
+    url: "/admin/users",
+    icon: Users,
+  },
+  {
+    title: "Räume & Gebäude",
+    url: "/admin/rooms",
+    icon: School,
+  },
+];
+
 import {
   Sidebar,
   SidebarContent,
@@ -22,50 +63,11 @@ import {
 } from "@/components/ui/sidebar";
 import { useUser } from "@/components/providers";
 import { Role } from "@/lib/gql/generated/graphql";
+import { useRouter } from "next/navigation";
 
 export function ProfileSidebar() {
   const { user } = useUser();
-
-  const userItems = [
-    {
-      title: "Einstellungen",
-      url: "/profile",
-      icon: Settings,
-    },
-    {
-      title: "Meine Anmeldungen",
-      url: "/profile/registrations",
-      icon: BookCheck,
-    },
-    {
-      title: "Meine Tutorien",
-      url: "/profile/tutorials",
-      icon: GraduationCap,
-    },
-    {
-      title: "Meine Verfügbarkeiten",
-      url: "/profile/registrations",
-      icon: CalendarCheck2,
-    },
-  ];
-
-  const adminItems = [
-    {
-      title: "E-Mails",
-      url: "/admin/mails",
-      icon: Mail,
-    },
-    {
-      title: "Nutzerverwaltung",
-      url: "/admin/users",
-      icon: Users,
-    },
-    {
-      title: "Räume & Gebäude",
-      url: "/admin/rooms",
-      icon: School,
-    },
-  ];
+  const router = useRouter();
 
   return (
     <Sidebar>
@@ -75,11 +77,15 @@ export function ProfileSidebar() {
             <SidebarMenu>
               {userItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                  <SidebarMenuButton
+                    asChild
+                    onClick={() => router.push(item.url)}
+                    className="cursor-pointer"
+                  >
+                    <div>
                       <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                      {item.title}
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -93,11 +99,15 @@ export function ProfileSidebar() {
               <SidebarMenu>
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <a href={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      onClick={() => router.push(item.url)}
+                      className="cursor-pointer"
+                    >
+                      <div>
                         <item.icon />
-                        <span>{item.title}</span>
-                      </a>
+                        {item.title}
+                      </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

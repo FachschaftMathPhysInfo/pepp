@@ -6,7 +6,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
-import { UserProvider, ThemeProvider } from "@/components/providers";
+import {
+  UserProvider,
+  ThemeProvider,
+  RefetchProvider,
+} from "@/components/providers";
 import Header from "@/components/header";
 import React, { Suspense } from "react";
 
@@ -53,19 +57,21 @@ export default function RootLayout({ children }: RootLayoutProps) {
         )}
       >
         <Suspense>
-          <UserProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <Header />
-              {children}
-              <Toaster richColors/>
-              <TailwindIndicator />
-            </ThemeProvider>
-          </UserProvider>
+          <RefetchProvider>
+            <UserProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <Header />
+                {children}
+                <Toaster richColors />
+                <TailwindIndicator />
+              </ThemeProvider>
+            </UserProvider>
+          </RefetchProvider>
         </Suspense>
       </body>
     </html>

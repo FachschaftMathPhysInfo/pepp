@@ -1,29 +1,13 @@
-import { DataTableColumnHeader } from "@/components/data-table-column-header";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Role, User } from "@/lib/gql/generated/graphql";
-import { ColumnDef } from "@tanstack/react-table";
-import {
-  BadgeCheck,
-  BadgeX,
-  Check,
-  MoreHorizontal,
-  Shield,
-  X,
-} from "lucide-react";
-import React, { SetStateAction } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useUser } from "@/components/providers";
+import {DataTableColumnHeader} from "@/components/data-table-column-header";
+import {Button} from "@/components/ui/button";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {Role, User} from "@/lib/gql/generated/graphql";
+import {ColumnDef} from "@tanstack/react-table";
+import {MoreHorizontal, Shield,} from "lucide-react";
+import React, {SetStateAction} from "react";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
+import {useUser} from "@/components/providers";
+import {Badge} from "@/components/ui/badge";
 
 interface UserColumnProps {
   setDialogState: React.Dispatch<
@@ -39,8 +23,7 @@ export function UserColumns({setDialogState}: UserColumnProps): ColumnDef<User>[
 
   return [
     {
-      accessorKey: "role",
-      header: "",
+      id: "role",
       cell: ({ row }) => (
         <>
           {row.original.role === Role.Admin && (
@@ -80,23 +63,14 @@ export function UserColumns({setDialogState}: UserColumnProps): ColumnDef<User>[
       cell: ({ row }) => row.original.mail,
     },
     {
-      accessorKey: "confirmed",
-      header: () => <div className={"w-full text-center"}>Registriert</div>,
+      id: "labels",
       cell: ({ row }) => (
-        <div className={"flex justify-center w-full"}>
-          {row.original.confirmed ? <BadgeCheck /> : <BadgeX />}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "tutorials",
-      header: () => <div className={"w-full text-center"}>Tutor:in</div>,
-      cell: ({ row }) => (
-        <div className={"flex justify-center w-full"}>
-          {row.original.tutorials && row.original.tutorials.length > 0 ? (
-            <Check />
-          ) : (
-            <X />
+        <div className={"flex flex-wrap items-center w-full"}>
+          {row.original.tutorials && (
+            <Badge color={"#031e39"} className={'border-blue-500 mr-4 mb-1'}>Tutor:in</Badge>
+          )}
+          {row.original.confirmed && (
+            <Badge color={'#022d16'} className={'border-green-500'}>Bestätigt</Badge>
           )}
         </div>
       ),

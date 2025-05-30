@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { SignInDialog } from "@/components/sign-in-dialog";
-import { useUser } from "../providers";
+import { useRefetch, useUser } from "../providers";
 import { getClient } from "@/lib/graphql";
 import { TutorialsTable } from "./tutorials-table";
 import { FullDateDescription } from "../full-date-description";
@@ -41,6 +41,8 @@ export default function EventDialog({
   open,
 }: EventDialogProps) {
   const { user } = useUser();
+  const { refetchKey } = useRefetch();
+
   const [event, setEvent] = useState<Event>();
   const [edit, setEdit] = useState(modify);
   const [newAssignments, setNewAssignments] = useState<
@@ -88,9 +90,11 @@ export default function EventDialog({
     };
 
     if (id) fetchEventData();
-  }, [id, open]);
+  }, [id, open, refetchKey]);
 
-  return (
+  return edit ? (
+    <EditEventView event={event} />
+  ) : (
     <DialogContent className="sm:min-w-[600px]">
       {!event && id ? (
         <div className="flex flex-col space-y-3">
@@ -98,8 +102,6 @@ export default function EventDialog({
           <Skeleton className="h-3 w-[200px]" />
           <Skeleton className="h-[125px] w-full rounded-xl" />
         </div>
-      ) : edit ? (
-        <EditEventView event={event} />
       ) : (
         <div className="space-y-4">
           <DialogHeader>

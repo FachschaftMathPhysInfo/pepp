@@ -180,9 +180,6 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 	event.ID = int32(id)
 	if _, err := r.DB.NewUpdate().
 		Model(&event).
-		// needed, because submitting false will be
-		// omitted by OmitZero()
-		Set("needs_tutors = ?", event.NeedsTutors).
 		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {
@@ -259,6 +256,7 @@ func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Buil
 func (r *mutationResolver) UpdateBuilding(ctx context.Context, id int, building models.Building) (*models.Building, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&building).
+		OmitZero().
 		Where("id = ?", id).
 		Exec(ctx); err != nil {
 		return nil, err
@@ -276,7 +274,7 @@ func (r *mutationResolver) UpdateBuilding(ctx context.Context, id int, building 
 func (r *mutationResolver) DeleteBuilding(ctx context.Context, id []int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Building)(nil)).
-		Where("id = ?", id).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
 		return 0, err
@@ -301,6 +299,7 @@ func (r *mutationResolver) AddRoom(ctx context.Context, room models.Room) (*mode
 func (r *mutationResolver) UpdateRoom(ctx context.Context, room models.Room) (*models.Room, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&room).
+		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {
 		return nil, err
@@ -318,7 +317,7 @@ func (r *mutationResolver) UpdateRoom(ctx context.Context, room models.Room) (*m
 func (r *mutationResolver) DeleteRoom(ctx context.Context, number []string, buildingID int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Room)(nil)).
-		Where("number = ?", number).
+		Where("number IN (?)", bun.In(number)).
 		Where("building_id = ?", buildingID).
 		Exec(ctx)
 	if err != nil {
@@ -506,7 +505,13 @@ func (r *mutationResolver) AddTutorAssignmentForTutorial(ctx context.Context, as
 				tutorial.Room.Building.Street, tutorial.Room.Building.Number,
 				tutorial.Room.Building.Zip, tutorial.Room.Building.City)}}
 
-	if err := email.Send(*assignment.User, m, r.MailConfig); err != nil {
+	users, err := r.Query().Users(ctx, []string{assignment.UserMail})
+	if err != nil {
+		return "", err
+	}
+	user := users[0]
+
+	if err := email.Send(*user, m, r.MailConfig); err != nil {
 		return "", err
 	}
 
@@ -600,6 +605,28 @@ func (r *mutationResolver) DeleteTutorAvailabilityForEvent(ctx context.Context, 
 
 // AddStudentRegistrationForTutorial is the resolver for the addStudentRegistrationForTutorial field.
 func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context, registration models.UserToTutorialRegistration) (string, error) {
+	tutorial := new(models.Tutorial)
+	if err := r.DB.NewSelect().
+		Model(tutorial).
+		Where("id = ?", registration.TutorialID).
+		Scan(ctx); err != nil {
+		return "", err
+	}
+
+	count, err := r.DB.NewSelect().
+		Model((*models.UserToTutorialRegistration)(nil)).
+		Relation("Tutorial").
+		Where("user_mail = ?", registration.UserMail).
+		Where("tutorial.event_id = ?", tutorial.EventID).
+		Count(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	if count != 0 {
+		return "", fmt.Errorf("student is not allowed to be registered in multiple tutorials in one event")
+	}
+
 	if _, err := r.DB.NewInsert().
 		Model(&registration).
 		Exec(ctx); err != nil {

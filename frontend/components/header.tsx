@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, Moon, SquareCheckBig, Sun, Search } from "lucide-react";
+import { LogIn, Moon, SquareCheckBig, Sun, Search, LogOut } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
@@ -19,34 +19,20 @@ import {
   CommandItem,
   CommandList,
 } from "./ui/command";
-import { Dialog } from "./ui/dialog";
-import { DialogTrigger } from "@radix-ui/react-dialog";
+import { Dialog, DialogTrigger } from "./ui/dialog";
 import { SignInDialog } from "./sign-in-dialog";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import {
   FutureEventsDocument,
   FutureEventsQuery,
+  Role,
 } from "@/lib/gql/generated/graphql";
 import { useUser } from "./providers";
 import { getClient } from "@/lib/graphql";
 import { useRouter } from "next/navigation";
 import EventDialog from "./event-dialog/event-dialog";
-
-export const profileNavItems = [
-  {
-    title: "Einstellungen",
-    href: "/profile",
-  },
-  {
-    title: "Tutorien",
-    href: "/profile/tutorials",
-  },
-  {
-    title: "Anmeldungen",
-    href: "/profile/registrations",
-  },
-];
+import { adminItems, userItems } from "@/app/(settings)/sidebar";
 
 export default function Header() {
   const router = useRouter();
@@ -73,7 +59,7 @@ export default function Header() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, []);
 
   useEffect(() => {
@@ -174,14 +160,9 @@ export default function Header() {
                             }}
                           >
                             {e.title}
-                            {user &&
-                            user?.registrations?.find(
-                              (r) => r.event.ID === e.ID
-                            )
-                              ? true
-                              : false && (
-                                  <SquareCheckBig className="w-2 h-2 text-green-700" />
-                                )}
+                            {user?.registrations?.some((r) => r.event.ID === e.ID) && (
+                              <SquareCheckBig className="w-2 h-2 text-green-700" />
+                            )}
                           </CommandItem>
                         ))
                       : ""}
@@ -227,16 +208,32 @@ export default function Header() {
                 <p className="text-muted-foreground text-xs">{user.mail}</p>
               </div>
               <Separator />
-              {profileNavItems.map((i) => (
+              {userItems.map((i) => (
                 <DropdownMenuItem
                   key={i.title}
-                  onClick={() => router.push(i.href)}
+                  onClick={() => router.push(i.url)}
                 >
+                  <i.icon />
                   {i.title}
                 </DropdownMenuItem>
               ))}
+              {user.role === Role.Admin && (
+                <>
+                  <Separator />
+                  {adminItems.map((i) => (
+                    <DropdownMenuItem
+                      key={i.title}
+                      onClick={() => router.push(i.url)}
+                    >
+                      <i.icon />
+                      {i.title}
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
               <Separator />
               <DropdownMenuItem onClick={() => setUser(null)}>
+                <LogOut />
                 Abmelden
               </DropdownMenuItem>
             </DropdownMenuContent>

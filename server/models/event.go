@@ -17,7 +17,7 @@ type Event struct {
 	TypeName    string    `bun:",type:varchar(50)"`
 	From        time.Time `bun:",notnull"`
 	To          time.Time `bun:",notnull"`
-	NeedsTutors bool      `bun:",notnull"`
+	NeedsTutors *bool
 	UmbrellaID  *int32
 
 	Umbrella         *Event     `bun:"rel:belongs-to,join:umbrella_id=id"`
