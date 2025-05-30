@@ -212,5 +212,8 @@ query GetTutorialIdsOfEvent($eventId: [Int!]) {
       ID
       title
     }
+    topic {
+      color
+    }
   }
 }
