@@ -3,16 +3,18 @@
 import { useUser } from "@/components/providers";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Separator } from "@/components/ui/separator";
-import {slugify} from "@/lib/utils";
-import {useRouter} from "next/navigation";
-import React, {useEffect} from "react";
+import { slugify } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 
 interface ProfileTutorialsLayoutProps {
   children: React.ReactNode;
 }
 
-export default function ProfileTutorialsLayout({children}: ProfileTutorialsLayoutProps) {
-  const router = useRouter()
+export default function ProfileTutorialsLayout({
+  children,
+}: ProfileTutorialsLayoutProps) {
+  const router = useRouter();
 
   const { user } = useUser();
   const tutorials = user?.tutorials?.map((u) => ({
@@ -22,9 +24,9 @@ export default function ProfileTutorialsLayout({children}: ProfileTutorialsLayou
 
   useEffect(() => {
     if (tutorials?.length) {
-      router.push(tutorials[0].href)
+      router.push(tutorials[0].href);
     }
-  }, [tutorials])
+  }, [tutorials]);
 
   return (
     <div className="">
