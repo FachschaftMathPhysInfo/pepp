@@ -133,7 +133,7 @@ export function TutorialsTable({
     fetchData();
   }, [edit]);
 
-  const registerForEvent = async (tutorial: Tutorial) => {
+  const registerForTutorial = async (tutorial: Tutorial) => {
     const client = getClient(sid!);
 
     const vars: AddStudentRegistrationForTutorialMutationVariables = {
@@ -155,7 +155,7 @@ export function TutorialsTable({
     }
   };
 
-  const unregisterFromEvent = async (tutorial: Tutorial) => {
+  const unregisterFromTutorial = async (tutorial: Tutorial) => {
     const client = getClient(sid!);
 
     const vars: DeleteStudentRegistrationForTutorialMutationVariables = {
@@ -170,52 +170,50 @@ export function TutorialsTable({
         DeleteStudentRegistrationForTutorialDocument,
         vars
       );
-    } catch (err) {
+    } catch {
       toast.error(
         `Beim Austragen aus einer Veranstaltung in "${event.title}" ist ein Fehler aufgetreten.`
       );
-      console.log(err);
     }
   };
 
-  const isSameTutorial = (first: Tutorial, second: Tutorial) => {
-    return (
-      first.room.number === second.room.number &&
-      first.room.building.ID === second.room.building.ID
-    );
-  };
-
-  const handleRegistrationChange = async (tutorial: Tutorial) => {
+  const handleRegistrationChange = async (clickedTutorial: Tutorial) => {
     setLoading(true);
 
     if (registration) {
-      if (isSameTutorial(tutorial, registration)) {
-        await unregisterFromEvent(registration);
+      if (clickedTutorial.ID === registration.ID) {
+        //
+        // unregister from tutorial
+        //
+        await unregisterFromTutorial(registration);
 
         setUser({
           ...user!,
           registrations: user?.registrations?.filter(
-            (r) => r.event.ID !== tutorial.event.ID
+            (r) => r.event.ID !== id
           ),
         });
 
         setTuts(
           tuts.map((t) => {
-            if (isSameTutorial(t, tutorial)) {
+            if (t.ID === clickedTutorial.ID) {
               t.registrationCount -= 1;
             }
             return t;
           })
         );
       } else {
-        await unregisterFromEvent(registration);
-        await registerForEvent(tutorial);
+        //
+        // change to different tutorial
+        //
+        await unregisterFromTutorial(registration);
+        await registerForTutorial(clickedTutorial);
 
         setUser({
           ...user!,
           registrations: user!.registrations?.map((t) => {
-            if (t.event.ID === tutorial.event.ID) {
-              t = tutorial;
+            if (t.event.ID === id) {
+              t = clickedTutorial;
             }
             return t;
           }),
@@ -223,9 +221,9 @@ export function TutorialsTable({
 
         setTuts(
           tuts.map((t) => {
-            if (isSameTutorial(t, tutorial)) {
+            if (t.ID === clickedTutorial.ID) {
               t.registrationCount += 1;
-            } else if (isSameTutorial(t, registration)) {
+            } else if (t.ID === registration.ID) {
               t.registrationCount -= 1;
             }
             return t;
@@ -233,16 +231,19 @@ export function TutorialsTable({
         );
       }
     } else {
-      await registerForEvent(tutorial);
+      //
+      // initial registration for tutorial
+      //
+      await registerForTutorial(clickedTutorial);
 
       setUser({
         ...user!,
-        registrations: (user!.registrations || []).concat(tutorial),
+        registrations: (user!.registrations || []).concat(clickedTutorial),
       });
 
       setTuts(
         tuts.map((t) => {
-          if (isSameTutorial(t, tutorial)) {
+          if (t.ID === clickedTutorial.ID) {
             t.registrationCount += 1;
           }
           return t;

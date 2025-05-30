@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils/tailwindUtils"
+import { cn } from "@/lib/utils"
 import {calculateFontColor} from "@/lib/utils/colorUtils"
 
 const badgeVariants = cva(

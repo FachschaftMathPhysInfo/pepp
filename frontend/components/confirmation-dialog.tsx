@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import React from 'react';
-import { cn } from '@/lib/utils/tailwindUtils';
+import { cn } from '@/lib/utils';
 
 interface ConfirmationDialogUnconditionalProps {
   description: string;
