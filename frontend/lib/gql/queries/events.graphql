@@ -1,17 +1,25 @@
-query tableEvents($needsTutors: Boolean, $onlyFuture: Boolean, $umbrellaID: [Int!]) {
-  events(needsTutors: $needsTutors, onlyFuture: $onlyFuture, umbrellaID: $umbrellaID) {
+query tableEvents(
+  $needsTutors: Boolean
+  $onlyFuture: Boolean
+  $umbrellaID: [Int!]
+) {
+  events(
+    needsTutors: $needsTutors
+    onlyFuture: $onlyFuture
+    umbrellaID: $umbrellaID
+  ) {
     ID
     title
     from
     to
     needsTutors
     topic {
-       name
-       color
+      name
+      color
     }
     type {
-       name
-       color
+      name
+      color
     }
   }
 }
@@ -133,6 +141,76 @@ query tutorialAvailabilitys($id: Int!) {
         longitude
         zoomLevel
       }
+    }
+  }
+}
+
+query registeredEvents {
+  users {
+    registrations {
+      event {
+        title
+        description
+        from
+        to
+      }
+    }
+  }
+}
+
+query RegisteredTutorials {
+  users {
+    registrations {
+      ID
+      registrationCount
+      room {
+        name
+        building {
+          ID
+          name
+        }
+      }
+      students {
+        mail
+        fn
+        sn
+      }
+      event {
+        ID
+        title
+        description
+        from
+        to
+      }
+      tutors {
+        mail
+        fn
+        sn
+      }
+    }
+  }
+}
+
+query registeredEventIdsOfUser($mail: [String!]!) {
+  users(mail: $mail) {
+    registrations {
+      ID
+    }
+  }
+}
+
+query GetTutorialIdsOfEvent($eventId: [Int!]) {
+  events(id: $eventId) {
+    ID
+    title
+    from
+    to
+    tutorials {
+      ID
+    }
+    umbrella {
+      ID
+      title
     }
   }
 }
