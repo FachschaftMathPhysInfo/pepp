@@ -6,7 +6,7 @@ import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/c
 import {useCallback, useEffect, useState} from "react";
 import {getClient} from "@/lib/graphql";
 import {useUser} from "@/components/providers";
-import MailForm from "@/components/mail-form";
+import MailForm from "@/app/(settings)/admin/mails/mail-form";
 
 export default function Settings() {
   const { sid } = useUser();
@@ -71,9 +71,7 @@ export default function Settings() {
                 Allgemein
               </AccordionTrigger>
               <AccordionContent>
-                {generalSettings.map((setting) => (
-                  <MailForm key={setting.key} setting={setting} />
-                ))}
+                  <MailForm settings={generalSettings} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -83,9 +81,7 @@ export default function Settings() {
                 Bestätigung
               </AccordionTrigger>
               <AccordionContent>
-                {confirmSettings.map((setting) => (
-                  <MailForm key={setting.key} setting={setting} />
-                ))}
+                  <MailForm settings={confirmSettings} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -95,9 +91,7 @@ export default function Settings() {
                 Verfügbarkeiten
               </AccordionTrigger>
               <AccordionContent>
-                {availablitySettings.map((setting) => (
-                  <MailForm key={setting.key} setting={setting} />
-                ))}
+                  <MailForm settings={availablitySettings} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -107,9 +101,7 @@ export default function Settings() {
                 Zuweisungen
               </AccordionTrigger>
               <AccordionContent>
-                {assignSettings.map((setting) => (
-                  <MailForm key={setting.key} setting={setting} />
-                ))}
+                  <MailForm settings={assignSettings} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
