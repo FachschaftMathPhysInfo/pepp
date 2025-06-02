@@ -1,32 +1,32 @@
 "use client";
 
-import { useUser } from "@/components/providers";
-import { TableSkeleton } from "@/components/table-skeleton";
+import {useUser} from "@/components/providers";
+import {TableSkeleton} from "@/components/table-skeleton";
 import {
   Event,
   Tutorial,
   TutorialDetailDocument,
   TutorialDetailQuery,
   TutorialDetailQueryVariables,
+  User,
 } from "@/lib/gql/generated/graphql";
-import { getClient } from "@/lib/graphql";
-import {
-  defaultBuilding,
-  defaultEvent,
-  defaultRoom,
-  defaultTutorial,
-  defaultUser,
-} from "@/types/defaults";
-import { useEffect, useState } from "react";
-import { StudentsTable } from "./students-table";
-import { columns } from "./columns";
+import {getClient} from "@/lib/graphql";
+import {defaultBuilding, defaultEvent, defaultRoom, defaultTutorial, defaultUser,} from "@/types/defaults";
+import {useEffect, useState} from "react";
+import {StudentsTable} from "./students-table";
 import EventDescription from "@/components/event-dialog/event-description";
-import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
-import { RoomDetail } from "@/components/room-detail";
+import {toast} from "sonner";
+import {Separator} from "@/components/ui/separator";
+import {RoomDetail} from "@/components/room-detail";
+import ConfirmationDialog from "@/components/confirmation-dialog";
 
 interface TutorialPageProps {
   id: number;
+}
+
+export interface StudentTableDialogState {
+  currentUser: User;
+  isOpen: boolean;
 }
 
 export function TutorialPage({ id }: TutorialPageProps) {
@@ -35,6 +35,7 @@ export function TutorialPage({ id }: TutorialPageProps) {
   const [loading, setLoading] = useState(true);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [event, setEvent] = useState<Event | undefined>(undefined);
+  const [dialogState, setDialogState] = useState<StudentTableDialogState>({currentUser: defaultUser, isOpen: false});
 
   useEffect(() => {
     if (!user) return;
@@ -78,6 +79,10 @@ export function TutorialPage({ id }: TutorialPageProps) {
     void fetchTutorial();
   }, [id, sid, user]);
 
+  async function handleRemoveUser() {
+    toast.success('this would have removed the user')
+  }
+
   return (
     <>
       <section className="space-y-2">
@@ -91,12 +96,23 @@ export function TutorialPage({ id }: TutorialPageProps) {
           tutorials.map((t, i) => (
             <div key={t.ID} className="space-y-4">
               <RoomDetail room={t.room} className="flex flex-row space-x-4" />
-              <StudentsTable columns={columns} data={t.students ?? []} />
+              <StudentsTable data={t.students ?? []} setDialogState={setDialogState} />
               {i + 1 !== tutorials.length && <Separator />}
             </div>
           ))
         )}
       </section>
+
+      <ConfirmationDialog
+        description={`Dies wird ${dialogState.currentUser.fn}  ${dialogState.currentUser.fn} aus dem Tutorium entfernen`}
+        isOpen={dialogState.isOpen}
+        closeDialog={() => setDialogState({
+          currentUser: dialogState.currentUser,
+          isOpen: false
+        })}
+        onConfirm={handleRemoveUser}
+        mode={"confirmation"}
+      />
     </>
   );
 }
