@@ -10,13 +10,10 @@ import {getClient} from "@/lib/graphql";
 import {
   AddEventDocument,
   AddEventMutation,
-  AddTutorialDocument,
-  AddTutorialMutation,
-  Event, NewEvent, NewTutorial,
+  Event,
+  NewEvent,
   TableEventsDocument,
-  TableEventsQuery,
-  TutorialsOfEventDocument,
-  TutorialsOfEventQuery
+  TableEventsQuery
 } from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
@@ -117,50 +114,12 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
       }))
 
     if (!eventsToAdd) return;
-    console.log(eventsToAdd);
-    const mutation = await client.request<AddEventMutation>(AddEventDocument, {event: eventsToAdd})
-
-    return mutation.addEvent
-  }
-
-  function createNewTutorials(events: number[]) {
-    console.log('Creating Tutorials...')
-
-    async function addTutorialsToEvent(eventID: number, index: number){
-      console.log('Tutorial for event no: ', index)
-
-      const sourceEvents = await fetchEventsofSourceUmbrella()
-
-      const tutorialsToAddData  = await client.request<TutorialsOfEventQuery>(
-        TutorialsOfEventDocument,
-        {
-          eventID: sourceEvents.map(event => event.ID)[index],
-        }
-      )
-
-      const tutorialsToAdd: NewTutorial[] = tutorialsToAddData.tutorials.map((tutorial) => ({
-        eventID: eventID,
-        roomNumber: tutorial.room.number,
-        buildingID: tutorial.room.building.ID,
-        tutors: tutorial.tutors?.map((tutor) => tutor.mail)
-      }))
-
-      console.log('Tuts to add: ', tutorialsToAdd)
-
-      await client.request<AddTutorialMutation>(AddTutorialDocument, {tutorials: tutorialsToAdd})
-    }
-
-    events.forEach((eventID, index) => {
-      void addTutorialsToEvent(eventID, index)
-    })
+    await client.request<AddEventMutation>(AddEventDocument, {event: eventsToAdd})
   }
 
   async function onValidSubmit(umbrellaData: z.infer<typeof umbrellaFormSchema>) {
     const newUmbrellaID = await createNewUmbrella(umbrellaData)
-    const newEventIDs = await createNewEvents(newUmbrellaID)
-    if(newEventIDs) {
-      void createNewTutorials(newEventIDs)
-    }
+    await createNewEvents(newUmbrellaID)
 
     void refreshTable();
     closeDialog();
