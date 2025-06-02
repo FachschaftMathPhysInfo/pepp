@@ -1,10 +1,8 @@
-import {Event, TutorsOfEventOfUmbrellaDocument} from "@/lib/gql/generated/graphql";
+import {Event} from "@/lib/gql/generated/graphql";
 import {Calendar, Pencil, Trash} from "lucide-react";
-import React, {useEffect} from "react";
+import React from "react";
 import {UmbrellaDialogState} from "@/app/(settings)/admin/umbrellas/page";
 import {formatDateToDDMM} from "@/lib/utils";
-import {useUser} from "@/components/providers";
-import {getClient} from "@/lib/graphql";
 
 interface BuildingSectionProps {
   umbrella: Event;
@@ -12,57 +10,21 @@ interface BuildingSectionProps {
 }
 
 export default function UmbrellaSection({umbrella, setDialogState}: BuildingSectionProps) {
-  const {sid} = useUser()
   const readableFrom = formatDateToDDMM(new Date(umbrella.from))
   const readableTo = formatDateToDDMM(new Date(umbrella.to))
-  const [numberOfEvents, setNumberOfEvents] = React.useState<number>(0)
-  const [numberOfTutors, setNumberOfTutors] = React.useState<number>(0)
-
-  useEffect(() => {
-    const fetchEventNames = async () => {
-      const client = getClient(String(sid))
-      const tutorialData = await client.request(
-        TutorsOfEventOfUmbrellaDocument,
-        {umbrellaID: umbrella.ID}
-      )
-
-      const namesOfTutors = tutorialData.events.map(
-        event => event.tutorials?.map(
-          tutorial => tutorial.tutors?.map(
-            tutor => tutor.mail
-          )
-        )
-      )
-
-      const amountUniqueTutors = [... new Set(namesOfTutors)].length
-
-      setNumberOfEvents(tutorialData.events.length)
-      setNumberOfTutors(amountUniqueTutors)
-    }
-
-    void fetchEventNames()
-  }, [sid, umbrella.ID]);
 
   return (
-
-    <div className={'flex justify-between items-center w-full'}>
-      <span className={'flex items-center'}>
-        <span className={'flex items-center'}>
-
-
+    <div className={'flex justify-between items-start sm:items-center w-full max-w-full'}>
+      <span className={'flex max-sm:items-start justify-between items-center flex-grow max-sm:flex-col'}>
+          {/*FIXME: should wrap*/}
+          <h2 className={'text-2xl font-bold mr-5'}>{umbrella.title}</h2>
+          <span className={'text-muted-foreground flex items-center mr-5'}>
+            <Calendar className={'inline mr-1 w-4'}/>
+            {readableFrom} bis {readableTo}
+          </span>
       </span>
-        <span className={'flex items-center'}>
-        <p className={'text-2xl font-bold mr-5'}>{umbrella.title}</p>
-        <span className={'text-muted-foreground flex items-center'}>
-          <Calendar className={'inline mr-1 w-4'}/>
-          {readableFrom} bis {readableTo}
-        </span>
-        <span className={'text-muted-foreground mx-4'}>|</span>
-        <span className={'text-muted-foreground mr-3'}>Tutor:innen: {numberOfTutors}</span>
-        <span className={'text-muted-foreground mr-5'}>Events: {numberOfEvents}</span>
-      </span>
-      </span>
-      <span className={'mr-5 flex items-center'}>
+
+      <span className={'mx-5 flex items-center'}>
         <button
           className={'mr-4'}
           onClick={() => setDialogState({mode: "editUmbrella", umbrella: umbrella})}

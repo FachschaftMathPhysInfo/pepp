@@ -20,6 +20,7 @@ import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
 import {UmbrellaDialog} from "@/app/(settings)/admin/umbrellas/(dialog)/umbrella-dialog";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
+import SearchInput from "@/components/search-input";
 
 export type UmbrellaDialogState = {
   mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null
@@ -34,6 +35,7 @@ export default function UmbrellaSettings() {
     mode: null,
     umbrella: defaultEvent,
   });
+  const [searchValue, setSearchValue] = useState<string>("");
 
   // Data Fetching
   useEffect(() => {
@@ -82,12 +84,15 @@ export default function UmbrellaSettings() {
         </p>
       </div>
       <Separator />
+
+      <SearchInput searchValue={searchValue} setSearchValue={setSearchValue} />
+
       {umbrellas.length === 0 ? (
         <div className={"w-full p-10 border rounded-lg"}>
           Es sind noch keine Programme eingetragen
         </div>
       ) : (
-        umbrellas.map((umbrella) => (
+        umbrellas.filter(umbrella => umbrella.title.includes(searchValue)).map((umbrella) => (
             <UmbrellaSection key={umbrella.ID} umbrella={umbrella} setDialogState={setDialogState}/>
         ))
       )}
