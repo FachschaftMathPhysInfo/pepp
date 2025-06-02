@@ -75,7 +75,7 @@ export const calculateEventDurationInHours = (from: string, to: string) => {
 };
 
 export const extractId = (slug: string) => {
-  const match = slug.match(/(?:^|\/)[^\/]+-(\d+)(?:\/?|$)/);
+  const match = slug.match(/(?:^|\/)[^/]+-(\d+)(?:\/?|$)/);
   if (match && match[1]) {
     return parseInt(match[1], 10);
   }

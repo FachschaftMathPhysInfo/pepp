@@ -105,7 +105,6 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
 
       finishSubmission()
     } catch (error) {
-      toast.error
       handleError(String(error))
     }
   }

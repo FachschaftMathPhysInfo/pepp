@@ -36,8 +36,10 @@ export function TutorialPage({ id }: TutorialPageProps) {
 
       const client = getClient(sid!);
 
+      if(!user) return;
+
       const vars: TutorialDetailQueryVariables = {
-        tutorMail: user?.mail!,
+        tutorMail: user.mail,
         eventID: id,
       };
 
@@ -65,7 +67,7 @@ export function TutorialPage({ id }: TutorialPageProps) {
       setLoading(false);
     };
 
-    fetchTutorial();
+    void fetchTutorial();
   }, [id]);
 
   return (

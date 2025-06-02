@@ -125,9 +125,16 @@ export function EditEventView({ event }: EditEventViewProps) {
 
   const updateEvent = async (data: z.infer<typeof FormSchema>) => {
     setSaveLoading(true);
+
+    if(!event) {
+      toast.error("Ein Fehler ist aufgetreten, versuche es später erneut")
+      console.error('updateEvent: event is undefined')
+      return
+    }
+
     const vars: UpdateEventMutationVariables = {
       event: getNewEvent(data),
-      id: event?.ID!,
+      id: event.ID,
     };
 
     const sendData = async () => {
@@ -136,13 +143,13 @@ export function EditEventView({ event }: EditEventViewProps) {
         await client.request<UpdateEventMutation>(UpdateEventDocument, vars);
         toast.info(`"${data.title}" erfolgreich gespeichert!`);
         triggerRefetch();
-      } catch (err) {
+      } catch {
         toast.error(
           "Beim Speichern der Veranstaltung ist ein Fehler aufgetreten."
         );
       }
     };
-    sendData();
+    await sendData();
     setSaveLoading(false);
   };
 
@@ -159,14 +166,14 @@ export function EditEventView({ event }: EditEventViewProps) {
         await client.request<AddEventMutation>(AddEventDocument, vars);
         toast.info(`"${data.title}" erfolgreich erstellt!`);
         triggerRefetch();
-      } catch (err) {
+      } catch {
         toast.error(
           "Beim Erstellen der Veranstaltung ist ein Fehler aufgetreten."
         );
       }
     };
 
-    sendData();
+    await sendData();
     setSaveLoading(false);
   };
 
@@ -195,7 +202,7 @@ export function EditEventView({ event }: EditEventViewProps) {
       }
     };
 
-    fetchUmbrellaDuration();
+    void fetchUmbrellaDuration();
   }, []);
 
   return (
