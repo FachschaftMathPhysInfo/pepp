@@ -18,7 +18,7 @@ interface ConfirmationDialogUnconditionalProps {
 
 type ConfirmationDialogConditionalProps =
     | {
-  information: String;
+  information: string;
   onConfirm?: never;
   mode: 'information';
 }

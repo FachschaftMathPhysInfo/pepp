@@ -59,7 +59,8 @@ const DialogAction = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-row space-x-4 absolute right-11 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+      "flex flex-row space-x-4 absolute right-11 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+      className
     )}
     {...props}
   />
