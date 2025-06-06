@@ -2,9 +2,9 @@ import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/
 import React from "react";
 import {Sprout} from "lucide-react";
 import {Event} from "@/lib/gql/generated/graphql"
-import EditUmbrellaForm from "@/app/(settings)/admin/umbrellas/(dialog)/edit-umbrella-form";
+import EditUmbrellaForm from "@/app/(settings)/admin/umbrellas/edit-umbrella-form";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import CopyUmbrellaForm from "@/app/(settings)/admin/umbrellas/(dialog)/copy-umbrella-form";
+import CopyUmbrellaForm from "@/app/(settings)/admin/umbrellas/copy-umbrella-form";
 
 interface EditRoomDialogProps {
   umbrella: Event;

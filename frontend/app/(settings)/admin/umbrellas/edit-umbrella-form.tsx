@@ -30,14 +30,14 @@ interface RoomFormProps {
 
 export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
   const {sid} = useUser()
-  const roomFormSchema = z.object({
-    title: z.string({
-      required_error: "Bitte gib einen Titel für das Programm an"
+  const umbrellaFormSchema = z.object({
+    title: z.string().nonempty({
+      message: "Bitte gib einen Titel für das Programm an"
     }),
     description: z.string().optional(),
   });
-  const form = useForm<z.infer<typeof roomFormSchema>>({
-    resolver: zodResolver(roomFormSchema),
+  const form = useForm<z.infer<typeof umbrellaFormSchema>>({
+    resolver: zodResolver(umbrellaFormSchema),
     defaultValues: {
       title: createMode ? "" : umbrella.title,
       description: createMode ? "" : umbrella.description ?? "",
@@ -53,7 +53,7 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
     if (from && to) setDuration({from: from.toISOString(), to: to.toISOString()});
   }
 
-  async function onValidSubmit(umbrellaData: z.infer<typeof roomFormSchema>) {
+  async function onValidSubmit(umbrellaData: z.infer<typeof umbrellaFormSchema>) {
     const client = getClient(String(sid));
     const newEvent = {
       title: umbrellaData.title,

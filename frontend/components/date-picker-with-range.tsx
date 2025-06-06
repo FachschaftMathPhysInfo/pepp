@@ -20,6 +20,7 @@ interface DatePickerWithRangeProps
   from?: Date;
   to?: Date;
   onClose?: (from: Date | undefined, to: Date | undefined) => void;
+  modal?: boolean;
 }
 
 export function DatePickerWithRange({
@@ -27,6 +28,7 @@ export function DatePickerWithRange({
   from,
   to,
   onClose,
+  modal = false,
 }: DatePickerWithRangeProps) {
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: from ?? new Date(2022, 0, 20),
@@ -47,7 +49,7 @@ export function DatePickerWithRange({
             onClose(date?.from, date?.to);
           }
         }}
-        modal={true}
+        modal={modal}
       >
         <PopoverTrigger asChild>
           <Button
