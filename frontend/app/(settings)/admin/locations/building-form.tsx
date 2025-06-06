@@ -41,7 +41,7 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
       .number()
       .min(-180, "Longitude must be ≥ -180")
       .max( 180, "Longitude must be ≤ +180"),
-    zoomLevel: z.number().optional(),
+    zoomLevel: z.coerce.number().optional(),
   });
   const form = useForm<z.infer<typeof buildingFormSchema>>({
     resolver: zodResolver(buildingFormSchema),
