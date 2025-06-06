@@ -28,16 +28,20 @@ interface RoomFormProps {
 export default function BuildingForm({currentBuilding, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
   const {sid} = useUser()
   const buildingFormSchema = z.object({
-    name: z.string().nonempty("Bitte gib einen Namen an"),
+    name: z.string().optional(),
     street: z.string().nonempty("Bitte gib die Straße an"),
     number: z.string().nonempty("Bitte gib die Hausnummer an"),
     city: z.string().nonempty("Bitte gib die Stadt an"),
     zip: z.string().nonempty("Bitte gib die Postleitzahl an"),
-    latitude: z.coerce.number(),
-    longitude: z.coerce.number(),
-    zoomLevel: z.coerce.number({
-      required_error: "Please enter a zoom level"
-    })
+    latitude: z.coerce
+      .number()
+      .min(-90,  "Latitude must be ≥ -90")
+      .max( 90,  "Latitude must be ≤ +90"),
+    longitude: z.coerce
+      .number()
+      .min(-180, "Longitude must be ≥ -180")
+      .max( 180, "Longitude must be ≤ +180"),
+    zoomLevel: z.number().optional(),
   });
   const form = useForm<z.infer<typeof buildingFormSchema>>({
     resolver: zodResolver(buildingFormSchema),
@@ -49,7 +53,7 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
       zip: createMode ? "" : currentBuilding.zip,
       latitude: createMode ? undefined : currentBuilding.latitude,
       longitude: createMode ? undefined : currentBuilding.longitude,
-      zoomLevel: createMode ? 1 : currentBuilding.zoomLevel
+      zoomLevel: createMode ? undefined : currentBuilding.zoomLevel
     },
 
   });
