@@ -1,6 +1,6 @@
 import {Building, Room} from "@/lib/gql/generated/graphql";
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import EditRoomForm from "@/app/(settings)/admin/rooms/edit-room-form";
+import EditRoomForm from "@/app/(settings)/admin/locations/edit-room-form";
 import React from "react";
 import {Sprout} from "lucide-react";
 

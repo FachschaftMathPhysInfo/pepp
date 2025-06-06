@@ -13,7 +13,7 @@ import {Input} from "@/components/ui/input";
 import {DataTablePagination} from "@/components/data-table-pagination";
 import {Building, Room} from "@/lib/gql/generated/graphql";
 import {RoomColumn} from "@/components/tables/rooms-table/room-columns";
-import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
+import {LocationDialogState} from "@/app/(settings)/admin/locations/page";
 
 
 interface DataTableProps {

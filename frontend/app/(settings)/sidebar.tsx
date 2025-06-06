@@ -46,7 +46,7 @@ export const adminItems = [
   },
   {
     title: "Räume & Gebäude",
-    url: "/admin/rooms",
+    url: "/admin/locations",
     icon: School,
   },
 ];
