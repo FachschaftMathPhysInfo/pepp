@@ -2,7 +2,7 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {Button} from "@/components/ui/button";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import React, {useEffect, useState} from "react";
 import {useUser} from "@/components/providers";
@@ -18,11 +18,14 @@ import {
 import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {Textarea} from "@/components/ui/textarea";
-import {DatePickerWithRange} from "@/components/date-picker-with-range";
-import {getNextWeek} from "@/lib/utils";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {GraphQLClient} from "graphql-request";
+import {DatePicker} from "@/components/date-picker";
 
+
+function returnDateWithOffset(sourceDate: string, offset: number) {
+  return new Date((new Date(sourceDate)).getTime() + offset);
+}
 
 interface RoomFormProps {
   umbrellas: Event[];
@@ -46,10 +49,7 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
     },
   });
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
-  const [duration, setDuration] = useState<{from: string, to: string}>({
-    from: umbrellas[0].from === "" ? new Date() : umbrellas[0].from,
-    to: umbrellas[0].to === "" ? getNextWeek() : umbrellas[0].to,
-  });
+  const [startingOffset, setStartingOffset] = useState<number>(0);
   const [sourceUmbrella, setSourceUmbrella] = useState<Event>(umbrellas[0]);
   const [client, setClient] = useState<GraphQLClient>(getClient());
 
@@ -72,15 +72,16 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
 
     form.setValue('title', umbrella.title)
     form.setValue('description', umbrella.description ?? "")
-    setDuration({
-      from: umbrella.from,
-      to: umbrella.to,
-    })
+    setStartingOffset(0)
     setSourceUmbrella(umbrellas.find(umbrella => umbrella.ID === umbrellaId) ?? umbrellas[0])
   }
 
-  function onDatePickerClose (from?: Date, to?: Date) {
-    if (from && to) setDuration({from: from.toISOString(), to: to.toISOString()});
+  function onDatePickerChange (newFrom? : Date) {
+    if (newFrom) {
+      const sourceDate = new Date(sourceUmbrella.from)
+      const offset = newFrom.getTime() - sourceDate.getTime()
+      setStartingOffset(offset)
+    }
   }
 
   async function createNewUmbrella(umbrellaData: z.infer<typeof umbrellaFormSchema>): Promise<number> {
@@ -90,8 +91,8 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
       topicName: sourceUmbrella.topic.name,
       typeName: sourceUmbrella.type.name,
       needsTutors: false,
-      from: duration.from,
-      to: duration.to,
+      from: returnDateWithOffset(sourceUmbrella.from, startingOffset),
+      to: returnDateWithOffset(sourceUmbrella.to, startingOffset),
     }
 
     const mutation = await client.request<AddEventMutation>(AddEventDocument, {event: newUmbrella})
@@ -101,6 +102,9 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
 
   async function createNewEvents(umbrellaID: number) {
     const sourceEvents = await fetchEventsofSourceUmbrella();
+
+    if(!sourceEvents) return
+
     const eventsToAdd: NewEvent[] = sourceEvents.map(
       event => ({
         title: event.title,
@@ -108,12 +112,11 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
         topicName: event.topic.name,
         typeName: event.type.name,
         needsTutors: event.needsTutors,
-        from: event.from,
-        to: event.to,
+        from: returnDateWithOffset(event.from, startingOffset),
+        to: returnDateWithOffset(event.to, startingOffset),
         umbrellaID: umbrellaID
       }))
 
-    if (!eventsToAdd) return;
     await client.request<AddEventMutation>(AddEventDocument, {event: eventsToAdd})
   }
 
@@ -177,13 +180,14 @@ export default function CopyUmbrellaForm({umbrellas, closeDialog, refreshTable}:
         />
 
         <FormItem>
-          <FormLabel>Zeitraum</FormLabel>
+          <FormLabel>Neuer Startzeitpunkt</FormLabel>
           <FormControl>
-            <DatePickerWithRange
-              from={new Date(duration.from)}
-              to={new Date(duration.to)}
-              onClose={onDatePickerClose}
-            />
+            <div className={'block'}>
+              <DatePicker
+                selected={returnDateWithOffset(sourceUmbrella.from, startingOffset)}
+                onChange={onDatePickerChange}
+              />
+            </div>
           </FormControl>
           <FormMessage/>
         </FormItem>

@@ -28,6 +28,7 @@ interface RoomFormProps {
   createMode: boolean;
 }
 
+// This is the edit AND create form... give it a better name if you find one
 export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
   const {sid} = useUser()
   const umbrellaFormSchema = z.object({
@@ -44,13 +45,13 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
     },
   });
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
-  const [duration, setDuration] = useState<{from: string, to: string}>({
-    from: umbrella.from === "" ? new Date() : umbrella.from,
-    to: umbrella.to === "" ? getNextWeek() : umbrella.to,
+  const [duration, setDuration] = useState<{from: Date, to: Date}>({
+    from: createMode ? new Date() : new Date(umbrella.from),
+    to: createMode ? getNextWeek() : new Date(umbrella.to),
   });
 
   function onDatePickerClose (from?: Date, to?: Date) {
-    if (from && to) setDuration({from: from.toISOString(), to: to.toISOString()});
+    if (from && to) setDuration({from: from, to: to});
   }
 
   async function onValidSubmit(umbrellaData: z.infer<typeof umbrellaFormSchema>) {
@@ -116,9 +117,10 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
           <FormLabel>Zeitraum</FormLabel>
           <FormControl>
             <DatePickerWithRange
-              from={createMode ? new Date() : new Date(umbrella.from)}
-              to={createMode ? getNextWeek() : new Date(umbrella.to)}
+              from={duration.from}
+              to={duration.to}
               onClose={onDatePickerClose}
+              modal={true}
             />
           </FormControl>
           <FormMessage/>
