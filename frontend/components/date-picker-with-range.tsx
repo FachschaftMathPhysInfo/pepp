@@ -13,12 +13,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {useEffect} from "react";
 
 interface DatePickerWithRangeProps
   extends React.HtmlHTMLAttributes<HTMLDivElement> {
   from?: Date;
   to?: Date;
   onClose?: (from: Date | undefined, to: Date | undefined) => void;
+  modal?: boolean;
 }
 
 export function DatePickerWithRange({
@@ -26,11 +28,18 @@ export function DatePickerWithRange({
   from,
   to,
   onClose,
+  modal = false,
 }: DatePickerWithRangeProps) {
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: from ?? new Date(2022, 0, 20),
     to: to ?? addDays(new Date(2022, 0, 20), 20),
   });
+
+  useEffect(() => {
+    if (from && to) {
+      setDate({ from, to });
+    }
+  }, [from, to]);
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -40,6 +49,7 @@ export function DatePickerWithRange({
             onClose(date?.from, date?.to);
           }
         }}
+        modal={modal}
       >
         <PopoverTrigger asChild>
           <Button
@@ -51,18 +61,15 @@ export function DatePickerWithRange({
             )}
           >
             <CalendarIcon />
-            {date?.from ? (
-              date.to ? (
-                <>
-                  {format(date.from, "dd. LLL y")} -{" "}
-                  {format(date.to, "dd. LLL y")}
-                </>
-              ) : (
-                format(date.from, "dd. LLL y")
-              )
-            ) : (
-              <span>Pick a date</span>
-            )}
+            {/*For some reason these checks are needed, as when closing the umbrella dialog
+            for one render a NaN is rendered, throwing an instant error*/}
+            <span>
+              {date && date.from instanceof Date && !isNaN(date.from.getTime())
+                ? (date.to instanceof Date && !isNaN(date.to.getTime())
+                    ? `${format(date.from, "dd. LLL y")} - ${format(date.to, "dd. LLL y")}`
+                    : format(date.from, "dd. LLL y"))
+                : "Pick a date"}
+            </span>
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">

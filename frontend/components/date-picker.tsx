@@ -13,10 +13,10 @@ import { format } from "date-fns";
 interface DatePickerProps {
   selected: Date | undefined;
   onChange: (date: Date | undefined) => void;
-  disabled: (date: Date) => boolean;
+  disabled?: (date: Date) => boolean;
 }
 
-export function DatePicker({ selected, onChange, disabled }: DatePickerProps) {
+export function DatePicker({ selected, onChange, disabled = () => false }: DatePickerProps) {
   const [open, setOpen] = useState(false);
   return (
     <Popover modal={true} open={open} onOpenChange={setOpen}>
