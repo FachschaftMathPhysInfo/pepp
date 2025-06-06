@@ -4,7 +4,7 @@ import {Building, Room} from "@/lib/gql/generated/graphql";
 import {ColumnDef} from "@tanstack/react-table";
 import {MoreHorizontal} from "lucide-react";
 import React, {SetStateAction} from "react";
-import {LocationDialogState} from "@/app/(settings)/admin/rooms/page";
+import {LocationDialogState} from "@/app/(settings)/admin/locations/page";
 
 
 interface RoomColumnProps {
