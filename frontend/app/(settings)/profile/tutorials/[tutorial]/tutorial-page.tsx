@@ -58,6 +58,8 @@ export function TutorialPage({ id }: TutorialPageProps) {
 
       const client = getClient(sid!);
 
+      if(!user) return;
+
       const vars: TutorialDetailQueryVariables = {
         tutorMail: user.mail,
         eventID: id,

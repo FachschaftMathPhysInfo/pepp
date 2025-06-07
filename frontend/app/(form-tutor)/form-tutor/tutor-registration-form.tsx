@@ -17,7 +17,7 @@ import {
   TableEventsQueryVariables, TutorRegistrationDocument, TutorRegistrationMutation, TutorRegistrationMutationVariables
 } from "@/lib/gql/generated/graphql";
 import { RowSelectionState } from "@tanstack/react-table";
-import { cn } from "@/lib/utils/tailwindUtils";
+import { cn } from "@/lib/utils";
 import {toast} from "sonner";
 
 
@@ -105,7 +105,6 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
 
       finishSubmission()
     } catch (error) {
-      toast.error
       handleError(String(error))
     }
   }

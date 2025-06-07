@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {usePathname, useRouter} from "next/navigation";
 import {
   AddStudentApplicationForEventDocument,
   AddStudentApplicationForEventMutation,
@@ -12,36 +12,24 @@ import {
   RegistrationFormQuery,
   RegistrationFormQueryVariables,
 } from "@/lib/gql/generated/graphql";
-import { getClient } from "@/lib/graphql";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useEffect, useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { toast } from "sonner";
-import { CardSkeleton } from "@/components/card-skeleton";
-import { Dialog } from "@/components/ui/dialog";
-import { useUser } from "@/components/providers";
-import { SignInDialog } from "@/components/sign-in-dialog";
+import {getClient} from "@/lib/graphql";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
+import {useEffect, useState} from "react";
+import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
+import {Slider} from "@/components/ui/slider";
+import {Label} from "@/components/ui/label";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Progress} from "@/components/ui/progress";
+import {z} from "zod";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Form, FormControl, FormField, FormItem, FormMessage,} from "@/components/ui/form";
+import {toast} from "sonner";
+import {CardSkeleton} from "@/components/card-skeleton";
+import {Dialog} from "@/components/ui/dialog";
+import {useUser} from "@/components/providers";
+import {SignInDialog} from "@/components/sign-in-dialog";
 import {extractId} from "@/lib/utils";
 
 const SingleChoiceFormSchema = (required: boolean) =>
@@ -63,11 +51,10 @@ const MultipleChoiceFormSchema = (required: boolean) =>
   });
 
 export default function Registration() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname()
 
-  const { user, setUser, sid } = useUser();
+  const { user, sid } = useUser();
 
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
     null
@@ -80,7 +67,7 @@ export default function Registration() {
 
   useEffect(() => {
     if (responses.length > 0) {
-      onSubmit();
+      void onSubmit();
     }
   }, [responses]);
 
@@ -107,7 +94,7 @@ export default function Registration() {
       setLoading(false);
     };
 
-    fetchData();
+    void fetchData();
   }, [router]);
 
   useEffect(() => {
@@ -118,7 +105,7 @@ export default function Registration() {
 
   const mcForm = useForm<z.infer<ReturnType<typeof MultipleChoiceFormSchema>>>({
     resolver: zodResolver(
-      MultipleChoiceFormSchema(regForm?.questions[index].required!)
+      MultipleChoiceFormSchema(regForm?.questions[index].required ?? false)
     ),
     defaultValues: {
       multipleChoice: [],
@@ -127,7 +114,7 @@ export default function Registration() {
 
   const scForm = useForm<z.infer<ReturnType<typeof SingleChoiceFormSchema>>>({
     resolver: zodResolver(
-      SingleChoiceFormSchema(regForm?.questions[index].required!)
+      SingleChoiceFormSchema(regForm?.questions[index].required ?? false)
     ),
     defaultValues: {
       singleChoice: undefined,
@@ -211,7 +198,7 @@ export default function Registration() {
 
   return (
     <>
-      <Dialog open={user ? false : true}>
+      <Dialog open={!user}>
         <SignInDialog />
       </Dialog>
       {loading ? (

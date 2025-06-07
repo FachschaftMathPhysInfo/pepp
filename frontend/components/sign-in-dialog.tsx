@@ -60,7 +60,7 @@ const RegisterFormSchema = SignInFormSchema.extend({
 export const SignInDialog = () => {
   const client = getClient()
 
-  const { setUser, setSid } = useUser();
+  const { setSid } = useUser();
   const [correct, setCorrect] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -122,7 +122,7 @@ export const SignInDialog = () => {
         <DialogDescription>
           <span>{isRegistering ? "Zurück zur" : "Noch kein Konto?"} </span>
           <span
-            onClick={() => setIsRegistering(isRegistering ? false : true)}
+            onClick={() => setIsRegistering(!isRegistering)}
             className="text-blue-500 hover:underline cursor-pointer"
           >
             {isRegistering ? "Anmeldung" : "Registrieren"}

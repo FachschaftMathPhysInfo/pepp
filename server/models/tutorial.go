@@ -40,6 +40,5 @@ var _ bun.BeforeCreateTableHook = (*TutorialToUserAssignment)(nil)
 func (*TutorialToUserAssignment) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
 	query.ForeignKey(`("user_mail") REFERENCES "users" ("mail") ON DELETE CASCADE`)
 	query.ForeignKey(`("tutorial_id") REFERENCES "tutorials" ("id") ON DELETE CASCADE`)
-	query.ForeignKey(`("tutorial_id") REFERENCES "tutorials" ("id") ON DELETE CASCADE`)
 	return nil
 }

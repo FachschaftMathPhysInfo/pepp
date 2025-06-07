@@ -1,5 +1,4 @@
 import {Building} from "@/lib/gql/generated/graphql";
-import {cn} from "@/lib/utils";
 import {CirclePlus, Map as MapIcon, Pencil, Trash} from "lucide-react";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {RoomTable} from "@/components/tables/rooms-table/room-table";
@@ -10,20 +9,21 @@ import Link from "next/link";
 
 interface BuildingSectionProps {
   building: Building;
-  className?: string;
   setDialogState: React.Dispatch<React.SetStateAction<LocationDialogState>>;
 }
 
-export default function BuildingSection({building, className, setDialogState}: BuildingSectionProps) {
+export default function BuildingSection({building, setDialogState}: BuildingSectionProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>
-          <div className={'flex justify-between items-center'}>
-            {building.name}
+          <div className={'flex justify-between items-start'}>
+            <span className={'max-w-[50%] sm:max-w-full'}>
+              {building.name}
+            </span>
             <div>
               <button
-                className={'mr-4'}
+                className={'mr-2 sm:mr-4'}
                 onClick={() => setDialogState({
                   mode: "createRoom",
                   roomNumber: '',
@@ -33,13 +33,12 @@ export default function BuildingSection({building, className, setDialogState}: B
                 <CirclePlus className={'w-5'}/>
               </button>
               <button
-                className={'mr-4'}
+                className={'mr-2 sm:mr-4'}
                 onClick={() => setDialogState({mode: "editBuilding", building: building, roomNumber: ""})}
               >
                 <Pencil className={'w-5'}/>
               </button>
               <button
-                className={'mr-4'}
                 onClick={() => setDialogState({mode: "deleteBuilding", building: building, roomNumber: ""})}
               >
                 <Trash className={'w-5 stroke-red-500'}/>
