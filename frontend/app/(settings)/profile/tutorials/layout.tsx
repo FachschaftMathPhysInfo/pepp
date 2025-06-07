@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@/components/providers";
+import { RefetchProvider, useUser } from "@/components/providers";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Separator } from "@/components/ui/separator";
 import { Tutorial } from "@/lib/gql/generated/graphql";
@@ -14,7 +14,6 @@ interface ProfileTutorialsLayoutProps {
 export default function ProfileTutorialsLayout({
   children,
 }: ProfileTutorialsLayoutProps) {
-
   const { user } = useUser();
   const reducedEvents = user?.tutorials?.reduce(
     (acc: Tutorial[], curr: Tutorial) => {
@@ -46,7 +45,9 @@ export default function ProfileTutorialsLayout({
           <aside>
             <SidebarNav items={tutorials ?? []} />
           </aside>
-          <div className="w-full lg:ml-4">{children}</div>
+          <RefetchProvider>
+            <div className="w-full lg:ml-4">{children}</div>
+          </RefetchProvider>
         </div>
       ) : (
         <p>Dir wurden noch keine Tutorien zugewiesen.</p>
