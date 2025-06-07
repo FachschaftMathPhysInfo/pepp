@@ -6,15 +6,20 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
 
 func SeedData(ctx context.Context, db *bun.DB) error {
+	password, salt, err := auth.Hash("tutor")
+	if err != nil {
+		return fmt.Errorf("failed to generate password for tutor1:", err)
+	}
 	users := []*models.User{
-		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true},
-		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true},
+		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true, Salt: salt, Password: password},
+		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true, Salt: salt, Password: password},
 		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: true},
 		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: true},
 	}

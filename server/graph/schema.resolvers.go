@@ -122,7 +122,24 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 	if _, err := r.DB.NewInsert().
 		Model(&user).
 		Exec(ctx); err != nil {
-		return "", err
+
+		// check whether user is already registered without password
+		// set password for this case
+		var password string
+		if err := r.DB.NewSelect().
+			Table("users").
+			Column("password").
+			Where("mail = ?", user.Mail).
+			Scan(ctx, &password); err != nil {
+			return "", err
+		}
+		if password == "" {
+			// user needs to reconfirm
+			user.Confirmed = false
+			if _, err := r.UpdateUser(ctx, user); err != nil {
+				return "", err
+			}
+		}
 	}
 
 	m := r.MailConfig.Confirmation
@@ -1007,7 +1024,7 @@ func (r *queryResolver) Tutorials(ctx context.Context, id []int, eventID []int, 
 
 	if tutorMail != nil {
 		query = query.
-			Join("JOIN tutorial_to_user_assignments AS tua ON tutorial.user_mail = tua.user_mail AND tutorial.id = tua.tutorial_id").
+			Join("JOIN tutorial_to_user_assignments AS tua ON t.id = tua.tutorial_id").
 			Where("user_mail IN (?)", bun.In(tutorMail))
 	}
 
