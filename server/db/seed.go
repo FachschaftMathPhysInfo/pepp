@@ -238,6 +238,9 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{Key: "email-assignment-building-title", Value: "Gebäude", Type: "STRING"},
 		{Key: "email-assignment-intro", Value: "aufgrund deiner angegebenen Verfügbarkeiten, wurdest du der folgenden Veranstaltung zugewiesen:", Type: "STRING"},
 		{Key: "email-assignment-outro", Value: "Sollte dir der Termin doch nicht passen, melde dich bitte zeitnah bei uns, indem du auf diese E-Mail reagierst. Wir freuen uns auf einen erfolgreichen Vorkurs mit dir!", Type: "STRING"},
+		{Key: "auth-standard-enabled", Value: "1", Type: "BOOLEAN"},
+		{Key: "auth-sso-oidc-enabled", Value: "1", Type: "BOOLEAN"},
+		{Key: "auth-sso-oidc-name", Value: "Fachschaftslogin", Type: "STRING"},
 	}
 	if err := insertData(ctx, db, (*models.Setting)(nil), settings, "Settings"); err != nil {
 		return err

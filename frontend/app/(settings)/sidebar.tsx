@@ -3,6 +3,7 @@
 import {
   BookCheck,
   CalendarCheck2,
+  Fingerprint,
   GraduationCap,
   Mail,
   School,
@@ -48,6 +49,11 @@ export const adminItems = [
     title: "Räume & Gebäude",
     url: "/admin/rooms",
     icon: School,
+  },
+  {
+    title: "Authentifizierung",
+    url: "/admin/auth",
+    icon: Fingerprint,
   },
 ];
 
