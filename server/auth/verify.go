@@ -30,7 +30,7 @@ func verifySsoUser(ctx context.Context, db *bun.DB, user models.User) (string, e
 	if _, err := db.NewInsert().
 		Model(&user).
 		On("CONFLICT (mail) DO UPDATE").
-		Set("sid = ?", sid).
+		Set("session_id = ?", sid).
 		Set("last_login = ?", time.Now()).
 		Exec(ctx); err != nil {
 		return "", err
