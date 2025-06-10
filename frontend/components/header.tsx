@@ -35,8 +35,8 @@ import { useRouter } from "next/navigation";
 import EventDialog from "./event-dialog/event-dialog";
 import { adminItems, userItems } from "@/app/(settings)/sidebar";
 import { defaultEvent } from "@/types/defaults";
-import {toast} from "sonner";
-import {groupEventsByUmbrellaId} from "@/lib/utils";
+import { toast } from "sonner";
+import { groupEventsByUmbrellaId } from "@/lib/utils";
 
 export default function Header() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function Header() {
   const [events, setEvents] = useState<Event[]>([]);
 
   const { setTheme } = useTheme();
-  const { user, setUser } = useUser();
+  const { user, logout } = useUser();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +65,9 @@ export default function Header() {
           }))
         );
       } catch {
-        toast.error("Beim Laden der Veranstaltungen ist ein Fehler aufgetreten.")
+        toast.error(
+          "Beim Laden der Veranstaltungen ist ein Fehler aufgetreten."
+        );
       }
     };
 
@@ -83,7 +85,7 @@ export default function Header() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const groupedEvents = groupEventsByUmbrellaId(events)
+  const groupedEvents = groupEventsByUmbrellaId(events);
 
   return (
     <header className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
@@ -233,7 +235,7 @@ export default function Header() {
                 </>
               )}
               <Separator />
-              <DropdownMenuItem onClick={() => setUser(null)}>
+              <DropdownMenuItem onClick={logout}>
                 <LogOut />
                 Abmelden
               </DropdownMenuItem>

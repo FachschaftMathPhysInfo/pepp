@@ -68,7 +68,7 @@ export const SignInDialog = () => {
 
   const router = useRouter();
 
-  const { setSid } = useUser();
+  const { login } = useUser();
   const [correct, setCorrect] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
@@ -113,7 +113,7 @@ export const SignInDialog = () => {
         RegistrationDocument,
         details
       );
-      setSid(sid.addUser);
+      login(sid.addUser);
     }
 
     const credentials: LoginQueryVariables = {
@@ -124,7 +124,7 @@ export const SignInDialog = () => {
     try {
       const sid = await client.request<LoginQuery>(LoginDocument, credentials);
 
-      setSid(sid.login);
+      login(sid.login);
     } catch {
       setCorrect(false);
     }

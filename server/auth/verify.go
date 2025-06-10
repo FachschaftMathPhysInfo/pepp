@@ -27,11 +27,12 @@ func verifySsoUser(ctx context.Context, db *bun.DB, user models.User) (string, e
 		return "", fmt.Errorf("error while generating session id for sso user:", err)
 	}
 
+	user.SessionID = sid
+	user.LastLogin = time.Now()
+
 	if _, err := db.NewInsert().
 		Model(&user).
 		On("CONFLICT (mail) DO UPDATE").
-		Set("session_id = ?", sid).
-		Set("last_login = ?", time.Now()).
 		Exec(ctx); err != nil {
 		return "", err
 	}
