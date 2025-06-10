@@ -8,6 +8,7 @@ query allBuildings {
         zip
         latitude
         longitude
+        zoomLevel
         rooms {
             name
             number
