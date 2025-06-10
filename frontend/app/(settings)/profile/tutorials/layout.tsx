@@ -1,30 +1,35 @@
 "use client";
 
-import { useUser } from "@/components/providers";
+import { RefetchProvider, useUser } from "@/components/providers";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Separator } from "@/components/ui/separator";
-import {slugify} from "@/lib/utils";
-import {useRouter} from "next/navigation";
-import React, {useEffect} from "react";
+import { Tutorial } from "@/lib/gql/generated/graphql";
+import { slugify } from "@/lib/utils";
+import React from "react";
 
 interface ProfileTutorialsLayoutProps {
   children: React.ReactNode;
 }
 
-export default function ProfileTutorialsLayout({children}: ProfileTutorialsLayoutProps) {
-  const router = useRouter()
-
+export default function ProfileTutorialsLayout({
+  children,
+}: ProfileTutorialsLayoutProps) {
   const { user } = useUser();
-  const tutorials = user?.tutorials?.map((u) => ({
+  const reducedEvents = user?.tutorials?.reduce(
+    (acc: Tutorial[], curr: Tutorial) => {
+      if (!acc.some((tutorial) => tutorial.event.ID === curr.event.ID)) {
+        acc.push(curr);
+      }
+      return acc;
+    },
+    []
+  );
+
+  const tutorials = reducedEvents?.map((u) => ({
     title: u.event.title,
+    description: <>{new Date(u.event.from).toLocaleDateString()}</>,
     href: `/profile/tutorials/${slugify(u.event.title)}-${u.event.ID}`,
   }));
-
-  useEffect(() => {
-    if (tutorials?.length) {
-      router.push(tutorials[0].href)
-    }
-  }, [tutorials])
 
   return (
     <div className="">
@@ -40,7 +45,9 @@ export default function ProfileTutorialsLayout({children}: ProfileTutorialsLayou
           <aside>
             <SidebarNav items={tutorials ?? []} />
           </aside>
-          <div className="w-full lg:ml-4">{children}</div>
+          <RefetchProvider>
+            <div className="w-full lg:ml-4">{children}</div>
+          </RefetchProvider>
         </div>
       ) : (
         <p>Dir wurden noch keine Tutorien zugewiesen.</p>

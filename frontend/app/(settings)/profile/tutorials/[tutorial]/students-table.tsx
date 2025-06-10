@@ -1,15 +1,12 @@
-"use client";
-
 import {
-  ColumnDef,
   ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
 
 import {
@@ -21,19 +18,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import React from "react";
+import { User } from "@/lib/gql/generated/graphql";
+import { StudentTableDialogState } from "@/app/(settings)/profile/tutorials/[tutorial]/tutorial-page";
+import StudentsColumns from "./students-columns";
 import { Input } from "@/components/ui/input";
-import { DataTablePagination } from "@/components/data-table-pagination";
 import { DataTableViewOptions } from "@/components/data-table-view-options";
+import { DataTablePagination } from "@/components/data-table-pagination";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface StudentTableProps {
+  data: User[];
+  setDialogState: React.Dispatch<React.SetStateAction<StudentTableDialogState>>;
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function StudentsTable({ data, setDialogState }: StudentTableProps) {
+  const columns = StudentsColumns(setDialogState);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

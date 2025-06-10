@@ -6,15 +6,20 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
 
 func SeedData(ctx context.Context, db *bun.DB) error {
+	password, salt, err := auth.Hash("tutor")
+	if err != nil {
+		return fmt.Errorf("failed to generate password for tutor1:", err)
+	}
 	users := []*models.User{
-		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true},
-		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true},
+		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true, Salt: salt, Password: password},
+		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true, Salt: salt, Password: password},
 		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: true},
 		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: true},
 	}
@@ -233,6 +238,9 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{Key: "email-assignment-building-title", Value: "Gebäude", Type: "STRING"},
 		{Key: "email-assignment-intro", Value: "aufgrund deiner angegebenen Verfügbarkeiten, wurdest du der folgenden Veranstaltung zugewiesen:", Type: "STRING"},
 		{Key: "email-assignment-outro", Value: "Sollte dir der Termin doch nicht passen, melde dich bitte zeitnah bei uns, indem du auf diese E-Mail reagierst. Wir freuen uns auf einen erfolgreichen Vorkurs mit dir!", Type: "STRING"},
+		{Key: "auth-standard-enabled", Value: "1", Type: "BOOLEAN"},
+		{Key: "auth-sso-oidc-enabled", Value: "1", Type: "BOOLEAN"},
+		{Key: "auth-sso-oidc-name", Value: "Fachschaftslogin", Type: "STRING"},
 	}
 	if err := insertData(ctx, db, (*models.Setting)(nil), settings, "Settings"); err != nil {
 		return err

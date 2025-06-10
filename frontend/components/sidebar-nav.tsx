@@ -10,6 +10,7 @@ interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
     href: string;
     title: string;
+    description?: React.ReactNode;
   }[];
 }
 
@@ -20,7 +21,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
     <nav
       className={cn(
         "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
-        className,
+        className
       )}
       {...props}
     >
@@ -33,10 +34,13 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
             pathname === item.href
               ? "bg-muted hover:bg-muted"
               : "hover:bg-transparent hover:underline",
-            "justify-start",
+            "items-start flex flex-col h-auto"
           )}
         >
           {item.title}
+          {item.description && (
+            <div className="text-muted-foreground text-xs flex flex-row justify-between w-full">{item.description}</div>
+          )}
         </Link>
       ))}
     </nav>
