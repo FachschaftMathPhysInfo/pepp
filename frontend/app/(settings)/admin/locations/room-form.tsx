@@ -28,7 +28,7 @@ interface RoomFormProps {
   createMode: boolean;
 }
 
-export default function EditRoomForm({room, currentBuilding, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
+export default function RoomForm({room, currentBuilding, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
   const {sid} = useUser()
   const roomFormSchema = z.object({
     buildingID: z.coerce.number(),

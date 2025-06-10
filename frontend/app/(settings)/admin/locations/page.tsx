@@ -18,7 +18,7 @@ import ConfirmationDialog from "@/components/confirmation-dialog";
 import {toast} from "sonner";
 import {GraphQLClient} from "graphql-request";
 import {useUser} from "@/components/providers";
-import {EditRoomDialog} from "@/app/(settings)/admin/locations/edit-room-dialog";
+import {RoomDialog} from "@/app/(settings)/admin/locations/room-dialog";
 import {CirclePlus, School} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {BuildingDialog} from "@/app/(settings)/admin/locations/building-dialog";
@@ -158,7 +158,7 @@ export default function LocationSettings() {
         isOpen={dialogState.mode === "deleteRoom"}
         closeDialog={closeDialog}
       />
-      <EditRoomDialog
+      <RoomDialog
         room={
           dialogState.building.rooms?.find(
             (room) => room.number === dialogState.roomNumber
