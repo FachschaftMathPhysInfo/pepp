@@ -63,13 +63,18 @@ export function DatePickerWithRange({
             <CalendarIcon />
             {/*For some reason these checks are needed, as when closing the umbrella dialog
             for one render a NaN is rendered, throwing an instant error*/}
-            <span>
-              {date && date.from instanceof Date && !isNaN(date.from.getTime())
-                ? (date.to instanceof Date && !isNaN(date.to.getTime())
-                    ? `${format(date.from, "dd. LLL y")} - ${format(date.to, "dd. LLL y")}`
-                    : format(date.from, "dd. LLL y"))
-                : "Pick a date"}
-            </span>
+            {date?.from ? (
+              date.to ? (
+                <>
+                  {format(date.from, "dd. LLL y")} -{" "}
+                  {format(date.to, "dd. LLL y")}
+                </>
+              ) : (
+                format(date.from, "dd. LLL y")
+              )
+            ) : (
+              <span>Pick a date</span>
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
