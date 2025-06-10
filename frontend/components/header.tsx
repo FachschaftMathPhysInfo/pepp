@@ -127,7 +127,7 @@ export default function Header() {
           className="w-fit"
         >
           <Search className="h-[1.2rem] w-[1.2rem] md:hidden" />
-          <div className="hidden md:flex text-sm font-medium leading-none text-muted-foreground space-x-4">
+          <div className="hidden md:flex items-center text-sm font-medium leading-none text-muted-foreground space-x-4">
             <p>Suche nach Veranstaltungen...</p>
             <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
               <span className="text-xs">⌘</span>K
