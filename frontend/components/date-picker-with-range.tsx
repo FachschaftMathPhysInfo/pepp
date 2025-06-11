@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { addDays, format } from "date-fns";
+import { addDays, format, isDate } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
@@ -63,8 +63,8 @@ export function DatePickerWithRange({
             <CalendarIcon />
             {/*For some reason these checks are needed, as when closing the umbrella dialog
             for one render a NaN is rendered, throwing an instant error*/}
-            {date?.from ? (
-              date.to ? (
+            {date?.from?.getTime() ? (
+              date.to?.getTime() ? (
                 <>
                   {format(date.from, "dd. LLL y")} -{" "}
                   {format(date.to, "dd. LLL y")}
@@ -73,7 +73,7 @@ export function DatePickerWithRange({
                 format(date.from, "dd. LLL y")
               )
             ) : (
-              <span>Pick a date</span>
+              <span>Wähle ein Datum</span>
             )}
           </Button>
         </PopoverTrigger>
