@@ -13,7 +13,6 @@ import {
 } from "@/components/providers";
 import Header from "@/components/header";
 import React, { Suspense } from "react";
-import Script from "next/script";
 
 const fontSans = FontSans({
   subsets: ["latin"],
