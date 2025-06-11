@@ -20,7 +20,7 @@ import {usePathname, useRouter} from "next/navigation";
 
 interface UmbrellaPopoverSelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   umbrellas: Event[];
-  heading?: Boolean;
+  heading?: boolean;
 }
 
 export function UmbrellaPopoverSelection({

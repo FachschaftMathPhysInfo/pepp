@@ -1,26 +1,12 @@
 "use client";
 
-import { DatePickerWithRange } from "@/components/date-picker-with-range";
+import {DatePickerWithRange} from "@/components/date-picker-with-range";
 import EventDialog from "@/components/event-dialog/event-dialog";
-import { useUser } from "@/components/providers";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {useUser} from "@/components/providers";
+import {Button} from "@/components/ui/button";
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormMessage,} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
 import {
   Event,
   UmbrellaDetailDocument,
@@ -30,16 +16,16 @@ import {
   UpdateEventMutation,
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
-import { getClient } from "@/lib/graphql";
-import { cn, slugify } from "@/lib/utils";
-import { defaultEvent } from "@/types/defaults";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit2, Edit3, PlusCircle, Save } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import {getClient} from "@/lib/graphql";
+import {cn, slugify} from "@/lib/utils";
+import {defaultEvent} from "@/types/defaults";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Edit3, PlusCircle, Save} from "lucide-react";
+import {useRouter} from "next/navigation";
+import {useEffect, useState} from "react";
+import {useForm} from "react-hook-form";
+import {toast} from "sonner";
+import {z} from "zod";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -58,7 +44,6 @@ export default function EditPlannerSection({
 
   const { sid } = useUser();
 
-  const [loading, setLoading] = useState(true);
   const [umbrella, setUmbrella] = useState<Event | null>(null);
   const [open, setOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -72,7 +57,6 @@ export default function EditPlannerSection({
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
 
       const client = getClient();
 
@@ -89,10 +73,9 @@ export default function EditPlannerSection({
 
       form.reset({ title: umbrellaData.umbrellas[0].title });
 
-      setLoading(false);
     };
 
-    fetchData();
+    void fetchData();
   }, [umbrellaID]);
 
   if (!umbrella) return;
@@ -101,7 +84,6 @@ export default function EditPlannerSection({
     if (!from || !to || (from === umbrella?.from && to === umbrella.to)) return;
 
     const pushChanges = async () => {
-      setLoading(true);
       const client = getClient(sid!);
 
       const vars: UpdateEventMutationVariables = {
@@ -117,14 +99,12 @@ export default function EditPlannerSection({
       await client.request<UpdateEventMutation>(UpdateEventDocument, vars);
     };
 
-    pushChanges();
+    void pushChanges();
     toast("Veranstaltungsdauer erfolgreich angepasst!");
-    setLoading(false);
   }
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
     const pushChanges = async () => {
-      setLoading(true);
       const client = getClient(sid!);
 
       const vars: UpdateEventMutationVariables = {
@@ -140,9 +120,8 @@ export default function EditPlannerSection({
       await client.request<UpdateEventMutation>(UpdateEventDocument, vars);
     };
 
-    pushChanges();
+    void pushChanges();
     toast("Veranstaltungstitel erfolgreich angepasst!");
-    setLoading(false);
     router.push(slugify(data.title) + "-" + umbrellaID);
     setOpen(false);
   }

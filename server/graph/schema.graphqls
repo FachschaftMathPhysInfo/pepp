@@ -149,7 +149,7 @@ type Query {
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: [Int!]): [Room!]!
   labels(name: [String!], kind: [LabelKind!], umbrellaID: [Int!]): [Label!]!
-  settings(key: [String!], type: [ScalarType!]): [Setting!]! @auth(role: ADMIN)
+  settings(key: [String!], type: [ScalarType!]): [Setting!]!
   users(mail: [String!]): [User!]! @auth(rule: IS_USER)
   forms(id: [Int!]): [Form!]!
   applications(eventID: Int, mail: [String!]): [Application!]! @auth(rule: IS_USER)
@@ -292,8 +292,7 @@ type Mutation {
   addLabel(label: NewLabel!): Label! @auth(role: ADMIN)
   updateLabel(label: NewLabel!): Label! @auth(role: ADMIN)
   deleteLabel(name: [String!]!): Int! @auth(role: ADMIN)
-  addSetting(setting: NewSetting!): Setting! @auth(role: ADMIN)
-  updateSetting(setting: NewSetting!): Setting! @auth(role: ADMIN)
+  upsertSetting(setting: NewSetting!): String! @auth(role: ADMIN)
   deleteSetting(key: [String!]!): Int! @auth(role: ADMIN)
   addForm(form: NewForm!): Form! @auth(role: ADMIN)
   updateForm(id: Int!, form: NewForm!): Form! @auth(role: ADMIN)

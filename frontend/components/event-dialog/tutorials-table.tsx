@@ -189,9 +189,7 @@ export function TutorialsTable({
 
         setUser({
           ...user!,
-          registrations: user?.registrations?.filter(
-            (r) => r.event.ID !== id
-          ),
+          registrations: user?.registrations?.filter((r) => r.event.ID !== id),
         });
 
         setTuts(

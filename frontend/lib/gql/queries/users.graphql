@@ -5,6 +5,7 @@ query loginUser($sid: String!) {
       event {
         ID
         title
+        from
       }
       room {
         number
@@ -61,6 +62,79 @@ query AllUsers {
       event {
         ID
       }
+    }
+  }
+}
+
+query registeredEvents {
+  users {
+    registrations {
+      event {
+        title
+        description
+        from
+        to
+      }
+    }
+  }
+}
+
+query RegisteredTutorials {
+  users {
+    registrations {
+      ID
+      registrationCount
+      room {
+        name
+        building {
+          ID
+          name
+        }
+      }
+      students {
+        mail
+        fn
+        sn
+      }
+      event {
+        ID
+        title
+        description
+        from
+        to
+      }
+      tutors {
+        mail
+        fn
+        sn
+      }
+    }
+  }
+}
+
+query registeredEventIdsOfUser($mail: [String!]!) {
+  users(mail: $mail) {
+    registrations {
+      ID
+    }
+  }
+}
+
+query GetTutorialIdsOfEvent($eventId: [Int!]) {
+  events(id: $eventId) {
+    ID
+    title
+    from
+    to
+    tutorials {
+      ID
+    }
+    umbrella {
+      ID
+      title
+    }
+    topic {
+      color
     }
   }
 }

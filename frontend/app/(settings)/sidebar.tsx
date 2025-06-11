@@ -3,6 +3,7 @@
 import {
   BookCheck,
   CalendarCheck2,
+  Fingerprint,
   GraduationCap,
   Mail,
   School,
@@ -54,7 +55,12 @@ export const adminItems = [
     title: "Programme",
     url: "/admin/umbrellas",
     icon: Umbrella,
-  }
+  },
+  {
+    title: "Authentifizierung",
+    url: "/admin/auth",
+    icon: Fingerprint,
+  },
 ];
 
 import {
