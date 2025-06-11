@@ -277,10 +277,10 @@ type Mutation {
   addUser(user: NewUser!): String!
   updateUser(user: UpdateUser!): String!
   deleteUser(mail: [String!]!): Int! @auth(rule: IS_USER)
-  addEvent(event: NewEvent!): Event! @auth(role: ADMIN)
+  addEvent(event: [NewEvent!]!): [Int!]! @auth(role: ADMIN)
   updateEvent(id: Int!, event: NewEvent!): Int! @auth(role: ADMIN)
   deleteEvent(id: [Int!]!): Int! @auth(role: ADMIN)
-  addTutorial(tutorial: NewTutorial!): Tutorial! @auth(role: ADMIN)
+  addTutorial(tutorial: [NewTutorial!]!): [Int!]! @auth(role: ADMIN)
   updateTutorial(id: Int!, tutorial: NewTutorial!): Tutorial! @auth(role: ADMIN)
   deleteTutorial(id: [Int!]!): Int! @auth(role: ADMIN)
   addBuilding(building: NewBuilding!): Building! @auth(role: ADMIN)

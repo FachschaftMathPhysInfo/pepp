@@ -19,6 +19,7 @@ query tutorialDetail($eventID: Int!, $tutorMail: String!) {
       name
       number
       building {
+        ID
         name
         street
         number
@@ -31,6 +32,21 @@ query tutorialDetail($eventID: Int!, $tutorMail: String!) {
     students {
       fn
       sn
+      mail
+    }
+  }
+}
+
+query tutorialsOfEvent ($eventID: Int!) {
+  tutorials(eventID: [$eventID]) {
+    ID
+    room {
+      number
+      building {
+        ID
+      }
+    }
+    tutors {
       mail
     }
   }

@@ -8,6 +8,7 @@ import {
   Mail,
   School,
   Settings,
+  Umbrella,
   Users,
 } from "lucide-react";
 
@@ -49,6 +50,11 @@ export const adminItems = [
     title: "Räume & Gebäude",
     url: "/admin/rooms",
     icon: School,
+  },
+  {
+    title: "Programme",
+    url: "/admin/umbrellas",
+    icon: Umbrella,
   },
   {
     title: "Authentifizierung",

@@ -10,6 +10,7 @@ query tableEvents(
   ) {
     ID
     title
+    description
     from
     to
     needsTutors
@@ -148,6 +149,16 @@ query tutorialAvailabilitys($id: Int!) {
         latitude
         longitude
         zoomLevel
+      }
+    }
+  }
+}
+
+query tutorsOfEventOfUmbrella($umbrellaID: [Int!]!) {
+  events(umbrellaID: $umbrellaID) {
+    tutorials {
+      tutors {
+        mail
       }
     }
   }

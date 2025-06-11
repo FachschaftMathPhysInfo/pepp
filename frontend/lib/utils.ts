@@ -108,6 +108,12 @@ export const hexToRGBA = (hex: string, alpha = 1) => {
   }
 
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export function getNextWeek(): Date {
+  const soon = new Date();
+  soon.setDate(soon.getDate() + 7);
+  return soon;
 };
 
 export const groupEventsByUmbrellaId = (events: Event[]) => {
