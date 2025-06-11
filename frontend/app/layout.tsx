@@ -13,6 +13,7 @@ import {
 } from "@/components/providers";
 import Header from "@/components/header";
 import React, { Suspense } from "react";
+import Script from "next/script";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -48,7 +49,26 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="de">
+    <html lang="de" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (err) {
+                  console.error("Failure in FOUC Script for Theme Rendering:", err);}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={cn(
           "flex flex-col bg-background font-sans antialiased",
