@@ -75,12 +75,12 @@ export const calculateEventDurationInHours = (from: string, to: string) => {
 };
 
 export const extractId = (slug: string) => {
-  const match = slug.match(/(?:^|\/)[^\/]+-(\d+)(?:\/?|$)/);
+  const match = slug.match(/(?:^|\/)[^/]+-(\d+)(?:\/?|$)/);
   if (match && match[1]) {
     return parseInt(match[1], 10);
   }
   return null;
-}
+};
 
 export const slugify = (title: string) => {
   let slug = title.toLowerCase();
@@ -89,10 +89,10 @@ export const slugify = (title: string) => {
   slug = slug.replace(/[\s-]+/g, "-");
   slug = slug.replace(/^-+|-+$/g, "");
   return slug;
-}
+};
 
 export const hexToRGBA = (hex: string, alpha = 1) => {
-  hex = hex.replace(/^#/, '');
+  hex = hex.replace(/^#/, "");
 
   let r, g, b;
   if (hex.length === 3) {
@@ -104,8 +104,19 @@ export const hexToRGBA = (hex: string, alpha = 1) => {
     g = parseInt(hex.substring(2, 4), 16);
     b = parseInt(hex.substring(4, 6), 16);
   } else {
-    throw new Error('Invalid hex color');
+    throw new Error("Invalid hex color");
   }
 
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+};
+
+export const groupEventsByUmbrellaId = (events: Event[]) => {
+  return events?.reduce((acc, event) => {
+    const umbrellaId = event.umbrella?.ID;
+    if (!acc[umbrellaId ?? 0]) {
+      acc[umbrellaId ?? 0] = [];
+    }
+    acc[umbrellaId ?? 0].push(event);
+    return acc;
+  }, {} as { [key: string]: Event[] });
+};

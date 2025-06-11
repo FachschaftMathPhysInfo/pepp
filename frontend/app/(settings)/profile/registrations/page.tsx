@@ -85,7 +85,7 @@ export default function RegistrationsPage() {
       <CardHeader>
         <CardTitle>Anmeldungen</CardTitle>
         <CardDescription>
-          Du bist zu folgenden Veranstaltungen anmelden.
+          Du bist zu folgenden Veranstaltungen angemeldet.
         </CardDescription>
       </CardHeader>
       <CardContent>

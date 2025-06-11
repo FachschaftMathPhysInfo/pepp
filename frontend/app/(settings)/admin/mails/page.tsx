@@ -1,24 +1,35 @@
 "use client";
 
-import {Separator} from "@/components/ui/separator";
-import {AllSettingsDocument, AllSettingsQuery, Setting,} from "@/lib/gql/generated/graphql";
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
-import {useCallback, useEffect, useState} from "react";
-import {getClient} from "@/lib/graphql";
-import {useUser} from "@/components/providers";
-import MailForm from "@/components/mail-form";
+import { Separator } from "@/components/ui/separator";
+import {
+  Setting,
+  SettingsDocument,
+  SettingsQuery,
+} from "@/lib/gql/generated/graphql";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { useCallback, useEffect, useState } from "react";
+import { getClient } from "@/lib/graphql";
+import { useUser } from "@/components/providers";
+import MailForm from "@/app/(settings)/admin/mails/mail-form";
 
 export default function Settings() {
   const { sid } = useUser();
   const [settings, setMailSettings] = useState<Setting[]>([]);
   const [generalSettings, setGeneralMailSettings] = useState<Setting[]>([]);
   const [confirmSettings, setConfirmMailSettings] = useState<Setting[]>([]);
-  const [availablitySettings, setAvailabilityMailSettings] = useState<Setting[]>([]);
+  const [availablitySettings, setAvailabilityMailSettings] = useState<
+    Setting[]
+  >([]);
   const [assignSettings, setAssignMailSettings] = useState<Setting[]>([]);
 
   const fetchMails = useCallback(async () => {
     const client = getClient(String(sid));
-    const mailData = await client.request<AllSettingsQuery>(AllSettingsDocument);
+    const mailData = await client.request<SettingsQuery>(SettingsDocument);
 
     if (mailData.settings) {
       const filterSettingsToMailSettings = mailData.settings.filter((setting) =>
@@ -71,9 +82,7 @@ export default function Settings() {
                 Allgemein
               </AccordionTrigger>
               <AccordionContent>
-                {generalSettings.map((setting) => (
-                  <MailForm key={setting.key} setting={setting} />
-                ))}
+                <MailForm settings={generalSettings} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -83,9 +92,7 @@ export default function Settings() {
                 Bestätigung
               </AccordionTrigger>
               <AccordionContent>
-                {confirmSettings.map((setting) => (
-                  <MailForm key={setting.key} setting={setting} />
-                ))}
+                <MailForm settings={confirmSettings} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -95,9 +102,7 @@ export default function Settings() {
                 Verfügbarkeiten
               </AccordionTrigger>
               <AccordionContent>
-                {availablitySettings.map((setting) => (
-                  <MailForm key={setting.key} setting={setting} />
-                ))}
+                <MailForm settings={availablitySettings} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -107,9 +112,7 @@ export default function Settings() {
                 Zuweisungen
               </AccordionTrigger>
               <AccordionContent>
-                {assignSettings.map((setting) => (
-                  <MailForm key={setting.key} setting={setting} />
-                ))}
+                <MailForm settings={assignSettings} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>

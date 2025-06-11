@@ -19,11 +19,17 @@ import {
   RegistrationDocument,
   RegistrationMutation,
   RegistrationMutationVariables,
+  Setting,
+  SettingsDocument,
+  SettingsQuery,
 } from "@/lib/gql/generated/graphql";
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, LogIn } from "lucide-react";
 import { getClient } from "@/lib/graphql";
 import { useUser } from "./providers";
+import { toast } from "sonner";
+import { Separator } from "./ui/separator";
+import { useRouter } from "next/navigation";
 
 const SignInFormSchema = z.object({
   email: z.string().min(4, {
@@ -58,14 +64,39 @@ const RegisterFormSchema = SignInFormSchema.extend({
 });
 
 export const SignInDialog = () => {
-  const client = getClient()
+  const client = getClient();
 
-  const { setUser, setSid } = useUser();
+  const router = useRouter();
+
+  const { login } = useUser();
   const [correct, setCorrect] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [settings, setSettings] = useState<Setting[] | undefined>(undefined);
 
   const activeSchema = isRegistering ? RegisterFormSchema : SignInFormSchema;
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const settingsData = await client.request<SettingsQuery>(
+          SettingsDocument,
+          {
+            key: [
+              "auth-sso-oidc-name",
+              "auth-sso-oidc-enabled",
+              "auth-standard-enabled",
+            ],
+          }
+        );
+        setSettings(settingsData.settings);
+      } catch {
+        toast.error("Fehler beim Laden der Einstellungen.");
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const onSubmit = async (data: z.infer<typeof activeSchema>) => {
     setLoading(true);
@@ -82,21 +113,18 @@ export const SignInDialog = () => {
         RegistrationDocument,
         details
       );
-      setSid(sid.addUser);
+      login(sid.addUser);
     }
 
     const credentials: LoginQueryVariables = {
-        mail: data.email,
-        password: data.password,
+      mail: data.email,
+      password: data.password,
     };
 
     try {
-      const sid = await client.request<LoginQuery>(
-        LoginDocument,
-        credentials
-      );
+      const sid = await client.request<LoginQuery>(LoginDocument, credentials);
 
-      setSid(sid.login)
+      login(sid.login);
     } catch {
       setCorrect(false);
     }
@@ -115,105 +143,133 @@ export const SignInDialog = () => {
     },
   });
 
+  const standardEnabled =
+    settings?.find((s) => s.key === "auth-standard-enabled")?.value === "1";
   return (
-    <DialogContent className="sm:max-w-[550px]">
-      <DialogHeader>
-        <DialogTitle>{isRegistering ? "Registrieren" : "Anmelden"}</DialogTitle>
-        <DialogDescription>
-          <span>{isRegistering ? "Zurück zur" : "Noch kein Konto?"} </span>
-          <span
-            onClick={() => setIsRegistering(isRegistering ? false : true)}
-            className="text-blue-500 hover:underline cursor-pointer"
-          >
-            {isRegistering ? "Anmeldung" : "Registrieren"}
-          </span>
-        </DialogDescription>
-      </DialogHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {isRegistering && (
-            <div className="flex flex-row space-x-4">
-              <FormField
-                name="fn"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormControl>
-                      <Input placeholder="Vorname" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="sn"
-                control={form.control}
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormControl>
-                      <Input placeholder="Nachname" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+    settings && (
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <DialogTitle>
+            {isRegistering ? "Registrieren" : "Anmelden"}
+          </DialogTitle>
+          {standardEnabled && (
+            <DialogDescription>
+              <span>{isRegistering ? "Zurück zur" : "Noch kein Konto?"} </span>
+              <span
+                onClick={() => setIsRegistering(!isRegistering)}
+                className="text-blue-500 hover:underline cursor-pointer"
+              >
+                {isRegistering ? "Anmeldung" : "Registrieren"}
+              </span>
+            </DialogDescription>
           )}
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input type="email" placeholder="Email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input type="password" placeholder="Passwort" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {isRegistering && (
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Passwort wiederholen"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+        </DialogHeader>
+        {standardEnabled && (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {isRegistering && (
+                <div className="flex flex-row space-x-4">
+                  <FormField
+                    name="fn"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormControl>
+                          <Input placeholder="Vorname" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    name="sn"
+                    control={form.control}
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormControl>
+                          <Input placeholder="Nachname" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               )}
-            />
-          )}
-          <div>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isRegistering ? "Registrieren" : "Anmelden"}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input type="email" placeholder="Email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Passwort"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {isRegistering && (
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Passwort wiederholen"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+              <div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isRegistering ? "Registrieren" : "Anmelden"}
+                </Button>
+                {!correct && (
+                  <p className="mt-1 text-xs text-muted-foreground text-red-500">
+                    Email oder Passwort ist falsch.
+                  </p>
+                )}
+              </div>
+            </form>
+          </Form>
+        )}
+        {(settings.find((s) => s.key === "auth-sso-oidc-enabled")?.value == "1"
+          ? true
+          : false) && (
+          <>
+            {standardEnabled && <Separator />}
+            <Button
+              onClick={() => router.push("/sso/oidc")}
+              variant="secondary"
+            >
+              {settings.find((s) => s.key === "auth-sso-oidc-name")?.value}
+              <LogIn />
             </Button>
-            {!correct && (
-              <p className="mt-1 text-xs text-muted-foreground text-red-500">
-                Email oder Passwort ist falsch.
-              </p>
-            )}
-          </div>
-        </form>
-      </Form>
-    </DialogContent>
+          </>
+        )}
+      </DialogContent>
+    )
   );
 };
