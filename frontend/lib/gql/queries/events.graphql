@@ -1,17 +1,25 @@
-query tableEvents($needsTutors: Boolean, $onlyFuture: Boolean, $umbrellaID: [Int!]) {
-  events(needsTutors: $needsTutors, onlyFuture: $onlyFuture, umbrellaID: $umbrellaID) {
+query tableEvents(
+  $needsTutors: Boolean
+  $onlyFuture: Boolean
+  $umbrellaID: [Int!]
+) {
+  events(
+    needsTutors: $needsTutors
+    onlyFuture: $onlyFuture
+    umbrellaID: $umbrellaID
+  ) {
     ID
     title
     from
     to
     needsTutors
     topic {
-       name
-       color
+      name
+      color
     }
     type {
-       name
-       color
+      name
+      color
     }
   }
 }
