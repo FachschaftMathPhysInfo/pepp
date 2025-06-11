@@ -49,25 +49,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="de" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var theme = localStorage.getItem('theme');
-                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } catch (err) {
-                  console.error("Failure in FOUC Script for Theme Rendering:", err);}
-              })();
-            `,
-          }}
-        />
-      </head>
+      <head />
       <body
         className={cn(
           "flex flex-col bg-background font-sans antialiased",
@@ -75,23 +57,23 @@ export default function RootLayout({ children }: RootLayoutProps) {
           fontHeading.variable
         )}
       >
-        <Suspense>
-          <RefetchProvider>
-            <UserProvider>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-              >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Suspense>
+            <RefetchProvider>
+              <UserProvider>
                 <Header />
                 {children}
                 <Toaster richColors />
                 <TailwindIndicator />
-              </ThemeProvider>
-            </UserProvider>
-          </RefetchProvider>
-        </Suspense>
+              </UserProvider>
+            </RefetchProvider>
+          </Suspense>
+        </ThemeProvider>
       </body>
     </html>
   );
