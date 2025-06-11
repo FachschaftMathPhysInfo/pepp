@@ -4,6 +4,12 @@ mutation addRoom ($room : NewRoom!) {
     }
 }
 
+mutation addBuilding ($building: NewBuilding!) {
+    addBuilding(building: $building) {
+        ID
+    }
+}
+
 mutation deleteBuilding($ID: [Int!]!) {
     deleteBuilding(id: $ID)
 }
@@ -15,5 +21,11 @@ mutation deleteRoom($roomNumber: [String!]!, $buildingID: Int!) {
 mutation updateRoom($room: NewRoom!) {
     updateRoom(room: $room){
         number
+    }
+}
+
+mutation updateBuilding($buildingID: Int!, $building: NewBuilding!) {
+    updateBuilding(id: $buildingID, building: $building) {
+        ID
     }
 }

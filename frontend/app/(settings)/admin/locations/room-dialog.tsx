@@ -1,10 +1,10 @@
 import {Building, Room} from "@/lib/gql/generated/graphql";
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import EditRoomForm from "@/app/(settings)/admin/rooms/edit-room-form";
+import RoomForm from "@/app/(settings)/admin/locations/room-form";
 import React from "react";
 import {Sprout} from "lucide-react";
 
-interface EditRoomDialogProps {
+interface RoomDialogProps {
   room: Room;
   currentBuilding: Building;
   buildings: Building[];
@@ -14,7 +14,7 @@ interface EditRoomDialogProps {
   createMode: boolean;
 }
 
-export function EditRoomDialog( { room, currentBuilding, buildings, isOpen, closeDialog, refreshTable, createMode = false}: EditRoomDialogProps ) {
+export function RoomDialog({ room, currentBuilding, buildings, isOpen, closeDialog, refreshTable, createMode = false}: RoomDialogProps ) {
 
   return(
     <Dialog open={isOpen}>
@@ -25,7 +25,7 @@ export function EditRoomDialog( { room, currentBuilding, buildings, isOpen, clos
             {createMode ? "Raum erstellen" : "Raum bearbeiten"}
           </DialogTitle>
         </DialogHeader>
-        <EditRoomForm
+        <RoomForm
           room={room}
           currentBuilding={currentBuilding}
           buildings={buildings}
