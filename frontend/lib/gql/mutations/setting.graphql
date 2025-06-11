@@ -1,7 +1,3 @@
-mutation updateSetting($setting: NewSetting!) {
-  updateSetting(setting: $setting) {
-    key
-    value
-    type
-  }
+mutation upsertSetting($setting: NewSetting!) {
+  upsertSetting(setting: $setting)
 }

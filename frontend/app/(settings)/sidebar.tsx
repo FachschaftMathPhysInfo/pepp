@@ -3,10 +3,12 @@
 import {
   BookCheck,
   CalendarCheck2,
+  Fingerprint,
   GraduationCap,
   Mail,
   School,
   Settings,
+  Umbrella,
   Users,
 } from "lucide-react";
 
@@ -48,6 +50,16 @@ export const adminItems = [
     title: "Räume & Gebäude",
     url: "/admin/locations",
     icon: School,
+  },
+  {
+    title: "Programme",
+    url: "/admin/umbrellas",
+    icon: Umbrella,
+  },
+  {
+    title: "Authentifizierung",
+    url: "/admin/auth",
+    icon: Fingerprint,
   },
 ];
 

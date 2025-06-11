@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/table";
 import React from "react";
 import { Input } from "@/components/ui/input";
-import {DataTablePagination} from "@/components/data-table-pagination";
-import {DataTableViewOptions} from "@/components/data-table-view-options";
+import { DataTablePagination } from "@/components/data-table-pagination";
+import { DataTableViewOptions } from "@/components/data-table-view-options";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -34,7 +34,6 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

@@ -1,0 +1,3 @@
+mutation addTutorial($tutorials: [NewTutorial!]!) {
+    addTutorial(tutorial: $tutorials)
+}

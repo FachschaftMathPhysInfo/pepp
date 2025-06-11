@@ -31,7 +31,8 @@ type UserContextType = {
   user: User | null;
   setUser: (user: User | null) => void;
   sid: string | null;
-  setSid: (sid: string | null) => void;
+  logout: () => void;
+  login: (sid: string) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -45,30 +46,28 @@ export const useUser = () => {
 };
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [sid, setSid] = useState<string | null>(getCookie("sid"));
+  const [sid, setSid] = useState<string | null>(null);
 
+  const sidFromQuery = useSearchParams().get("sid");
+
+  // load session id initially from search param or cookie
   useEffect(() => {
-    const sid = searchParams.get("sid");
-    if (sid) {
-      setSid(sid);
-      router.push("/");
+    if (sidFromQuery) {
+      setSid(sidFromQuery);
+      router.replace("/");
+    } else {
+      const cookieSid = getCookie("sid");
+      if (cookieSid) setSid(cookieSid);
     }
-  }, [searchParams]);
+  }, []);
 
+  // login
   useEffect(() => {
-    if (!user) deleteCookie("sid");
-  }, [user]);
+    if (!sid) return;
 
-  useEffect(() => {
-    if (!sid) {
-      setUser(null);
-      return;
-    }
-
-    const fetchUser = async () => {
+    const fetchData = async () => {
       const client = getClient(sid);
 
       const vars: LoginUserQueryVariables = {
@@ -108,12 +107,23 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       });
     };
 
+    fetchData()
     setCookie("sid", sid, 10);
-    fetchUser();
   }, [sid]);
 
+  const logout = () => {
+    deleteCookie("sid");
+    setSid(null);
+    setUser(null);
+    router.push("/");
+  };
+
+  const login = (sid: string) => {
+    setSid(sid);
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser, sid, setSid }}>
+    <UserContext.Provider value={{ user, setUser, sid, logout, login }}>
       {children}
     </UserContext.Provider>
   );

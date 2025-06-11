@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -22,7 +20,6 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/ical"
 	"github.com/FachschaftMathPhysInfo/pepp/server/maintenance"
 	"github.com/FachschaftMathPhysInfo/pepp/server/tracing"
-	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/ravilushqa/otelgqlgen"
@@ -151,34 +148,7 @@ func main() {
 		})
 
 		router.Get("/sso/oidc/callback", func(w http.ResponseWriter, r *http.Request) {
-			user := auth.HandleOIDCCallback(w, r, ctx, oidcProvider, oidcConfig, mapping)
-			users, err := resolver.Query().Users(ctx, []string{user.Mail})
-			var sid string
-			if err != nil || len(users) == 0 {
-				sid, err = resolver.Mutation().AddUser(ctx, *user)
-				if err != nil {
-					log.Panic("failed to create user from oidc: ", err)
-				}
-			} else {
-				user = users[0]
-				sid = user.SessionID
-
-				if user.SessionID == "" {
-					sid, err := auth.GenerateSessionID()
-					if err != nil {
-						log.Error("error while generating sessionID for %s: %s", user.Mail, err)
-					}
-					user.SessionID = sid
-				}
-
-				user.LastLogin = time.Now()
-				_, err = resolver.Mutation().UpdateUser(ctx, *user)
-				if err != nil {
-					log.Error(err)
-				}
-			}
-
-			http.Redirect(w, r, fmt.Sprintf("%s?sid=%s", utils.MustGetEnv("PUBLIC_URL"), sid), http.StatusFound)
+			auth.HandleOIDCCallback(w, r, ctx, oidcProvider, oidcConfig, mapping, db)
 		})
 	}
 

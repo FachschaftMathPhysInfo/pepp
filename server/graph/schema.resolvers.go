@@ -122,7 +122,24 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 	if _, err := r.DB.NewInsert().
 		Model(&user).
 		Exec(ctx); err != nil {
-		return "", err
+
+		// check whether user is already registered without password
+		// set password for this case
+		var password string
+		if err := r.DB.NewSelect().
+			Table("users").
+			Column("password").
+			Where("mail = ?", user.Mail).
+			Scan(ctx, &password); err != nil {
+			return "", err
+		}
+		if password == "" {
+			// user needs to reconfirm
+			user.Confirmed = false
+			if _, err := r.UpdateUser(ctx, user); err != nil {
+				return "", err
+			}
+		}
 	}
 
 	m := r.MailConfig.Confirmation
@@ -165,14 +182,19 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, mail []string) (int, 
 }
 
 // AddEvent is the resolver for the addEvent field.
-func (r *mutationResolver) AddEvent(ctx context.Context, event models.Event) (*models.Event, error) {
+func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) ([]int, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&event).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	return &event, nil
+	var ids []int
+	for _, e := range event {
+		ids = append(ids, int(e.ID))
+	}
+
+	return ids, nil
 }
 
 // UpdateEvent is the resolver for the updateEvent field.
@@ -205,14 +227,19 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, id []int) (int, erro
 }
 
 // AddTutorial is the resolver for the addTutorial field.
-func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial models.Tutorial) (*models.Tutorial, error) {
+func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*models.Tutorial) ([]int, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&tutorial).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	return &tutorial, nil
+	var ids []int
+	for _, t := range tutorial {
+		ids = append(ids, int(t.ID))
+	}
+
+	return ids, nil
 }
 
 // UpdateTutorial is the resolver for the updateTutorial field.
@@ -374,39 +401,22 @@ func (r *mutationResolver) DeleteLabel(ctx context.Context, name []string) (int,
 	return int(rowsAffected), err
 }
 
-// AddSetting is the resolver for the addSetting field.
-func (r *mutationResolver) AddSetting(ctx context.Context, setting models.Setting) (*models.Setting, error) {
+// UpsertSetting is the resolver for the upsertSetting field.
+func (r *mutationResolver) UpsertSetting(ctx context.Context, setting models.Setting) (string, error) {
 	if setting.Type == model.ScalarTypeColor.String() {
 		hexColorPattern := `^#(?:[0-9a-fA-F]{3,4}){1,2}$`
 		if match, _ := regexp.MatchString(hexColorPattern, setting.Value); !match {
-			return nil, fmt.Errorf("unable to parse color: %s", setting.Value)
+			return "", fmt.Errorf("unable to parse color: %s", setting.Value)
 		}
 	}
-
 	if _, err := r.DB.NewInsert().
 		Model(&setting).
+		On("CONFLICT (key) DO UPDATE").
 		Exec(ctx); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return &setting, nil
-}
-
-// UpdateSetting is the resolver for the updateSetting field.
-func (r *mutationResolver) UpdateSetting(ctx context.Context, setting models.Setting) (*models.Setting, error) {
-	if _, err := r.DB.NewUpdate().
-		Model(&setting).
-		WherePK().
-		Exec(ctx); err != nil {
-		return nil, err
-	}
-
-	updatedSetting, err := r.Query().Settings(ctx, []string{setting.Key}, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedSetting[0], nil
+	return setting.Key, nil
 }
 
 // DeleteSetting is the resolver for the deleteSetting field.
@@ -1007,7 +1017,7 @@ func (r *queryResolver) Tutorials(ctx context.Context, id []int, eventID []int, 
 
 	if tutorMail != nil {
 		query = query.
-			Join("JOIN tutorial_to_user_assignments AS tua ON tutorial.user_mail = tua.user_mail AND tutorial.id = tua.tutorial_id").
+			Join("JOIN tutorial_to_user_assignments AS tua ON t.id = tua.tutorial_id").
 			Where("user_mail IN (?)", bun.In(tutorMail))
 	}
 

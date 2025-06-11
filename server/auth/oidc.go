@@ -10,6 +10,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/uptrace/bun"
 	"golang.org/x/oauth2"
 )
 
@@ -49,33 +50,33 @@ func HandleOIDCRedirect(w http.ResponseWriter, r *http.Request, config *oauth2.C
 	http.Redirect(w, r, config.AuthCodeURL(state), http.StatusFound)
 }
 
-func HandleOIDCCallback(w http.ResponseWriter, r *http.Request, ctx context.Context, provider *oidc.Provider, config *oauth2.Config, mapping ClaimMapping) *models.User {
+func HandleOIDCCallback(w http.ResponseWriter, r *http.Request, ctx context.Context, provider *oidc.Provider, config *oauth2.Config, mapping ClaimMapping, db *bun.DB) {
 	stCookie, err := r.Cookie("state")
 	if err != nil {
 		http.Error(w, "state not found", http.StatusBadRequest)
-		return nil
+		return
 	}
 	if r.URL.Query().Get("state") != stCookie.Value {
 		http.Error(w, "state did not match", http.StatusBadRequest)
-		return nil
+		return
 	}
 
 	oauth2Token, err := config.Exchange(ctx, r.URL.Query().Get("code"))
 	if err != nil {
 		http.Error(w, "Failed to exchange token: "+err.Error(), http.StatusInternalServerError)
-		return nil
+		return
 	}
 
 	userInfo, err := provider.UserInfo(ctx, oauth2.StaticTokenSource(oauth2Token))
 	if err != nil {
 		http.Error(w, "Failed to get userinfo: "+err.Error(), http.StatusInternalServerError)
-		return nil
+		return
 	}
 
 	var claims map[string]interface{}
 	if err := userInfo.Claims(&claims); err != nil {
 		http.Error(w, "Failed to parse claims: "+err.Error(), http.StatusInternalServerError)
-		return nil
+		return
 	}
 
 	user := models.User{
@@ -105,5 +106,11 @@ func HandleOIDCCallback(w http.ResponseWriter, r *http.Request, ctx context.Cont
 		user.Sn = getString("sn")
 	}
 
-	return &user
+	sid, err := verifySsoUser(ctx, db, user)
+	if err != nil {
+		http.Error(w, "Failed to verify sso user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("%s?sid=%s", utils.MustGetEnv("PUBLIC_URL"), sid), http.StatusFound)
 }
