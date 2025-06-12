@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {useEffect} from "react";
+import { useEffect } from "react";
 
 interface DatePickerWithRangeProps
   extends React.HtmlHTMLAttributes<HTMLDivElement> {
@@ -63,8 +63,8 @@ export function DatePickerWithRange({
             <CalendarIcon />
             {/*For some reason these checks are needed, as when closing the umbrella dialog
             for one render a NaN is rendered, throwing an instant error*/}
-            {date?.from?.getTime() ? (
-              date.to?.getTime() ? (
+            {isDate(date?.from) ? (
+              isDate(date.to) ? (
                 <>
                   {format(date.from, "dd. LLL y")} -{" "}
                   {format(date.to, "dd. LLL y")}
