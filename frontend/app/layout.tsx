@@ -48,7 +48,8 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="de">
+    <html lang="de" suppressHydrationWarning>
+      <head />
       <body
         className={cn(
           "flex flex-col bg-background font-sans antialiased",
@@ -56,23 +57,23 @@ export default function RootLayout({ children }: RootLayoutProps) {
           fontHeading.variable
         )}
       >
-        <Suspense>
-          <RefetchProvider>
-            <UserProvider>
-              <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-                disableTransitionOnChange
-              >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Suspense>
+            <RefetchProvider>
+              <UserProvider>
                 <Header />
                 {children}
                 <Toaster richColors />
                 <TailwindIndicator />
-              </ThemeProvider>
-            </UserProvider>
-          </RefetchProvider>
-        </Suspense>
+              </UserProvider>
+            </RefetchProvider>
+          </Suspense>
+        </ThemeProvider>
       </body>
     </html>
   );

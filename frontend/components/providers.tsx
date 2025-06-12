@@ -107,7 +107,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       });
     };
 
-    fetchData()
+    fetchData();
     setCookie("sid", sid, 10);
   }, [sid]);
 
@@ -130,16 +130,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const ThemeProvider = ({ children, ...props }: ThemeProviderProps) => {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
   return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
 };
 
