@@ -1,11 +1,7 @@
-"use client";
-
 import * as React from "react";
-import { addDays, format, isDate } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { DateRange } from "react-day-picker";
 
-import { cn } from "@/lib/utils";
+import { cn, formatDate, getDateAdjustedForTimezone } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -13,40 +9,40 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {useEffect} from "react";
 
 interface DatePickerWithRangeProps
   extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  from?: Date;
-  to?: Date;
+  initialDateFrom?: Date | string;
+  initialDateTo?: Date | string;
   onClose?: (from: Date | undefined, to: Date | undefined) => void;
   modal?: boolean;
 }
 
+interface DateRange {
+  from: Date;
+  to: Date | undefined;
+}
+
 export function DatePickerWithRange({
   className,
-  from,
-  to,
+  initialDateFrom = new Date(new Date().setHours(0, 0, 0, 0)),
+  initialDateTo,
   onClose,
   modal = false,
 }: DatePickerWithRangeProps) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: from ?? new Date(2022, 0, 20),
-    to: to ?? addDays(new Date(2022, 0, 20), 20),
+  const [range, setRange] = React.useState<DateRange>({
+    from: getDateAdjustedForTimezone(initialDateFrom),
+    to: initialDateTo
+      ? getDateAdjustedForTimezone(initialDateTo)
+      : getDateAdjustedForTimezone(initialDateFrom),
   });
-
-  useEffect(() => {
-    if (from && to) {
-      setDate({ from, to });
-    }
-  }, [from, to]);
 
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover
         onOpenChange={(open) => {
           if (!open && onClose) {
-            onClose(date?.from, date?.to);
+            onClose(range.from, range.to);
           }
         }}
         modal={modal}
@@ -57,21 +53,16 @@ export function DatePickerWithRange({
             variant={"outline"}
             className={cn(
               "w-[300px] justify-start text-left font-normal",
-              !date && "text-muted-foreground"
+              !range && "text-muted-foreground"
             )}
           >
             <CalendarIcon />
-            {/*For some reason these checks are needed, as when closing the umbrella dialog
-            for one render a NaN is rendered, throwing an instant error*/}
-            {date?.from?.getTime() ? (
-              date.to?.getTime() ? (
-                <>
-                  {format(date.from, "dd. LLL y")} -{" "}
-                  {format(date.to, "dd. LLL y")}
-                </>
-              ) : (
-                format(date.from, "dd. LLL y")
-              )
+            {initialDateFrom ? (
+              <>
+                {`${formatDate(range.from, "de")}${
+                  range.to != null ? " - " + formatDate(range.to, "de") : ""
+                }`}
+              </>
             ) : (
               <span>Wähle ein Datum</span>
             )}
@@ -81,9 +72,13 @@ export function DatePickerWithRange({
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={date?.from}
-            selected={date}
-            onSelect={setDate}
+            defaultMonth={range.from}
+            selected={range}
+            onSelect={(value: { from?: Date; to?: Date } | undefined) => {
+              if (value?.from != null) {
+                setRange({ from: value.from, to: value?.to });
+              }
+            }}
             numberOfMonths={2}
           />
         </PopoverContent>
