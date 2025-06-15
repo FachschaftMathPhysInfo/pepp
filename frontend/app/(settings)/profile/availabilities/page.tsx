@@ -20,7 +20,7 @@ import {EventTable} from "@/components/tables/event-table/event-table";
 import {eventColumns} from "@/components/tables/event-table/event-columns";
 import {RowSelectionState} from "@tanstack/react-table";
 import {defaultEvent} from "@/types/defaults";
-import {RotateCcw, Save} from "lucide-react";
+import {BadgeX, RotateCcw, Save} from "lucide-react";
 import {GraphQLClient} from "graphql-request";
 import {toast} from "sonner";
 import {createRowSelectionFromEventIds, getEventIdsFromRowSelection} from "@/lib/utils/tableUtils";
@@ -114,33 +114,43 @@ export default function Settings() {
           </p>
         </div>
         <Separator/>
-        <div>
-          <EventTable
-            columns={eventColumns}
-            data={events}
-            rowSelection={rowSelection}
-            setRowSelection={setRowSelection}
-          />
-          <div className={'flex justify-between items-center mt-5 w-full gap-x-12'}>
-            <Button
-              variant={"outline"}
-              className={'flex-grow-[0.25]'}
-              onClick={() => setRowSelection(createRowSelectionFromEventIds(previousEventIds))}
-            >
-              Zurücksetzen
-              <RotateCcw />
-            </Button>
 
-            <Button
-              variant={"default"}
-              className={'flex-grow-[0.75]'}
-              onClick={() => onSubmit()}
-              disabled={!hasSelectionChangedFromInit}
-            >
-              <Save/>
-              Speichern
-            </Button></div>
-        </div>
+        {!user?.confirmed ? (
+          <div className={'w-full h-full flex flex-col justify-center items-center p-12'}>
+            <BadgeX size={100} className={'stroke-red-600 mb-5'}/>
+            <p className={'text-xl font-bold'}>
+              Diese Einstellung wird erst verfügbar, sobald du deine E-Mail bestätigt hast
+            </p>
+          </div>
+        ) : (
+          <div>
+            <EventTable
+              columns={eventColumns}
+              data={events}
+              rowSelection={rowSelection}
+              setRowSelection={setRowSelection}
+            />
+            <div className={'flex justify-between items-center mt-5 w-full gap-x-12'}>
+              <Button
+                variant={"outline"}
+                className={'flex-grow-[0.25]'}
+                onClick={() => setRowSelection(createRowSelectionFromEventIds(previousEventIds))}
+              >
+                Zurücksetzen
+                <RotateCcw />
+              </Button>
+
+              <Button
+                variant={"default"}
+                className={'flex-grow-[0.75]'}
+                onClick={() => onSubmit()}
+                disabled={!hasSelectionChangedFromInit}
+              >
+                <Save/>
+                Speichern
+              </Button></div>
+          </div>
+        )}
       </div>
     </>
   );
