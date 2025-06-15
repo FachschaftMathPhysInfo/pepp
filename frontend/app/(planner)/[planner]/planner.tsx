@@ -8,34 +8,24 @@ import {
   PlannerEventsQueryVariables,
   Role,
 } from "@/lib/gql/generated/graphql";
-import React, { useCallback, useEffect, useState } from "react";
+import React, {useCallback, useEffect, useState} from "react";
 
 import Filter from "@/components/filter";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { getClient } from "@/lib/graphql";
-import { CopyTextArea } from "@/components/copy-text-area";
-import { CardSkeleton } from "@/components/card-skeleton";
-import { Planner } from "@/components/planner";
-import { useRefetch, useUser } from "@/components/providers";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {
-  Check,
-  ChevronRight,
-  ChevronsUpDown,
-  TriangleAlert,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { defaultEvent, defaultLabel } from "@/types/defaults";
-import EditPlannerSection from "./edit-planner-section";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import { cn } from "@/lib/utils";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {getClient} from "@/lib/graphql";
+import {CopyTextArea} from "@/components/copy-text-area";
+import {CardSkeleton} from "@/components/card-skeleton";
+import {Planner} from "@/components/planner";
+import {useRefetch, useUser} from "@/components/providers";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
+import {Check, ChevronRight, ChevronsUpDown, TriangleAlert,} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {defaultEvent, defaultLabel} from "@/types/defaults";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {DataTable} from "./data-table";
+import {columns} from "./columns";
+import {cn} from "@/lib/utils";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -57,8 +47,8 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
   const [topics, setTopics] = useState<Label[]>([]);
-  const [toFilter, setToFilter] = useState<string[]>(searchParams.getAll("to"));
-  const [tyFilter, setTyFilter] = useState<string[]>(searchParams.getAll("ty"));
+  const [topicFilter, setTopicFilter] = useState<string[]>(searchParams.getAll("to"));
+  const [typesFilter, setTypesFilter] = useState<string[]>(searchParams.getAll("ty"));
   const [icalPath, setIcalPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
@@ -86,8 +76,8 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
       const vars: PlannerEventsQueryVariables = {
         umbrellaID: umbrellaID ?? 0,
-        topic: toFilter.length == 0 ? undefined : toFilter,
-        type: tyFilter.length == 0 ? undefined : tyFilter,
+        topic: topicFilter.length == 0 ? undefined : topicFilter,
+        type: typesFilter.length == 0 ? undefined : typesFilter,
       };
 
       const eventData = await client.request<PlannerEventsQuery>(
@@ -105,28 +95,28 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
             topic: { ...defaultLabel, ...e.topic },
           }))
         );
-        setIsRestricted(eventData.umbrellas[0].registrationForm ? true : false);
+        setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
       setLoading(false);
     };
 
-    fetchData();
-  }, [toFilter, tyFilter, umbrellaID, refetchKey]);
+    void fetchData();
+  }, [topicFilter, typesFilter, umbrellaID, refetchKey]);
 
   useEffect(() => {
     router.push(
       pathname +
         "?" +
-        createQueryString("to", toFilter) +
-        (tyFilter.length && toFilter.length ? "&" : "") +
-        createQueryString("ty", tyFilter)
+        createQueryString("to", topicFilter) +
+        (typesFilter.length && topicFilter.length ? "&" : "") +
+        createQueryString("ty", typesFilter)
     );
-  }, [toFilter, tyFilter]);
+  }, [topicFilter, typesFilter]);
 
   useEffect(() => {
-    setTyFilter([]);
-    setToFilter([]);
+    setTypesFilter([]);
+    setTopicFilter([]);
   }, [umbrellaID]);
 
   useEffect(() => {
@@ -144,42 +134,15 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
   return (
     <>
-      {user?.role === Role.Admin && (
-        <section className="mb-[20px] space-y-5">
-          <EditPlannerSection umbrellaID={umbrellaID} />
-        </section>
-      )}
-
       {events.length > 0 && (
-        <section className="sm:flex sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2 mb-2">
-            {(topics.length >= 2 || types.length >= 2) && (
-              <>
-                {topics.length >= 2 && (
-                  <Filter
-                    title="Thema"
-                    options={topics.map((t) => t.name)}
-                    filter={toFilter}
-                    setFilter={setToFilter}
-                  />
-                )}
-                {types.length >= 2 && (
-                  <Filter
-                    title="Veranstaltungsart"
-                    options={types.map((t) => t.name)}
-                    filter={tyFilter}
-                    setFilter={setTyFilter}
-                  />
-                )}
-              </>
-            )}
+        <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
+          <div className="flex items-center justify-center gap-x-4">
+
             {user?.role === Role.Admin && (
-              <>
-                <p className="font-bold text-xs">Ansicht</p>
-                <DropdownMenu>
+              <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline">
-                      {view}
+                      Ansicht
                       <ChevronsUpDown className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -197,10 +160,51 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
+            )}
+
+            {(topics.length >= 2 || types.length >= 2) && (
+              <>
+                {topics.length >= 2 && (
+                  <Popover>
+                      <PopoverTrigger>
+                        <Button variant="outline">
+                          Themen
+                          <ChevronsUpDown className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <Filter
+                          options={topics.map((t) => t.name)}
+                          filter={topicFilter}
+                          setFilter={setTopicFilter}
+                          orientation={'vertical'}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                )}
+                {types.length >= 2 && (
+                  <Popover>
+                    <PopoverTrigger>
+                      <Button variant="outline">
+                        Veranstaltungsarten
+                        <ChevronsUpDown className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <Filter
+                        options={types.map((t) => t.name)}
+                        filter={typesFilter}
+                        setFilter={setTypesFilter}
+                        orientation="vertical"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
               </>
             )}
           </div>
-          <CopyTextArea label="ICS-Kalender" text={icalPath} />
+
+          <CopyTextArea label="ICS-Kalender" text={icalPath}/>
         </section>
       )}
 
