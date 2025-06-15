@@ -2,14 +2,9 @@ import React from "react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {MailCheck, MailX} from "lucide-react";
 
-type ConfirmPageProps = {
-  params: {
-    sid: string;
-  };
-};
 
-export default async function ConfirmPage({ params }: ConfirmPageProps) {
-  const { sid } = params;
+export default async function ConfirmPage({params}: {params: Promise<{ sid: string }>}) {
+  const { sid } = await params;
 
   let status: "success" | "error";
 
