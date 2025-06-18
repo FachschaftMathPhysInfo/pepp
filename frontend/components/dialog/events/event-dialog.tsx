@@ -21,12 +21,12 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { SignInDialog } from "@/components/sign-in-dialog";
-import { useRefetch, useUser } from "../providers";
+import { useRefetch, useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import { TutorialsTable } from "./tutorials-table";
-import { FullDateDescription } from "../full-date-description";
+import { FullDateDescription } from "../../full-date-description";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { EditEventView } from "./edit-event-view";
 import EventDescription from "./event-description";
 

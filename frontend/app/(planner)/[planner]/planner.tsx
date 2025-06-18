@@ -6,7 +6,7 @@ import {
   PlannerEventsDocument,
   PlannerEventsQuery,
   PlannerEventsQueryVariables,
-  Role,
+  Role, UmbrellaDetailDocument, UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
 import React, {useCallback, useEffect, useState} from "react";
 
@@ -26,6 +26,7 @@ import {DataTable} from "./data-table";
 import {columns} from "./columns";
 import {cn} from "@/lib/utils";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import EditPlannerSection from "@/app/(planner)/[planner]/edit-planner-section";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -53,6 +54,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [loading, setLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
   const [view, setView] = useState(View.planner);
+  const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
 
   const createQueryString = useCallback((name: string, values: string[]) => {
     const params = new URLSearchParams(values.map((v) => [name, v]));
@@ -68,41 +70,56 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
+  const fetchEventData = useCallback(async () => {
+    setLoading(true);
 
-      const client = getClient();
+    const client = getClient();
 
-      const vars: PlannerEventsQueryVariables = {
-        umbrellaID: umbrellaID ?? 0,
-        topic: topicFilter.length == 0 ? undefined : topicFilter,
-        type: typesFilter.length == 0 ? undefined : typesFilter,
-      };
-
-      const eventData = await client.request<PlannerEventsQuery>(
-        PlannerEventsDocument,
-        vars
-      );
-
-      if (eventData.events.length) {
-        setTypes(eventData.typeLabels);
-        setTopics(eventData.topicLabels);
-        setEvents(
-          eventData.events.map((e) => ({
-            ...defaultEvent,
-            ...e,
-            topic: { ...defaultLabel, ...e.topic },
-          }))
-        );
-        setIsRestricted(!!eventData.umbrellas[0].registrationForm);
-      }
-
-      setLoading(false);
+    const vars: PlannerEventsQueryVariables = {
+      umbrellaID: umbrellaID ?? 0,
+      topic: topicFilter.length == 0 ? undefined : topicFilter,
+      type: typesFilter.length == 0 ? undefined : typesFilter,
     };
 
-    void fetchData();
-  }, [topicFilter, typesFilter, umbrellaID, refetchKey]);
+    const eventData = await client.request<PlannerEventsQuery>(
+      PlannerEventsDocument,
+      vars
+    );
+
+    if (eventData.events.length) {
+      setTypes(eventData.typeLabels);
+      setTopics(eventData.topicLabels);
+      setEvents(
+        eventData.events.map((e) => ({
+          ...defaultEvent,
+          ...e,
+          topic: { ...defaultLabel, ...e.topic },
+        }))
+      );
+      setIsRestricted(!!eventData.umbrellas[0].registrationForm);
+    }
+
+    setLoading(false);
+  }, [umbrellaID])
+  const fetchUmbrellaData = useCallback(async () => {
+    setLoading(true);
+    const client = getClient();
+
+    const umbrellaData = await client.request<UmbrellaDetailQuery>(
+      UmbrellaDetailDocument,
+      {id: umbrellaID}
+    );
+
+    if(umbrellaData) {
+      setUmbrella({...defaultEvent ,...umbrellaData.umbrellas[0]})
+    }
+
+    setLoading(false);
+  }, [umbrellaID])
+
+  useEffect(() => {
+    void fetchEventData();
+  }, [topicFilter, typesFilter, umbrellaID, refetchKey, fetchEventData]);
 
   useEffect(() => {
     router.push(
@@ -117,6 +134,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   useEffect(() => {
     setTypesFilter([]);
     setTopicFilter([]);
+    void fetchUmbrellaData();
   }, [umbrellaID]);
 
   useEffect(() => {
@@ -134,6 +152,10 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
   return (
     <>
+      {user?.role == Role.Admin && (
+        <EditPlannerSection umbrella={umbrella} refreshData={fetchUmbrellaData}/>
+      )}
+
       {events.length > 0 && (
         <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
           <div className="flex items-center justify-center gap-x-4">

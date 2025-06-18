@@ -65,10 +65,6 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
           <main className="flex-1 mt-[80px]">
             <div className="p-5">
               <SidebarTrigger className="mb-2 block" />
-              <UmbrellaPopoverSelection
-                umbrellas={umbrellas}
-                className="text-4xl font-bold mb-4"
-              />
               {children}
             </div>
             <Footer />
