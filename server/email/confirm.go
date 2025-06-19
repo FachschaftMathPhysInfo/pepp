@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/uptrace/bun"
 )
@@ -26,5 +27,5 @@ func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bu
 		return
 	}
 
-	fmt.Fprint(w, "Successfully confirmed")
+	http.Redirect(w, r, utils.MustGetEnv("PUBLIC_URL")+"/confirm-success", http.StatusFound)
 }
