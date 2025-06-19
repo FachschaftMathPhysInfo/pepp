@@ -6,7 +6,9 @@ import {
   PlannerEventsDocument,
   PlannerEventsQuery,
   PlannerEventsQueryVariables,
-  Role, UmbrellaDetailDocument, UmbrellaDetailQuery,
+  Role,
+  UmbrellaDetailDocument,
+  UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
 import React, {useCallback, useEffect, useState} from "react";
 
@@ -18,14 +20,13 @@ import {CardSkeleton} from "@/components/card-skeleton";
 import {Planner} from "@/components/planner";
 import {useRefetch, useUser} from "@/components/providers";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
-import {Check, ChevronRight, ChevronsUpDown, TriangleAlert,} from "lucide-react";
+import {Check, ChevronRight, ChevronsUpDown, FilterIcon, TriangleAlert,} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {defaultEvent, defaultLabel} from "@/types/defaults";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
 import {DataTable} from "./data-table";
 import {columns} from "./columns";
 import {cn} from "@/lib/utils";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import EditPlannerSection from "@/app/(planner)/[planner]/edit-planner-section";
 
 interface PlannerPageProps {
@@ -70,37 +71,6 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     }
   };
 
-  const fetchEventData = useCallback(async () => {
-    setLoading(true);
-
-    const client = getClient();
-
-    const vars: PlannerEventsQueryVariables = {
-      umbrellaID: umbrellaID ?? 0,
-      topic: topicFilter.length == 0 ? undefined : topicFilter,
-      type: typesFilter.length == 0 ? undefined : typesFilter,
-    };
-
-    const eventData = await client.request<PlannerEventsQuery>(
-      PlannerEventsDocument,
-      vars
-    );
-
-    if (eventData.events.length) {
-      setTypes(eventData.typeLabels);
-      setTopics(eventData.topicLabels);
-      setEvents(
-        eventData.events.map((e) => ({
-          ...defaultEvent,
-          ...e,
-          topic: { ...defaultLabel, ...e.topic },
-        }))
-      );
-      setIsRestricted(!!eventData.umbrellas[0].registrationForm);
-    }
-
-    setLoading(false);
-  }, [umbrellaID])
   const fetchUmbrellaData = useCallback(async () => {
     setLoading(true);
     const client = getClient();
@@ -118,8 +88,40 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   }, [umbrellaID])
 
   useEffect(() => {
+    const fetchEventData = async () => {
+      setLoading(true);
+
+      const client = getClient();
+
+      const vars: PlannerEventsQueryVariables = {
+        umbrellaID: umbrellaID ?? 0,
+        topic: topicFilter.length == 0 ? undefined : topicFilter,
+        type: typesFilter.length == 0 ? undefined : typesFilter,
+      };
+
+      const eventData = await client.request<PlannerEventsQuery>(
+        PlannerEventsDocument,
+        vars
+      );
+
+      if (eventData.events.length) {
+        setTypes(eventData.typeLabels);
+        setTopics(eventData.topicLabels);
+        setEvents(
+          eventData.events.map((e) => ({
+            ...defaultEvent,
+            ...e,
+            topic: { ...defaultLabel, ...e.topic },
+          }))
+        );
+        setIsRestricted(!!eventData.umbrellas[0].registrationForm);
+      }
+
+      setLoading(false);
+    }
+
     void fetchEventData();
-  }, [topicFilter, typesFilter, umbrellaID, refetchKey, fetchEventData]);
+  }, [topicFilter, typesFilter, umbrellaID, refetchKey]);
 
   useEffect(() => {
     router.push(
@@ -134,7 +136,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   useEffect(() => {
     setTypesFilter([]);
     setTopicFilter([]);
-    void fetchUmbrellaData();
+    void fetchUmbrellaData()
   }, [umbrellaID]);
 
   useEffect(() => {
@@ -187,40 +189,37 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
             {(topics.length >= 2 || types.length >= 2) && (
               <>
                 {topics.length >= 2 && (
-                  <Popover>
-                      <PopoverTrigger>
+                  <DropdownMenu>
+                      <DropdownMenuTrigger>
                         <Button variant="outline">
-                          Themen
-                          <ChevronsUpDown className="h-4 w-4" />
+                          Filter
+                          <FilterIcon className="h-4 w-4" />
                         </Button>
-                      </PopoverTrigger>
-                      <PopoverContent>
-                        <Filter
-                          options={topics.map((t) => t.name)}
-                          filter={topicFilter}
-                          setFilter={setTopicFilter}
-                          orientation={'vertical'}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                )}
-                {types.length >= 2 && (
-                  <Popover>
-                    <PopoverTrigger>
-                      <Button variant="outline">
-                        Veranstaltungsarten
-                        <ChevronsUpDown className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent>
-                      <Filter
-                        options={types.map((t) => t.name)}
-                        filter={typesFilter}
-                        setFilter={setTypesFilter}
-                        orientation="vertical"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className={'!max-w-fit'}>
+                        <div className={'flex flex-row gap-x-8'}>
+                          {topics.length >= 2 && (
+                            <Filter
+                              options={topics.map((t) => t.name)}
+                              filter={topicFilter}
+                              setFilter={setTopicFilter}
+                              orientation={'vertical'}
+                              title={'Themen'}
+                            />
+                          )}
+
+                          {types.length >= 2 && (
+                            <Filter
+                              options={types.map((t) => t.name)}
+                              filter={typesFilter}
+                              setFilter={setTypesFilter}
+                              orientation="vertical"
+                              title={'Veranstaltungsart'}
+                            />
+                          )}
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                 )}
               </>
             )}

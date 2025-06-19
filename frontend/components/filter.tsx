@@ -28,10 +28,9 @@ export default function Filter({
   return (
     <div>
       {title &&(
-        <p className="font-bold text-xs">{title}</p>
+        <p className="font-bold text-sm mb-2">{title}</p>
       )}
-      <p className={'text-muted-foreground mb-4'}>Nur folgende anzeigen:</p>
-      <div className={cn('flex', orientation === "horizontal" ? "flex-row space-x-4" : "flex-col space-y-4")}>
+      <div className={cn('flex', orientation === "horizontal" ? "flex-row space-x-4" : "flex-col space-y-1")}>
         {options.map((option) => (
           <label key={option} className="flex items-center space-x-2">
             <Checkbox
