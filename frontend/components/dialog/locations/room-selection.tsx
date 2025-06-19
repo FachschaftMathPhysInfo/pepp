@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Room } from "@/lib/gql/generated/graphql";
 import { ArrowDownToDot, Check, ChevronsUpDown, Users } from "lucide-react";
 import React, { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -10,7 +10,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../ui/command";
+} from "../../ui/command";
 import { cn } from "@/lib/utils";
 
 interface RoomSelectionProps {

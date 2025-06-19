@@ -17,7 +17,7 @@ import {GraphQLClient} from "graphql-request";
 import {useUser} from "@/components/providers";
 import {PlusCircle, Umbrella} from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
-import {UmbrellaDialog} from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
+import {UmbrellaDialog} from "@/components/dialog/umbrellas/umbrella-dialog";
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 import SearchInput from "@/components/search-input";

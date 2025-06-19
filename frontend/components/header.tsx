@@ -32,7 +32,7 @@ import {
 import { useUser } from "./providers";
 import { getClient } from "@/lib/graphql";
 import { useRouter } from "next/navigation";
-import EventDialog from "./event-dialog/event-dialog";
+import EventDialog from "@/components/dialog/events/event-dialog";
 import { adminItems, userItems } from "@/app/(settings)/sidebar";
 import { defaultEvent } from "@/types/defaults";
 import { toast } from "sonner";
