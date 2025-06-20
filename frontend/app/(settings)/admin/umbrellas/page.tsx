@@ -1,30 +1,31 @@
 "use client";
 
-import {Separator} from "@/components/ui/separator";
+import { Separator } from "@/components/ui/separator";
 import {
   DeleteEventDocument,
   DeleteEventMutation,
   Event,
   UmbrellasDocument,
-  UmbrellasQuery
+  UmbrellasQuery,
 } from "@/lib/gql/generated/graphql";
-import React, {useCallback, useEffect, useState} from "react";
-import {getClient} from "@/lib/graphql";
-import {defaultEvent} from "@/types/defaults";
+import React, { useCallback, useEffect, useState } from "react";
+import { getClient } from "@/lib/graphql";
+import { defaultEvent } from "@/types/defaults";
 import ConfirmationDialog from "@/components/confirmation-dialog";
-import {toast} from "sonner";
-import {GraphQLClient} from "graphql-request";
-import {useUser} from "@/components/providers";
-import {PlusCircle, Umbrella} from "lucide-react";
+import { toast } from "sonner";
+import { GraphQLClient } from "graphql-request";
+import { useUser } from "@/components/providers";
+import { CirclePlus, PlusCircle, Umbrella } from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
-import {UmbrellaDialog} from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
-import {cn} from "@/lib/utils";
-import {Button} from "@/components/ui/button";
+import { UmbrellaDialog } from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/search-input";
+import { ManagementPageHeader } from "@/components/management-page-header";
 
 export type UmbrellaDialogState = {
-  mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null
-  umbrella: Event
+  mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null;
+  umbrella: Event;
 };
 
 export default function UmbrellaSettings() {
@@ -43,11 +44,13 @@ export default function UmbrellaSettings() {
   }, [sid]);
 
   const fetchUmbrellas = useCallback(async () => {
-    const umbrellaData = await client.request<UmbrellasQuery>(UmbrellasDocument)
-    const umbrellas = umbrellaData.umbrellas.map(umbrella => ({
+    const umbrellaData = await client.request<UmbrellasQuery>(
+      UmbrellasDocument
+    );
+    const umbrellas = umbrellaData.umbrellas.map((umbrella) => ({
       ...defaultEvent,
-      ...umbrella
-    }))
+      ...umbrella,
+    }));
     setUmbrellas(umbrellas);
   }, [client]);
 
@@ -56,34 +59,36 @@ export default function UmbrellaSettings() {
   }, [fetchUmbrellas]);
 
   // Dialog Handling
-  const closeDialog = () => setDialogState({ mode: null, umbrella: defaultEvent});
+  const closeDialog = () =>
+    setDialogState({ mode: null, umbrella: defaultEvent });
 
   const handleDeleteUmbrella = async () => {
-    await client.request<DeleteEventMutation>(DeleteEventDocument, {eventIds: dialogState.umbrella.ID})
+    await client.request<DeleteEventMutation>(DeleteEventDocument, {
+      eventIds: dialogState.umbrella.ID,
+    });
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className={'flex items-start justify-start gap-x-6'}>
-          <h3 className="text-3xl font-bold flex items-center">
-            <Umbrella className={"inline mr-3"} />
-            Programmverwaltung
-          </h3>
+      <ManagementPageHeader
+        iconNode={<Umbrella />}
+        title={"Programmverwaltung"}
+        description={"Verwalte hier Deine Programme."}
+        actionButton={
           <Button
             variant={"outline"}
-            className={cn("p-2 justify-start text-left font-normal")}
-            onClick={() => setDialogState({mode: "addUmbrella", umbrella: defaultEvent})}
+            onClick={() =>
+              setDialogState({
+                mode: "addUmbrella",
+                umbrella: defaultEvent,
+              })
+            }
           >
-            <PlusCircle />
+            <CirclePlus />
             Programm hinzufügen
           </Button>
-        </div>
-        <p className="text-sm text-muted-foreground mt-2">
-          Verwalte hier Deine Programme.
-        </p>
-      </div>
-      <Separator />
+        }
+      />
 
       <SearchInput searchValue={searchValue} setSearchValue={setSearchValue} />
 
@@ -92,9 +97,15 @@ export default function UmbrellaSettings() {
           Es sind noch keine Programme eingetragen
         </div>
       ) : (
-        umbrellas.filter(umbrella => umbrella.title.includes(searchValue)).map((umbrella) => (
-            <UmbrellaSection key={umbrella.ID} umbrella={umbrella} setDialogState={setDialogState}/>
-        ))
+        umbrellas
+          .filter((umbrella) => umbrella.title.includes(searchValue))
+          .map((umbrella) => (
+            <UmbrellaSection
+              key={umbrella.ID}
+              umbrella={umbrella}
+              setDialogState={setDialogState}
+            />
+          ))
       )}
 
       <ConfirmationDialog
@@ -104,15 +115,20 @@ export default function UmbrellaSettings() {
           await handleDeleteUmbrella();
           closeDialog();
           void fetchUmbrellas();
-          toast.info(`${dialogState.umbrella.title} wurde erfolgreich gelöscht`);
+          toast.info(
+            `${dialogState.umbrella.title} wurde erfolgreich gelöscht`
+          );
         }}
         isOpen={dialogState.mode === "deleteUmbrella"}
         closeDialog={closeDialog}
       />
       <UmbrellaDialog
-        umbrella={{...defaultEvent, ...dialogState.umbrella}}
+        umbrella={{ ...defaultEvent, ...dialogState.umbrella }}
         umbrellas={umbrellas}
-        isOpen={dialogState.mode === "editUmbrella" || dialogState.mode === "addUmbrella"}
+        isOpen={
+          dialogState.mode === "editUmbrella" ||
+          dialogState.mode === "addUmbrella"
+        }
         closeDialog={closeDialog}
         refreshTable={fetchUmbrellas}
         createMode={dialogState.mode === "addUmbrella"}
