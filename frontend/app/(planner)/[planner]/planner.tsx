@@ -11,8 +11,6 @@ import {
   UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
 import React, {useCallback, useEffect, useState} from "react";
-
-import Filter from "@/components/filter";
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {getClient} from "@/lib/graphql";
 import {CopyTextArea} from "@/components/copy-text-area";
@@ -20,7 +18,7 @@ import {CardSkeleton} from "@/components/card-skeleton";
 import {Planner} from "@/components/planner";
 import {useRefetch, useUser} from "@/components/providers";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
-import {Check, ChevronRight, ChevronsUpDown, FilterIcon, TriangleAlert,} from "lucide-react";
+import {Check, ChevronRight, ChevronsUpDown, TriangleAlert,} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {defaultEvent, defaultLabel} from "@/types/defaults";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
@@ -28,6 +26,7 @@ import {DataTable} from "./data-table";
 import {columns} from "./columns";
 import {cn} from "@/lib/utils";
 import EditPlannerSection from "@/app/(planner)/[planner]/edit-planner-section";
+import {FacetedFilter} from "@/components/faceted-filter";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -38,13 +37,13 @@ enum View {
   table = "Tabelle",
 }
 
-export function PlannerPage({ umbrellaID }: PlannerPageProps) {
+export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const { user } = useUser();
-  const { refetchKey } = useRefetch();
+  const {user} = useUser();
+  const {refetchKey} = useRefetch();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
@@ -65,9 +64,9 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const renderView = () => {
     switch (view) {
       case View.planner:
-        return <Planner events={events} />;
+        return <Planner events={events}/>;
       case View.table:
-        return <DataTable columns={columns} data={events} />;
+        return <DataTable columns={columns} data={events}/>;
     }
   };
 
@@ -80,8 +79,8 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       {id: umbrellaID}
     );
 
-    if(umbrellaData) {
-      setUmbrella({...defaultEvent ,...umbrellaData.umbrellas[0]})
+    if (umbrellaData) {
+      setUmbrella({...defaultEvent, ...umbrellaData.umbrellas[0]})
     }
 
     setLoading(false);
@@ -111,7 +110,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            topic: { ...defaultLabel, ...e.topic },
+            topic: {...defaultLabel, ...e.topic},
           }))
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
@@ -126,10 +125,10 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   useEffect(() => {
     router.push(
       pathname +
-        "?" +
-        createQueryString("to", topicFilter) +
-        (typesFilter.length && topicFilter.length ? "&" : "") +
-        createQueryString("ty", typesFilter)
+      "?" +
+      createQueryString("to", topicFilter) +
+      (typesFilter.length && topicFilter.length ? "&" : "") +
+      createQueryString("ty", typesFilter)
     );
   }, [topicFilter, typesFilter]);
 
@@ -142,9 +141,9 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   useEffect(() => {
     setIcalPath(
       window.location.origin +
-        "/ical/?e=" +
-        umbrellaID +
-        (searchParams.size ? "&" + searchParams : "")
+      "/ical/?e=" +
+      umbrellaID +
+      (searchParams.size ? "&" + searchParams : "")
     );
   }, [searchParams]);
 
@@ -164,64 +163,44 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
             {user?.role === Role.Admin && (
               <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      Ansicht
-                      <ChevronsUpDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {Object.values(View).map((v) => (
-                      <DropdownMenuItem key={v} onClick={() => setView(v)}>
-                        <Check
-                          className={cn(
-                            "h-4 w-4 mr-2",
-                            v === view ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {v}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    Ansicht
+                    <ChevronsUpDown className="h-4 w-4"/>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {Object.values(View).map((v) => (
+                    <DropdownMenuItem key={v} onClick={() => setView(v)}>
+                      <Check
+                        className={cn(
+                          "h-4 w-4 mr-2",
+                          v === view ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {v}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
 
-            {(topics.length >= 2 || types.length >= 2) && (
-              <>
-                {topics.length >= 2 && (
-                  <DropdownMenu>
-                      <DropdownMenuTrigger>
-                        <Button variant="outline">
-                          Filter
-                          <FilterIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className={'!max-w-fit'}>
-                        <div className={'flex flex-row gap-x-8'}>
-                          {topics.length >= 2 && (
-                            <Filter
-                              options={topics.map((t) => t.name)}
-                              filter={topicFilter}
-                              setFilter={setTopicFilter}
-                              orientation={'vertical'}
-                              title={'Themen'}
-                            />
-                          )}
+            {topics.length >= 2 && (
+              <FacetedFilter
+                className={'h-full'}
+                options={topics.map((t) => t.name)}
+                setFilter={setTopicFilter}
+                title={'Themen'}
+              />
+            )}
 
-                          {types.length >= 2 && (
-                            <Filter
-                              options={types.map((t) => t.name)}
-                              filter={typesFilter}
-                              setFilter={setTypesFilter}
-                              orientation="vertical"
-                              title={'Veranstaltungsart'}
-                            />
-                          )}
-                        </div>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
-              </>
+            {types.length >= 2 && (
+              <FacetedFilter
+                className={'h-full'}
+                options={types.map((t) => t.name)}
+                setFilter={setTypesFilter}
+                title={'Veranstaltungsart'}
+              />
             )}
           </div>
 
@@ -232,7 +211,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       {isRestricted && !application && (
         <section>
           <Alert variant="destructive">
-            <TriangleAlert className="h-4 w-4" />
+            <TriangleAlert className="h-4 w-4"/>
             <AlertTitle className="font-bold">
               Registrierung erforderlich!
             </AlertTitle>
@@ -245,7 +224,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
                 onClick={() => router.push(`${pathname}/register`)}
               >
                 Zur Anmeldung
-                <ChevronRight />
+                <ChevronRight/>
               </Button>
             </AlertDescription>
           </Alert>
@@ -253,7 +232,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       )}
 
       <section className="mt-5">
-        {loading ? <CardSkeleton /> : renderView()}
+        {loading ? <CardSkeleton/> : renderView()}
       </section>
     </>
   );
