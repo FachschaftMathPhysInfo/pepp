@@ -2,10 +2,10 @@ package email
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/go-chi/chi/v5"
 	"github.com/uptrace/bun"
 )
@@ -21,10 +21,9 @@ func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bu
 
 	rowsAffected, _ := res.RowsAffected()
 	if err != nil || rowsAffected == 0 {
-		http.Error(w, "Invalid URL", http.StatusInternalServerError)
-		fmt.Println(err)
+		http.Redirect(w, r, utils.MustGetEnv("PUBLIC_URL")+"/confirm-failed", http.StatusFound)
 		return
 	}
 
-	fmt.Fprint(w, "Successfully confirmed")
+	http.Redirect(w, r, utils.MustGetEnv("PUBLIC_URL")+"/confirm-success", http.StatusFound)
 }
