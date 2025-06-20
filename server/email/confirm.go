@@ -2,7 +2,6 @@ package email
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
@@ -22,8 +21,7 @@ func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bu
 
 	rowsAffected, _ := res.RowsAffected()
 	if err != nil || rowsAffected == 0 {
-		http.Error(w, "Invalid URL", http.StatusInternalServerError)
-		fmt.Println(err)
+		http.Redirect(w, r, utils.MustGetEnv("PUBLIC_URL")+"/confirm-failed", http.StatusFound)
 		return
 	}
 
