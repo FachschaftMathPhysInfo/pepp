@@ -1,6 +1,5 @@
 "use client";
 
-import { Separator } from "@/components/ui/separator";
 import {
   DeleteEventDocument,
   DeleteEventMutation,
@@ -15,10 +14,9 @@ import ConfirmationDialog from "@/components/confirmation-dialog";
 import { toast } from "sonner";
 import { GraphQLClient } from "graphql-request";
 import { useUser } from "@/components/providers";
-import { CirclePlus, PlusCircle, Umbrella } from "lucide-react";
+import { CirclePlus, Umbrella } from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
 import { UmbrellaDialog } from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/search-input";
 import { ManagementPageHeader } from "@/components/management-page-header";

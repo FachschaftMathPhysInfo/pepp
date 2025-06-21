@@ -1,15 +1,14 @@
-import { Separator } from "@/components/ui/separator";
+import { ManagementPageHeader } from "@/components/management-page-header";
+import { Settings2 } from "lucide-react";
 
 export default function SettingsProfilePage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">Einstellungen</h3>
-        <p className="text-sm text-muted-foreground">
-          Passe deine persönlichen Informationen an.
-        </p>
-      </div>
-      <Separator />
+      <ManagementPageHeader
+        iconNode={<Settings2 />}
+        title={"Einstellungen"}
+        description={"Passe deine persönlichen Informationen an."}
+      />
     </div>
   );
 }

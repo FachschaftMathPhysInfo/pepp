@@ -14,19 +14,19 @@ import {
 } from "@/lib/gql/generated/graphql";
 import { useUser } from "@/components/providers";
 import { getClient } from "@/lib/graphql";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { EventTable } from "@/components/tables/event-table/event-table";
 import { eventColumns } from "@/components/tables/event-table/event-columns";
 import { RowSelectionState } from "@tanstack/react-table";
 import { defaultEvent } from "@/types/defaults";
-import { BadgeX, RotateCcw, Save } from "lucide-react";
+import { BadgeX, CheckCheckIcon, RotateCcw, Save } from "lucide-react";
 import { GraphQLClient } from "graphql-request";
 import { toast } from "sonner";
 import {
   createRowSelectionFromEventIds,
   getEventIdsFromRowSelection,
 } from "@/lib/utils/tableUtils";
+import { ManagementPageHeader } from "@/components/management-page-header";
 
 export default function Settings() {
   const { user, sid } = useUser();
@@ -131,14 +131,13 @@ export default function Settings() {
   return (
     <>
       <div className="space-y-6">
-        <div>
-          <h3 className="text-3xl font-bold">Meine Verfügbarkeiten</h3>
-          <p className="text-sm text-muted-foreground">
-            Passe hier an für welche Tutorien du als Tutor:in verfügbar bist.
-          </p>
-        </div>
-        <Separator />
-
+        <ManagementPageHeader
+          iconNode={<CheckCheckIcon />}
+          title={"Meine Verfügbarkeiten"}
+          description={
+            "Passe hier an für welche Tutorien du als Tutor:in verfügbar bist."
+          }
+        />
         {!user?.confirmed ? (
           <div
             className={
