@@ -1,6 +1,5 @@
 "use client";
 
-import {Separator} from "@/components/ui/separator";
 import {
   AllBuildingsDocument,
   AllBuildingsQuery,
@@ -22,6 +21,7 @@ import {RoomDialog} from "@/app/(settings)/admin/locations/room-dialog";
 import {CirclePlus, School} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {BuildingDialog} from "@/app/(settings)/admin/locations/building-dialog";
+import {ManagementPageHeader} from "@/components/management-page-header";
 
 export type LocationDialogState = {
   mode:
@@ -97,26 +97,25 @@ export default function LocationSettings() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className={'flex items-center'}>
-          <School className={"inline mx-3"}/>
-          <h3 className="text-3xl font-bold">
-            Raum und Gebäudeverwaltung
-          </h3>
-          <Button variant={"secondary"} className={'ml-4'} onClick={() => setDialogState({
-            mode: "createBuilding",
-            building: defaultBuilding,
-            roomNumber: "",
-          })}>
-            <CirclePlus />
+      <ManagementPageHeader
+        iconNode={<School/>}
+        title={'Raum und Gebäudeverwaltung'}
+        description={'Füge neue Orte hinzu und bearbeite vorhandene.'}
+        actionButton={(
+          <Button
+            variant={"secondary"}
+            onClick={() => setDialogState({
+              mode: "createBuilding",
+              building: defaultBuilding,
+              roomNumber: "",
+            })}
+          >
+            <CirclePlus/>
             Gebäude hinzufügen
           </Button>
-        </div>
-        <p className="text-sm text-muted-foreground mt-2">
-          Füge neue Orte hinzu und bearbeite vorhandene.
-        </p>
-      </div>
-      <Separator/>
+        )}
+      />
+
       {buildings.length === 0 ? (
         <div className={"w-full p-10 border rounded-lg"}>
           Es sind noch keine Gebäude eingetragen

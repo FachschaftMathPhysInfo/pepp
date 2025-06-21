@@ -6,13 +6,7 @@ import {
   GetTutorialIdsOfEventQuery,
 } from "@/lib/gql/generated/graphql";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { useEffect, useState, useCallback } from "react";
 import { getClient } from "@/lib/graphql";
@@ -82,12 +76,6 @@ export default function RegistrationsPage() {
 
   return (
     <Card className="mt-4">
-      <CardHeader>
-        <CardTitle>Anmeldungen</CardTitle>
-        <CardDescription>
-          Du bist zu folgenden Veranstaltungen angemeldet.
-        </CardDescription>
-      </CardHeader>
       <CardContent>
         <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
           <EventDialog id={closeupID} open={eventDialogOpen} />
