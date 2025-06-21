@@ -1,135 +1,189 @@
 "use client";
 
 import {
-  DeleteEventDocument,
-  DeleteEventMutation,
-  Event,
-  UmbrellasDocument,
-  UmbrellasQuery,
+  AllBuildingsDocument,
+  AllBuildingsQuery,
+  Building,
+  DeleteBuildingDocument,
+  DeleteBuildingMutation,
+  DeleteRoomDocument,
+  DeleteRoomMutation,
 } from "@/lib/gql/generated/graphql";
 import React, { useCallback, useEffect, useState } from "react";
 import { getClient } from "@/lib/graphql";
-import { defaultEvent } from "@/types/defaults";
+import { defaultBuilding, defaultRoom } from "@/types/defaults";
+import BuildingSection from "@/app/(settings)/admin/locations/building-section";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import { toast } from "sonner";
 import { GraphQLClient } from "graphql-request";
 import { useUser } from "@/components/providers";
-import { CirclePlus, Umbrella } from "lucide-react";
-import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
-import { UmbrellaDialog } from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
+import { RoomDialog } from "@/app/(settings)/admin/locations/room-dialog";
+import { CirclePlus, School } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import SearchInput from "@/components/search-input";
+import { BuildingDialog } from "@/app/(settings)/admin/locations/building-dialog";
 import { ManagementPageHeader } from "@/components/management-page-header";
 
-export type UmbrellaDialogState = {
-  mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null;;
-  umbrella: Event;;
+export type LocationDialogState = {
+  mode:
+    | "deleteBuilding"
+    | "deleteRoom"
+    | "addBuilding"
+    | "addRoom"
+    | "editBuilding"
+    | "editRoom"
+    | "createRoom"
+    | "createBuilding"
+    | null;
+  building: Building;
+  roomNumber: string;
 };
 
-export default function UmbrellaSettings() {
+export default function LocationSettings() {
   const { sid } = useUser();
   const [client, setClient] = useState<GraphQLClient>(getClient());
-  const [umbrellas, setUmbrellas] = useState<Event[]>([]);
-  const [dialogState, setDialogState] = useState<UmbrellaDialogState>({
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [dialogState, setDialogState] = useState<LocationDialogState>({
     mode: null,
-    umbrella: defaultEvent,
+    building: defaultBuilding,
+    roomNumber: "",
   });
-  const [searchValue, setSearchValue] = useState<string>("");
 
   // Data Fetching
   useEffect(() => {
     setClient(getClient(String(sid)));
   }, [sid]);
 
-  const fetchUmbrellas = useCallback(async () => {
-    const umbrellaData = await client.request<UmbrellasQuery>(
-      UmbrellasDocument
+  const fetchBuildings = useCallback(async () => {
+    const buildingData = await client.request<AllBuildingsQuery>(
+      AllBuildingsDocument
     );
-    const umbrellas = umbrellaData.umbrellas.map((umbrella) => ({
-      ...defaultEvent,
-      ...umbrella,
-    }));
-    setUmbrellas(umbrellas);
+    if (buildingData.buildings) {
+      setBuildings(
+        buildingData.buildings.map((building) => ({
+          ...defaultBuilding,
+          ...building,
+          rooms: building.rooms?.map((room) => ({
+            ...defaultRoom,
+            ...room,
+          })),
+        }))
+      );
+    }
   }, [client]);
 
   useEffect(() => {
-    void fetchUmbrellas();
-  }, [fetchUmbrellas]);
+    void fetchBuildings();
+  }, [fetchBuildings]);
 
   // Dialog Handling
   const closeDialog = () =>
-    setDialogState({ mode: null, umbrella: defaultEvent });
+    setDialogState({ mode: null, building: defaultBuilding, roomNumber: "" });
 
-  const handleDeleteUmbrella = async () => {
-    await client.request<DeleteEventMutation>(DeleteEventDocument, {
-      eventIds: dialogState.umbrella.ID,
+  const handleDeleteBuilding = async () => {
+    await client.request<DeleteBuildingMutation>(DeleteBuildingDocument, {
+      ID: dialogState.building.ID,
+    });
+  };
+
+  const handleDeleteRoom = async () => {
+    await client.request<DeleteRoomMutation>(DeleteRoomDocument, {
+      roomNumber:
+        dialogState.building.rooms?.find(
+          (room) => room.number === dialogState.roomNumber
+        )?.number ?? defaultRoom.number,
+      buildingID: dialogState.building.ID,
     });
   };
 
   return (
     <div className="space-y-6">
       <ManagementPageHeader
-        iconNode={<Umbrella />}
-        title={"Programmverwaltung"}
-        description={"Verwalte hier Deine Programme."}
+        iconNode={<School />}
+        title={"Raum und Gebäudeverwaltung"}
+        description={"Füge neue Orte hinzu und bearbeite vorhandene."}
         actionButton={
           <Button
-            variant={"outline"}
+            variant={"secondary"}
             onClick={() =>
               setDialogState({
-                mode: "addUmbrella",
-                umbrella: defaultEvent,
+                mode: "createBuilding",
+                building: defaultBuilding,
+                roomNumber: "",
               })
             }
           >
             <CirclePlus />
-            Programm hinzufügen
+            Gebäude hinzufügen
           </Button>
         }
       />
 
-      <SearchInput searchValue={searchValue} setSearchValue={setSearchValue} />
-
-      {umbrellas.length === 0 ? (
+      {buildings.length === 0 ? (
         <div className={"w-full p-10 border rounded-lg"}>
-          Es sind noch keine Programme eingetragen
+          Es sind noch keine Gebäude eingetragen
         </div>
       ) : (
-        umbrellas
-          .filter((umbrella) => umbrella.title.includes(searchValue))
-          .map((umbrella) => (
-            <UmbrellaSection
-              key={umbrella.ID}
-              umbrella={umbrella}
-              setDialogState={setDialogState}
-            />
-          ))
+        buildings.map((building) => (
+          <BuildingSection
+            key={building.ID}
+            building={building}
+            setDialogState={setDialogState}
+          />
+        ))
       )}
 
       <ConfirmationDialog
         mode={"confirmation"}
-        description={`Dies wird das Programm ${dialogState.umbrella.title} und alle zugehörigen Veranstaltungen unwiederruflich löschen`}
+        description={`Dies wird das Gebäude ${dialogState.building.name} und alle Tutorien die diesem Gebäude zugeordnet sind unwiederruflich löschen`}
         onConfirm={async () => {
-          await handleDeleteUmbrella();
+          await handleDeleteBuilding();
           closeDialog();
-          void fetchUmbrellas();
-          toast.info(
-            `${dialogState.umbrella.title} wurde erfolgreich gelöscht`
-          );
+          void fetchBuildings();
+          toast.info(`${dialogState.building.name} wurde erfolgreich gelöscht`);
         }}
-        isOpen={dialogState.mode === "deleteUmbrella"}
+        isOpen={dialogState.mode === "deleteBuilding"}
         closeDialog={closeDialog}
       />
-      <UmbrellaDialog
-        umbrella={{ ...defaultEvent, ...dialogState.umbrella }}
-        umbrellas={umbrellas}
+      <ConfirmationDialog
+        mode={"confirmation"}
+        description={`Dies wird den Raum Nummer ${dialogState.roomNumber} unwiederruflich löschen`}
+        onConfirm={async () => {
+          await handleDeleteRoom();
+          closeDialog();
+          // implicitly rerenders the room table... maybe not that beautiful
+          void fetchBuildings();
+          toast.info(
+            `Raum Nummer ${dialogState.roomNumber} wurde erfolgreich gelöscht`
+          );
+        }}
+        isOpen={dialogState.mode === "deleteRoom"}
+        closeDialog={closeDialog}
+      />
+      <RoomDialog
+        room={
+          dialogState.building.rooms?.find(
+            (room) => room.number === dialogState.roomNumber
+          ) ?? defaultRoom
+        }
+        currentBuilding={dialogState.building}
+        buildings={buildings}
         isOpen={
-          dialogState.mode === "editUmbrella" ||
-          dialogState.mode === "addUmbrella"
+          dialogState.mode === "editRoom" || dialogState.mode === "createRoom"
         }
         closeDialog={closeDialog}
-        refreshTable={fetchUmbrellas}
-        createMode={dialogState.mode === "addUmbrella"}
+        refreshTable={fetchBuildings}
+        createMode={dialogState.mode === "createRoom"}
+      />
+
+      <BuildingDialog
+        currentBuilding={dialogState.building}
+        isOpen={
+          dialogState.mode === "editBuilding" ||
+          dialogState.mode === "createBuilding"
+        }
+        closeDialog={closeDialog}
+        refreshTable={fetchBuildings}
+        createMode={dialogState.mode === "createBuilding"}
       />
     </div>
   );
