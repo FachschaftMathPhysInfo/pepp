@@ -1,10 +1,11 @@
 "use client";
 
+import { ManagementPageHeader } from "@/components/management-page-header";
 import { RefetchProvider, useUser } from "@/components/providers";
 import { SidebarNav } from "@/components/sidebar-nav";
-import { Separator } from "@/components/ui/separator";
 import { Tutorial } from "@/lib/gql/generated/graphql";
 import { slugify } from "@/lib/utils";
+import { CpuIcon } from "lucide-react";
 import React from "react";
 
 interface ProfileTutorialsLayoutProps {
@@ -32,14 +33,13 @@ export default function ProfileTutorialsLayout({
   }));
 
   return (
-    <div className="">
-      <div>
-        <h3 className="text-lg font-medium">Tutorien</h3>
-        <p className="text-sm text-muted-foreground">
-          Hier findest du alle dir zugewiesenen Tutorien.
-        </p>
-      </div>
-      <Separator className="my-6" />
+    <div className="space-y-6">
+      <ManagementPageHeader
+        iconNode={<CpuIcon />}
+        title={"Meine Tutorien"}
+        description={"Hier findest du alle dir zugewiesenen Tutorien."}
+      />
+
       {tutorials ? (
         <div className="flex flex-col space-y-5 lg:flex-row lg:space-y-0">
           <aside>
@@ -50,7 +50,9 @@ export default function ProfileTutorialsLayout({
           </RefetchProvider>
         </div>
       ) : (
-        <p>Dir wurden noch keine Tutorien zugewiesen.</p>
+        <div className={"w-full p-10 rounded-lg"}>
+          Dir wurden noch keine Tutorien zugewiesen.
+        </div>
       )}
     </div>
   );

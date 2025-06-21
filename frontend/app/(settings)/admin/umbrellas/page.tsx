@@ -1,6 +1,5 @@
 "use client";
 
-import { Separator } from "@/components/ui/separator";
 import {
   DeleteEventDocument,
   DeleteEventMutation,
@@ -15,16 +14,16 @@ import ConfirmationDialog from "@/components/confirmation-dialog";
 import { toast } from "sonner";
 import { GraphQLClient } from "graphql-request";
 import { useUser } from "@/components/providers";
-import { PlusCircle, Umbrella } from "lucide-react";
+import { CirclePlus, Umbrella } from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
 import { UmbrellaDialog } from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/search-input";
+import { ManagementPageHeader } from "@/components/management-page-header";
 
 export type UmbrellaDialogState = {
-  mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null;
-  umbrella: Event;
+  mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null;;
+  umbrella: Event;;
 };
 
 export default function UmbrellaSettings() {
@@ -69,28 +68,25 @@ export default function UmbrellaSettings() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className={"flex flex-col sm:flex-row sm:items-start"}>
-          <h3 className="text-3xl font-bold flex items-center">
-            <Umbrella className={"inline mr-3 mx-3 my-1"} />
-            Programmverwaltung
-          </h3>
+      <ManagementPageHeader
+        iconNode={<Umbrella />}
+        title={"Programmverwaltung"}
+        description={"Verwalte hier Deine Programme."}
+        actionButton={
           <Button
             variant={"outline"}
-            className={cn("p-2 mx-3 justify-start text-left font-normal")}
             onClick={() =>
-              setDialogState({ mode: "addUmbrella", umbrella: defaultEvent })
+              setDialogState({
+                mode: "addUmbrella",
+                umbrella: defaultEvent,
+              })
             }
           >
-            <PlusCircle />
+            <CirclePlus />
             Programm hinzufügen
           </Button>
-        </div>
-        <p className="text-sm text-muted-foreground mt-2">
-          Verwalte hier Deine Programme.
-        </p>
-      </div>
-      <Separator />
+        }
+      />
 
       <SearchInput searchValue={searchValue} setSearchValue={setSearchValue} />
 

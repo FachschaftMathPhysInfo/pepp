@@ -117,8 +117,8 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
           <FormLabel>Zeitraum</FormLabel>
           <FormControl>
             <DatePickerWithRange
-              from={duration.from}
-              to={duration.to}
+              initialDateFrom={duration.from}
+              initialDateTo={duration.to}
               onClose={onDatePickerClose}
               modal={true}
             />

@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Event } from "./gql/generated/graphql";
+import { addDays } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -108,13 +109,13 @@ export const hexToRGBA = (hex: string, alpha = 1) => {
   }
 
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+};
 
 export function getNextWeek(): Date {
   const soon = new Date();
   soon.setDate(soon.getDate() + 7);
   return soon;
-};
+}
 
 export const groupEventsByUmbrellaId = (events: Event[]) => {
   return events?.reduce((acc, event) => {
@@ -125,4 +126,25 @@ export const groupEventsByUmbrellaId = (events: Event[]) => {
     acc[umbrellaId ?? 0].push(event);
     return acc;
   }, {} as { [key: string]: Event[] });
+};
+
+export const formatDate = (date: Date, locale: string = "en-us"): string => {
+  return date.toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+export const getDateAdjustedForTimezone = (dateInput: Date | string): Date => {
+  if (typeof dateInput === "string") {
+    // Split the date string to get year, month, and day parts
+    const parts = dateInput.split("-").map((part) => parseInt(part, 10));
+    // Create a new Date object using the local timezone
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    return date;
+  } else {
+    // If dateInput is already a Date object, return it directly
+    return dateInput;
+  }
 };

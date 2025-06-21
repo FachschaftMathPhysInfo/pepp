@@ -20,6 +20,7 @@ import {getClient} from "@/lib/graphql";
 import {cn, slugify} from "@/lib/utils";
 import {defaultEvent} from "@/types/defaults";
 import {zodResolver} from "@hookform/resolvers/zod";
+import {addDays} from "date-fns";
 import {Edit3, PlusCircle, Save} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {useEffect, useState} from "react";
@@ -86,13 +87,15 @@ export default function EditPlannerSection({
     const pushChanges = async () => {
       const client = getClient(sid!);
 
+      // i dont understand why we need to add a day here,
+      // but at this point i am too desperate to question it
       const vars: UpdateEventMutationVariables = {
         id: umbrellaID,
         event: {
           title: umbrella!.title,
           needsTutors: false,
-          from: from,
-          to: to,
+          from: addDays(from, 1),
+          to: addDays(to, 1),
         },
       };
 
@@ -186,8 +189,8 @@ export default function EditPlannerSection({
           Event hinzufügen
         </Button>
         <DatePickerWithRange
-          from={umbrella.from}
-          to={umbrella.to}
+          initialDateFrom={umbrella.from}
+          initialDateTo={umbrella.to}
           onClose={onDatePickerClose}
         />
       </div>

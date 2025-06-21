@@ -1,6 +1,9 @@
 "use client";
 
+<<<<<<< HEAD
 import { Separator } from "@/components/ui/separator";
+=======
+>>>>>>> components-subpages
 import {
   AllBuildingsDocument,
   AllBuildingsQuery,
@@ -15,6 +18,7 @@ import { getClient } from "@/lib/graphql";
 import { defaultBuilding, defaultRoom } from "@/types/defaults";
 import BuildingSection from "@/app/(settings)/admin/locations/building-section";
 import ConfirmationDialog from "@/components/confirmation-dialog";
+<<<<<<< HEAD
 import { toast } from "sonner";
 import { GraphQLClient } from "graphql-request";
 import { useUser } from "@/components/providers";
@@ -22,6 +26,16 @@ import { RoomDialog } from "@/app/(settings)/admin/locations/room-dialog";
 import { CirclePlus, School } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BuildingDialog } from "@/app/(settings)/admin/locations/building-dialog";
+=======
+import {toast} from "sonner";
+import {GraphQLClient} from "graphql-request";
+import {useUser} from "@/components/providers";
+import {RoomDialog} from "@/app/(settings)/admin/locations/room-dialog";
+import {CirclePlus, School} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {BuildingDialog} from "@/app/(settings)/admin/locations/building-dialog";
+import {ManagementPageHeader} from "@/components/management-page-header";
+>>>>>>> components-subpages
 
 export type LocationDialogState = {
   mode:
@@ -97,6 +111,7 @@ export default function LocationSettings() {
 
   return (
     <div className="space-y-6">
+<<<<<<< HEAD
       <div>
         <div className={"flex flex-col sm:flex-row sm:items-start"}>
           <School className={"inline mx-3 my-1"} />
@@ -121,6 +136,27 @@ export default function LocationSettings() {
         </p>
       </div>
       <Separator />
+=======
+      <ManagementPageHeader
+        iconNode={<School/>}
+        title={'Raum und Gebäudeverwaltung'}
+        description={'Füge neue Orte hinzu und bearbeite vorhandene.'}
+        actionButton={(
+          <Button
+            variant={"secondary"}
+            onClick={() => setDialogState({
+              mode: "createBuilding",
+              building: defaultBuilding,
+              roomNumber: "",
+            })}
+          >
+            <CirclePlus/>
+            Gebäude hinzufügen
+          </Button>
+        )}
+      />
+
+>>>>>>> components-subpages
       {buildings.length === 0 ? (
         <div className={"w-full p-10 border rounded-lg"}>
           Es sind noch keine Gebäude eingetragen
