@@ -9,10 +9,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-<<<<<<< HEAD
-import { useEffect } from "react";
-=======
->>>>>>> components-subpages
 
 interface DatePickerWithRangeProps
   extends React.HtmlHTMLAttributes<HTMLDivElement> {
@@ -61,26 +57,12 @@ export function DatePickerWithRange({
             )}
           >
             <CalendarIcon />
-<<<<<<< HEAD
-            {/*For some reason these checks are needed, as when closing the umbrella dialog
-            for one render a NaN is rendered, throwing an instant error*/}
-            {isDate(date?.from) ? (
-              isDate(date.to) ? (
-                <>
-                  {format(date.from, "dd. LLL y")} -{" "}
-                  {format(date.to, "dd. LLL y")}
-                </>
-              ) : (
-                format(date.from, "dd. LLL y")
-              )
-=======
             {initialDateFrom ? (
               <>
                 {`${formatDate(range.from, "de")}${
                   range.to != null ? " - " + formatDate(range.to, "de") : ""
                 }`}
               </>
->>>>>>> components-subpages
             ) : (
               <span>Wähle ein Datum</span>
             )}
