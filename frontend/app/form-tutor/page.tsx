@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import TutorRegistrationForm from "@/app/(form-tutor)/form-tutor/tutor-registration-form";
-import { SuccceededSubmissionWindow } from "@/app/(form-tutor)/form-tutor/succeeded-submission-window";
+import TutorRegistrationForm from "@/app/form-tutor/tutor-registration-form";
+import { SuccceededSubmissionWindow } from "@/app/form-tutor/succeeded-submission-window";
 
 export default function TutorRegistration() {
   const [submissionSuccess, setSubmissionSuccess] = useState<boolean>(false)
