@@ -1,4 +1,4 @@
-import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import {Button} from "@/components/ui/button";
 import {Setting, SettingsDocument, SettingsQuery,} from "@/lib/gql/generated/graphql";
 import {useEffect, useState} from "react";
@@ -48,9 +48,13 @@ export const AuthenticationDialog = (props: AuthenticationDialogProps) => {
     settings?.find((s) => s.key === "auth-standard-enabled")?.value === "1";
   return (
     settings && (
-      <Dialog open={props.open} onOpenChange={props.onOpenChange}>
+      <Dialog open={props.open} onOpenChange={(open) => {
+        if (props.onOpenChange) props.onOpenChange(open)
+        else if (props.closeDialog) props.closeDialog()
+      }}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
+            <DialogClose onClick={props.closeDialog}/>
             <DialogTitle>
               {isRegistering ? "Registrieren" : "Anmelden"}
             </DialogTitle>
