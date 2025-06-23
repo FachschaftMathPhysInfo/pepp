@@ -13,6 +13,7 @@ import {
 } from "@/components/providers";
 import Header from "@/components/header";
 import React, { Suspense } from "react";
+import {Metadata} from "next";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -24,13 +25,13 @@ const fontHeading = localFont({
   variable: "--font-heading",
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: {
     template: "",
     default: siteConfig.name,
   },
   description: siteConfig.description,
-  keywords: ["pepp"],
+  keywords: ["pepp", "vorkurs", "uni heidelberg", "universität heidelberg"],
   creator: "Fachschaft MathPhysInfo",
   openGraph: {
     type: "website",
@@ -40,6 +41,7 @@ export const metadata = {
     description: siteConfig.description,
     siteName: siteConfig.name,
   },
+  applicationName: "Pepp",
 };
 
 interface RootLayoutProps {
@@ -49,7 +51,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="de" suppressHydrationWarning>
-      <head />
+      <head><title>{siteConfig.name}</title></head>
       <body
         className={cn(
           "flex flex-col bg-background font-sans antialiased",

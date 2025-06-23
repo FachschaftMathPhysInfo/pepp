@@ -122,7 +122,7 @@ export function EventTable({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    Keine Ergebnisse.
+                    Derzeit gibt es keine Events, bei denen wir Hilfe benötigen.
                   </TableCell>
                 </TableRow>
               )}
