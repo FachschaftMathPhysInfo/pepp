@@ -6,7 +6,7 @@ import {MailX} from "lucide-react";
 export default async function ConfirmFailPage() {
   return (
     <div className="h-screen w-screen flex items-center justify-center">
-      <Card className={'p-4 max-w-[50%]'}>
+      <Card className={'max-w-[500px]'}>
         <CardHeader className={'flex flex-col items-center justify-center'}>
           <MailX size={100} className={'stroke-red-600'}/>
           <CardTitle className="text-2xl font-bold text-red-600">URL nicht gültig</CardTitle>
