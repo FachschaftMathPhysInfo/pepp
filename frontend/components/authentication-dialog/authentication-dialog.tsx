@@ -8,15 +8,14 @@ import {Separator} from "../ui/separator";
 import {getClient} from "@/lib/graphql";
 import {useRouter} from "next/navigation";
 import AuthenticationForm from "@/components/authentication-dialog/authentication-form";
+import {DialogProps} from "@radix-ui/react-dialog";
 
 
-interface AuthenticationDialogPrrops {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void
-  closeDialog: () => void;
+interface AuthenticationDialogProps extends DialogProps {
+  closeDialog?: () => void;
 }
 
-export const AuthenticationDialog = ({isOpen, onOpenChange, closeDialog}: AuthenticationDialogPrrops) => {
+export const AuthenticationDialog = (props: AuthenticationDialogProps) => {
   const client = getClient()
   const router = useRouter();
   const [settings, setSettings] = useState<Setting[] | undefined>(undefined);
@@ -49,7 +48,7 @@ export const AuthenticationDialog = ({isOpen, onOpenChange, closeDialog}: Authen
     settings?.find((s) => s.key === "auth-standard-enabled")?.value === "1";
   return (
     settings && (
-      <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <Dialog open={props.open} onOpenChange={props.onOpenChange}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
             <DialogTitle>
@@ -68,7 +67,7 @@ export const AuthenticationDialog = ({isOpen, onOpenChange, closeDialog}: Authen
             )}
           </DialogHeader>
           {standardEnabled && (
-            <AuthenticationForm isRegistering={isRegistering} closeDialog={closeDialog}/>
+            <AuthenticationForm isRegistering={isRegistering} closeDialog={props.closeDialog}/>
           )}
           {(settings.find((s) => s.key === "auth-sso-oidc-enabled")?.value == "1") && (
             <>

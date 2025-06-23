@@ -52,7 +52,7 @@ const RegisterFormSchema = SignInFormSchema.extend({
 
 interface AuthenticationFormProps {
   isRegistering : boolean;
-  closeDialog: () => void;
+  closeDialog?: () => void;
 }
 
 export default function AuthenticationForm({isRegistering, closeDialog}: AuthenticationFormProps) {
@@ -101,7 +101,7 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
       const sid = await client.request<LoginQuery>(LoginDocument, credentials);
 
       login(sid.login);
-      closeDialog();
+      if (closeDialog) closeDialog()
     } catch {
       setCorrect(false);
     }
