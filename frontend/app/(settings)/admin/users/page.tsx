@@ -45,7 +45,7 @@ export default function UserSettingsPage() {
   }, [sid]);
 
   return (
-    <>
+    <div className="space-y-6">
       <ManagementPageHeader
         iconNode={<User2Icon />}
         title={"User Verwaltung"}
@@ -56,8 +56,10 @@ export default function UserSettingsPage() {
       {loading ? (
         <div>Lade User Tabelle</div>
       ) : (
-        <UserTable data={users} refreshData={fetchData} />
+        <div>
+          <UserTable data={users} refreshData={fetchData} />
+        </div>
       )}
-    </>
+    </div>
   );
 }

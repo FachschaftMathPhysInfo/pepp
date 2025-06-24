@@ -68,25 +68,27 @@ export default function UmbrellaSettings() {
 
   return (
     <div className="space-y-6">
-      <ManagementPageHeader
-        iconNode={<Umbrella />}
-        title={"Programmverwaltung"}
-        description={"Verwalte hier Deine Programme."}
-        actionButton={
-          <Button
-            variant={"outline"}
-            onClick={() =>
-              setDialogState({
-                mode: "addUmbrella",
-                umbrella: defaultEvent,
-              })
-            }
-          >
-            <CirclePlus />
-            Programm hinzufügen
-          </Button>
-        }
-      />
+      <div className={"flex items-center flex-wrap gap-y-3 mb-4"}>
+        <ManagementPageHeader
+          iconNode={<Umbrella />}
+          title={"Programm Verwaltung"}
+          description={"Verwalte hier Deine Programme."}
+          actionButton={
+            <Button
+              variant={"outline"}
+              onClick={() =>
+                setDialogState({
+                  mode: "addUmbrella",
+                  umbrella: defaultEvent,
+                })
+              }
+            >
+              <CirclePlus />
+              Programm hinzufügen
+            </Button>
+          }
+        />
+      </div>
 
       <SearchInput searchValue={searchValue} setSearchValue={setSearchValue} />
 

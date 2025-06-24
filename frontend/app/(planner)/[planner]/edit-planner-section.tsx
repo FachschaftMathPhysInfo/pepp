@@ -1,12 +1,25 @@
 "use client";
 
-import {DatePickerWithRange} from "@/components/date-picker-with-range";
+import { DatePickerWithRange } from "@/components/date-picker-with-range";
 import EventDialog from "@/components/event-dialog/event-dialog";
-import {useUser} from "@/components/providers";
-import {Button} from "@/components/ui/button";
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,} from "@/components/ui/dialog";
-import {Form, FormControl, FormDescription, FormField, FormItem, FormMessage,} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
+import { useUser } from "@/components/providers";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Event,
   UmbrellaDetailDocument,
@@ -16,17 +29,17 @@ import {
   UpdateEventMutation,
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
-import {getClient} from "@/lib/graphql";
-import {cn, slugify} from "@/lib/utils";
-import {defaultEvent} from "@/types/defaults";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {addDays} from "date-fns";
-import {Edit3, PlusCircle, Save} from "lucide-react";
-import {useRouter} from "next/navigation";
-import {useEffect, useState} from "react";
-import {useForm} from "react-hook-form";
-import {toast} from "sonner";
-import {z} from "zod";
+import { getClient } from "@/lib/graphql";
+import { cn, slugify } from "@/lib/utils";
+import { defaultEvent } from "@/types/defaults";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { addDays } from "date-fns";
+import { Edit3, PlusCircle, Save } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -58,7 +71,6 @@ export default function EditPlannerSection({
 
   useEffect(() => {
     const fetchData = async () => {
-
       const client = getClient();
 
       const vars: UmbrellaDetailQueryVariables = {
@@ -73,7 +85,6 @@ export default function EditPlannerSection({
       setUmbrella({ ...defaultEvent, ...umbrellaData.umbrellas[0] });
 
       form.reset({ title: umbrellaData.umbrellas[0].title });
-
     };
 
     void fetchData();
@@ -177,7 +188,7 @@ export default function EditPlannerSection({
         </Dialog>
       </div>
 
-      <div className="flex flex-row justify-between">
+      <div className="flex items-center flex-wrap gap-y-3 gap-x-3 mb-4">
         <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
           <EventDialog open={eventDialogOpen} modify={true} />
         </Dialog>

@@ -140,9 +140,7 @@ export default function Settings() {
         />
         {!user?.confirmed ? (
           <div
-            className={
-              "w-full h-full flex flex-col justify-center items-center p-12"
-            }
+            className={"h-full flex flex-wrap justify-center items-center p-12"}
           >
             <BadgeX size={100} className={"stroke-red-600 mb-5"} />
             <p className={"text-xl font-bold"}>

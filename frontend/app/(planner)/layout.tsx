@@ -73,11 +73,13 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
       ) : (
         <main className="mt-[80px]">
           <div className="space-y-5 p-5">
-            <UmbrellaPopoverSelection
-              umbrellas={umbrellas}
-              className="text-4xl font-bold"
-            />
-            {children}
+            <div className={"flex items-center flex-wrap gap-y-3 mb-4"}>
+              <UmbrellaPopoverSelection
+                umbrellas={umbrellas}
+                className="text-4xl font-bold"
+              />
+              {children}
+            </div>
           </div>
           <Footer />
         </main>
