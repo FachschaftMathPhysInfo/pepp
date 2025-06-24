@@ -1,14 +1,11 @@
 import { GraphQLClient } from "graphql-request";
 
-const getEndpoint = () => {
-  if (typeof window !== "undefined") {
-    return new URL("/api", window.location.origin).toString();
-  }
-  return "";
-};
+
+const url = process.env.NEXT_PUBLIC_URL ?? "http://localhost:8080";
+const endpoint = `${url}/api`;
 
 export const getClient = (sid?: string) => {
-  return new GraphQLClient(getEndpoint(), {
+  return new GraphQLClient(endpoint, {
     headers: {
       SID: sid ?? "",
     },

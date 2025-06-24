@@ -47,15 +47,17 @@ services:
 
 ### required
 
-| Key | Description | Example |
-| - | - | - |
-| `PUBLIC_URL` | Domain under which pepp is deployed | `https://pepp.example.com` |
-| `PEPPER_KEY` | Generate a random 32 characters long string for password security | - |
-| `SMTP_HOST` | E-Mail provider | `smtp.example.com` |
-| `SMTP_USER` | The user to log into the SMTP Server | `alice@example.com` |
-| `SMTP_PASSWORD` | The password to log into the SMTP Server | - |
-| `SMTP_PORT` | The port of your SMTP Server | `465` |
-| `FROM_ADDRESS` | Address from which mails are send | `vorkurs@example.com` |
+
+| Key | Description |
+| - | - |
+| `NEXT_PUBLIC_URL` | The domain under which pepp is deployed |
+| `PEPPER_KEY` | Generate a random 64 characters long string for password security |
+| `SMTP_HOST` |  E-Mail provider, e.g. `smtp.example.de` |
+| `SMTP_USER` | E.g. `alice@example.de` |
+| `SMTP_PASSWORD` | The password to log into the SMTP Server |
+| `SMTP_PORT` | Mostly `465` |
+| `FROM_ADDRESS` | Address from which mails are send, e.g. `vorkurs@example.de` |
+
 
 ### optional
 
