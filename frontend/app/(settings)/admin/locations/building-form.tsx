@@ -16,6 +16,7 @@ import {
 } from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
+import {Switch} from "@/components/ui/switch";
 
 
 interface RoomFormProps {
@@ -27,35 +28,54 @@ interface RoomFormProps {
 
 export default function BuildingForm({currentBuilding, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
   const {sid} = useUser()
+  const [useOssLink, setUseOssLink] = useState(true);
+
+  // Dynamic schema based on toggle
   const buildingFormSchema = z.object({
     name: z.string().optional(),
     street: z.string().nonempty("Bitte gib die Straße an"),
     number: z.string().nonempty("Bitte gib die Hausnummer an"),
     city: z.string().nonempty("Bitte gib die Stadt an"),
     zip: z.string().nonempty("Bitte gib die Postleitzahl an"),
+    ossLink: z.string()
+      .url("Bitte gib einen gültigen OpenStreetMap-Link an")
+      .regex(/^https:\/\/www\.openstreetmap\.org\/\S+$/, "Bitte gib einen gültigen OpenStreetMap-Link an")
+      .optional(),
     latitude: z.coerce
       .number()
       .min(-90,  "Latitude must be ≥ -90")
-      .max( 90,  "Latitude must be ≤ +90"),
+      .max( 90,  "Latitude must be ≤ +90")
+      .optional(),
     longitude: z.coerce
       .number()
       .min(-180, "Longitude must be ≥ -180")
-      .max( 180, "Longitude must be ≤ +180"),
+      .max( 180, "Longitude must be ≤ +180")
+      .optional(),
     zoomLevel: z.coerce.number().optional(),
+  }).refine((data) => {
+    if (useOssLink) {
+      return !!data.ossLink;
+    } else {
+      return data.latitude !== undefined && data.longitude !== undefined;
+    }
+  }, {
+    message: "Bitte gib entweder einen gültigen OpenStreetMap-Link oder gültige Koordinaten an.",
+    path: ["ossLink"]
   });
+
   const form = useForm<z.infer<typeof buildingFormSchema>>({
     resolver: zodResolver(buildingFormSchema),
     defaultValues: {
       name: createMode ? "" : currentBuilding.name,
-      street: createMode ? "": currentBuilding.street,
+      street: createMode ? "" : currentBuilding.street,
       number: createMode ? "" : currentBuilding.number,
       city: createMode ? "" : currentBuilding.city,
       zip: createMode ? "" : currentBuilding.zip,
+      ossLink: createMode ? "" : (currentBuilding.ossLink || ""),
       latitude: createMode ? undefined : currentBuilding.latitude,
       longitude: createMode ? undefined : currentBuilding.longitude,
       zoomLevel: createMode ? undefined : currentBuilding.zoomLevel
     },
-
   });
 
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
@@ -162,42 +182,55 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
 
         <div className={'border border-input rounded-lg p-4 pt-2 !mt-6'}>
           <h2 className={'w-full text-center mb-4'}>Open Street Map</h2>
-
-          <div className={'flex justify-between w-full flex-wrap gap-x-4 mb-4'}>
-            <FormField
-              control={form.control}
-              name="latitude"
-              render={({field}) => (
-                <FormItem
-                  className={'grow'}
-                >
-                  <FormLabel>Breitengrad</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="longitude"
-              render={({field}) => (
-                <FormItem
-                  className={'grow'}
-                >
-                  <FormLabel>Längengrad</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-
+          <div className="flex items-center gap-4 mb-4">
+            <span>OSS Link eingeben</span>
+            <Switch checked={useOssLink} onCheckedChange={setUseOssLink} />
+            <span>Koordinaten eingeben</span>
           </div>
-
+          {useOssLink ? (
+            <FormField
+              control={form.control}
+              name="ossLink"
+              render={({field}) => (
+                <FormItem className={'grow'}>
+                  <FormLabel>OpenStreetMap Link</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://www.openstreetmap.org/..." {...field} />
+                  </FormControl>
+                  <FormMessage/>
+                </FormItem>
+              )}
+            />
+          ) : (
+            <div className={'flex justify-between w-full flex-wrap gap-x-4 mb-4'}>
+              <FormField
+                control={form.control}
+                name="latitude"
+                render={({field}) => (
+                  <FormItem className={'grow'}>
+                    <FormLabel>Breitengrad</FormLabel>
+                    <FormControl>
+                      <Input placeholder="" {...field} />
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="longitude"
+                render={({field}) => (
+                  <FormItem className={'grow'}>
+                    <FormLabel>Längengrad</FormLabel>
+                    <FormControl>
+                      <Input placeholder="" {...field} />
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
           <FormField
             control={form.control}
             name="zoomLevel"
@@ -210,7 +243,8 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
                 <FormMessage/>
               </FormItem>
             )}
-          /></div>
+          />
+        </div>
 
 
         <div className={'flex justify-between items-center gap-x-12 mt-8'}>
