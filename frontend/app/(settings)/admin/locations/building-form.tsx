@@ -40,24 +40,33 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
     ossLink: z.string()
       .url("Bitte gib einen gültigen OpenStreetMap-Link an")
       .regex(/^https:\/\/www\.openstreetmap\.org\/\S+$/, "Bitte gib einen gültigen OpenStreetMap-Link an")
+      .or(z.literal("")) // allow empty string
       .optional(),
     latitude: z.coerce
       .number()
       .min(-90,  "Latitude must be ≥ -90")
       .max( 90,  "Latitude must be ≤ +90")
+      .or(z.literal("")) // allow empty string
       .optional(),
     longitude: z.coerce
       .number()
       .min(-180, "Longitude must be ≥ -180")
       .max( 180, "Longitude must be ≤ +180")
+      .or(z.literal("")) // allow empty string
       .optional(),
     zoomLevel: z.coerce.number().optional(),
   }).refine((data) => {
     if (useOssLink) {
-      return !!data.ossLink;
-    } else {
-      return data.latitude !== undefined && data.longitude !== undefined;
+      return !!data.ossLink && data.ossLink !== "" &&
+        (data.latitude === "" || data.latitude === undefined) &&
+        (data.longitude === "" || data.longitude === undefined);
     }
+    // Coordinates mode: require latitude and longitude, ossLink must be empty
+    return (
+      data.ossLink === "" &&
+      data.latitude !== "" && data.latitude !== undefined &&
+      data.longitude !== "" && data.longitude !== undefined
+    );
   }, {
     message: "Bitte gib entweder einen gültigen OpenStreetMap-Link oder gültige Koordinaten an.",
     path: ["ossLink"]
