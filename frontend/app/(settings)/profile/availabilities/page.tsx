@@ -19,7 +19,7 @@ import { EventTable } from "@/components/tables/event-table/event-table";
 import { eventColumns } from "@/components/tables/event-table/event-columns";
 import { RowSelectionState } from "@tanstack/react-table";
 import { defaultEvent } from "@/types/defaults";
-import { BadgeX, CheckCheckIcon, RotateCcw, Save } from "lucide-react";
+import { BadgeX, CalendarCheck2, RotateCcw, Save } from "lucide-react";
 import { GraphQLClient } from "graphql-request";
 import { toast } from "sonner";
 import {
@@ -132,7 +132,7 @@ export default function Settings() {
     <>
       <div className="space-y-6">
         <ManagementPageHeader
-          iconNode={<CheckCheckIcon />}
+          iconNode={<CalendarCheck2 />}
           title={"Meine Verfügbarkeiten"}
           description={
             "Passe hier an für welche Tutorien du als Tutor:in verfügbar bist."
@@ -143,7 +143,7 @@ export default function Settings() {
             className={"h-full flex flex-wrap justify-center items-center p-12"}
           >
             <BadgeX size={100} className={"stroke-red-600 mb-5"} />
-            <p className={"text-xl font-bold"}>
+            <p className={"text-xl font-bold flex-col"}>
               Diese Einstellung wird erst verfügbar, sobald du deine E-Mail
               bestätigt hast
             </p>

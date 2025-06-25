@@ -1,5 +1,5 @@
 import { ManagementPageHeader } from "@/components/management-page-header";
-import { DnaIcon } from "lucide-react";
+import { BookCheck } from "lucide-react";
 
 export default function RegistrationsLayout({
   children,
@@ -10,7 +10,7 @@ export default function RegistrationsLayout({
     <div className="space-y-6">
       <div>
         <ManagementPageHeader
-          iconNode={<DnaIcon />}
+          iconNode={<BookCheck />}
           title={"Meine Anmeldungen"}
           description={"Du bist zu folgenden Veranstaltungen angemeldet."}
         />

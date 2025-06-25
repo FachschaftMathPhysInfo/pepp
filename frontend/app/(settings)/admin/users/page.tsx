@@ -11,7 +11,7 @@ import { useUser } from "@/components/providers";
 import { UserTable } from "@/components/tables/user-table/user-table";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { ManagementPageHeader } from "@/components/management-page-header";
-import { User2Icon } from "lucide-react";
+import { Users } from "lucide-react";
 
 export default function UserSettingsPage() {
   const { sid } = useUser();
@@ -47,7 +47,7 @@ export default function UserSettingsPage() {
   return (
     <div className="space-y-6">
       <ManagementPageHeader
-        iconNode={<User2Icon />}
+        iconNode={<Users />}
         title={"User Verwaltung"}
         description={
           "Hier kannst Du User:innen löschen und ihre Rollen bearbeiten."

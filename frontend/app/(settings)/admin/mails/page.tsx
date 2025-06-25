@@ -16,7 +16,7 @@ import { getClient } from "@/lib/graphql";
 import { useUser } from "@/components/providers";
 import MailForm from "@/app/(settings)/admin/mails/mail-form";
 import { ManagementPageHeader } from "@/components/management-page-header";
-import { MailCheck } from "lucide-react";
+import { Mail } from "lucide-react";
 
 export default function Settings() {
   const { sid } = useUser();
@@ -65,7 +65,7 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <ManagementPageHeader
-        iconNode={<MailCheck />}
+        iconNode={<Mail />}
         title={"Mailverwaltung"}
         description={
           "Bearbeite die Templates der automatisiert verschickten Mails."

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { SwitchCard } from "@/components/switch-card";
-import { BotIcon, Save } from "lucide-react";
+import { Fingerprint, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ScalarType,
@@ -110,7 +110,7 @@ export default function IndexPage() {
     settings && (
       <section className="space-y-6">
         <ManagementPageHeader
-          iconNode={<BotIcon />}
+          iconNode={<Fingerprint />}
           title={"Authentifizierung"}
           description={
             "Hier kannst du die Authentifizierungsschnittstellen der Plattform verwalten. Um beispielsweise Änderungen an der Schnittstelle vorzunehmen, kontaktiere bitte deinen Sysadmin."

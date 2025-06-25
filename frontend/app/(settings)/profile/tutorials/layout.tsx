@@ -5,7 +5,7 @@ import { RefetchProvider, useUser } from "@/components/providers";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Tutorial } from "@/lib/gql/generated/graphql";
 import { slugify } from "@/lib/utils";
-import { CpuIcon } from "lucide-react";
+import { GraduationCap } from "lucide-react";
 import React from "react";
 
 interface ProfileTutorialsLayoutProps {
@@ -35,7 +35,7 @@ export default function ProfileTutorialsLayout({
   return (
     <div className="space-y-6">
       <ManagementPageHeader
-        iconNode={<CpuIcon />}
+        iconNode={<GraduationCap />}
         title={"Meine Tutorien"}
         description={"Hier findest du alle dir zugewiesenen Tutorien."}
       />
@@ -50,7 +50,7 @@ export default function ProfileTutorialsLayout({
           </RefetchProvider>
         </div>
       ) : (
-        <div className={"w-full p-10 rounded-lg"}>
+        <div className={"w-full p-10 text-center"}>
           Dir wurden noch keine Tutorien zugewiesen.
         </div>
       )}
