@@ -14,7 +14,7 @@ import { getClient } from "@/lib/graphql";
 import { slugify } from "@/lib/utils";
 import { defaultEvent } from "@/types/defaults";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "./sidebar";
 import { Footer } from "@/components/footer";
 
@@ -54,7 +54,7 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [basePath]);
 
   return (
@@ -73,10 +73,12 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
       ) : (
         <main className="mt-[80px]">
           <div className="space-y-5 p-5">
-            <UmbrellaPopoverSelection
-              umbrellas={umbrellas}
-              className="text-4xl font-bold"
-            />
+            {umbrellas.length > 0 && (
+              <UmbrellaPopoverSelection
+                umbrellas={umbrellas}
+                className="text-4xl font-bold"
+              />
+            )}
             {children}
           </div>
           <Footer />
