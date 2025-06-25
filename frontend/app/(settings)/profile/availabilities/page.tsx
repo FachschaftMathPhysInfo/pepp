@@ -22,10 +22,7 @@ import { defaultEvent } from "@/types/defaults";
 import { BadgeX, CalendarCheck2, RotateCcw, Save } from "lucide-react";
 import { GraphQLClient } from "graphql-request";
 import { toast } from "sonner";
-import {
-  createRowSelectionFromEventIds,
-  getEventIdsFromRowSelection,
-} from "@/lib/utils/tableUtils";
+import { createRowSelectionFromEventIds, getEventIdsFromRowSelection } from "@/lib/utils/tableUtils";
 import { ManagementPageHeader } from "@/components/management-page-header";
 
 export default function Settings() {
@@ -35,33 +32,23 @@ export default function Settings() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [previousEventIds, setPreviousEventIds] = useState<number[]>([]);
   const [selectedEventIds, setSelectedEventIds] = useState<number[]>([]);
-  const [hasSelectionChangedFromInit, setHasSelectionChangedFromInit] =
-    useState<boolean>(false);
+  const [hasSelectionChangedFromInit, setHasSelectionChangedFromInit] = useState<boolean>(false);
   const fetchEvents = useCallback(async () => {
     if (user) {
-      const futureEventsData = await client.request<TableEventsQuery>(
-        TableEventsDocument,
-        {
-          needsTutors: true,
-          onlyFuture: true,
-        }
-      );
+      const futureEventsData = await client.request<TableEventsQuery>(TableEventsDocument, {
+        needsTutors: true,
+        onlyFuture: true,
+      });
       const futureEvents: Event[] = futureEventsData.events.map((e) => ({
         ...defaultEvent,
         ...e,
       }));
 
-      const availableEventsData =
-        await client.request<AvailableEventIdsOfUserQuery>(
-          AvailableEventIdsOfUserDocument,
-          { mail: user.mail }
-        );
-      const availableEvents = availableEventsData.users.map(
-        (u) => u.availabilities
-      );
-      const initialIds = availableEvents.flatMap((usersEventList) =>
-        (usersEventList || []).map((event) => event.ID)
-      );
+      const availableEventsData = await client.request<AvailableEventIdsOfUserQuery>(AvailableEventIdsOfUserDocument, {
+        mail: user.mail,
+      });
+      const availableEvents = availableEventsData.users.map((u) => u.availabilities);
+      const initialIds = availableEvents.flatMap((usersEventList) => (usersEventList || []).map((event) => event.ID));
 
       setPreviousEventIds(initialIds);
       setEvents(futureEvents);
@@ -81,45 +68,31 @@ export default function Settings() {
   useEffect(() => {
     const newIds = getEventIdsFromRowSelection(rowSelection);
     setSelectedEventIds(newIds);
-    setHasSelectionChangedFromInit(
-      !(String(newIds) == String(previousEventIds))
-    );
+    setHasSelectionChangedFromInit(!(String(newIds) == String(previousEventIds)));
   }, [previousEventIds, rowSelection]);
 
   async function onSubmit() {
     console.log("in Submit: ", selectedEventIds);
-    const idsToRemove: number[] = previousEventIds.filter(
-      (id) => !selectedEventIds.includes(id)
-    );
-    const idsToAdd: number[] = selectedEventIds.filter(
-      (id) => !previousEventIds.includes(id)
-    );
+    const idsToRemove: number[] = previousEventIds.filter((id) => !selectedEventIds.includes(id));
+    const idsToAdd: number[] = selectedEventIds.filter((id) => !previousEventIds.includes(id));
 
     try {
       if (idsToRemove.length > 0) {
-        await client.request<DeleteEventAvailabilityOfTutorMutation>(
-          DeleteEventAvailabilityOfTutorDocument,
-          {
-            email: user?.mail,
-            eventsAvailable: idsToRemove,
-          }
-        );
+        await client.request<DeleteEventAvailabilityOfTutorMutation>(DeleteEventAvailabilityOfTutorDocument, {
+          email: user?.mail,
+          eventsAvailable: idsToRemove,
+        });
       }
 
       if (idsToAdd.length > 0) {
-        await client.request<AddEventAvailabilityOfTutorMutation>(
-          AddEventAvailabilityOfTutorDocument,
-          {
-            email: user?.mail,
-            eventsAvailable: idsToAdd,
-          }
-        );
+        await client.request<AddEventAvailabilityOfTutorMutation>(AddEventAvailabilityOfTutorDocument, {
+          email: user?.mail,
+          eventsAvailable: idsToAdd,
+        });
       }
     } catch (error) {
       if (!String(error).toLowerCase().includes("no valid smtp")) {
-        toast.error(
-          "Ein Fehler ist aufgetreten, lade die Seite neu oder versuche es später erneut"
-        );
+        toast.error("Ein Fehler ist aufgetreten, lade die Seite neu oder versuche es später erneut");
         return;
       }
     }
@@ -134,18 +107,13 @@ export default function Settings() {
         <ManagementPageHeader
           iconNode={<CalendarCheck2 />}
           title={"Meine Verfügbarkeiten"}
-          description={
-            "Passe hier an für welche Tutorien du als Tutor:in verfügbar bist."
-          }
+          description={"Passe hier an für welche Tutorien du als Tutor:in verfügbar bist."}
         />
         {!user?.confirmed ? (
-          <div
-            className={"h-full flex flex-wrap justify-center items-center p-12"}
-          >
+          <div className={"h-full flex flex-col flex-wrap justify-center items-center p-12"}>
             <BadgeX size={100} className={"stroke-red-600 mb-5"} />
-            <p className={"text-xl font-bold flex-col"}>
-              Diese Einstellung wird erst verfügbar, sobald du deine E-Mail
-              bestätigt hast
+            <p className={"text-xl font-bold"}>
+              Diese Einstellung wird erst verfügbar, sobald du deine E-Mail bestätigt hast
             </p>
           </div>
         ) : (
@@ -156,19 +124,11 @@ export default function Settings() {
               rowSelection={rowSelection}
               setRowSelection={setRowSelection}
             />
-            <div
-              className={
-                "flex justify-between items-center mt-5 w-full gap-x-12"
-              }
-            >
+            <div className={"flex justify-between items-center mt-5 w-full gap-x-12"}>
               <Button
                 variant={"outline"}
                 className={"flex-grow-[0.25]"}
-                onClick={() =>
-                  setRowSelection(
-                    createRowSelectionFromEventIds(previousEventIds)
-                  )
-                }
+                onClick={() => setRowSelection(createRowSelectionFromEventIds(previousEventIds))}
               >
                 Zurücksetzen
                 <RotateCcw />
