@@ -1,3 +1,6 @@
+import { ManagementPageHeader } from "@/components/management-page-header";
+import { BookCheck } from "lucide-react";
+
 export default function RegistrationsLayout({
   children,
 }: {
@@ -6,10 +9,11 @@ export default function RegistrationsLayout({
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-3xl font-bold">Veranstaltungsverwaltung</h3>
-        <p className="text-sm text-muted-foreground">
-          Bearbeite deine Anmeldungen zu Veranstaltungen.
-        </p>
+        <ManagementPageHeader
+          iconNode={<BookCheck />}
+          title={"Meine Anmeldungen"}
+          description={"Du bist zu folgenden Veranstaltungen angemeldet."}
+        />
       </div>
       {children}
     </div>

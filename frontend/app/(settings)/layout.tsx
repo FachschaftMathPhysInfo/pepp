@@ -10,7 +10,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <SidebarProvider>
       <ProfileSidebar />
-      <main className="flex-1 mt-[80px]">
+      <main className="flex-1 mt-[80px] w-full">
         <div className="p-5">
           <SidebarTrigger className="mb-2" />
           {children}

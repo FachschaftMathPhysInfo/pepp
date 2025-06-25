@@ -73,10 +73,10 @@ export default function Header() {
   const closeDialog = () => setDialogState(null)
 
   return (
-    <header
-      className="justify-between z-20 fixed w-full h-fit flex flex-row items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
+    <header className="justify-between z-20 fixed w-screen h-fit flex items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
+
       <div
-        className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400"
+        className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400 gap-2 items-center"
         onClick={() => router.push("/")}
       >
         <Image
@@ -85,16 +85,16 @@ export default function Header() {
           width="0"
           height="0"
           sizes="100vw"
-          className="h-10 w-auto pr-2"
+          className="h-10 w-auto flex-shrink-0"
         />
-        <div className="pl-3">
+        <div className="flex gap-2 items-center min-w-0 pl-2">
           <Image
             src="/fs-logo-light.png"
             alt="Fachschaft MathPhysInfo Logo"
             width="0"
             height="0"
             sizes="100vw"
-            className="h-10 w-auto block dark:hidden"
+            className="max-h-10 w-auto block flex-shrink dark:hidden"
           />
           <Image
             src="/fs-logo-dark.png"
@@ -102,15 +102,15 @@ export default function Header() {
             width="0"
             height="0"
             sizes="100vw"
-            className="h-10 w-auto hidden dark:block"
+            className="max-h-10 w-auto hidden flex-shrink dark:block"
           />
         </div>
       </div>
-      <div className="flex flex-row">
+      <div className="flex flex-row ml-8">
         <Button
           variant="secondary"
           onClick={() => setSearchOpen(true)}
-          className="w-fit"
+          className=""
         >
           <Search className="h-[1.2rem] w-[1.2rem] md:hidden"/>
           <div className="hidden md:flex items-center text-sm font-medium leading-none text-muted-foreground space-x-4">
