@@ -72,7 +72,9 @@ export default function Settings() {
         }
       />
       {settings.length === 0 ? (
-        <div className={"w-full p-10 border rounded-lg"}>
+        <div
+          className={"w-full p-10 border rounded-lg justify-center text-center"}
+        >
           Es sind keine Einstellung zu E-Mails verfügbar.
         </div>
       ) : (

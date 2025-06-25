@@ -119,7 +119,9 @@ export default function LocationSettings() {
       />
 
       {buildings.length === 0 ? (
-        <div className={"w-full p-10 border rounded-lg"}>
+        <div
+          className={"w-full p-10 border rounded-lg justify-center text-center"}
+        >
           Es sind noch keine Gebäude eingetragen
         </div>
       ) : (

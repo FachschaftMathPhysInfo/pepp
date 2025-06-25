@@ -68,7 +68,7 @@ export default function RegistrationsPage() {
 
   if (events.length === 0) {
     return (
-      <div className={"w-full p-10 rounded-lg"}>
+      <div className={"w-full p-10 justify-center text-center"}>
         Noch hast du dich zu keiner Veranstaltung angemeldet.
       </div>
     );

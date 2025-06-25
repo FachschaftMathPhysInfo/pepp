@@ -93,7 +93,9 @@ export default function UmbrellaSettings() {
       <SearchInput searchValue={searchValue} setSearchValue={setSearchValue} />
 
       {umbrellas.length === 0 ? (
-        <div className={"w-full p-10 border rounded-lg"}>
+        <div
+          className={"w-full p-10 border rounded-lg justify-center text-center"}
+        >
           Es sind noch keine Programme eingetragen
         </div>
       ) : (
