@@ -120,7 +120,7 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl>
-                    <Input placeholder="Vorname" {...field} />
+                    <Input autoFocus={isRegistering} placeholder="Vorname" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -146,7 +146,7 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input type="email" placeholder="Email" {...field} />
+                <Input autoFocus={!isRegistering} type="email" placeholder="Email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
