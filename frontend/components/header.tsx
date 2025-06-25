@@ -1,53 +1,36 @@
 "use client";
 
-import { LogIn, Moon, SquareCheckBig, Sun, Search, LogOut } from "lucide-react";
+import {LogIn, LogOut, Moon, Search, SquareCheckBig, Sun} from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "./ui/command";
-import { Dialog, DialogTrigger } from "./ui/dialog";
-import { SignInDialog } from "./sign-in-dialog";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Separator } from "./ui/separator";
-import {
-  Event,
-  FutureEventsDocument,
-  FutureEventsQuery,
-  Role,
-} from "@/lib/gql/generated/graphql";
-import { useUser } from "./providers";
-import { getClient } from "@/lib/graphql";
-import { useRouter } from "next/navigation";
+import {useEffect, useState} from "react";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {Button} from "@/components/ui/button";
+import {useTheme} from "next-themes";
+import {CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "./ui/command";
+import {Dialog} from "./ui/dialog";
+import {AuthenticationDialog} from "./authentication-dialog/authentication-dialog";
+import {Avatar, AvatarFallback} from "./ui/avatar";
+import {Separator} from "./ui/separator";
+import {Event, FutureEventsDocument, FutureEventsQuery, Role,} from "@/lib/gql/generated/graphql";
+import {useUser} from "./providers";
+import {getClient} from "@/lib/graphql";
+import {useRouter} from "next/navigation";
 import EventDialog from "./event-dialog/event-dialog";
-import { adminItems, userItems } from "@/app/(settings)/sidebar";
-import { defaultEvent } from "@/types/defaults";
-import { toast } from "sonner";
-import { groupEventsByUmbrellaId } from "@/lib/utils";
+import {adminItems, userItems} from "@/app/(settings)/sidebar";
+import {defaultEvent} from "@/types/defaults";
+import {toast} from "sonner";
+import {groupEventsByUmbrellaId} from "@/lib/utils";
 
 export default function Header() {
   const router = useRouter();
 
   const [searchOpen, setSearchOpen] = useState(false);
-  const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const [dialogState, setDialogState] = useState<"event" | "authentication" | null>(null);
   const [closeupID, setCloseupID] = useState(0);
   const [events, setEvents] = useState<Event[]>([]);
 
-  const { setTheme } = useTheme();
-  const { user, logout } = useUser();
+  const {setTheme} = useTheme();
+  const {user, logout} = useUser();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,7 +44,7 @@ export default function Header() {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            umbrella: { ...defaultEvent, ...e.umbrella },
+            umbrella: {...defaultEvent, ...e.umbrella},
           }))
         );
       } catch {
@@ -87,8 +70,11 @@ export default function Header() {
 
   const groupedEvents = groupEventsByUmbrellaId(events);
 
+  const closeDialog = () => setDialogState(null)
+
   return (
     <header className="justify-between z-20 fixed w-screen h-fit flex items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
+
       <div
         className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400 gap-2 items-center"
         onClick={() => router.push("/")}
@@ -126,69 +112,76 @@ export default function Header() {
           onClick={() => setSearchOpen(true)}
           className=""
         >
-          <Search className="h-[1.2rem] w-[1.2rem] md:hidden" />
+          <Search className="h-[1.2rem] w-[1.2rem] md:hidden"/>
           <div className="hidden md:flex items-center text-sm font-medium leading-none text-muted-foreground space-x-4">
             <p>Suche nach Veranstaltungen...</p>
-            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+            <kbd
+              className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
               <span className="text-xs">⌘</span>K
             </kbd>
           </div>
         </Button>
-        <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
-          <EventDialog id={closeupID} open={eventDialogOpen} />
+        <Dialog
+          open={dialogState === "event"}
+          onOpenChange={(open) => {
+            if (open) setDialogState("event");
+            else setDialogState(null);
+          }}>
+          <EventDialog id={closeupID} open={dialogState === "event"}/>
         </Dialog>
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-          <CommandInput placeholder="Suche nach Veranstaltungen..." />
+          <CommandInput placeholder="Suche nach Veranstaltungen..."/>
           <CommandList>
             <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
             {groupedEvents
               ? Object.keys(groupedEvents).map((uID) => (
-                  <CommandGroup
-                    key={uID}
-                    heading={
-                      groupedEvents ? groupedEvents[uID][0].umbrella?.title : ""
-                    }
-                  >
-                    {groupedEvents
-                      ? groupedEvents[uID].map((e) => (
-                          <CommandItem
-                            className="justify-between"
-                            key={e.ID}
-                            onSelect={() => {
-                              setSearchOpen(false);
-                              setCloseupID(e.ID);
-                              setEventDialogOpen(true);
-                            }}
-                          >
-                            {e.title}
-                            {user?.registrations?.some(
-                              (r) => r.event.ID === e.ID
-                            ) && (
-                              <SquareCheckBig className="w-2 h-2 text-green-700" />
-                            )}
-                          </CommandItem>
-                        ))
-                      : ""}
-                  </CommandGroup>
-                ))
+                <CommandGroup
+                  key={uID}
+                  heading={
+                    groupedEvents ? groupedEvents[uID][0].umbrella?.title : ""
+                  }
+                >
+                  {groupedEvents
+                    ? groupedEvents[uID].map((e) => (
+                      <CommandItem
+                        className="justify-between"
+                        key={e.ID}
+                        onSelect={() => {
+                          setSearchOpen(false);
+                          setCloseupID(e.ID);
+                          setDialogState("event")
+                        }}
+                      >
+                        {e.title}
+                        {user?.registrations?.some(
+                          (r) => r.event.ID === e.ID
+                        ) && (
+                          <SquareCheckBig className="w-2 h-2 text-green-700"/>
+                        )}
+                      </CommandItem>
+                    ))
+                    : ""}
+                </CommandGroup>
+              ))
               : ""}
           </CommandList>
         </CommandDialog>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="ml-2">
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/>
+              <Moon
+                className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"/>
               <span className="sr-only">Thema wechseln</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setTheme("light")}>
-              <Sun className="h-[1rem] w-auto mr-2" />
+              <Sun className="h-[1rem] w-auto mr-2"/>
               Hell
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme("dark")}>
-              <Moon className="h-[1rem] w-auto mr-2" />
+              <Moon className="h-[1rem] w-auto mr-2"/>
               Dunkel
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -210,48 +203,53 @@ export default function Header() {
                 </p>
                 <p className="text-muted-foreground text-xs">{user.mail}</p>
               </div>
-              <Separator />
+              <Separator/>
               {userItems.map((i) => (
                 <DropdownMenuItem
                   key={i.title}
                   onClick={() => router.push(i.url)}
                 >
-                  <i.icon />
+                  <i.icon/>
                   {i.title}
                 </DropdownMenuItem>
               ))}
               {user.role === Role.Admin && (
                 <>
-                  <Separator />
+                  <Separator/>
                   {adminItems.map((i) => (
                     <DropdownMenuItem
                       key={i.title}
                       onClick={() => router.push(i.url)}
                     >
-                      <i.icon />
+                      <i.icon/>
                       {i.title}
                     </DropdownMenuItem>
                   ))}
                 </>
               )}
-              <Separator />
+              <Separator/>
               <DropdownMenuItem onClick={logout}>
-                <LogOut />
+                <LogOut/>
                 Abmelden
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <LogIn className="h-[1.2rem] w-[1.2rem]" />
-              </Button>
-            </DialogTrigger>
-            <SignInDialog />
-          </Dialog>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setDialogState("authentication")}
+          >
+            <LogIn className="h-[1.2rem] w-[1.2rem]"/>
+          </Button>
         )}
       </div>
+
+      <AuthenticationDialog
+        open={dialogState === "authentication"}
+        closeDialog={closeDialog}
+      />
+
     </header>
   );
 }
