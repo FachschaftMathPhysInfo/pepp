@@ -6,7 +6,7 @@ import {z} from "zod";
 import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import React, {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {ChangePasswordDocument, ChangePasswordMutation} from "@/lib/gql/generated/graphql";
@@ -29,7 +29,7 @@ export default function PasswordForm() {
       }),
     confirmNewPassword: z.string(),
   }).refine((data) => data.newPassword === data.confirmNewPassword, {
-    path: ["confirmPassword"],
+    path: ["confirmNewPassword"],
     message: "Passwörter stimmen nicht überein.",
   });
   const form = useForm<z.infer<typeof passwordFormSchema>>({
@@ -41,12 +41,7 @@ export default function PasswordForm() {
     },
   });
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
-  const [samePassword, setSamePassword] = useState(false);
   const {user, sid} = useUser();
-
-  useEffect(() => {
-    setSamePassword(form.getValues("newPassword") === form.getValues("confirmNewPassword"))
-  }, [form])
 
   async function onValidSubmit(userData: z.infer<typeof passwordFormSchema>) {
     if (!user) {
@@ -102,7 +97,10 @@ export default function PasswordForm() {
             <FormItem>
               <FormLabel>Neues Passwort</FormLabel>
               <FormControl>
-                <Input placeholder={''} type={"password"} {...field}/>
+                <Input
+                  placeholder={''}
+                  type={"password"}
+                  {...field}/>
               </FormControl>
               <FormMessage/>
             </FormItem>
@@ -116,11 +114,12 @@ export default function PasswordForm() {
             <FormItem>
               <FormLabel>Passwort bestätigen</FormLabel>
               <FormControl>
-                <Input placeholder={''} type={"password"} {...field}/>
+                <Input
+                  placeholder={''}
+                  type={"password"}
+                  {...field}/>
               </FormControl>
-              <FormMessage>
-                {samePassword && hasTriedToSubmit && "Passwörter stimmen nicht überein"}
-              </FormMessage>
+              <FormMessage/>
             </FormItem>
           )}
         />
