@@ -33,6 +33,10 @@ mutation updateUser($email: String!, $fn: String!, $sn: String!, $role: String!)
   updateUser(user: {mail: $email fn: $fn, sn: $sn, role: $role})
 }
 
+mutation changePassword($user: UpdateUser!) {
+  updateUser(user: $user)
+}
+
 mutation deleteUser($email: [String!]!) {
   deleteUser(mail: $email)
 }

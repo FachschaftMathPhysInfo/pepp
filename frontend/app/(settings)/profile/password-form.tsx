@@ -9,6 +9,9 @@ import {Input} from "@/components/ui/input";
 import React, {useEffect, useState} from "react";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
+import {ChangePasswordDocument, ChangePasswordMutation} from "@/lib/gql/generated/graphql";
+import {useUser} from "@/components/providers";
+import {getClient} from "@/lib/graphql";
 
 
 export default function PasswordForm() {
@@ -39,13 +42,38 @@ export default function PasswordForm() {
   });
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
   const [samePassword, setSamePassword] = useState(false);
+  const {user, sid} = useUser();
 
   useEffect(() => {
     setSamePassword(form.getValues("newPassword") === form.getValues("confirmNewPassword"))
   }, [form])
 
   async function onValidSubmit(userData: z.infer<typeof passwordFormSchema>) {
-    toast.info('Not Yet Implemented')
+    if (!user) {
+      toast.error('Ein Fehler ist aufgetreten')
+      console.error('User is undefined change password action')
+      return
+    }
+
+    const client = getClient(String(sid));
+    const updateData = {
+      email: user.mail,
+      fn: user.mail,
+      sn: user.mail,
+      confirmed: user.confirmed,
+      role: user.role,
+      password: userData.newPassword
+    }
+
+    try {
+      await client.request<ChangePasswordMutation>(ChangePasswordDocument, {user: updateData})
+      console.info('Dein Passwort wurde verändert')
+      setHasTriedToSubmit(false)
+      form.reset()
+    } catch (error) {
+      toast.error('Ein Fehler beim updaten des Passworts ist aufgetreten')
+      console.error(error)
+    }
   }
 
   return (
@@ -89,10 +117,9 @@ export default function PasswordForm() {
               <FormLabel>Passwort bestätigen</FormLabel>
               <FormControl>
                 <Input placeholder={''} type={"password"} {...field}/>
-
               </FormControl>
               <FormMessage>
-                {!samePassword && "Passwörter stimmen nicht überein"}
+                {samePassword && hasTriedToSubmit && "Passwörter stimmen nicht überein"}
               </FormMessage>
             </FormItem>
           )}
