@@ -23,8 +23,10 @@ export default function SettingsProfilePage() {
 
     try {
       await client.request<DeleteUserMutation>(DeleteUserDocument, {email: user?.mail})
-    } catch {
+      console.log(`Deleted user: ${user?.mail}`)
+    } catch (error) {
       toast.error('Ein Fehler ist aufgetreten')
+      console.error(error)
     }
   }
 

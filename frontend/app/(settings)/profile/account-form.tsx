@@ -44,9 +44,12 @@ export default function AccountForm() {
     }
 
     try {
-      await client.request<UpdateUserMutation>(UpdateUserDocument, {updateData})
-    } catch {
+      await client.request<UpdateUserMutation>(UpdateUserDocument, updateData)
+      console.log(`updated user: ${user?.mail}`)
+    } catch (error) {
       toast.error('Ein Fehler ist aufgetreten, versuche es später erneut')
+      console.error(error)
+      return
     }
     toast.info('Dein Account wurde bearbeitet')
   }

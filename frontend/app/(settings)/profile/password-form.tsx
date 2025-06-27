@@ -46,7 +46,7 @@ export default function PasswordForm() {
   async function onValidSubmit(userData: z.infer<typeof passwordFormSchema>) {
     if (!user) {
       toast.error('Ein Fehler ist aufgetreten')
-      console.error('User is undefined change password action')
+      console.error('User is undefined in change password action')
       return
     }
 
