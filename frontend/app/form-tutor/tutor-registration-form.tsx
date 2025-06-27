@@ -21,7 +21,7 @@ import {
 import { RowSelectionState } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import {toast} from "sonner";
-import {SubmissionSuccessPage} from "@/app/(form-tutor)/form-tutor/submission-success";
+import {SubmissionSuccessPage} from "@/app/form-tutor/submission-success";
 
 
 export default function TutorRegistrationForm() {

@@ -1,4 +1,4 @@
-import TutorRegistrationForm from "@/app/(form-tutor)/form-tutor/tutor-registration-form";
+import TutorRegistrationForm from "@/app/form-tutor/tutor-registration-form";
 import {Metadata} from "next";
 
 export const metadata: Metadata = {
