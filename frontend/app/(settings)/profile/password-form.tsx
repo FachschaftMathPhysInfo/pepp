@@ -9,7 +9,7 @@ import {Input} from "@/components/ui/input";
 import React, {useState} from "react";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
-import {ChangePasswordDocument, ChangePasswordMutation} from "@/lib/gql/generated/graphql";
+import {ChangePasswordDocument, ChangePasswordMutation, LoginDocument, LoginQuery} from "@/lib/gql/generated/graphql";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 
@@ -51,8 +51,24 @@ export default function PasswordForm() {
     }
 
     const client = getClient(String(sid));
+
+    // Check Password Validity
+    try {
+      await client.request<LoginQuery>(LoginDocument, {
+        mail: user.mail,
+        password: userData.currentPassword
+      })
+
+      if(form.formState.errors.currentPassword) form.clearErrors('currentPassword')
+    } catch {
+      form.setError('currentPassword', {
+        message: 'Das angegebene Passwort ist falsch'
+      })
+      return
+    }
+
     const updateData = {
-      email: user.mail,
+      mail: user.mail,
       fn: user.mail,
       sn: user.mail,
       confirmed: user.confirmed,
@@ -62,7 +78,8 @@ export default function PasswordForm() {
 
     try {
       await client.request<ChangePasswordMutation>(ChangePasswordDocument, {user: updateData})
-      console.info('Dein Passwort wurde verändert')
+      toast.info('Dein Passwort wurde verändert')
+      console.log(`Changed password for ${user.mail}`)
       setHasTriedToSubmit(false)
       form.reset()
     } catch (error) {
