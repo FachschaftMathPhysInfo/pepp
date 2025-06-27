@@ -14,7 +14,7 @@ import { getClient } from "@/lib/graphql";
 import { slugify } from "@/lib/utils";
 import { defaultEvent } from "@/types/defaults";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "./sidebar";
 import { Footer } from "@/components/footer";
 
