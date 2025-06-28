@@ -36,6 +36,7 @@ import {
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { cn } from "@/lib/utils";
+import {TooltipProvider} from "@/components/ui/tooltip";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -105,13 +106,13 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
             topic: { ...defaultLabel, ...e.topic },
           }))
         );
-        setIsRestricted(eventData.umbrellas[0].registrationForm ? true : false);
+        setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
       setLoading(false);
     };
 
-    fetchData();
+    void fetchData();
   }, [toFilter, tyFilter, umbrellaID, refetchKey]);
 
   useEffect(() => {
@@ -143,7 +144,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   );
 
   return (
-    <>
+    <TooltipProvider delayDuration={0}>
       {user?.role === Role.Admin && (
         <section className="mb-[20px] space-y-5">
           <EditPlannerSection umbrellaID={umbrellaID} />
@@ -230,6 +231,6 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       <section className="mt-5">
         {loading ? <CardSkeleton /> : renderView()}
       </section>
-    </>
+    </TooltipProvider>
   );
 }
