@@ -52,7 +52,7 @@ export const AuthenticationDialog = (props: AuthenticationDialogProps) => {
         if (props.onOpenChange) props.onOpenChange(open)
         else if (props.closeDialog) props.closeDialog()
       }}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="max-w-[90vw] rounded-lg sm:max-w-[550px]">
           <DialogHeader>
             <DialogClose onClick={props.closeDialog}/>
             <DialogTitle>
