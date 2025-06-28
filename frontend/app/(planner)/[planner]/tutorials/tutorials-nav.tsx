@@ -13,6 +13,7 @@ import {
 } from "@/lib/gql/generated/graphql";
 import {Button} from "@/components/ui/button";
 import {router} from "next/client";
+import {Skeleton} from "@/components/ui/skeleton";
 
 
 interface TutorialsNavProps {
@@ -24,7 +25,6 @@ export default function TutorialsNav({umbrellaId}: TutorialsNavProps) {
   const client = getClient(String(sid))
   const [eventsTitles, setEventsTitles] = React.useState<string[]>([])
   const [umbrellaTitle, setUmbrellaTitle] = React.useState<string>("")
-
   // This is an ugly workaraound, cuz user.tutorial.events.umbrella is null for some reason
   const getUmbrellaTitle = useCallback(async () => {
     const titleData = await client.request<UmbrellasQuery>(
@@ -69,6 +69,12 @@ export default function TutorialsNav({umbrellaId}: TutorialsNavProps) {
       href: `/${slugify(umbrellaTitle)}-${umbrellaId}/tutorials/${slugify(tutorial.event.title)}-${tutorial.event.ID}`,
     })
   );
+
+  const isReady = eventsTitles?.length > 0 && umbrellaTitle && tutorials
+
+
+  // Removes flickering... there might be a better way
+  if(!isReady) return null
 
   return (
     <>
