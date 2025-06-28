@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ProfileSidebar } from "./sidebar";
 import { Footer } from "@/components/footer";
+import React from "react";
 
 interface SettingsLayoutProps {
   children: React.ReactNode;
