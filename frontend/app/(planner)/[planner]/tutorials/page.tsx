@@ -1,10 +1,10 @@
+import React from "react";
+import {Metadata} from "next";
 
-export const metadata = {
-  title: "Tutorien",
+export const metadata: Metadata = {
+  title: "Pepp - Meine Tutorien",
 }
 
-export default function OverviewPage() {
-  return (
-    <p>Tutorien</p>
-  )
+export default async function TutorialsPage() {
+  return (<></>)
 }

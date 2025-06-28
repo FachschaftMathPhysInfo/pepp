@@ -5,7 +5,7 @@ import { User } from "@/lib/gql/generated/graphql";
 import { ColumnDef } from "@tanstack/react-table";
 import { SquareMinus } from "lucide-react";
 import React from "react";
-import { StudentTableDialogState } from "@/app/(settings)/profile/tutorials/[tutorial]/tutorial-page";
+import { StudentTableDialogState } from "./tutorial-page";
 
 export default function StudentsColumns(
   setDialog: React.Dispatch<React.SetStateAction<StudentTableDialogState>>
