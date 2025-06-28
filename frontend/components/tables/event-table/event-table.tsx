@@ -22,7 +22,7 @@ import {
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Event } from "@/lib/gql/generated/graphql";
-import { DataTablePagination } from "@/components/data-table-pagination";
+import { DataTablePagination } from "@/components/tables/data-table-pagination";
 
 interface DataTableProps {
   columns: ColumnDef<Event>[];

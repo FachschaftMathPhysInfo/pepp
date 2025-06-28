@@ -1,4 +1,4 @@
-import {DataTableColumnHeader} from "@/components/data-table-column-header";
+import {DataTableColumnHeader} from "@/components/tables/data-table-column-header";
 import {Button} from "@/components/ui/button";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
 import {Role, User} from "@/lib/gql/generated/graphql";
