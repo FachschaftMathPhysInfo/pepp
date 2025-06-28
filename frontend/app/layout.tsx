@@ -49,7 +49,6 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="de" suppressHydrationWarning>
-      <head />
       <body
         className={cn(
           "flex w-screen flex-col bg-background font-sans antialiased",
