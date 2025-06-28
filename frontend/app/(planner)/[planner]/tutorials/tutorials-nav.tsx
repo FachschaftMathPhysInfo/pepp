@@ -1,10 +1,11 @@
 "use client"
 import React, {useCallback, useEffect} from "react";
-import {RefetchProvider, useUser} from "@/components/providers";
+import {useUser} from "@/components/providers";
 import {SidebarNav} from "@/components/sidebar-nav";
 import {slugify} from "@/lib/utils";
 import {getClient} from "@/lib/graphql";
 import {
+  Tutorial,
   UmbrellaEventsTitlesDocument,
   UmbrellaEventsTitlesQuery,
   UmbrellasDocument,
@@ -14,14 +15,18 @@ import {Button} from "@/components/ui/button";
 import {router} from "next/client";
 
 
-export default function TutorialsNav({umbrellaId} : {umbrellaId: number}) {
-  const { user, sid } = useUser()
+interface TutorialsNavProps {
+  umbrellaId: number;
+}
+
+export default function TutorialsNav({umbrellaId}: TutorialsNavProps) {
+  const {user, sid} = useUser()
   const client = getClient(String(sid))
   const [eventsTitles, setEventsTitles] = React.useState<string[]>([])
   const [umbrellaTitle, setUmbrellaTitle] = React.useState<string>("")
 
   // This is an ugly workaraound, cuz user.tutorial.events.umbrella is null for some reason
-  const getUmbrellaTitle = useCallback(async() => {
+  const getUmbrellaTitle = useCallback(async () => {
     const titleData = await client.request<UmbrellasQuery>(
       UmbrellasDocument,
       {id: umbrellaId}
@@ -44,31 +49,37 @@ export default function TutorialsNav({umbrellaId} : {umbrellaId: number}) {
     void getUmbrellaTitle()
   }, [umbrellaId])
 
-  const tutorials = user?.tutorials?.filter(
-    (tutorial) => eventsTitles.includes(tutorial.event.title)
-  ).map(
+  const reducedEvents = user?.tutorials?.reduce(
+    (accumulator: Tutorial[], current: Tutorial) => {
+      if (
+        !accumulator.some((tutorial) => tutorial.event.ID === current.event.ID)
+        && eventsTitles.includes(current.event.title)
+      ) {
+        accumulator.push(current);
+      }
+      return accumulator;
+    },
+    []
+  );
+
+  const tutorials = reducedEvents?.map(
     (tutorial) => ({
       title: tutorial.event.title,
       description: <>{new Date(tutorial.event.from).toLocaleDateString()}</>,
-      href: `/${slugify(umbrellaTitle)}/tutorials/${slugify(tutorial.event.title)}-${tutorial.event.ID}`
+      href: `/${slugify(umbrellaTitle)}-${umbrellaId}/tutorials/${slugify(tutorial.event.title)}-${tutorial.event.ID}`,
     })
-  )
-
+  );
 
   return (
     <>
       {tutorials ? (
-        <div className="flex flex-col space-y-5 lg:flex-row lg:space-y-0">
-          <aside>
-            <SidebarNav items={tutorials ?? []} />
-          </aside>
-          <RefetchProvider>
-            <div className="w-full lg:ml-4"></div>
-          </RefetchProvider>
-        </div>
+        <aside>
+          <SidebarNav items={tutorials ?? []}/>
+        </aside>
       ) : (
         <div className={"flex flex-col gap-y-6 w-full p-10 text-center"}>
-          Dir wurden noch in diesem Programm noch keine Tutorien zugewiesen. Möchtest du zur Programm unabhängigen Ansicht?
+          Dir wurden noch in diesem Programm noch keine Tutorien zugewiesen.
+          Möchtest du zur Programm unabhängigen Ansicht?
           <Button onClick={() => router.push('/profile/tutorials')}>
             Ja!
           </Button>
