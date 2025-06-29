@@ -1,4 +1,4 @@
-import { DataTableColumnHeader } from "@/components/data-table-column-header";
+import { DataTableColumnHeader } from "@/components/tables/data-table-column-header";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { User } from "@/lib/gql/generated/graphql";
@@ -11,26 +11,6 @@ export default function StudentsColumns(
   setDialog: React.Dispatch<React.SetStateAction<StudentTableDialogState>>
 ): ColumnDef<User>[] {
   return [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Alle auswählen"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Reihe auswählen"
-        />
-      ),
-    },
     {
       accessorKey: "name",
       header: ({ column }) => (
