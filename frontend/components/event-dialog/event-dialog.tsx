@@ -9,7 +9,7 @@ import {
   TutorialToUserAssignment,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import { Edit3, Info, MoveRight } from "lucide-react";
+import { Edit3, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DialogContent,
@@ -27,13 +27,12 @@ import { EditEventView } from "./edit-event-view";
 import EventDescription from "./event-description";
 import Link from "next/link";
 import { slugify } from "@/lib/utils";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 interface EventDialogProps {
   id?: number;
   modify?: boolean;
   open: boolean;
-  umbrellaID: number;
+  umbrellaID?: number;
 }
 
 export default function EventDialog({
@@ -150,7 +149,7 @@ export default function EventDialog({
           </div>
         )}
 
-        {event?.umbrella?.ID !== umbrellaID && (
+        {umbrellaID && event?.umbrella?.ID !== umbrellaID && (
           <div className="flex flex-row items-center">
             <Info className="size-4 mr-2" />
             <span className="text-xs">
