@@ -740,8 +740,33 @@ func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context,
 	return user[0], nil
 }
 
+// LinkSupportingEventToEvent is the resolver for the linkSupportingEventToEvent field.
+func (r *mutationResolver) LinkSupportingEventToEvent(ctx context.Context, eventID int, supportingEventID int) (int, error) {
+	link := &models.EventToSupportingEvent{EventID: int32(eventID), SupportingEventID: int32(supportingEventID)}
+	if _, err := r.DB.NewInsert().
+		Model(link).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
+// UnlinkSupportingEventFromEvent is the resolver for the unlinkSupportingEventFromEvent field.
+func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, eventID int, supportingEventID int) (int, error) {
+	link := &models.EventToSupportingEvent{EventID: int32(eventID), SupportingEventID: int32(supportingEventID)}
+	if _, err := r.DB.NewDelete().
+		Model(link).
+		WherePK().
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userMail []string) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userMail []string, includeSupportingEvents *bool) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
@@ -785,6 +810,16 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 			Join("JOIN event_to_user_assignments AS eta ON eta.event_id = e.id").
 			Join("LEFT JOIN user_to_event_availability AS uea ON uea.event_id = e.id").
 			Where("uea.tutor_mail IN (?) OR eta.tutor_mail IN (?)", bun.In(userMail), bun.In(userMail))
+	}
+
+	if includeSupportingEvents != nil && *includeSupportingEvents == true && umbrellaID != nil {
+		subq := r.DB.NewSelect().
+			Model((*models.EventToSupportingEvent)(nil)).
+			Where("event_id IN (?)", bun.In(umbrellaID)).
+			Column("supporting_event_id")
+
+		query = query.
+			WhereOr("e.umbrella_id IN (?)", subq)
 	}
 
 	if err := query.Scan(ctx); err != nil {

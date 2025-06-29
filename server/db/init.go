@@ -27,6 +27,7 @@ var (
 	relations = []interface{}{
 		(*models.ApplicationToQuestion)(nil),
 		(*models.TutorialToUserAssignment)(nil),
+		(*models.EventToSupportingEvent)(nil),
 		(*models.UserToEventAvailability)(nil),
 		(*models.UserToTutorialRegistration)(nil)}
 
