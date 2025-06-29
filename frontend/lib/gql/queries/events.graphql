@@ -57,7 +57,7 @@ query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
   topicLabels: labels(kind: TOPIC, umbrellaID: [$umbrellaID]) {
     name
   }
-  events(umbrellaID: [$umbrellaID], type: $type, topic: $topic) {
+  events(umbrellaID: [$umbrellaID], type: $type, topic: $topic, includeSupportingEvents: true) {
     ID
     title
     from
@@ -92,6 +92,10 @@ query eventCloseup($id: Int!) {
     topic {
       name
       color
+    }
+    umbrella {
+      ID
+      title
     }
     type {
       name

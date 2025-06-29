@@ -36,7 +36,7 @@ import {
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { cn } from "@/lib/utils";
-import {TooltipProvider} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -73,7 +73,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const renderView = () => {
     switch (view) {
       case View.planner:
-        return <Planner events={events} />;
+        return <Planner events={events} umbrellaID={umbrellaID} />;
       case View.table:
         return <DataTable columns={columns} data={events} />;
     }
