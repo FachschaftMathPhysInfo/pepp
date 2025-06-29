@@ -1,5 +1,12 @@
 import { extractId } from "@/lib/utils";
 import { PlannerPage } from "./planner";
+import {Metadata} from "next";
+
+export const metadata: Metadata = {
+  title: 'Pepp - Stundenplan',
+  description: 'Stundenplan des Vorkurses der Fachschaft MathPhysInfo',
+  keywords: ['pepp', 'stundenplan', 'vorkurs', 'heidelberg', 'uni'],
+}
 
 export default async function IndexPage({
   params,
