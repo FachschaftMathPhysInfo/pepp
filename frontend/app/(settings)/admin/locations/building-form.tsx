@@ -80,7 +80,6 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
       number: createMode ? "" : currentBuilding.number,
       city: createMode ? "" : currentBuilding.city,
       zip: createMode ? "" : currentBuilding.zip,
-      ossLink: createMode ? "" : (currentBuilding.ossLink || ""),
       latitude: createMode ? undefined : currentBuilding.latitude,
       longitude: createMode ? undefined : currentBuilding.longitude,
       zoomLevel: createMode ? undefined : currentBuilding.zoomLevel
@@ -89,9 +88,32 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
 
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
 
+  function getCoordinatesFromOssLink(link: string): { latitude?: number; longitude?: number; zoomLevel?: number } {
+    if (!link) return {};
+
+    const match = link.match(/#map=(\d+\.?\d*)\/(\d+\.?\d*)\/(\d+\.?\d*)/);
+    if (match) {
+      return {
+        zoomLevel: parseFloat(match[1]),
+        latitude: parseFloat(match[2]),
+        longitude: parseFloat(match[3]),
+      };
+    }
+    return {};
+  }
+
   async function onValidSubmit(buildingData: z.infer<typeof buildingFormSchema>) {
     const client = getClient(String(sid));
 
+    if (useOssLink && buildingData.ossLink) {
+      const coords = getCoordinatesFromOssLink(buildingData.ossLink);
+      buildingData.latitude = coords.latitude;
+      buildingData.longitude = coords.longitude;
+      buildingData.zoomLevel = coords.zoomLevel;
+    }
+
+    delete buildingData.ossLink;
+    
     if(createMode) {
       await client.request<AddBuildingMutation>(AddBuildingDocument, {building: buildingData})
     } else {
@@ -211,48 +233,50 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
               )}
             />
           ) : (
-            <div className={'flex justify-between w-full flex-wrap gap-x-4 mb-4'}>
+            <>
+              <div className={'flex justify-between w-full flex-wrap gap-x-4 mb-4'}>
+                <FormField
+                  control={form.control}
+                  name="latitude"
+                  render={({field}) => (
+                    <FormItem className={'grow'}>
+                      <FormLabel>Breitengrad</FormLabel>
+                      <FormControl>
+                        <Input placeholder="" {...field} />
+                      </FormControl>
+                      <FormMessage/>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="longitude"
+                  render={({field}) => (
+                    <FormItem className={'grow'}>
+                      <FormLabel>Längengrad</FormLabel>
+                      <FormControl>
+                        <Input placeholder="" {...field} />
+                      </FormControl>
+                      <FormMessage/>
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
-                name="latitude"
+                name="zoomLevel"
                 render={({field}) => (
-                  <FormItem className={'grow'}>
-                    <FormLabel>Breitengrad</FormLabel>
+                  <FormItem>
+                    <FormLabel>Zoom</FormLabel>
                     <FormControl>
-                      <Input placeholder="" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage/>
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="longitude"
-                render={({field}) => (
-                  <FormItem className={'grow'}>
-                    <FormLabel>Längengrad</FormLabel>
-                    <FormControl>
-                      <Input placeholder="" {...field} />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
+            </>
           )}
-          <FormField
-            control={form.control}
-            name="zoomLevel"
-            render={({field}) => (
-              <FormItem>
-                <FormLabel>Zoom</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
         </div>
 
 
