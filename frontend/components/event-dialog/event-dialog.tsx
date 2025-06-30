@@ -149,14 +149,14 @@ export default function EventDialog({
           </div>
         )}
 
-        {umbrellaID && event?.umbrella?.ID !== umbrellaID && (
+        {id && event?.umbrella?.ID !== umbrellaID && (
           <div className="flex flex-row items-center">
             <Info className="size-4 mr-2" />
             <span className="text-xs">
               Diese Veranstaltung ist Teil von{" "}
               <Link
                 className="underline"
-                href={`${slugify(event?.umbrella?.title ?? "")}-${
+                href={`/${slugify(event?.umbrella?.title ?? "")}-${
                   event?.umbrella?.ID
                 }`}
               >
