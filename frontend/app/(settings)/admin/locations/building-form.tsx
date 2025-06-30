@@ -106,8 +106,8 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
     
     
 
-    if (useOssLink && dataToSend.ossLink) {
-      const coords = getCoordinatesFromOssLink(dataToSend.ossLink);
+    if (useOssLink && buildingData.ossLink) {
+      const coords = getCoordinatesFromOssLink(buildingData.ossLink);
       if (coords.latitude !== undefined) buildingData.latitude = coords.latitude;
       if (coords.longitude !== undefined) buildingData.longitude = coords.longitude;
       if (coords.zoomLevel !== undefined) buildingData.zoomLevel = coords.zoomLevel;
@@ -120,7 +120,7 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
     if (buildingData.latitude === "") buildingData.latitude = undefined;
     if (buildingData.longitude === "") buildingData.longitude = undefined;
     if (typeof buildingData.zoomLevel === "string" && buildingData.zoomLevel === "") buildingData.zoomLevel = undefined;
-    
+
     if(createMode) {
       await client.request<AddBuildingMutation>(AddBuildingDocument, {building: buildingData})
     } else {
