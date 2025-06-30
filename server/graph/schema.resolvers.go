@@ -742,6 +742,24 @@ func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context,
 
 // LinkSupportingEventToEvent is the resolver for the linkSupportingEventToEvent field.
 func (r *mutationResolver) LinkSupportingEventToEvent(ctx context.Context, eventID int, supportingEventID int) (int, error) {
+	if eventID == supportingEventID {
+		return 0, fmt.Errorf("event cannot support itself")
+	}
+
+	var umbrelleIDs []int32
+	if err := r.DB.NewSelect().
+		Model((*models.Event)(nil)).
+		Column("umbrella_id").
+		Where("umbrella_id IS NOT NULL").
+		Where("id IN (?)", bun.In([]int{eventID, supportingEventID})).
+		Scan(ctx, &umbrelleIDs); err != nil {
+		return 0, err
+	}
+
+	if len(umbrelleIDs) != 0 {
+		return 0, fmt.Errorf("both events have to be umbrella events")
+	}
+
 	link := &models.EventToSupportingEvent{EventID: int32(eventID), SupportingEventID: int32(supportingEventID)}
 	if _, err := r.DB.NewInsert().
 		Model(link).
