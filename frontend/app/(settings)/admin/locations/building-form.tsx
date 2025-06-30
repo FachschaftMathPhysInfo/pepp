@@ -57,16 +57,15 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
     zoomLevel: z.coerce.number().optional(),
   }).refine((data) => {
     if (useOssLink) {
-      return !!data.ossLink && data.ossLink !== "" &&
-        (data.latitude === "" || data.latitude === undefined) &&
-        (data.longitude === "" || data.longitude === undefined);
+      // Im OSSLink-Modus muss ein gültiger Link vorhanden sein
+      return !!data.ossLink && data.ossLink !== "";
+    } else {
+      // Im Koordinatenmodus müssen latitude und longitude gültige Werte sein
+      return (
+        (data.latitude !== "" && data.latitude !== undefined) &&
+        (data.longitude !== "" && data.longitude !== undefined)
+      );
     }
-    // Coordinates mode: require latitude and longitude, ossLink must be empty
-    return (
-      data.ossLink === "" &&
-      data.latitude !== "" && data.latitude !== undefined &&
-      data.longitude !== "" && data.longitude !== undefined
-    );
   }, {
     message: "Bitte gib entweder einen gültigen OpenStreetMap-Link oder gültige Koordinaten an.",
     path: ["ossLink"]
@@ -104,15 +103,23 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
 
   async function onValidSubmit(buildingData: z.infer<typeof buildingFormSchema>) {
     const client = getClient(String(sid));
+    
+    
 
-    if (useOssLink && buildingData.ossLink) {
-      const coords = getCoordinatesFromOssLink(buildingData.ossLink);
-      buildingData.latitude = coords.latitude;
-      buildingData.longitude = coords.longitude;
-      buildingData.zoomLevel = coords.zoomLevel;
+    if (useOssLink && dataToSend.ossLink) {
+      const coords = getCoordinatesFromOssLink(dataToSend.ossLink);
+      if (coords.latitude !== undefined) buildingData.latitude = coords.latitude;
+      if (coords.longitude !== undefined) buildingData.longitude = coords.longitude;
+      if (coords.zoomLevel !== undefined) buildingData.zoomLevel = coords.zoomLevel;
     }
-
+    
+    // 2. ossLink immer entfernen (nicht Teil des Backend-Schemas)
     delete buildingData.ossLink;
+    
+    // 3. Konvertiere leere Strings zu null
+    if (buildingData.latitude === "") buildingData.latitude = undefined;
+    if (buildingData.longitude === "") buildingData.longitude = undefined;
+    if (typeof buildingData.zoomLevel === "string" && buildingData.zoomLevel === "") buildingData.zoomLevel = undefined;
     
     if(createMode) {
       await client.request<AddBuildingMutation>(AddBuildingDocument, {building: buildingData})
