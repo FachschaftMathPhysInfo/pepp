@@ -3,6 +3,7 @@
 import {
   BookCheck,
   CalendarCheck2,
+  FerrisWheel,
   Fingerprint,
   GraduationCap,
   Mail,
@@ -11,6 +12,19 @@ import {
   Umbrella,
   Users,
 } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
+import {useUser} from "@/components/providers";
+import {Role} from "@/lib/gql/generated/graphql";
+import {useRouter} from "next/navigation";
 
 export const userItems = [
   {
@@ -57,28 +71,19 @@ export const adminItems = [
     icon: Umbrella,
   },
   {
+    title: "Eventverwaltung",
+    url: "/admin/events",
+    icon: FerrisWheel,
+  },
+  {
     title: "Authentifizierung",
     url: "/admin/auth",
     icon: Fingerprint,
   },
 ];
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { useUser } from "@/components/providers";
-import { Role } from "@/lib/gql/generated/graphql";
-import { useRouter } from "next/navigation";
-
 export function ProfileSidebar() {
-  const { user } = useUser();
+  const {user} = useUser();
   const router = useRouter();
 
   return (
@@ -95,7 +100,7 @@ export function ProfileSidebar() {
                     className="cursor-pointer"
                   >
                     <div>
-                      <item.icon />
+                      <item.icon/>
                       {item.title}
                     </div>
                   </SidebarMenuButton>
@@ -117,7 +122,7 @@ export function ProfileSidebar() {
                       className="cursor-pointer"
                     >
                       <div>
-                        <item.icon />
+                        <item.icon/>
                         {item.title}
                       </div>
                     </SidebarMenuButton>
