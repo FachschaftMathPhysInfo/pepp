@@ -9,3 +9,7 @@ mutation addEvent($event: [NewEvent!]!) {
 mutation deleteEvent($eventIds: [Int!]!) {
   deleteEvent(id: $eventIds)
 }
+
+mutation subscribeToEvent($subscriberID: Int!, $sourceID: Int!) {
+  linkSupportingEventToEvent(eventID: $subscriberID, supportingEventID: $sourceID)
+}
