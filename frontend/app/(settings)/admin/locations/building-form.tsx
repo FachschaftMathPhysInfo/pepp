@@ -4,7 +4,7 @@ import {z} from "zod";
 import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {
@@ -14,9 +14,8 @@ import {
   UpdateBuildingDocument,
   UpdateBuildingMutation
 } from "@/lib/gql/generated/graphql";
-import {Save} from "lucide-react";
+import {Save, ExternalLink} from "lucide-react";
 import {toast} from "sonner";
-import {Switch} from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 
@@ -29,10 +28,27 @@ interface RoomFormProps {
 
 export default function BuildingForm({currentBuilding, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
   const {sid} = useUser()
-  const [useOssLink, setUseOssLink] = useState(true);
   const [locationType, setLocationType] = useState("ossLink");
-  locationType === "ossLink";
+  const useOssLink=locationType === "ossLink";
   
+  const generateOSSLink = (latitude: number, longitude: number, zoomLevel: number) => {
+    if (latitude === undefined || longitude === undefined || zoomLevel === undefined) {
+      return "";
+    }
+    return `https://www.openstreetmap.org/#map=${zoomLevel}/${latitude}/${longitude}`;
+  };
+
+  const [currentOssLink, setCurrentOssLink] = useState<string>("");
+
+  useEffect(() => {
+    if (!createMode && currentBuilding.latitude && currentBuilding.longitude) {
+      setCurrentOssLink(generateOSSLink(
+        currentBuilding.latitude, 
+        currentBuilding.longitude, 
+        currentBuilding.zoomLevel
+      ));
+    }
+  }, [createMode, currentBuilding]);
 
   // Dynamic schema based on toggle
   const buildingFormSchema = z.object({
@@ -244,6 +260,20 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
                     <FormControl>
                       <Input placeholder="https://www.openstreetmap.org/..." {...field} />
                     </FormControl>
+                    {!createMode && currentOssLink && (
+                      <div className="text-xs text-muted-foreground mt-1 flex items-center">
+                        <span>Aktueller Link: </span>
+                        <a 
+                          href={currentOssLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:underline ml-1 inline-flex items-center"
+                        >
+                          {currentOssLink.substring(0, 50)}...
+                          <ExternalLink className="h-3 w-3 ml-1" />
+                        </a>
+                      </div>
+                    )}
                     <FormMessage/>
                   </FormItem>
                 )}
