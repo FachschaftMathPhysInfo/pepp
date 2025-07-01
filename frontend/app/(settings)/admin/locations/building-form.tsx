@@ -17,6 +17,7 @@ import {
 import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {Switch} from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 
 interface RoomFormProps {
@@ -29,6 +30,9 @@ interface RoomFormProps {
 export default function BuildingForm({currentBuilding, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
   const {sid} = useUser()
   const [useOssLink, setUseOssLink] = useState(true);
+  const [locationType, setLocationType] = useState("ossLink");
+  locationType === "ossLink";
+  
 
   // Dynamic schema based on toggle
   const buildingFormSchema = z.object({
@@ -40,27 +44,26 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
     ossLink: z.string()
       .url("Bitte gib einen gültigen OpenStreetMap-Link an")
       .regex(/^https:\/\/www\.openstreetmap\.org\/\S+$/, "Bitte gib einen gültigen OpenStreetMap-Link an")
-      .or(z.literal("")) // allow empty string
+      .or(z.literal("")) 
       .optional(),
     latitude: z.coerce
       .number()
       .min(-90,  "Latitude must be ≥ -90")
       .max( 90,  "Latitude must be ≤ +90")
-      .or(z.literal("")) // allow empty string
+      .or(z.literal("")) 
       .optional(),
     longitude: z.coerce
       .number()
       .min(-180, "Longitude must be ≥ -180")
       .max( 180, "Longitude must be ≤ +180")
-      .or(z.literal("")) // allow empty string
+      .or(z.literal("")) 
       .optional(),
     zoomLevel: z.coerce.number().optional(),
   }).refine((data) => {
     if (useOssLink) {
-      // Im OSSLink-Modus muss ein gültiger Link vorhanden sein
       return !!data.ossLink && data.ossLink !== "";
     } else {
-      // Im Koordinatenmodus müssen latitude und longitude gültige Werte sein
+      
       return (
         (data.latitude !== "" && data.latitude !== undefined) &&
         (data.longitude !== "" && data.longitude !== undefined)
@@ -113,10 +116,10 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
       if (coords.zoomLevel !== undefined) buildingData.zoomLevel = coords.zoomLevel;
     }
     
-    // 2. ossLink immer entfernen (nicht Teil des Backend-Schemas)
+    
     delete buildingData.ossLink;
     
-    // 3. Konvertiere leere Strings zu null
+    
     if (buildingData.latitude === "") buildingData.latitude = undefined;
     if (buildingData.longitude === "") buildingData.longitude = undefined;
     if (typeof buildingData.zoomLevel === "string" && buildingData.zoomLevel === "") buildingData.zoomLevel = undefined;
@@ -220,27 +223,34 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
 
         <div className={'border border-input rounded-lg p-4 pt-2 !mt-6'}>
           <h2 className={'w-full text-center mb-4'}>Open Street Map</h2>
-          <div className="flex items-center gap-4 mb-4">
-            <span>OSS Link eingeben</span>
-            <Switch checked={useOssLink} onCheckedChange={setUseOssLink} />
-            <span>Koordinaten eingeben</span>
-          </div>
-          {useOssLink ? (
-            <FormField
-              control={form.control}
-              name="ossLink"
-              render={({field}) => (
-                <FormItem className={'grow'}>
-                  <FormLabel>OpenStreetMap Link</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://www.openstreetmap.org/..." {...field} />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          ) : (
-            <>
+           <Tabs 
+            defaultValue="ossLink" 
+            value={locationType} 
+            onValueChange={setLocationType}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="ossLink">OSS Link</TabsTrigger>
+              <TabsTrigger value="coordinates">Koordinaten</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="ossLink">
+              <FormField
+                control={form.control}
+                name="ossLink"
+                render={({field}) => (
+                  <FormItem className={'grow'}>
+                    <FormLabel>OpenStreetMap Link</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://www.openstreetmap.org/..." {...field} />
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+            </TabsContent>
+            
+            <TabsContent value="coordinates">
               <div className={'flex justify-between w-full flex-wrap gap-x-4 mb-4'}>
                 <FormField
                   control={form.control}
@@ -282,8 +292,8 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
                   </FormItem>
                 )}
               />
-            </>
-          )}
+            </TabsContent>
+          </Tabs>
         </div>
 
 
