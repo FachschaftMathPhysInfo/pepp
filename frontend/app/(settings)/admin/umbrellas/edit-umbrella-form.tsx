@@ -183,19 +183,20 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
         <FormItem className={'flex-grow'}>
           <FormLabel>Importiert Events von</FormLabel>
           <Popover modal={true}>
-            <PopoverTrigger className="flex w-full items-center justify-start">
-              <div className={'border border-muted-background py-1 px-4 rounded-lg'}>
+            <PopoverTrigger className="flex w-1/2 items-center justify-start">
+              <div className={'border w-full border-muted-background py-1 px-4 rounded-lg text-start text-muted-foreground'}>
                 {sourceUmbrellaIDs.length === 1  ? (
                   `${umbrellas.find(umb => umb.id === sourceUmbrellaIDs[0])?.title}`
                 ) : (
-                  `${sourceUmbrellaIDs.length} ausgewählt...`
+                  `${sourceUmbrellaIDs.length} ausgewählt`
                 )}
               </div>
             </PopoverTrigger>
-            <PopoverContent>
+            <PopoverContent className={'w-fit'}>
               {umbrellas.filter(umb => umb.id !== umbrella.ID).map((umbrella) => (
-                <div key={umbrella.id} className={'flex w-full justify-between items-center'}>
+                <div key={umbrella.id} className={'flex items-center'}>
                   <Checkbox
+                    checked={sourceUmbrellaIDs.includes(umbrella.id)}
                     onClick={() => {
                       if (sourceUmbrellaIDs.includes(umbrella.id)) {
                         const newArray = [...sourceUmbrellaIDs]
@@ -208,6 +209,7 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
                         setSourceUmbrellaIDs([...sourceUmbrellaIDs, umbrella.id])
                       }
                     }}
+                    className={'mr-5'}
                   />
                   {umbrella.title}
                 </div>
