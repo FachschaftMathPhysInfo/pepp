@@ -79,6 +79,21 @@ query registeredEvents {
   }
 }
 
+query allApplicants {
+  users {
+    mail
+    fn
+    sn
+    applications {
+      event {
+        ID
+      }
+      score
+      accepted
+    }
+  }
+}
+
 query RegisteredTutorials {
   users {
     registrations {
