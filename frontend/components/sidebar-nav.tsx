@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import {Separator} from "@/components/ui/separator";
 
 interface SidebarNavProps extends React.HTMLAttributes<HTMLElement> {
   items: {
@@ -20,7 +21,7 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
   return (
     <nav
       className={cn(
-        "flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1",
+        "flex flex-col space-x-0 lg:space-y-1",
         className
       )}
       {...props}
@@ -43,6 +44,8 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
           )}
         </Link>
       ))}
+
+      <Separator className={'lg:hidden my-6'}/>
     </nav>
   );
 }

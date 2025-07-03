@@ -5,7 +5,7 @@ interface SucceededSubmissionWindowProps {
   userMail: string;
 }
 
-export function SuccceededSubmissionWindow({userMail}: SucceededSubmissionWindowProps) {
+export function SubmissionSuccessPage({userMail}: SucceededSubmissionWindowProps) {
   const formattedMail: string = userMail.replace(/([.@])/g, "$1\u200B")
 
   return (

@@ -4,7 +4,6 @@ import {Edit2} from "lucide-react";
 import {useState} from "react";
 import {UmbrellaDialog} from "@/components/dialog/umbrellas/umbrella-dialog";
 
-
 interface EditPlannerSectionProps {
   umbrella: Event;
   refreshData: () => Promise<void>;

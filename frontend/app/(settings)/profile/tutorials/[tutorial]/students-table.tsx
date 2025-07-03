@@ -12,8 +12,8 @@ import {
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
 import React from "react";
 import {Input} from "@/components/ui/input";
-import {DataTablePagination} from "@/components/data-table-pagination";
-import {DataTableViewOptions} from "@/components/data-table-view-options";
+import {DataTablePagination} from "@/components/tables/data-table-pagination";
+import {DataTableViewOptions} from "@/components/tables/data-table-view-options";
 import {User} from "@/lib/gql/generated/graphql";
 import {StudentTableDialogState} from "@/app/(settings)/profile/tutorials/[tutorial]/tutorial-page";
 import StudentsColumns from "@/app/(settings)/profile/tutorials/[tutorial]/students-columns";
@@ -118,7 +118,7 @@ export function StudentsTable({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination table={table} enableSelectionCounter={false} />
     </div>
   );
 }

@@ -13,10 +13,9 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { SwitchCard } from "@/components/switch-card";
-import { Save } from "lucide-react";
+import { Fingerprint, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ScalarType,
@@ -29,6 +28,7 @@ import {
 import { getClient } from "@/lib/graphql";
 import { useUser } from "@/components/providers";
 import { useEffect, useState } from "react";
+import { ManagementPageHeader } from "@/components/management-page-header";
 
 const FormSchema = z.object({
   oidc_name: z.string().nonempty("Feld darf nicht leer sein."),
@@ -109,15 +109,13 @@ export default function IndexPage() {
   return (
     settings && (
       <section className="space-y-6">
-        <div className="space-y-3">
-          <h3 className="text-3xl font-bold">Authentifizierung</h3>
-          <p className="text-sm text-muted-foreground">
-            Hier kannst du die Authentifizierungsschnittstellen der Plattform
-            verwalten. Um beispielsweise Änderungen an der Schnittstelle
-            vorzunehmen, kontaktiere bitte deinen Sysadmin.
-          </p>
-        </div>
-        <Separator />
+        <ManagementPageHeader
+          iconNode={<Fingerprint />}
+          title={"Authentifizierung"}
+          description={
+            "Hier kannst du die Authentifizierungsschnittstellen der Plattform verwalten. Um beispielsweise Änderungen an der Schnittstelle vorzunehmen, kontaktiere bitte deinen Sysadmin."
+          }
+        />
         <SwitchCard
           title="Standard Login"
           description="Nutzerinnen und Nutzer können sich auf dieser Plattform registrieren und anmelden."

@@ -4,6 +4,8 @@ import {
   AddEventDocument,
   AddEventMutation,
   AddEventMutationVariables,
+  DeleteEventDocument,
+  DeleteEventMutation,
   Event,
   LabelKind,
   NewEvent,
@@ -48,6 +50,7 @@ import { DatePicker } from "../../date-picker";
 import { Button } from "../../ui/button";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
+import ConfirmationDialog from "@/components/confirmation-dialog";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
@@ -74,6 +77,7 @@ export function EditEventView({ event }: EditEventViewProps) {
 
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [newAssignments, setNewAssignments] = useState<
     TutorialToUserAssignment[]
   >([]);
@@ -126,10 +130,9 @@ export function EditEventView({ event }: EditEventViewProps) {
   const updateEvent = async (data: z.infer<typeof FormSchema>) => {
     setSaveLoading(true);
 
-    if(!event) {
-      toast.error("Ein Fehler ist aufgetreten, versuche es später erneut")
-      console.error('updateEvent: event is undefined')
-      return
+    if (!event) {
+      toast.error("Ein Fehler ist aufgetreten, versuche es später erneut");
+      return;
     }
 
     const vars: UpdateEventMutationVariables = {
@@ -177,6 +180,19 @@ export function EditEventView({ event }: EditEventViewProps) {
     setSaveLoading(false);
   };
 
+  const deleteThisEvent = async () => {
+    const client = getClient(sid!);
+    try {
+      await client.request<DeleteEventMutation>(DeleteEventDocument, {
+        eventIds: [event?.ID],
+      });
+      toast.info(`"${event?.title}" erfolgreich gelöscht!`);
+      triggerRefetch();
+    } catch {
+      toast.error("Beim Löschen der Veranstaltung ist ein Fehler aufgetreten.");
+    }
+  };
+
   useEffect(() => {
     if (event) return;
 
@@ -207,6 +223,14 @@ export function EditEventView({ event }: EditEventViewProps) {
 
   return (
     <>
+      <ConfirmationDialog
+        isOpen={deleteConfirmationOpen}
+        mode="confirmation"
+        onConfirm={deleteThisEvent}
+        closeDialog={() => setDeleteConfirmationOpen(false)}
+        description={`Diese Aktion wird die Veranstaltung "${event?.title}" und die zugehörigen Tutorien unwideruflich löschen.`}
+      />
+
       <DialogContent className="sm:min-w-[800px]">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(event ? updateEvent : newEvent)}>
@@ -393,7 +417,11 @@ export function EditEventView({ event }: EditEventViewProps) {
                   )}
                 </Button>
                 {event && (
-                  <Button variant="destructive">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={() => setDeleteConfirmationOpen(true)}
+                  >
                     <Trash2 className="h-4 w-4" />
                     Löschen
                   </Button>

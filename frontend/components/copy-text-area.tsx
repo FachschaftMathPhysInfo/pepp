@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Copy, CopyCheck } from "lucide-react";
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 
 interface CopyTextAreaProps {
   label?: string;
@@ -21,14 +22,20 @@ export function CopyTextArea({ label, text }: CopyTextAreaProps) {
   };
 
   return (
-    <div className="relative border rounded-lg p-2 flex flex-row w-[300px] overflow-hidden">
-      <div>
+    <div className="border rounded-lg p-2 flex w-[300px] justify-between items-end overflow-hidden gap-x-6">
+      <div className={'truncate'}>
         <p className="text-xs font-bold text-muted-foreground">{label}</p>
-        <p className="text-sm truncate">{text}</p>
+        <Tooltip>
+          <TooltipTrigger>
+            <p className="text-sm truncate">{text}</p>
+          </TooltipTrigger>
+          <TooltipContent>
+            {text}
+          </TooltipContent>
+        </Tooltip>
       </div>
       <Button
         onClick={() => handleCopy()}
-        className="absolute right-2"
         variant="secondary"
         size="icon"
       >

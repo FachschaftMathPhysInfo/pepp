@@ -10,23 +10,34 @@ import {
   UmbrellaDetailDocument,
   UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
-import React, {useCallback, useEffect, useState} from "react";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
-import {getClient} from "@/lib/graphql";
-import {CopyTextArea} from "@/components/copy-text-area";
-import {CardSkeleton} from "@/components/card-skeleton";
-import {Planner} from "@/components/planner";
-import {useRefetch, useUser} from "@/components/providers";
-import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
-import {Check, ChevronRight, ChevronsUpDown, TriangleAlert,} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {defaultEvent, defaultLabel} from "@/types/defaults";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {DataTable} from "./data-table";
-import {columns} from "./columns";
-import {cn} from "@/lib/utils";
-import EditPlannerSection from "@/app/(planner)/[planner]/edit-planner-section";
 import {FacetedFilter} from "@/components/faceted-filter";
+import React, { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { getClient } from "@/lib/graphql";
+import { CopyTextArea } from "@/components/copy-text-area";
+import { CardSkeleton } from "@/components/card-skeleton";
+import { Planner } from "@/components/planner";
+import { useRefetch, useUser } from "@/components/providers";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Check,
+  ChevronRight,
+  ChevronsUpDown,
+  TriangleAlert,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { defaultEvent, defaultLabel } from "@/types/defaults";
+import EditPlannerSection from "./edit-planner-section";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DataTable } from "./data-table";
+import { columns } from "./columns";
+import { cn } from "@/lib/utils";
+import {TooltipProvider} from "@/components/ui/tooltip";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -152,9 +163,11 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
   );
 
   return (
-    <>
-      {user?.role == Role.Admin && (
-        <EditPlannerSection umbrella={umbrella} refreshData={fetchUmbrellaData}/>
+    <TooltipProvider delayDuration={0}>
+      {user?.role === Role.Admin && (
+        <section className="mb-[20px] space-y-5">
+          <EditPlannerSection umbrella={umbrella} refreshData={fetchUmbrellaData} />
+        </section>
       )}
 
       {events.length > 0 && (
@@ -234,6 +247,6 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
       <section className="mt-5">
         {loading ? <CardSkeleton/> : renderView()}
       </section>
-    </>
+    </TooltipProvider>
   );
 }
