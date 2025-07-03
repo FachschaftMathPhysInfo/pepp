@@ -8,6 +8,7 @@ import (
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
@@ -18,10 +19,10 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		return fmt.Errorf("failed to generate password for tutor1:", err)
 	}
 	users := []*models.User{
-		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true, Salt: salt, Password: password},
-		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true, Salt: salt, Password: password},
-		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: true},
-		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: true},
+		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: utils.BoolPtr(true), Salt: salt, Password: password},
+		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: utils.BoolPtr(true), Salt: salt, Password: password},
+		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: utils.BoolPtr(true)},
+		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: utils.BoolPtr(true)},
 	}
 	if err := insertData(ctx, db, (*models.User)(nil), users, "Users"); err != nil {
 		return err
@@ -84,7 +85,6 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 
 	umbrellaID := int32(1)
 	umbrellaID2 := int32(2)
-	t := true
 	events := []*models.Event{
 		{
 			Title:       fmt.Sprintf("Vorkurs %s", strconv.Itoa(time.Now().Year())),
@@ -103,7 +103,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Informatik",
 			TypeName:    "Tutorium",
-			NeedsTutors: &t,
+			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(time.Hour),
 			UmbrellaID:  &umbrellaID,
@@ -113,7 +113,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Mathe",
 			TypeName:    "Vorlesung",
-			NeedsTutors: &t,
+			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add((24 * time.Hour) * 7),
 			To:          time.Now().Add((24*time.Hour)*7 + 2*time.Hour),
 			UmbrellaID:  &umbrellaID,
@@ -123,7 +123,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Allgemein",
 			TypeName:    "Vorlesung",
-			NeedsTutors: &t,
+			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(time.Hour),
 			UmbrellaID:  &umbrellaID2,
@@ -133,7 +133,7 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 			Description: "Lorem Ipsum dolor sit amed",
 			TopicName:   "Mathe",
 			TypeName:    "Tutorium",
-			NeedsTutors: &t,
+			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(2 * time.Hour),
 			To:          time.Now().Add(3 * time.Hour),
 			UmbrellaID:  &umbrellaID,
@@ -152,30 +152,30 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 	}
 
 	assignments := []*models.TutorialToUserAssignment{
-		{TutorialID: 1, UserMail: "tutor1@example.de"},
-		{TutorialID: 1, UserMail: "tutor2@example.de"},
-		{TutorialID: 2, UserMail: "tutor2@example.de"},
-		{TutorialID: 3, UserMail: "tutor2@example.de"},
+		{TutorialID: 1, UserID: 1},
+		{TutorialID: 1, UserID: 2},
+		{TutorialID: 2, UserID: 2},
+		{TutorialID: 3, UserID: 2},
 	}
 	if err := insertData(ctx, db, (*models.TutorialToUserAssignment)(nil), assignments, "Tutorial to User assignments"); err != nil {
 		return err
 	}
 
 	availabilitys := []*models.UserToEventAvailability{
-		{EventID: 3, UserMail: "tutor1@example.de"},
-		{EventID: 3, UserMail: "tutor2@example.de"},
-		{EventID: 4, UserMail: "tutor1@example.de"},
-		{EventID: 5, UserMail: "tutor2@example.de"},
+		{EventID: 3, UserID: 1},
+		{EventID: 3, UserID: 2},
+		{EventID: 4, UserID: 1},
+		{EventID: 5, UserID: 2},
 	}
 	if err := insertData(ctx, db, (*models.UserToEventAvailability)(nil), availabilitys, "User to Event availabilitys"); err != nil {
 		return err
 	}
 
 	registrations := []*models.UserToTutorialRegistration{
-		{TutorialID: 1, UserMail: "student1@example.de"},
-		{TutorialID: 2, UserMail: "student2@example.de"},
-		{TutorialID: 3, UserMail: "student1@example.de"},
-		{TutorialID: 3, UserMail: "student2@example.de"},
+		{TutorialID: 1, UserID: 3},
+		{TutorialID: 2, UserID: 4},
+		{TutorialID: 3, UserID: 3},
+		{TutorialID: 3, UserID: 4},
 	}
 	if err := insertData(ctx, db, (*models.UserToTutorialRegistration)(nil), registrations, "User to Tutorial registrations"); err != nil {
 		return err

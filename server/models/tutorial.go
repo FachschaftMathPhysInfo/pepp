@@ -29,8 +29,8 @@ func (*Tutorial) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQu
 type TutorialToUserAssignment struct {
 	bun.BaseModel `bun:"table:tutorial_to_user_assignments,alias:tua"`
 
-	UserMail   string    `bun:",pk,type:varchar(255)"`
-	User       *User     `bun:"rel:belongs-to,join:user_mail=mail"`
+	UserID     int32     `bun:",pk"`
+	User       *User     `bun:"rel:belongs-to,join:user_id=id"`
 	TutorialID int32     `bun:",pk"`
 	Tutorial   *Tutorial `bun:"rel:belongs-to,join:tutorial_id=id"`
 }
@@ -38,7 +38,7 @@ type TutorialToUserAssignment struct {
 var _ bun.BeforeCreateTableHook = (*TutorialToUserAssignment)(nil)
 
 func (*TutorialToUserAssignment) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
-	query.ForeignKey(`("user_mail") REFERENCES "users" ("mail") ON DELETE CASCADE`)
+	query.ForeignKey(`("user_id") REFERENCES "users" ("id") ON DELETE CASCADE`)
 	query.ForeignKey(`("tutorial_id") REFERENCES "tutorials" ("id") ON DELETE CASCADE`)
 	return nil
 }

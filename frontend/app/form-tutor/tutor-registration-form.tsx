@@ -14,7 +14,10 @@ import {
   Event,
   TableEventsDocument,
   TableEventsQuery,
-  TableEventsQueryVariables, TutorRegistrationDocument, TutorRegistrationMutation, TutorRegistrationMutationVariables
+  TableEventsQueryVariables, TutorRegistrationDocument, TutorRegistrationMutation, TutorRegistrationMutationVariables,
+  UserIdDocument,
+  UserIdQuery,
+  UserIdQueryVariables
 } from "@/lib/gql/generated/graphql";
 import { RowSelectionState } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
@@ -93,9 +96,12 @@ export default function TutorRegistrationForm({ setSubmissionSuccess, setUserMai
 
       client = getClient(sid.addUser)
 
+      const vars: UserIdQueryVariables = {mailOrSid: sid.addUser}
+      const userData = await client.request<UserIdQuery>(UserIdDocument, vars)
+
       const availabilityData: AddEventAvailabilityOfTutorMutationVariables = {
-        email: tutorData.email,
-        eventsAvailable: tutorData.eventsAvailable
+        eventsAvailable: tutorData.eventsAvailable,
+        id: userData.users[0].ID
       }
 
       await client.request<AddEventAvailabilityOfTutorMutation>(

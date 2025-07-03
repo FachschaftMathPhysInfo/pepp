@@ -4,39 +4,30 @@ mutation registration($fn: String!, $sn: String!, $mail: String!, $password: Str
 
 mutation addTutor($firstName: String!, $lastName: String!, $email: String!, $eventsAvailable: [Int!]!) {
   addUser(user: {fn: $firstName, sn: $lastName, mail: $email})
-  addTutorAvailabilityForEvent(
-    availability: {userMail: $email, eventID: $eventsAvailable}
-  ) {
-    fn
-  }
 }
 
 mutation TutorRegistration($firstName: String!, $lastName: String!, $email: String!) {
   addUser(user: {fn: $firstName, sn: $lastName, mail: $email})
 }
 
-mutation addEventAvailabilityOfTutor($email: String!, $eventsAvailable: [Int!]!) {
+mutation addEventAvailabilityOfTutor($id: Int!, $eventsAvailable: [Int!]!) {
   addTutorAvailabilityForEvent(
-    availability: {userMail: $email, eventID: $eventsAvailable}
+    availability: {userID: $id, eventID: $eventsAvailable}
   ){
     fn
   }
 }
 
-mutation deleteEventAvailabilityOfTutor($email: String!, $eventsAvailable: [Int!]!) {
-  deleteTutorAvailabilityForEvent(availability: {userMail: $email, eventID: $eventsAvailable}) {
+mutation deleteEventAvailabilityOfTutor($id: Int!, $eventsAvailable: [Int!]!) {
+  deleteTutorAvailabilityForEvent(availability: {userID: $id, eventID: $eventsAvailable}) {
     fn
   }
 }
 
-mutation updateUser($email: String!, $fn: String!, $sn: String!, $role: String!) {
-  updateUser(user: {mail: $email fn: $fn, sn: $sn, role: $role})
+mutation updateUser($user: UpdateUser!, $id: Int!) {
+  updateUser(user: $user, id: $id)
 }
 
-mutation changePassword($user: UpdateUser!) {
-  updateUser(user: $user)
-}
-
-mutation deleteUser($email: [String!]!) {
-  deleteUser(mail: $email)
+mutation deleteUser($id: [Int!]!) {
+  deleteUser(id: $id)
 }

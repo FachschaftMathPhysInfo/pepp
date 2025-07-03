@@ -61,7 +61,7 @@ export function TutorialPage({ id }: TutorialPageProps) {
       if(!user) return;
 
       const vars: TutorialDetailQueryVariables = {
-        tutorMail: user.mail,
+        tutorID: user.ID,
         eventID: id,
       };
 
@@ -99,7 +99,7 @@ export function TutorialPage({ id }: TutorialPageProps) {
     const client = getClient(sid!);
     const vars: DeleteStudentRegistrationForTutorialMutationVariables = {
       registration: {
-        userMail: dialogState.currentUser.mail,
+        userID: dialogState.currentUser.ID,
         tutorialID: currentTutorialID,
       },
     };

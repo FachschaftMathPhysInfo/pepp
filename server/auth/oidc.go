@@ -80,7 +80,7 @@ func HandleOIDCCallback(w http.ResponseWriter, r *http.Request, ctx context.Cont
 	}
 
 	user := models.User{
-		Confirmed: true,
+		Confirmed: utils.BoolPtr(true),
 		Password:  "",
 	}
 

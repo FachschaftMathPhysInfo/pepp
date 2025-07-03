@@ -9,9 +9,9 @@ import {Input} from "@/components/ui/input";
 import React, {useState} from "react";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
-import {ChangePasswordDocument, ChangePasswordMutation, LoginDocument, LoginQuery} from "@/lib/gql/generated/graphql";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
+import {LoginDocument, LoginQuery, UpdateUserDocument, UpdateUserMutation} from "@/lib/gql/generated/graphql";
 
 
 export default function PasswordForm() {
@@ -77,7 +77,7 @@ export default function PasswordForm() {
     }
 
     try {
-      await client.request<ChangePasswordMutation>(ChangePasswordDocument, {user: updateData})
+      await client.request<UpdateUserMutation>(UpdateUserDocument, {user: updateData, mail: user.mail})
       toast.info('Dein Passwort wurde verändert')
       console.log(`Changed password for ${user.mail}`)
       setHasTriedToSubmit(false)
@@ -98,7 +98,7 @@ export default function PasswordForm() {
           name="currentPassword"
           render={({field}) => (
             <FormItem className={'flex-grow'}>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Aktuelles Passwort</FormLabel>
               <FormControl>
                 <Input placeholder={''} type={"password"} {...field}/>
               </FormControl>

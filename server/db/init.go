@@ -114,7 +114,7 @@ func InitAdminUser(ctx context.Context, db *bun.DB) error {
 		Mail:      mail,
 		Password:  hash,
 		Salt:      salt,
-		Confirmed: true,
+		Confirmed: utils.BoolPtr(true),
 		Role:      "ADMIN",
 	}
 	res, err := db.NewInsert().Model(admin).Ignore().Exec(ctx)

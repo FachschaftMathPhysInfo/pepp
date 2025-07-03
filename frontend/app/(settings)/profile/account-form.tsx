@@ -9,13 +9,16 @@ import {Input} from "@/components/ui/input";
 import React, {useState} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
-import {UpdateUserDocument, UpdateUserMutation} from "@/lib/gql/generated/graphql";
+import {UpdateUserDocument, UpdateUserMutation, UpdateUserMutationVariables} from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
+import ConfirmationDialog from "@/components/confirmation-dialog";
 
 
 export default function AccountForm() {
   const {user, sid} = useUser()
+
+  const [mailEditedDialogOpen, setMailEditedDialogOpen] = useState(false)
 
   const accountFormSchema = z.object({
     email: z.string().email({
@@ -36,25 +39,32 @@ export default function AccountForm() {
 
   async function onValidSubmit(userData: z.infer<typeof accountFormSchema>) {
     const client = getClient(String(sid));
-    const updateData = {
-      email: userData.email,
-      fn: userData.firstname,
-      sn: userData.lastname,
-      role: user?.role,
+    const updateData: UpdateUserMutationVariables = {
+      user: {
+        mail: userData.email,
+        fn: userData.firstname,
+        sn: userData.lastname,
+        role: user?.role,
+      },
+      id: user?.ID!
     }
 
     try {
       await client.request<UpdateUserMutation>(UpdateUserDocument, updateData)
-      console.log(`updated user: ${user?.mail}`)
     } catch (error) {
       toast.error('Ein Fehler ist aufgetreten, versuche es später erneut')
       console.error(error)
       return
     }
+    
+    if (user?.mail !== userData.email) setMailEditedDialogOpen(true)
+
     toast.info('Dein Account wurde bearbeitet')
   }
 
   return (
+    <>
+        <ConfirmationDialog mode="information" isOpen={mailEditedDialogOpen} closeDialog={() => setMailEditedDialogOpen(false)} description="Bestätige bitte deine neue E-Mail-Addresse innerhalb der nächsten Stunde durch den Link der an dein Postfach gesendet wurde." information="E-Mail verändert!" />
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onValidSubmit, () => setHasTriedToSubmit(true))}
             className="space-y-4 w-full">
@@ -113,5 +123,6 @@ export default function AccountForm() {
         </div>
       </form>
     </Form>
+    </>
   );
 }
