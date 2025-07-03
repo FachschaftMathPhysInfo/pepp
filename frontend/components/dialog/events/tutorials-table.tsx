@@ -31,15 +31,15 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "../ui/hover-card";
+} from "../../ui/hover-card";
 import { MailLinkWithLabel } from "@/components/email-link";
-import { useUser } from "../providers";
+import { useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import React, { useEffect, useState } from "react";
-import { Table, TableBody, TableCell, TableRow } from "../ui/table";
-import { TutorSelection } from "./tutor-selection";
-import { RoomSelection } from "./room-selection";
-import { RoomHoverCard } from "../room-hover-card";
+import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
+import { TutorSelection } from "../tutors/tutor-selection";
+import { RoomSelection } from "../locations/room-selection";
+import { RoomHoverCard } from "../../room-hover-card";
 import { useRouter } from "next/navigation";
 import { slugify } from "@/lib/utils";
 import { toast } from "sonner";

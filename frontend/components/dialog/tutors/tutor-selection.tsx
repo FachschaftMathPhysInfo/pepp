@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { User } from "@/lib/gql/generated/graphql";
 import { ChevronsUpDown } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -10,8 +10,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "../ui/command";
-import { Checkbox } from "../ui/checkbox";
+} from "../../ui/command";
+import { Checkbox } from "../../ui/checkbox";
 
 interface TutorSelectionProps {
   selectedTutors?: User[];

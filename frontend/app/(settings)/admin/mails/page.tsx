@@ -1,6 +1,5 @@
 "use client";
 
-import { Separator } from "@/components/ui/separator";
 import {
   Setting,
   SettingsDocument,
@@ -16,6 +15,8 @@ import { useCallback, useEffect, useState } from "react";
 import { getClient } from "@/lib/graphql";
 import { useUser } from "@/components/providers";
 import MailForm from "@/app/(settings)/admin/mails/mail-form";
+import { ManagementPageHeader } from "@/components/management-page-header";
+import { Mail } from "lucide-react";
 
 export default function Settings() {
   const { sid } = useUser();
@@ -63,15 +64,17 @@ export default function Settings() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-3xl font-bold">Mailverwaltung</h3>
-        <p className="text-sm text-muted-foreground">
-          Bearbeite die Templates der automatisiert verschickten Mails.
-        </p>
-      </div>
-      <Separator />
+      <ManagementPageHeader
+        iconNode={<Mail />}
+        title={"Mailverwaltung"}
+        description={
+          "Bearbeite die Templates der automatisiert verschickten Mails."
+        }
+      />
       {settings.length === 0 ? (
-        <div className={"w-full p-10 border rounded-lg"}>
+        <div
+          className={"w-full p-10 border rounded-lg justify-center text-center"}
+        >
           Es sind keine Einstellung zu E-Mails verfügbar.
         </div>
       ) : (

@@ -7,10 +7,11 @@ import {
   PlannerEventsQuery,
   PlannerEventsQueryVariables,
   Role,
+  UmbrellaDetailDocument,
+  UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
+import {FacetedFilter} from "@/components/faceted-filter";
 import React, { useCallback, useEffect, useState } from "react";
-
-import Filter from "@/components/filter";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getClient } from "@/lib/graphql";
 import { CopyTextArea } from "@/components/copy-text-area";
@@ -36,6 +37,7 @@ import {
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { cn } from "@/lib/utils";
+import {TooltipProvider} from "@/components/ui/tooltip";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -46,23 +48,24 @@ enum View {
   table = "Tabelle",
 }
 
-export function PlannerPage({ umbrellaID }: PlannerPageProps) {
+export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const { user } = useUser();
-  const { refetchKey } = useRefetch();
+  const {user} = useUser();
+  const {refetchKey} = useRefetch();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
   const [topics, setTopics] = useState<Label[]>([]);
-  const [toFilter, setToFilter] = useState<string[]>(searchParams.getAll("to"));
-  const [tyFilter, setTyFilter] = useState<string[]>(searchParams.getAll("ty"));
+  const [topicFilter, setTopicFilter] = useState<string[]>(searchParams.getAll("to"));
+  const [typesFilter, setTypesFilter] = useState<string[]>(searchParams.getAll("ty"));
   const [icalPath, setIcalPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
   const [view, setView] = useState(View.planner);
+  const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
 
   const createQueryString = useCallback((name: string, values: string[]) => {
     const params = new URLSearchParams(values.map((v) => [name, v]));
@@ -72,22 +75,38 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const renderView = () => {
     switch (view) {
       case View.planner:
-        return <Planner events={events} />;
+        return <Planner events={events}/>;
       case View.table:
-        return <DataTable columns={columns} data={events} />;
+        return <DataTable columns={columns} data={events}/>;
     }
   };
 
+  const fetchUmbrellaData = useCallback(async () => {
+    setLoading(true);
+    const client = getClient();
+
+    const umbrellaData = await client.request<UmbrellaDetailQuery>(
+      UmbrellaDetailDocument,
+      {id: umbrellaID}
+    );
+
+    if (umbrellaData) {
+      setUmbrella({...defaultEvent, ...umbrellaData.umbrellas[0]})
+    }
+
+    setLoading(false);
+  }, [umbrellaID])
+
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchEventData = async () => {
       setLoading(true);
 
       const client = getClient();
 
       const vars: PlannerEventsQueryVariables = {
         umbrellaID: umbrellaID ?? 0,
-        topic: toFilter.length == 0 ? undefined : toFilter,
-        type: tyFilter.length == 0 ? undefined : tyFilter,
+        topic: topicFilter.length == 0 ? undefined : topicFilter,
+        type: typesFilter.length == 0 ? undefined : typesFilter,
       };
 
       const eventData = await client.request<PlannerEventsQuery>(
@@ -102,39 +121,40 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            topic: { ...defaultLabel, ...e.topic },
+            topic: {...defaultLabel, ...e.topic},
           }))
         );
-        setIsRestricted(eventData.umbrellas[0].registrationForm ? true : false);
+        setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
       setLoading(false);
-    };
+    }
 
-    fetchData();
-  }, [toFilter, tyFilter, umbrellaID, refetchKey]);
+    void fetchEventData();
+  }, [topicFilter, typesFilter, umbrellaID, refetchKey]);
 
   useEffect(() => {
     router.push(
       pathname +
-        "?" +
-        createQueryString("to", toFilter) +
-        (tyFilter.length && toFilter.length ? "&" : "") +
-        createQueryString("ty", tyFilter)
+      "?" +
+      createQueryString("to", topicFilter) +
+      (typesFilter.length && topicFilter.length ? "&" : "") +
+      createQueryString("ty", typesFilter)
     );
-  }, [toFilter, tyFilter]);
+  }, [topicFilter, typesFilter]);
 
   useEffect(() => {
-    setTyFilter([]);
-    setToFilter([]);
+    setTypesFilter([]);
+    setTopicFilter([]);
+    void fetchUmbrellaData()
   }, [umbrellaID]);
 
   useEffect(() => {
     setIcalPath(
       window.location.origin +
-        "/ical/?e=" +
-        umbrellaID +
-        (searchParams.size ? "&" + searchParams : "")
+      "/ical/?e=" +
+      umbrellaID +
+      (searchParams.size ? "&" + searchParams : "")
     );
   }, [searchParams]);
 
@@ -143,71 +163,68 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   );
 
   return (
-    <>
+    <TooltipProvider delayDuration={0}>
       {user?.role === Role.Admin && (
         <section className="mb-[20px] space-y-5">
-          <EditPlannerSection umbrellaID={umbrellaID} />
+          <EditPlannerSection umbrella={umbrella} refreshData={fetchUmbrellaData} />
         </section>
       )}
 
       {events.length > 0 && (
-        <section className="sm:flex sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2 mb-2">
-            {(topics.length >= 2 || types.length >= 2) && (
-              <>
-                {topics.length >= 2 && (
-                  <Filter
-                    title="Thema"
-                    options={topics.map((t) => t.name)}
-                    filter={toFilter}
-                    setFilter={setToFilter}
-                  />
-                )}
-                {types.length >= 2 && (
-                  <Filter
-                    title="Veranstaltungsart"
-                    options={types.map((t) => t.name)}
-                    filter={tyFilter}
-                    setFilter={setTyFilter}
-                  />
-                )}
-              </>
-            )}
+        <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
+          <div className="flex items-center justify-center gap-x-4">
+
             {user?.role === Role.Admin && (
-              <>
-                <p className="font-bold text-xs">Ansicht</p>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      {view}
-                      <ChevronsUpDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {Object.values(View).map((v) => (
-                      <DropdownMenuItem key={v} onClick={() => setView(v)}>
-                        <Check
-                          className={cn(
-                            "h-4 w-4 mr-2",
-                            v === view ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {v}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    Ansicht
+                    <ChevronsUpDown className="h-4 w-4"/>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {Object.values(View).map((v) => (
+                    <DropdownMenuItem key={v} onClick={() => setView(v)}>
+                      <Check
+                        className={cn(
+                          "h-4 w-4 mr-2",
+                          v === view ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {v}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {topics.length >= 2 && (
+              <FacetedFilter
+                className={'h-full'}
+                options={topics.map((t) => t.name)}
+                setFilter={setTopicFilter}
+                title={'Themen'}
+              />
+            )}
+
+            {types.length >= 2 && (
+              <FacetedFilter
+                className={'h-full'}
+                options={types.map((t) => t.name)}
+                setFilter={setTypesFilter}
+                title={'Veranstaltungsart'}
+              />
             )}
           </div>
-          <CopyTextArea label="ICS-Kalender" text={icalPath} />
+
+          <CopyTextArea label="ICS-Kalender" text={icalPath}/>
         </section>
       )}
 
       {isRestricted && !application && (
         <section>
           <Alert variant="destructive">
-            <TriangleAlert className="h-4 w-4" />
+            <TriangleAlert className="h-4 w-4"/>
             <AlertTitle className="font-bold">
               Registrierung erforderlich!
             </AlertTitle>
@@ -220,7 +237,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
                 onClick={() => router.push(`${pathname}/register`)}
               >
                 Zur Anmeldung
-                <ChevronRight />
+                <ChevronRight/>
               </Button>
             </AlertDescription>
           </Alert>
@@ -228,8 +245,8 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       )}
 
       <section className="mt-5">
-        {loading ? <CardSkeleton /> : renderView()}
+        {loading ? <CardSkeleton/> : renderView()}
       </section>
-    </>
+    </TooltipProvider>
   );
 }

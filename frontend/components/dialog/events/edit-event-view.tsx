@@ -26,7 +26,7 @@ import {
   DialogFooter,
   DialogContent,
 } from "@/components/ui/dialog";
-import { useRefetch, useUser } from "../providers";
+import { useRefetch, useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import TextareaAutosize from "react-textarea-autosize";
 import { z } from "zod";
@@ -42,15 +42,15 @@ import {
 } from "@/components/ui/form";
 import { extractId } from "@/lib/utils";
 import { TutorialsTable } from "./tutorials-table";
-import { Input } from "../ui/input";
+import { Input } from "../../ui/input";
 import { defaultEvent } from "@/types/defaults";
-import { Switch } from "../ui/switch";
-import { BadgePicker } from "../badge-picker";
-import { DatePicker } from "../date-picker";
-import { Button } from "../ui/button";
+import { Switch } from "../../ui/switch";
+import { BadgePicker } from "../../badge-picker";
+import { DatePicker } from "../../date-picker";
+import { Button } from "../../ui/button";
 import { usePathname } from "next/navigation";
 import { toast } from "sonner";
-import ConfirmationDialog from "../confirmation-dialog";
+import ConfirmationDialog from "@/components/confirmation-dialog";
 
 const FormSchema = z.object({
   title: z.string().min(1, {

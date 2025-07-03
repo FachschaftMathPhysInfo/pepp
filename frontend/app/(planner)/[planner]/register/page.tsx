@@ -27,10 +27,9 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormMessage,} from "@/components/ui/form";
 import {toast} from "sonner";
 import {CardSkeleton} from "@/components/card-skeleton";
-import {Dialog} from "@/components/ui/dialog";
 import {useUser} from "@/components/providers";
-import {SignInDialog} from "@/components/sign-in-dialog";
 import {extractId} from "@/lib/utils";
+import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
@@ -198,9 +197,7 @@ export default function Registration() {
 
   return (
     <>
-      <Dialog open={!user}>
-        <SignInDialog />
-      </Dialog>
+      <AuthenticationDialog open={!user}/>
       {loading ? (
         <CardSkeleton />
       ) : (

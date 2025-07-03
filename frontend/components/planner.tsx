@@ -18,7 +18,7 @@ import {
 import { useUser } from "./providers";
 import { Clock, SquareCheckBig } from "lucide-react";
 import { RoomHoverCard } from "./room-hover-card";
-import EventDialog from "./event-dialog/event-dialog";
+import EventDialog from "@/components/dialog/events/event-dialog";
 import { Dialog } from "./ui/dialog";
 import PlannerItem from "./planner-item";
 

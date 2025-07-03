@@ -52,7 +52,7 @@ export default function BuildingSection({building, setDialogState}: BuildingSect
           <span>{building.zip} {building.city}</span>
           <Link
             className={'text-muted-foreground/80 text-sm hover:underline block mt-0.5'}
-            href={`https://www.openstreetmap.org/#map=19/${building.latitude}/${building.longitude}`}
+            href={`https://www.openstreetmap.org/#map=${building.zoomLevel}/${building.latitude}/${building.longitude}`}
           >
             <MapIcon className={'inline w-3 h-3 mr-1'}/>
             {building.latitude} °N, {building.longitude} °W
