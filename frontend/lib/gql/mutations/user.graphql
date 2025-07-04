@@ -2,7 +2,7 @@ mutation registration($fn: String!, $sn: String!, $mail: String!, $password: Str
   addUser(user: {fn: $fn, sn: $sn, mail: $mail, password: $password})
 }
 
-mutation addTutor($firstName: String!, $lastName: String!, $email: String!, $eventsAvailable: [Int!]!) {
+mutation addTutor($firstName: String!, $lastName: String!, $email: String!) {
   addUser(user: {fn: $firstName, sn: $lastName, mail: $email})
 }
 

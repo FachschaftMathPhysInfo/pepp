@@ -17,9 +17,7 @@ import ConfirmationDialog from "@/components/confirmation-dialog";
 
 export default function AccountForm() {
   const {user, sid} = useUser()
-
   const [mailEditedDialogOpen, setMailEditedDialogOpen] = useState(false)
-
   const accountFormSchema = z.object({
     email: z.string().email({
       message: "Bitte gib eine gültige E-Mail an"
@@ -38,7 +36,14 @@ export default function AccountForm() {
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
 
   async function onValidSubmit(userData: z.infer<typeof accountFormSchema>) {
-    const client = getClient(String(sid));
+    if (!user || !sid) {
+      toast.error("Ein Fehler ist aufgetreten, melde dich erneut an")
+      console.error('Error updating user: sid or user undefined')
+      return
+    }
+
+    const client = getClient(sid);
+
     const updateData: UpdateUserMutationVariables = {
       user: {
         mail: userData.email,
@@ -46,7 +51,7 @@ export default function AccountForm() {
         sn: userData.lastname,
         role: user?.role,
       },
-      id: user?.ID!
+      id: user.ID
     }
 
     try {
@@ -56,73 +61,83 @@ export default function AccountForm() {
       console.error(error)
       return
     }
-    
-    if (user?.mail !== userData.email) setMailEditedDialogOpen(true)
+
+    if (user.mail !== userData.email) setMailEditedDialogOpen(true)
 
     toast.info('Dein Account wurde bearbeitet')
   }
 
   return (
     <>
-        <ConfirmationDialog mode="information" isOpen={mailEditedDialogOpen} closeDialog={() => setMailEditedDialogOpen(false)} description="Bestätige bitte deine neue E-Mail-Addresse innerhalb der nächsten Stunde durch den Link der an dein Postfach gesendet wurde." information="E-Mail verändert!" />
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onValidSubmit, () => setHasTriedToSubmit(true))}
-            className="space-y-4 w-full">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onValidSubmit, () => setHasTriedToSubmit(true))}
+              className="space-y-4 w-full">
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({field}) => (
-            <FormItem className={'flex-grow'}>
-              <FormLabel>E-Mail</FormLabel>
-              <FormControl>
-                <Input placeholder={user?.mail} {...field}/>
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({field}) => (
+              <FormItem className={'flex-grow'}>
+                <FormLabel>E-Mail</FormLabel>
+                <FormControl>
+                  <Input placeholder={user?.mail} {...field}/>
+                </FormControl>
+                <FormMessage>
+                  {!user?.confirmed &&
+                    "Diese Mail wurde noch nicht bestätigt, deine Funktionen sind dadurch eingeschränkt"
+                  }
+                </FormMessage>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="firstname"
-          render={({field}) => (
-            <FormItem>
-              <FormLabel>Vorname</FormLabel>
-              <FormControl>
-                <Input placeholder={user?.fn} {...field}/>
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="firstname"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel>Vorname</FormLabel>
+                <FormControl>
+                  <Input placeholder={user?.fn} {...field}/>
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="lastname"
-          render={({field}) => (
-            <FormItem>
-              <FormLabel>Nachname</FormLabel>
-              <FormControl>
-                <Input placeholder={user?.sn} {...field}/>
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="lastname"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel>Nachname</FormLabel>
+                <FormControl>
+                  <Input placeholder={user?.sn} {...field}/>
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
 
-        <div className={'w-full flex justify-end items-center gap-x-12 mt-8'}>
+          <div className={'w-full flex justify-end items-center gap-x-12 mt-8'}>
 
-          <Button
-            disabled={!form.formState.isValid && hasTriedToSubmit}
-            type="submit"
-          >
-            <Save/>
-            Speichern
-          </Button>
-        </div>
-      </form>
-    </Form>
+            <Button
+              disabled={!form.formState.isValid && hasTriedToSubmit}
+              type="submit"
+            >
+              <Save/>
+              Speichern
+            </Button>
+          </div>
+        </form>
+      </Form>
+
+      <ConfirmationDialog
+        mode="information" isOpen={mailEditedDialogOpen}
+        closeDialog={() => setMailEditedDialogOpen(false)}
+        description="Bestätige bitte deine neue E-Mail-Addresse innerhalb der nächsten Stunde durch den Link der an dein Postfach gesendet wurde."
+        information="E-Mail verändert!"
+      />
     </>
   );
 }
