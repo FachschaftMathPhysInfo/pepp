@@ -67,6 +67,7 @@ type Event {
   from: Time!
   to: Time!
   registrationForm: Form
+  supportingEvents: [Event!]
 }
 
 type Room {

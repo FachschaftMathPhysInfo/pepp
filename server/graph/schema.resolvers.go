@@ -859,6 +859,7 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 		Model(&umbrellas).
 		Relation("Topic").
 		Relation("RegistrationForm").
+		Relation("SupportingEvents").
 		Where("umbrella_id IS NULL").
 		Order("from ASC")
 
