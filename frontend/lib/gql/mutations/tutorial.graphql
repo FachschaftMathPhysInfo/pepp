@@ -1,3 +1,13 @@
 mutation addTutorial($tutorials: [NewTutorial!]!) {
     addTutorial(tutorial: $tutorials)
 }
+
+mutation updateTutorial($id: Int!, $tutorial: NewTutorial!) {
+    updateTutorial(id: $id, tutorial: $tutorial){
+        ID
+    }
+}
+
+mutation deleteEvent($eventIds: [Int!]!) {
+    deleteEvent(id: $eventIds)
+}

@@ -131,7 +131,7 @@ export function TutorialsTable({
     };
 
     fetchData();
-  }, [edit]);
+  }, [edit,id]);
 
   const registerForTutorial = async (tutorial: Tutorial) => {
     const client = getClient(sid!);

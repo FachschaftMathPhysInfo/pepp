@@ -25,12 +25,13 @@ interface EventDialogProps {
   id?: number;
   modify?: boolean;
   open: boolean;
+  umbrella?: Event;
 }
 
 export default function EventDialog({
                                       id,
                                       modify = false,
-                                      open,
+                                      open, umbrella
                                     }: EventDialogProps) {
   const {user} = useUser();
   const {refetchKey} = useRefetch();
@@ -48,41 +49,60 @@ export default function EventDialog({
   useEffect(() => {
     if (!open) return;
 
-    if (id === event?.ID) return;
+    if (id) {
+      if (id === event?.ID) return;
 
-    setEvent(undefined);
 
-    const fetchEventData = async () => {
-      const client = getClient();
-      const vars: EventCloseupQueryVariables = {
-        id: id!,
+      setEvent(undefined);
+
+      const fetchEventData = async () => {
+        const client = getClient();
+        const vars: EventCloseupQueryVariables = {
+          id: id!,
+        };
+
+        const eventData = await client.request<EventCloseupQuery>(
+          EventCloseupDocument,
+          vars
+        );
+
+        if (eventData.events.length) {
+          const e = eventData.events[0];
+          setEvent({
+            ...defaultEvent,
+            ...e,
+            tutorials: e.tutorials?.map((t) => ({
+              ...defaultTutorial,
+              ...t,
+              event: {...defaultEvent, ID: id!},
+              tutors: t.tutors?.map((tu) => ({...defaultUser, ...tu})),
+            })),
+          });
+        }
       };
 
-      const eventData = await client.request<EventCloseupQuery>(
-        EventCloseupDocument,
-        vars
-      );
-
-      if (eventData.events.length) {
-        const e = eventData.events[0];
-        setEvent({
-          ...defaultEvent,
-          ...e,
-          tutorials: e.tutorials?.map((t) => ({
-            ...defaultTutorial,
-            ...t,
-            event: {...defaultEvent, ID: id!},
-            tutors: t.tutors?.map((tu) => ({...defaultUser, ...tu})),
-          })),
-        });
-      }
-    };
-
-    if (id) void fetchEventData();
-  }, [id, open, refetchKey]);
+      if (id) void fetchEventData();
+    }
+    if (umbrella){
+      setEvent({
+        ...defaultEvent,
+        umbrella: umbrella,
+        from: umbrella.from,
+        to: umbrella.to,
+        title: "",
+        description: "",
+        tutorials: umbrella.tutorials?.map((t) => ({
+          ...defaultTutorial,
+          ...t,
+          event: {...defaultEvent, ID: umbrella.ID},
+          tutors: t.tutors?.map((tu) => ({...defaultUser, ...tu})),
+        })) ?? [],
+      });
+    }
+  }, [id, open, refetchKey, umbrella]);
 
   return edit ? (
-    <EditEventView event={event}/>
+    <EditEventView event={event} umbrella={umbrella}/>
   ) : (
     <>
       <DialogContent className="sm:min-w-[600px]">
@@ -113,6 +133,7 @@ export default function EventDialog({
                 <span>, um dich eintragen zu können.</span>
               </div>
             )}
+            {event && (
             <TutorialsTable
               id={id!}
               event={event!}
@@ -124,7 +145,7 @@ export default function EventDialog({
               setNewAssignments={setNewAssignments}
               deleteAssignments={deleteAssignments}
               setDeleteAssignments={setDeleteAssignments}
-            />
+            />)}
             {user?.role === Role.Admin && (
               <Button variant="secondary" onClick={() => setEdit(true)}>
                 <Edit3 className="h-4 w-4"/>

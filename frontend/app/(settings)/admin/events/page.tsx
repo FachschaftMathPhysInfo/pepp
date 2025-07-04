@@ -10,13 +10,14 @@ import {
   Event,
   TableEventsWithoutTypeDocument,
   TableEventsWithoutTypeQuery,
-  UmbrellasDocument
+  UmbrellasDocument,
+  UmbrellasQuery
 } from "@/lib/gql/generated/graphql";
 import {getClient} from "@/lib/graphql";
 import {Button} from "@/components/ui/button";
 import {defaultEvent} from "@/types/defaults";
 import SearchInput from "@/components/search-input";
-import UmbrellaEventSection from "@/app/(settings)/admin/events/umbella-event-section";
+import UmbrellaEventSection from "@/app/(settings)/admin/events/umbrella-event-section";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import {toast} from "sonner";
 import EventDialog from "@/components/event-dialog/event-dialog";
@@ -25,7 +26,8 @@ import {GraphQLClient} from "graphql-request";
 
 export type EventsDialogState = {
   mode: "editEvent" | "addEvent" | "deleteEvent" | null;
-  umbrella: Event;
+  event: Event;
+  umbrella?: Event;
 };
 
 export default function EventsOfUmbrella() {
@@ -37,20 +39,27 @@ export default function EventsOfUmbrella() {
 
   const [dialogState, setDialogState] = useState<EventsDialogState>({
     mode: null,
-    umbrella: defaultEvent,
+    event: defaultEvent,
   });
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [closeupID, setCloseupID] = useState(0);
   const [searchValue, setSearchValue] = useState<string>("");
 
+  useEffect(() => {
+    setClient(getClient(String(sid)));
+  }, [sid]);
 
   const fetchUmbrellas = useCallback(async () => {
-    const client = getClient(String(sid));
-    const {umbrellas} = await client.request(UmbrellasDocument, {
-      onlyFuture: true,
-    });
-    setUmbrellas(umbrellas as Event[]);
-  }, [sid]);
+    const umbrellaData = await client.request<UmbrellasQuery>(
+      UmbrellasDocument
+    );
+    const umbrellas = umbrellaData.umbrellas.map((umbrella) => ({
+      ...defaultEvent,
+      ...umbrella,
+    }));
+    setUmbrellas(umbrellas);
+  }, [client]);
+
 
   const fetchEventsOfUmbrellas = useCallback(async () => {
     if (!umbrellas.length) return;
@@ -76,49 +85,34 @@ export default function EventsOfUmbrella() {
     setEventsByUmbrella(umbrellaEventsMap);
   }, [sid, umbrellas]);
 
-
   useEffect(() => {
     void fetchUmbrellas();
   }, [fetchUmbrellas]);
 
   useEffect(() => {
-    void fetchEventsOfUmbrellas();
-  }, [fetchEventsOfUmbrellas]);
+    if (umbrellas.length > 0) {
+      void fetchEventsOfUmbrellas();
+    }
+  }, [umbrellas, fetchEventsOfUmbrellas]);
+
+  // Dialog Handling
+  const closeDialog = () =>
+    setDialogState({mode: null, event: defaultEvent});
 
   const handleDeleteEvent = async () => {
     await client.request<DeleteEventMutation>(DeleteEventDocument, {
-      eventIds: dialogState.umbrella.tutorials?.map((tutorial) => tutorial.ID),
+      eventIds: dialogState.event.ID,
     });
   };
-
-  const closeDialog = () =>
-    setDialogState({mode: null, umbrella: defaultEvent});
 
 
   return (
     <div className="space-y-6">
-      <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
-      <EventDialog id={closeupID} open={eventDialogOpen} />
-    </Dialog>
+
       <ManagementPageHeader
         iconNode={<FerrisWheel/>}
         title="Event Verwaltung"
         description="Alle Veranstaltungen gruppiert nach Umbrella."
-        actionButton={
-          <Button
-            variant={"outline"}
-            onClick={() => {
-              setDialogState({
-                mode: "addEvent",
-                umbrella: defaultEvent,
-              });
-            }}
-
-          >
-            <CirclePlus />
-            Event hinzufügen
-          </Button>
-        }
 
       />
       <SearchInput searchValue={searchValue} setSearchValue={setSearchValue}/>
@@ -129,7 +123,11 @@ export default function EventsOfUmbrella() {
           </div>
         ) : (
           umbrellas
-            .filter((umbrella) => umbrella.title.includes(searchValue))
+          .filter((umbrella) =>
+          (umbrellaEventsMap[umbrella.ID] || []).some((event) =>
+          event.title.toLowerCase().includes(searchValue.toLowerCase())
+          )
+          )
             .map((umbrella) => (
               <UmbrellaEventSection
                 key={umbrella.ID}
@@ -144,18 +142,31 @@ export default function EventsOfUmbrella() {
         )}
         <ConfirmationDialog
           mode="confirmation"
-          description={`Dies wird das Event löschen.`}
+          description={`Dies wird das Event ${dialogState.event.title} löschen.`}
           onConfirm={async () => {
             await handleDeleteEvent();
             closeDialog();
             void fetchEventsOfUmbrellas();
             toast.info(
-              `${dialogState.umbrella.title} wurde erfolgreich gelöscht`
+              `${dialogState.event.title} wurde erfolgreich gelöscht`
             );
           }}
           isOpen={dialogState.mode === "deleteEvent"}
           closeDialog={closeDialog}
         />
+        <Dialog open={dialogState.mode === "editEvent" || dialogState.mode === "addEvent"} onOpenChange={(open) => {
+          if (!open) {
+            setDialogState({mode: null, event: defaultEvent});
+          }
+        }}>
+          <EventDialog
+            id={dialogState.event.ID}
+            open={dialogState.mode === "editEvent" || dialogState.mode === "addEvent"}
+            modify={dialogState.mode === "editEvent"}
+            umbrella={dialogState.umbrella}
+          />
+        </Dialog>
+
 
       </div>
     </div>

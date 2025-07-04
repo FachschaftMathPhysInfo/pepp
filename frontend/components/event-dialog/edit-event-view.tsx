@@ -67,6 +67,7 @@ const FormSchema = z.object({
 
 interface EditEventViewProps {
   event: Event | undefined;
+  umbrella?: Event;
 }
 
 export function EditEventView({ event }: EditEventViewProps) {
@@ -194,7 +195,7 @@ export function EditEventView({ event }: EditEventViewProps) {
   };
 
   useEffect(() => {
-    if (event) return;
+    if (event || umbrella) return;
 
     const client = getClient();
 

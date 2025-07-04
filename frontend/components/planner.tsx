@@ -1,33 +1,18 @@
-import { Event } from "@/lib/gql/generated/graphql";
-import {
-  calculateEventDurationInHours,
-  formatDateToDDMM,
-  formatDateToHHMM,
-  getISOWeekNumber,
-  groupEvents,
-  hexToRGBA,
-} from "@/lib/utils";
-import React, { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-import { useUser } from "./providers";
-import { Clock, SquareCheckBig } from "lucide-react";
-import { RoomHoverCard } from "./room-hover-card";
+import {Event} from "@/lib/gql/generated/graphql";
+import {calculateEventDurationInHours, formatDateToDDMM, getISOWeekNumber, groupEvents,} from "@/lib/utils";
+import React, {useEffect, useState} from "react";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle,} from "./ui/card";
+import {useUser} from "./providers";
 import EventDialog from "./event-dialog/event-dialog";
-import { Dialog } from "./ui/dialog";
+import {Dialog} from "./ui/dialog";
 import PlannerItem from "./planner-item";
 
 interface PlannerProps {
   events: Event[];
 }
 
-export function Planner({ events }: PlannerProps) {
-  const { user } = useUser();
+export function Planner({events}: PlannerProps) {
+  const {user} = useUser();
 
   const groupedEvents = groupEvents(events);
   const [currentMinutes, setCurrentMinutes] = useState(0);
@@ -49,7 +34,7 @@ export function Planner({ events }: PlannerProps) {
   return (
     <>
       <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
-        <EventDialog id={closeupID} open={eventDialogOpen} />
+        <EventDialog id={closeupID} open={eventDialogOpen}/>
       </Dialog>
       <div className="lg:flex lg:flex-row lg:space-x-4 lg:space-y-0 md:space-y-4">
         {Object.entries(groupedEvents).map(([week, days], weekIndex) => (
@@ -85,14 +70,14 @@ export function Planner({ events }: PlannerProps) {
                   <CardContent className="flex flex-row">
                     {dayStartDate.getDay() == now.getDay() &&
                       getISOWeekNumber(dayStartDate) ===
-                        getISOWeekNumber(now) && (
+                      getISOWeekNumber(now) && (
                         <div className="relative w-2 mr-[24px]">
                           <div className="absolute inset-0 w-0.5 bg-gray-300 mx-auto"></div>
                           {now.getTime() >= dayStartDate.getTime() &&
                             now.getTime() <= dayEndDate.getTime() && (
                               <div
                                 className="absolute left-0 right-0 bg-red-500 w-2 h-2 rounded-full mx-auto"
-                                style={{ top: `${tPosition()}%` }}
+                                style={{top: `${tPosition()}%`}}
                               />
                             )}
                         </div>
@@ -101,9 +86,9 @@ export function Planner({ events }: PlannerProps) {
                       {dayEvents.map((event, eventIndex) => {
                         const gap = eventIndex
                           ? calculateEventDurationInHours(
-                              dayEvents[eventIndex - 1].to,
-                              event.from
-                            )
+                            dayEvents[eventIndex - 1].to,
+                            event.from
+                          )
                           : 0;
                         const eventDurationHours =
                           calculateEventDurationInHours(event.from, event.to);
@@ -115,7 +100,7 @@ export function Planner({ events }: PlannerProps) {
                           <div key={event.ID}>
                             <div
                               className="bg-transparent"
-                              style={{ height: `${gap * 100}px` }}
+                              style={{height: `${gap * 100}px`}}
                             ></div>
                             <PlannerItem
                               event={event}

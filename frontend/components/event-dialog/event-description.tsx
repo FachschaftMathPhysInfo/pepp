@@ -9,7 +9,8 @@ interface EventDescriptionProps {
 export default function EventDescription({ event }: EventDescriptionProps) {
   return (
     <>
-      <p>{event?.description}</p>
+      <div>
+      {event?.description}
       <div className="space-x-2 flex flex-row">
         <Badge variant="event" color={event?.topic.color || ""}>
           {event?.topic.name}
@@ -26,6 +27,7 @@ export default function EventDescription({ event }: EventDescriptionProps) {
           />
         </div>
       )}
+      </div>
     </>
   );
 }
