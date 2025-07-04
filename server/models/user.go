@@ -14,7 +14,7 @@ type User struct {
 	Mail      string    `bun:"type:varchar(255),unique"`
 	Fn        string    `bun:"type:varchar(255),notnull"`
 	Sn        string    `bun:"type:varchar(255),notnull"`
-	Confirmed *bool     `bun:",notnull"`
+	Confirmed *bool     `bun:",notnull,default:false"`
 	SessionID string    `bun:"type:varchar(11)"`
 	LastLogin time.Time `bun:",nullzero,notnull,default:current_timestamp"`
 	Password  string    `bun:"type:varchar(64)"`
