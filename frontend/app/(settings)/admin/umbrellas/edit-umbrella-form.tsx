@@ -123,13 +123,12 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
   async function handleSubscriptions() {
     const client = getClient(String(sid));
     try {
-      await Promise.all(sourceUmbrellaIDs.map((umbrellaID) => {
-        return client.request<SubscribeToEventMutation>(SubscribeToEventDocument, {
-          subscriberID: umbrella.ID,
-          sourceID: umbrellaID
-        })
-      }))
+      await client.request<SubscribeToEventMutation>(SubscribeToEventDocument, {
+        subscriberID: umbrella.ID,
+        sourceID: sourceUmbrellaIDs,
+      })
     } catch (e) {
+      toast.error('Importieren von externen Events ist fehlgeschlagen')
       console.error('Failed subscribing to event: ', e)
     }
   }
