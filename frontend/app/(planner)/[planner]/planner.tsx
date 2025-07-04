@@ -174,7 +174,8 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
         <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
           <div className="flex items-center justify-center gap-x-4">
 
-            {user?.role === Role.Admin && (
+            <div className={'flex items-center justify-start gap-x-4 flex-wrap'}>
+              {user?.role === Role.Admin && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
@@ -198,23 +199,24 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
               </DropdownMenu>
             )}
 
-            {topics.length >= 2 && (
-              <FacetedFilter
-                className={'h-full'}
-                options={topics.map((t) => t.name)}
-                setFilter={setTopicFilter}
-                title={'Themen'}
-              />
-            )}
+              {topics.length >= 2 && (
+                <FacetedFilter
+                  className={'h-full'}
+                  options={topics.map((t) => t.name)}
+                  setFilter={setTopicFilter}
+                  title={'Themen'}
+                />
+              )}
 
-            {types.length >= 2 && (
-              <FacetedFilter
-                className={'h-full'}
-                options={types.map((t) => t.name)}
-                setFilter={setTypesFilter}
-                title={'Veranstaltungsart'}
-              />
-            )}
+              {types.length >= 2 && (
+                <FacetedFilter
+                  className={'h-full'}
+                  options={types.map((t) => t.name)}
+                  setFilter={setTypesFilter}
+                  title={'Veranstaltungsart'}
+                />
+              )}
+            </div>
           </div>
 
           <CopyTextArea label="ICS-Kalender" text={icalPath}/>
