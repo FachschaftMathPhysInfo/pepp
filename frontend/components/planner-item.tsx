@@ -22,11 +22,8 @@ export default function PlannerItem({
   return (
     <li
       key={event.ID}
-      className={`rounded-lg p-2 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
-      style={{
-        backgroundColor: hexToRGBA(event.topic.color ?? "#FFF", 0.3),
-        height: `${height}px`,
-      }}
+      className={`rounded-lg p-2 h-[${height}px] cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between min-h-fit`}
+      style={{backgroundColor: hexToRGBA(event.topic.color ?? "#FFF", 0.3)}}
       role="button"
       tabIndex={0}
       onClick={() => {
