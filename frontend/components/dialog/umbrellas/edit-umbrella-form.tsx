@@ -214,25 +214,25 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
               </div>
             </PopoverTrigger>
             <PopoverContent className={'w-fit'}>
-              {umbrellas.filter(umb => umb.id !== umbrella.ID).map((umbrella) => (
-                <div key={umbrella.id} className={'flex items-center'}>
+              {umbrellas.filter(umb => umb.id !== umbrella.ID).map((umb) => (
+                <div key={umb.id} className={'flex items-center'}>
                   <Checkbox
-                    checked={sourceUmbrellaIDs.includes(umbrella.id)}
+                    checked={sourceUmbrellaIDs.includes(umb.id)}
                     onClick={() => {
-                      if (sourceUmbrellaIDs.includes(umbrella.id)) {
+                      if (sourceUmbrellaIDs.includes(umb.id)) {
                         const newArray = [...sourceUmbrellaIDs]
-                        const index = newArray.indexOf(umbrella.id, 0);
+                        const index = newArray.indexOf(umb.id, 0);
                         if (index > -1) {
                           newArray.splice(index, 1);
                         }
                         setSourceUmbrellaIDs(newArray);
                       } else {
-                        setSourceUmbrellaIDs([...sourceUmbrellaIDs, umbrella.id])
+                        setSourceUmbrellaIDs([...sourceUmbrellaIDs, umb.id])
                       }
                     }}
                     className={'mr-5'}
                   />
-                  {umbrella.title}
+                  {umb.title}
                 </div>
               ))}
             </PopoverContent>

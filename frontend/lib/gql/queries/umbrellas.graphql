@@ -18,6 +18,9 @@ query umbrellaDetail($id: Int!) {
     description
     from
     to
+    supportingEvents {
+      ID
+    }
   }
 }
 

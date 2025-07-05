@@ -91,7 +91,14 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     );
 
     if (umbrellaData) {
-      setUmbrella({...defaultEvent, ...umbrellaData.umbrellas[0]})
+      setUmbrella({
+        ...defaultEvent,
+        ...umbrellaData.umbrellas[0],
+        supportingEvents: umbrellaData.umbrellas[0].supportingEvents?.map(e => ({
+          ...defaultEvent,
+          ...e
+        }))
+      })
     }
 
     setLoading(false);
