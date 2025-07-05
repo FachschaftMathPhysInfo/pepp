@@ -49,7 +49,7 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
           router.push("/" + slugify(umbrella.title) + "-" + umbrella.ID);
         }
         setUmbrellas(
-          umbrellaData.umbrellas.map((u) => ({ ...defaultEvent, ...u }))
+          umbrellaData.umbrellas.map((u) => ({ ...defaultEvent, ...u, supportingEvents: [] }))
         );
       }
     };

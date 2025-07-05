@@ -48,6 +48,10 @@ export default function UmbrellaSettings() {
     const umbrellas = umbrellaData.umbrellas.map((umbrella) => ({
       ...defaultEvent,
       ...umbrella,
+      supportingEvents: umbrella.supportingEvents?.map(e => ({
+        ...defaultEvent,
+        ...e
+      })),
     }));
     setUmbrellas(umbrellas);
   }, [client]);

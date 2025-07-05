@@ -2,10 +2,8 @@ import { Event } from "@/lib/gql/generated/graphql";
 import {
   calculateEventDurationInHours,
   formatDateToDDMM,
-  formatDateToHHMM,
   getISOWeekNumber,
   groupEvents,
-  hexToRGBA,
 } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import {
@@ -16,8 +14,6 @@ import {
   CardTitle,
 } from "./ui/card";
 import { useUser } from "./providers";
-import { Clock, SquareCheckBig } from "lucide-react";
-import { RoomHoverCard } from "./room-hover-card";
 import EventDialog from "@/components/dialog/events/event-dialog";
 import { Dialog } from "./ui/dialog";
 import PlannerItem from "./planner-item";
@@ -49,7 +45,7 @@ export function Planner({ events }: PlannerProps) {
   return (
     <>
       <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
-        <EventDialog id={closeupID} open={eventDialogOpen} />
+        <EventDialog id={closeupID} open={eventDialogOpen}/>
       </Dialog>
       <div className="lg:flex lg:flex-row lg:space-x-4 lg:space-y-0 md:space-y-4">
         {Object.entries(groupedEvents).map(([week, days], weekIndex) => (
