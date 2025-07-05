@@ -308,5 +308,5 @@ type Mutation {
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
   deleteStudentApplicationForEvent(mail: String!, eventID: Int!): User!
   linkSupportingEventToEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
-  unlinkSupportingEventFromEvent(eventID: Int!, supportingEventID: Int!): Int! @auth(role: ADMIN)
+  unlinkSupportingEventFromEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
 }

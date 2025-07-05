@@ -14,7 +14,7 @@ import {
   SubscribeToEventDocument,
   SubscribeToEventMutation,
   UmbrellasDocument,
-  UmbrellasQuery,
+  UmbrellasQuery, UnsubscribeFromEventDocument, UnsubscribeFromEventMutation,
   UpdateEventDocument,
   UpdateEventMutation
 } from "@/lib/gql/generated/graphql";
@@ -71,6 +71,12 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
           id: umb.ID,
           title: umb.title,
         })))
+        setSourceUmbrellaIDs(umbrellaData.umbrellas.filter(
+          u => umbrella.supportingEvents?.map(
+            e => e.ID).includes(
+              u.ID)).map(
+                u => u.ID)
+        )
       } catch (e) {
         console.error('Failed fetching umbrellas: ', e)
       }
@@ -122,11 +128,27 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
 
   async function handleSubscriptions() {
     const client = getClient(String(sid));
+    const idsToAdd= sourceUmbrellaIDs.filter(
+      source => !(umbrella.supportingEvents?.map(e => e.ID).includes(source))
+    )
+    const idsToRemove = umbrella.supportingEvents?.map(e => e.ID).filter(
+      id => !(sourceUmbrellaIDs.includes(id))
+    ) ?? []
+
     try {
-      await client.request<SubscribeToEventMutation>(SubscribeToEventDocument, {
-        subscriberID: umbrella.ID,
-        sourceID: sourceUmbrellaIDs,
-      })
+      if(idsToAdd.length > 0) {
+        await client.request<SubscribeToEventMutation>(SubscribeToEventDocument, {
+          subscriberID: umbrella.ID,
+          sourceIDs: idsToAdd,
+        })
+      }
+
+      if(idsToRemove.length > 0) {
+        await client.request<UnsubscribeFromEventMutation>(UnsubscribeFromEventDocument, {
+          subscriberID: umbrella.ID,
+          sourceIDs: idsToRemove
+        })
+      }
     } catch (e) {
       toast.error('Importieren von externen Events ist fehlgeschlagen')
       console.error('Failed subscribing to event: ', e)

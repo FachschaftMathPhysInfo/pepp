@@ -776,11 +776,16 @@ func (r *mutationResolver) LinkSupportingEventToEvent(ctx context.Context, event
 }
 
 // UnlinkSupportingEventFromEvent is the resolver for the unlinkSupportingEventFromEvent field.
-func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, eventID int, supportingEventID int) (int, error) {
-	link := &models.EventToSupportingEvent{EventID: int32(eventID), SupportingEventID: int32(supportingEventID)}
+func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, eventID int, supportingEventID []int) (int, error) {
+	var links []int32
+	for _, id := range supportingEventID {
+		links = append(links, int32(id))
+	}
+
 	if _, err := r.DB.NewDelete().
-		Model(link).
-		WherePK().
+		Model((*models.EventToSupportingEvent)(nil)).
+		Where("event_id = ?", eventID).
+		Where("supporting_event_id IN (?)", bun.In(links)).
 		Exec(ctx); err != nil {
 		return 0, err
 	}

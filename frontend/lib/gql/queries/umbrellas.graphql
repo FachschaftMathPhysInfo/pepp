@@ -5,6 +5,9 @@ query umbrellas($onlyFuture: Boolean, $id: [Int!]) {
     description
     from
     to
+    supportingEvents {
+      ID
+    }
   }
 }
 

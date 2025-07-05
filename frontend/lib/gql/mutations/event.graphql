@@ -10,6 +10,10 @@ mutation deleteEvent($eventIds: [Int!]!) {
   deleteEvent(id: $eventIds)
 }
 
-mutation subscribeToEvent($subscriberID: Int!, $sourceID: [Int!]!) {
-  linkSupportingEventToEvent(eventID: $subscriberID, supportingEventID: $sourceID)
+mutation subscribeToEvent($subscriberID: Int!, $sourceIDs: [Int!]!) {
+  linkSupportingEventToEvent(eventID: $subscriberID, supportingEventID: $sourceIDs)
+}
+
+mutation unsubscribeFromEvent($subscriberID: Int!, $sourceIDs: [Int!]!){
+  unlinkSupportingEventFromEvent(eventID: $subscriberID, supportingEventID: $sourceIDs)
 }
