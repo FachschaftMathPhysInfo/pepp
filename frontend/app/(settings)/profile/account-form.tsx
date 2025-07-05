@@ -18,6 +18,7 @@ import ConfirmationDialog from "@/components/confirmation-dialog";
 export default function AccountForm() {
   const {user, sid} = useUser()
   const [mailEditedDialogOpen, setMailEditedDialogOpen] = useState(false)
+  const [showUnconfirmed, setShowUnconfirmed] = useState<boolean>(false)
   const accountFormSchema = z.object({
     email: z.string().email({
       message: "Bitte gib eine gültige E-Mail an"
@@ -82,10 +83,10 @@ export default function AccountForm() {
                 <FormControl>
                   <Input placeholder={user?.mail} {...field}/>
                 </FormControl>
-                <FormMessage>
-                  {!user?.confirmed &&
-                    "Diese Mail wurde noch nicht bestätigt, deine Funktionen sind dadurch eingeschränkt"
-                  }
+                <FormMessage className={'text-red-600'}>
+                  {!user?.confirmed || showUnconfirmed && (
+                    "Deine Mail wurde noch nicht bestätigt, dadurch sind die Funktionen deines Accounts eingeschränkt"
+                  )}
                 </FormMessage>
               </FormItem>
             )}
@@ -133,8 +134,12 @@ export default function AccountForm() {
       </Form>
 
       <ConfirmationDialog
-        mode="information" isOpen={mailEditedDialogOpen}
-        closeDialog={() => setMailEditedDialogOpen(false)}
+        mode="information"
+        isOpen={mailEditedDialogOpen}
+        closeDialog={() => {
+          setMailEditedDialogOpen(false)
+          setShowUnconfirmed(true)
+        }}
         description="Bestätige bitte deine neue E-Mail-Addresse innerhalb der nächsten Stunde durch den Link der an dein Postfach gesendet wurde."
         information="E-Mail verändert!"
       />
