@@ -38,6 +38,7 @@ query futureEvents($needsTutors: Boolean) {
 
 query availableEventIdsOfUser($mail: [String!]!) {
   users(mail: $mail) {
+    ID
     availabilities {
       ID
     }

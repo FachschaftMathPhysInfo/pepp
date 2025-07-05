@@ -139,7 +139,7 @@ export function TutorialsTable({
     const vars: AddStudentRegistrationForTutorialMutationVariables = {
       registration: {
         tutorialID: tutorial.ID,
-        userMail: user!.mail,
+        userID: user!.ID,
       },
     };
 
@@ -161,7 +161,7 @@ export function TutorialsTable({
     const vars: DeleteStudentRegistrationForTutorialMutationVariables = {
       registration: {
         tutorialID: tutorial.ID,
-        userMail: user!.mail,
+        userID: user!.ID,
       },
     };
 

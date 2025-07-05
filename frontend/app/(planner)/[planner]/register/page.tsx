@@ -131,7 +131,7 @@ export default function Registration() {
     }
 
     const application: NewUserToEventApplication = {
-      userMail: user?.mail ?? "",
+      userID: user?.ID!,
       eventID: +eventID!,
       answers: responses,
     };
