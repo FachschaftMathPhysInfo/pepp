@@ -9,7 +9,7 @@ import {
   TutorialToUserAssignment,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import { Edit3 } from "lucide-react";
+import { Edit3, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DialogHeader,
@@ -25,6 +25,9 @@ import { Button } from "../../ui/button";
 import { EditEventView } from "./edit-event-view";
 import EventDescription from "./event-description";
 import { AuthenticationDialog } from "../authentication/authentication-dialog";
+import Link from "next/link";
+import { extractId, slugify } from "@/lib/utils";
+import {usePathname} from "next/navigation";
 
 interface EventDialogProps {
   id?: number;
@@ -37,6 +40,8 @@ export default function EventDialog({
   modify = false,
   open,
 }: EventDialogProps) {
+  const pathname = usePathname()
+
   const { user } = useUser();
   const { refetchKey } = useRefetch();
 
@@ -142,6 +147,24 @@ export default function EventDialog({
                 Bearbeiten
               </Button>
             )}
+          </div>
+        )}
+
+        {id && event?.umbrella?.ID !== extractId(pathname) && (
+          <div className="flex flex-row items-center">
+            <Info className="size-4 mr-2" />
+            <span className="text-xs">
+              Diese Veranstaltung ist Teil von{" "}
+              <Link
+                className="underline"
+                href={`/${slugify(event?.umbrella?.title ?? "")}-${
+                  event?.umbrella?.ID
+                }`}
+              >
+                {event?.umbrella?.title}
+              </Link>
+              .
+            </span>
           </div>
         )}
       </DialogContent>
