@@ -14,16 +14,15 @@ import {
   CardTitle,
 } from "./ui/card";
 import { useUser } from "./providers";
-import EventDialog from "./event-dialog/event-dialog";
+import EventDialog from "@/components/dialog/events/event-dialog";
 import { Dialog } from "./ui/dialog";
 import PlannerItem from "./planner-item";
 
 interface PlannerProps {
   events: Event[];
-  umbrellaID: number;
 }
 
-export function Planner({ events, umbrellaID }: PlannerProps) {
+export function Planner({ events }: PlannerProps) {
   const { user } = useUser();
 
   const groupedEvents = groupEvents(events);
@@ -46,7 +45,7 @@ export function Planner({ events, umbrellaID }: PlannerProps) {
   return (
     <>
       <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
-        <EventDialog id={closeupID} open={eventDialogOpen} umbrellaID={umbrellaID} />
+        <EventDialog id={closeupID} open={eventDialogOpen}/>
       </Dialog>
       <div className="lg:flex lg:flex-row lg:space-x-4 lg:space-y-0 md:space-y-4">
         {Object.entries(groupedEvents).map(([week, days], weekIndex) => (

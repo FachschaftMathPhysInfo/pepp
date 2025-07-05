@@ -9,37 +9,33 @@ import {
   TutorialToUserAssignment,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import { Edit3, Info } from "lucide-react";
+import { Edit3 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  DialogHeader,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AuthenticationDialog } from "@/components/authentication-dialog/authentication-dialog";
-import { useRefetch, useUser } from "../providers";
+import { useRefetch, useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import { TutorialsTable } from "./tutorials-table";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { EditEventView } from "./edit-event-view";
 import EventDescription from "./event-description";
-import Link from "next/link";
-import { slugify } from "@/lib/utils";
+import { AuthenticationDialog } from "../authentication/authentication-dialog";
 
 interface EventDialogProps {
   id?: number;
   modify?: boolean;
   open: boolean;
-  umbrellaID?: number;
 }
 
 export default function EventDialog({
   id,
   modify = false,
   open,
-  umbrellaID,
 }: EventDialogProps) {
   const { user } = useUser();
   const { refetchKey } = useRefetch();
@@ -146,24 +142,6 @@ export default function EventDialog({
                 Bearbeiten
               </Button>
             )}
-          </div>
-        )}
-
-        {id && event?.umbrella?.ID !== umbrellaID && (
-          <div className="flex flex-row items-center">
-            <Info className="size-4 mr-2" />
-            <span className="text-xs">
-              Diese Veranstaltung ist Teil von{" "}
-              <Link
-                className="underline"
-                href={`/${slugify(event?.umbrella?.title ?? "")}-${
-                  event?.umbrella?.ID
-                }`}
-              >
-                {event?.umbrella?.title}
-              </Link>
-              .
-            </span>
           </div>
         )}
       </DialogContent>

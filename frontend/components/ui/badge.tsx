@@ -35,7 +35,7 @@ function Badge({ color, className, variant, ...props }: BadgeProps) {
   return (
     <div className={cn(badgeVariants({ variant }), className)} {...props} style={{
       backgroundColor: color,
-      color: color ? calculateFontColor(color) : "black"
+      color: color && calculateFontColor(color)
     }} />
   )
 }

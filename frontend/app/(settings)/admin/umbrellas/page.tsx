@@ -16,10 +16,10 @@ import { GraphQLClient } from "graphql-request";
 import { useUser } from "@/components/providers";
 import { CirclePlus, Umbrella } from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
-import { UmbrellaDialog } from "@/app/(settings)/admin/umbrellas/umbrella-dialog";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/search-input";
 import { ManagementPageHeader } from "@/components/management-page-header";
+import {UmbrellaDialog} from "@/components/dialog/umbrellas/umbrella-dialog";
 
 export type UmbrellaDialogState = {
   mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null;
@@ -48,6 +48,7 @@ export default function UmbrellaSettings() {
     const umbrellas = umbrellaData.umbrellas.map((umbrella) => ({
       ...defaultEvent,
       ...umbrella,
+      supportingEvents: []
     }));
     setUmbrellas(umbrellas);
   }, [client]);

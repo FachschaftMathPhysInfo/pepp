@@ -49,7 +49,7 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
           router.push("/" + slugify(umbrella.title) + "-" + umbrella.ID);
         }
         setUmbrellas(
-          umbrellaData.umbrellas.map((u) => ({ ...defaultEvent, ...u }))
+          umbrellaData.umbrellas.map((u) => ({ ...defaultEvent, ...u, supportingEvents: [] }))
         );
       }
     };
@@ -64,7 +64,7 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
           <AdminSidebar umbrellas={umbrellas} />
           <main className="flex-1">
             <div className="p-5">
-              <SidebarTrigger className="mb-2" />
+              <SidebarTrigger className="mb-2 block" />
               {children}
             </div>
             <Footer />

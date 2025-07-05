@@ -28,8 +28,8 @@ import {Form, FormControl, FormField, FormItem, FormMessage,} from "@/components
 import {toast} from "sonner";
 import {CardSkeleton} from "@/components/card-skeleton";
 import {useUser} from "@/components/providers";
-import {AuthenticationDialog} from "@/components/authentication-dialog/authentication-dialog";
 import {extractId} from "@/lib/utils";
+import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
