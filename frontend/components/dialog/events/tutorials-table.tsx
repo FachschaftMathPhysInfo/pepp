@@ -23,7 +23,6 @@ import {
   TutorialAvailabilitysDocument,
   TutorialAvailabilitysQuery,
   TutorialAvailabilitysQueryVariables,
-  TutorialToUserAssignment,
   User,
 } from "@/lib/gql/generated/graphql";
 import { Loader2, MoreVertical, Plus, Trash2 } from "lucide-react";
@@ -49,21 +48,17 @@ interface TutorialsTableProps {
   capacities: number[];
   edit: boolean;
   event: Event;
-  deleteAssignments: TutorialToUserAssignment[];
-  setDeleteAssignments: React.Dispatch<
-    React.SetStateAction<TutorialToUserAssignment[]>
-  >;
-  newAssignments: TutorialToUserAssignment[];
-  setNewAssignments: React.Dispatch<
-    React.SetStateAction<TutorialToUserAssignment[]>
-  >;
+  tutorials: Tutorial[];
+  setTutorialsAction: React.Dispatch<React.SetStateAction<Tutorial[]>>
 }
 
 export function TutorialsTable({
   event,
+  tutorials,
   capacities,
   edit,
   id,
+  setTutorialsAction,
 }: TutorialsTableProps) {
   const router = useRouter();
 
@@ -75,7 +70,6 @@ export function TutorialsTable({
   const [availableTutors, setAvailableTutors] = useState<User[]>([]);
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
   const [selectedRooms, setSelectedRooms] = useState<(Room | undefined)[]>([]);
-  const [tuts, setTuts] = useState<Tutorial[]>(event.tutorials ?? []);
   const [newTutorialTutors, setNewTutorialTutors] = useState<User[]>([]);
   const [newTutorialRoom, setNewTutorialRoom] = useState<Room>();
 
@@ -118,8 +112,8 @@ export function TutorialsTable({
         })) ?? []
       );
 
-      if (event.tutorials) {
-        setSelectedRooms(event.tutorials.map((t) => t.room));
+      if (tutorials) {
+        setSelectedRooms(tutorials.map((t) => t.room));
       }
 
       setAvailableRooms(
@@ -150,7 +144,7 @@ export function TutorialsTable({
       );
     } catch {
       toast.error(
-        `Beim Eintragen in eine Veranstaltung aus "${event.title}" ist ein Fehler aufgetreten.`
+        "Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten."
       );
     }
   };
@@ -172,7 +166,7 @@ export function TutorialsTable({
       );
     } catch {
       toast.error(
-        `Beim Austragen aus einer Veranstaltung in "${event.title}" ist ein Fehler aufgetreten.`
+        "Beim Austragen aus einer Veranstaltung ist ein Fehler aufgetreten."
       );
     }
   };
@@ -192,8 +186,8 @@ export function TutorialsTable({
           registrations: user?.registrations?.filter((r) => r.event.ID !== id),
         });
 
-        setTuts(
-          tuts.map((t) => {
+        setTutorialsAction(
+          tutorials.map((t) => {
             if (t.ID === clickedTutorial.ID) {
               t.registrationCount -= 1;
             }
@@ -217,8 +211,8 @@ export function TutorialsTable({
           }),
         });
 
-        setTuts(
-          tuts.map((t) => {
+        setTutorialsAction(
+          tutorials.map((t) => {
             if (t.ID === clickedTutorial.ID) {
               t.registrationCount += 1;
             } else if (t.ID === registration.ID) {
@@ -239,8 +233,8 @@ export function TutorialsTable({
         registrations: (user!.registrations || []).concat(clickedTutorial),
       });
 
-      setTuts(
-        tuts.map((t) => {
+      setTutorialsAction(
+        tutorials.map((t) => {
           if (t.ID === clickedTutorial.ID) {
             t.registrationCount += 1;
           }
@@ -281,9 +275,9 @@ export function TutorialsTable({
     <div className="rounded-md border overflow-hidden">
       <Table>
         <TableBody>
-          {tuts.length ? (
+          {tutorials && tutorials.length ? (
             <>
-              {tuts.map((e, i) => {
+              {tutorials.map((e, i) => {
                 const capacity = cap[i];
                 const utilization = (e.registrationCount / capacity) * 100;
                 const isRegisteredEvent =
@@ -497,7 +491,7 @@ export function TutorialsTable({
                   disabled={!newTutorialRoom || !newTutorialTutors.length}
                   onClick={() => {
                     if (newTutorialRoom) {
-                      setTuts((prev) => [
+                      setTutorialsAction((prev) => [
                         ...prev,
                         {
                           ...defaultTutorial,

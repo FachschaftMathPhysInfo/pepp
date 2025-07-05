@@ -14,8 +14,9 @@ type Tutorial struct {
 	RoomNumber string `bun:",notnull"`
 	BuildingID int32  `bun:",notnull"`
 
-	Event *Event `bun:"rel:belongs-to,join:event_id=id"`
-	Room  *Room  `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
+	Event  *Event `bun:"rel:belongs-to,join:event_id=id"`
+	Room   *Room  `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
+	Tutors []User `bun:"m2m:tutorial_to_user_assignments,join:Tutorial=User"`
 }
 
 var _ bun.BeforeCreateTableHook = (*Tutorial)(nil)
