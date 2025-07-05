@@ -20,7 +20,7 @@ interface ApplicationManagementSectionProps {
 }
 
 const numberSchema = z.object({
-  amount: z.coerce.number({
+  amountNewStudents: z.coerce.number({
     required_error: "Bitte gib eine Zahl an",
     message: "Bitte gib eine Zahl an",
   }).min(1, 'Bitte gib eine Zahl größer 1 an')
@@ -33,7 +33,7 @@ export default function ApplicationManagementSection(props: ApplicationManagemen
   const form = useForm<z.infer<typeof numberSchema>>({
     resolver: zodResolver(numberSchema),
     defaultValues: {
-      amount: 0,
+      amountNewStudents: 0,
     },
   });
   const [potentialApplicants, setPotentialApplicants] = useState<Applicant[]>([]);
@@ -64,7 +64,7 @@ export default function ApplicationManagementSection(props: ApplicationManagemen
   function handleNewStudents() {}
 
   function onSubmit(data: z.infer<typeof numberSchema>) {
-    setAmountNewStudents(data.amount)
+    setAmountNewStudents(data.amountNewStudents)
     setConfirmationDialogOpen(true)
   }
 
@@ -84,7 +84,7 @@ export default function ApplicationManagementSection(props: ApplicationManagemen
             >
                 <FormField
                   control={form.control}
-                  name="amount"
+                  name="amountNewStudents"
                   render={({field}) => (
                     <FormItem>
                       <FormControl>

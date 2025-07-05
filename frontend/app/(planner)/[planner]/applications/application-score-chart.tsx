@@ -2,6 +2,7 @@ import {Applicant} from "@/app/(planner)/[planner]/applications/application-info
 import {Bar, BarChart, XAxis} from "recharts";
 import {ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent} from "@/components/ui/chart";
 import {useCallback, useEffect, useState} from "react";
+import {Skeleton} from "@/components/ui/skeleton";
 
 interface ApplicationScoreChartProps {
   applicants: Applicant[]
@@ -28,7 +29,7 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
       scoreMap.set(application.score, (scoreMap.get(application.score) || 0) + 1);
     })
 
-    const data: {score: number, amount: number}[] = []
+    const data: { score: number, amount: number }[] = []
     scoreMap.forEach((score, amount) => {
       data.push({score, amount})
     })
@@ -49,8 +50,13 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
     }
   }
 
-  if(chartData.length === 0) {
-    return <div className={'w-full h-full text-center'}>Noch keine Anmeldungen zum berechnen</div>
+  if (chartData.length === 0) {
+    return (
+      <div className={'w-full h-full min-h-[200px] relative'}>
+        <Skeleton className={'w-full min-h-[200px]'} />
+        <span className={'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'}>Noch keine Anmeldungen zum berechnen</span>
+      </div>
+    )
   }
 
   return (
@@ -63,7 +69,7 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
           tickMargin={10}
           axisLine={false}
         />
-        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartTooltip content={<ChartTooltipContent/>}/>
       </BarChart>
     </ChartContainer>
   )

@@ -30,7 +30,11 @@ export default function ApplicationInfoSection({umbrellaID}: ApplicationInfoSect
     const fetchApplications = async () => {
       const client = getClient(String(sid))
       const applicantsData = await client.request<AllApplicantsQuery>(AllApplicantsDocument, {})
-      setPeopleApplied(applicantsData.users)
+      setPeopleApplied(applicantsData.users.filter(
+        user => user.applications?.find(
+          application => application.event.ID === umbrellaID
+        )
+      ))
       const acceptedPeople = applicantsData.users.filter(
         user => user.applications?.filter(
           application => application.event.ID === umbrellaID

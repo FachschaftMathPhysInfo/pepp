@@ -29,11 +29,9 @@ export default async function ApplicationsPage({params}: ApplicationsPageProps) 
       iconNode={<BookCheck/>}
       />
 
-      <ApplicationInfoSection umbrellaID={umbrellaID}/>
-
-      <Separator />
-
       <ApplicationManagementSection umbrellaID={umbrellaID} />
+      <Separator />
+      <ApplicationInfoSection umbrellaID={umbrellaID}/>
     </div>
   )
 }
