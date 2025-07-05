@@ -2,24 +2,41 @@
 
 import {LogIn, LogOut, Moon, Search, SquareCheckBig, Sun} from "lucide-react";
 import Image from "next/image";
-import {useEffect, useState} from "react";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {Button} from "@/components/ui/button";
-import {useTheme} from "next-themes";
-import {CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "./ui/command";
-import {Dialog} from "./ui/dialog";
-import {AuthenticationDialog} from "./authentication-dialog/authentication-dialog";
-import {Avatar, AvatarFallback} from "./ui/avatar";
-import {Separator} from "./ui/separator";
-import {Event, FutureEventsDocument, FutureEventsQuery, Role,} from "@/lib/gql/generated/graphql";
-import {useUser} from "./providers";
-import {getClient} from "@/lib/graphql";
-import {useRouter} from "next/navigation";
-import EventDialog from "./event-dialog/event-dialog";
-import {adminItems, userItems} from "@/app/(settings)/sidebar";
-import {defaultEvent} from "@/types/defaults";
-import {toast} from "sonner";
-import {groupEventsByUmbrellaId} from "@/lib/utils";
+import { useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./ui/command";
+import { Dialog } from "./ui/dialog";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Separator } from "./ui/separator";
+import {
+  Event,
+  FutureEventsDocument,
+  FutureEventsQuery,
+  Role,
+} from "@/lib/gql/generated/graphql";
+import { useUser } from "./providers";
+import { getClient } from "@/lib/graphql";
+import { useRouter } from "next/navigation";
+import EventDialog from "@/components/dialog/events/event-dialog";
+import { adminItems, userItems } from "@/app/(settings)/sidebar";
+import { defaultEvent } from "@/types/defaults";
+import { toast } from "sonner";
+import { groupEventsByUmbrellaId } from "@/lib/utils";
+import {AuthenticationDialog} from "./dialog/authentication/authentication-dialog";
 
 export default function Header() {
   const router = useRouter();
