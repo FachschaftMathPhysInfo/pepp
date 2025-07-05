@@ -17,50 +17,37 @@ import {
   UpdateEventMutation,
   UpdateEventMutationVariables,
 } from "@/lib/gql/generated/graphql";
-import React, { useEffect, useState } from "react";
-import { PlusCircle, Save, Trash2 } from "lucide-react";
-import {
-  DialogHeader,
-  DialogDescription,
-  DialogTitle,
-  DialogFooter,
-  DialogContent,
-} from "@/components/ui/dialog";
-import { useRefetch, useUser } from "../providers";
-import { getClient } from "@/lib/graphql";
+import React, {useEffect, useState} from "react";
+import {PlusCircle, Save} from "lucide-react";
+import {DialogContent, DialogFooter, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
+import {useRefetch, useUser} from "../providers";
+import {getClient} from "@/lib/graphql";
 import TextareaAutosize from "react-textarea-autosize";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { extractId } from "@/lib/utils";
-import { TutorialsTable } from "./tutorials-table";
-import { Input } from "../ui/input";
-import { defaultEvent } from "@/types/defaults";
-import { Switch } from "../ui/switch";
-import { BadgePicker } from "../badge-picker";
-import { DatePicker } from "../date-picker";
-import { Button } from "../ui/button";
-import { usePathname } from "next/navigation";
-import { toast } from "sonner";
+import {z} from "zod";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormMessage,} from "@/components/ui/form";
+import {extractId} from "@/lib/utils";
+import {TutorialsTable} from "./tutorials-table";
+import {Input} from "../ui/input";
+import {defaultEvent} from "@/types/defaults";
+import {Switch} from "../ui/switch";
+import {BadgePicker} from "../badge-picker";
+import {DatePicker} from "../date-picker";
+import {Button} from "../ui/button";
+import {usePathname} from "next/navigation";
+import {toast} from "sonner";
 import ConfirmationDialog from "../confirmation-dialog";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
     message: "Bitte wähle einen Veranstaltungstitel.",
   }),
-  date: z.date({ required_error: "Bitte gib ein Datum an." }),
-  from: z.string().min(1, { message: "Bitte gib eine Startzeit an." }),
-  to: z.string().min(1, { message: "Bitte gib eine Endzeit an." }),
-  topic: z.string().min(1, { message: "Bitte wähle ein Thema." }),
-  type: z.string().min(1, { message: "Bitte wähle einen Veranstaltungstyp" }),
+  date: z.date({required_error: "Bitte gib ein Datum an."}),
+  from: z.string().min(1, {message: "Bitte gib eine Startzeit an."}),
+  to: z.string().min(1, {message: "Bitte gib eine Endzeit an."}),
+  topic: z.string().min(1, {message: "Bitte wähle ein Thema."}),
+  type: z.string().min(1, {message: "Bitte wähle einen Veranstaltungstyp"}),
   description: z.string(),
   needsTutors: z.boolean(),
 });
@@ -70,11 +57,11 @@ interface EditEventViewProps {
   umbrella?: Event;
 }
 
-export function EditEventView({ event }: EditEventViewProps) {
+export function EditEventView({event}: EditEventViewProps) {
   const pathname = usePathname();
 
-  const { sid } = useUser();
-  const { triggerRefetch } = useRefetch();
+  const {sid} = useUser();
+  const {triggerRefetch} = useRefetch();
 
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
@@ -211,9 +198,9 @@ export function EditEventView({ event }: EditEventViewProps) {
         );
 
         const umbrellaEvent = umbrellaData.umbrellas[0];
-        form.reset({ date: new Date(umbrellaEvent.from) });
+        form.reset({date: new Date(umbrellaEvent.from)});
 
-        setUmbrella({ ...defaultEvent, ...umbrellaEvent });
+        setUmbrella({...defaultEvent, ...umbrellaEvent});
       } catch {
         toast.error("Fehler beim Laden des Zeitrahmens für die Veranstaltung.");
       }
@@ -241,7 +228,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                   <FormField
                     control={form.control}
                     name="title"
-                    render={({ field }) => (
+                    render={({field}) => (
                       <FormItem>
                         <FormControl>
                           <input
@@ -250,117 +237,115 @@ export function EditEventView({ event }: EditEventViewProps) {
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage/>
                       </FormItem>
                     )}
                   />
                 </DialogTitle>
-                <DialogDescription className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({field}) => (
+                    <FormItem>
+                      <FormControl>
+                        <TextareaAutosize
+                          placeholder="Beschreibung der Veranstaltung"
+                          className="disabled:cursor-text w-full bg-transparent resize-none focus:outline-none border-dashed border-b-2 disabled:border-none pb-1"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage/>
+                    </FormItem>
+                  )}
+                />
+                <div className="space-x-2 flex flex-row">
                   <FormField
                     control={form.control}
-                    name="description"
-                    render={({ field }) => (
+                    name="topic"
+                    render={({field}) => (
                       <FormItem>
                         <FormControl>
-                          <TextareaAutosize
-                            placeholder="Beschreibung der Veranstaltung"
-                            className="disabled:cursor-text w-full bg-transparent resize-none focus:outline-none border-dashed border-b-2 disabled:border-none pb-1"
-                            {...field}
+                          <BadgePicker
+                            kind={LabelKind.Topic}
+                            labelKindDescription="Thema"
+                            selected={field.value}
+                            onChange={field.onChange}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage/>
                       </FormItem>
                     )}
                   />
-                  <div className="space-x-2 flex flex-row">
+                  <FormField
+                    control={form.control}
+                    name="type"
+                    render={({field}) => (
+                      <FormItem>
+                        <FormControl>
+                          <BadgePicker
+                            kind={LabelKind.EventType}
+                            labelKindDescription="Veranstaltungstyp"
+                            selected={field.value}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormMessage/>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex flex-row justify-between space-x-2">
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({field}) => (
+                      <FormItem>
+                        <FormControl>
+                          <DatePicker
+                            selected={field.value}
+                            onChange={field.onChange}
+                            disabled={(date) =>
+                              date < new Date(umbrella?.from) ||
+                              date > new Date(umbrella?.to)
+                            }
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Datum der Veranstaltung
+                        </FormDescription>
+                        <FormMessage/>
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex flex-row space-x-2">
                     <FormField
                       control={form.control}
-                      name="topic"
-                      render={({ field }) => (
+                      name="from"
+                      render={({field}) => (
                         <FormItem>
                           <FormControl>
-                            <BadgePicker
-                              kind={LabelKind.Topic}
-                              labelKindDescription="Thema"
-                              selected={field.value}
-                              onChange={field.onChange}
-                            />
+                            <Input aria-label="Time" type="time" {...field} />
                           </FormControl>
-                          <FormMessage />
+                          <FormDescription>Von</FormDescription>
+                          <FormMessage/>
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name="type"
-                      render={({ field }) => (
+                      name="to"
+                      render={({field}) => (
                         <FormItem>
                           <FormControl>
-                            <BadgePicker
-                              kind={LabelKind.EventType}
-                              labelKindDescription="Veranstaltungstyp"
-                              selected={field.value}
-                              onChange={field.onChange}
-                            />
+                            <Input aria-label="Time" type="time" {...field} />
                           </FormControl>
-                          <FormMessage />
+                          <FormDescription>Bis</FormDescription>
+                          <FormMessage/>
                         </FormItem>
                       )}
                     />
                   </div>
-                  <div className="flex flex-row justify-between space-x-2">
-                    <FormField
-                      control={form.control}
-                      name="date"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <DatePicker
-                              selected={field.value}
-                              onChange={field.onChange}
-                              disabled={(date) =>
-                                date < new Date(umbrella?.from) ||
-                                date > new Date(umbrella?.to)
-                              }
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Datum der Veranstaltung
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex flex-row space-x-2">
-                      <FormField
-                        control={form.control}
-                        name="from"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input aria-label="Time" type="time" {...field} />
-                            </FormControl>
-                            <FormDescription>Von</FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="to"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input aria-label="Time" type="time" {...field} />
-                            </FormControl>
-                            <FormDescription>Bis</FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                </DialogDescription>
+                </div>
               </DialogHeader>
               {event && (
                 <TutorialsTable
@@ -379,7 +364,7 @@ export function EditEventView({ event }: EditEventViewProps) {
               <FormField
                 control={form.control}
                 name="needsTutors"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormControl>
                       <div className="flex flex-row space-x-2 mt-10">
@@ -407,26 +392,16 @@ export function EditEventView({ event }: EditEventViewProps) {
                 >
                   {event ? (
                     <>
-                      <Save className="h-4 w-4" />
+                      <Save className="h-4 w-4"/>
                       Speichern
                     </>
                   ) : (
                     <>
-                      <PlusCircle className="h-4 w-4" />
+                      <PlusCircle className="h-4 w-4"/>
                       Hinzufügen
                     </>
                   )}
                 </Button>
-                {event && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() => setDeleteConfirmationOpen(true)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Löschen
-                  </Button>
-                )}
               </DialogFooter>
             </div>
           </form>

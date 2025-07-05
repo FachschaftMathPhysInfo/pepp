@@ -1,26 +1,22 @@
-import { Event } from "@/lib/gql/generated/graphql";
-import {Calendar, CirclePlus, Pencil, Trash} from "lucide-react";
+import {Event} from "@/lib/gql/generated/graphql";
+import {Calendar, CirclePlus} from "lucide-react";
 import React from "react";
-import { EventsDialogState } from "./page";
-import { formatDateToDDMM } from "@/lib/utils";
-import PlannerItem from "@/components/planner-item";
-import EventItem from "@/app/(settings)/admin/events/umbrella-item";
-import { Button } from "@/components/ui/button";
+import {EventsDialogState} from "./page";
+import {formatDateToDDMM} from "@/lib/utils";
+import EventItem from "@/app/(settings)/admin/events/event-item";
+import {Button} from "@/components/ui/button";
 import {defaultEvent} from "@/types/defaults";
 
 interface UmbrellaEventSectionProps {
   umbrella: Event;
   events: Event[];
   setDialogState: React.Dispatch<React.SetStateAction<EventsDialogState>>;
-  setEventDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setCloseupID: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function UmbrellaEventSection({
                                                umbrella,
                                                events,
                                                setDialogState,
-
                                              }: UmbrellaEventSectionProps) {
   const readableFrom = formatDateToDDMM(new Date(umbrella.from));
   const readableTo = formatDateToDDMM(new Date(umbrella.to));
@@ -44,12 +40,12 @@ export default function UmbrellaEventSection({
               })
             }
           >
-          <CirclePlus className="mr-2 h-4 w-4" />
+          <CirclePlus className="mr-2 h-4 w-4"/>
           Event hinzufügen
         </Button>
       </div>
           <span className="text-muted-foreground flex items-center mr-5">
-            <Calendar className="inline mr-1 w-4" />
+            <Calendar className="inline mr-1 w-4"/>
             {readableFrom} bis {readableTo}
           </span>
 
@@ -63,8 +59,8 @@ export default function UmbrellaEventSection({
           <EventItem
             key={event.ID}
             event={event}
-            onEdit={() => setDialogState({ mode: "editEvent", event, umbrella })}
-            onDelete={() => setDialogState({ mode: "deleteEvent", event, umbrella })}
+            onEdit={() => setDialogState({mode: "editEvent", event, umbrella})}
+            onDelete={() => setDialogState({mode: "deleteEvent", event, umbrella})}
           />
         ))}
       </ul>

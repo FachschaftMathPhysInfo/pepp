@@ -11,7 +11,7 @@ import {
 import React, {useEffect, useState} from "react";
 import {Edit3} from "lucide-react";
 import {Skeleton} from "@/components/ui/skeleton";
-import {DialogContent, DialogDescription, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
+import {DialogContent, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
 import {AuthenticationDialog} from "@/components/authentication-dialog/authentication-dialog";
 import {useRefetch, useUser} from "../providers";
 import {getClient} from "@/lib/graphql";
@@ -116,9 +116,7 @@ export default function EventDialog({
           <div className="space-y-4">
             <DialogHeader>
               <DialogTitle>{event?.title}</DialogTitle>
-              <DialogDescription className="space-y-2">
-                <EventDescription event={event}/>
-              </DialogDescription>
+              <EventDescription event={event}/>
             </DialogHeader>
 
             {!user && event?.tutorials?.length && (

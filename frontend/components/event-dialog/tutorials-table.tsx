@@ -112,7 +112,7 @@ export function TutorialsTable({
       );
 
       setAvailableTutors(
-        eventData.events[0].tutorsAvailable?.map((t) => ({
+        eventData.events[0]?.tutorsAvailable?.map((t) => ({
           ...defaultUser,
           ...t,
         })) ?? []
@@ -123,14 +123,14 @@ export function TutorialsTable({
       }
 
       setAvailableRooms(
-        eventData.events[0].roomsAvailable?.map((r) => ({
+        eventData.events[0]?.roomsAvailable?.map((r) => ({
           ...defaultRoom,
           ...r,
         })) ?? []
       );
     };
 
-    fetchData();
+    void fetchData();
   }, [edit,id]);
 
   const registerForTutorial = async (tutorial: Tutorial) => {
@@ -289,13 +289,11 @@ export function TutorialsTable({
                 const isRegisteredEvent =
                   e.room.number === registration?.room.number &&
                   e.room.building.ID === registration?.room.building.ID;
-                const isTutor = usersTutorials?.find(
+                const isTutor = !!usersTutorials?.find(
                   (t) =>
                     t.room.number === e.room.number &&
                     t.room.building.ID === e.room.building.ID
-                )
-                  ? true
-                  : false;
+                );
 
                 return (
                   <TableRow key={e.room?.number} className="relative">
@@ -420,7 +418,7 @@ export function TutorialsTable({
                                 }`
                               );
                             } else {
-                              handleRegistrationChange(e);
+                              void handleRegistrationChange(e);
                             }
                           }}
                         >
@@ -456,11 +454,9 @@ export function TutorialsTable({
                   availableTutors={availableTutors}
                   selectedTutors={newTutorialTutors}
                   onSelectedTutorsChange={(tutor) => {
-                    const isSelected = newTutorialTutors.find(
+                    const isSelected = !!newTutorialTutors.find(
                       (t) => t.mail === tutor.mail
-                    )
-                      ? true
-                      : false;
+                    );
 
                     if (isSelected) {
                       setNewTutorialTutors((prev) =>

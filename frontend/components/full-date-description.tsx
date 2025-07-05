@@ -9,13 +9,13 @@ interface FullDateDescriptionProps {
 export function FullDateDescription({ from, to }: FullDateDescriptionProps) {
   return (
     <div>
-      <p>
+      <span>
         {from.toLocaleString(undefined, { weekday: "long" })},{" "}
         {format(from, "PPP")}
-      </p>
-      <p>
+      </span>
+      <span>
         Von {formatDateToHHMM(from)} bis {formatDateToHHMM(to)}
-      </p>
+      </span>
     </div>
   );
 }
