@@ -181,7 +181,6 @@ export function EditEventView({ event }: EditEventViewProps) {
         }
         if (updateTutorials.length) {
           updateTutorials.forEach(async (t) => {
-            console.log("updating: ", t);
             await client.request<UpdateTutorialMutation>(
               UpdateTutorialDocument,
               { id: t.ID, tutorial: mapTutorialToNewTutorial(t) }
@@ -194,7 +193,6 @@ export function EditEventView({ event }: EditEventViewProps) {
         toast.error(
           "Beim Speichern der Veranstaltung ist ein Fehler aufgetreten."
         );
-        console.log(err);
       }
     };
     await sendData();
