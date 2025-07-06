@@ -17,17 +17,17 @@ func DeleteUnconfirmedPeople(ctx context.Context, r *graph.Resolver, tracer trac
 
 	twoHoursAgo := time.Now().Add(-2 * time.Hour)
 
-	var mails []string
+	var ids []int
 	if _, err := r.DB.NewSelect().
 		Model((*models.User)(nil)).
-		Column("mail").
+		Column("id").
 		Where("confirmed = ?", false).
 		Where("created_at <= ?", twoHoursAgo).
-		Exec(ctx, &mails); err != nil {
+		Exec(ctx, &ids); err != nil {
 		return err
 	}
 
-	if _, err := r.Mutation().DeleteUser(ctx, mails); err != nil {
+	if _, err := r.Mutation().DeleteUser(ctx, ids); err != nil {
 		return err
 	}
 

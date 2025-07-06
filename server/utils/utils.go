@@ -39,3 +39,5 @@ func SetCookie(w http.ResponseWriter, r *http.Request, name, value string) {
 	}
 	http.SetCookie(w, c)
 }
+
+func BoolPtr(b bool) *bool { return &b }
