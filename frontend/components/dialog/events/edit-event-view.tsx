@@ -8,6 +8,8 @@ import {
   AddTutorialsMutation,
   DeleteEventDocument,
   DeleteEventMutation,
+  DeleteTutorialsDocument,
+  DeleteTutorialsMutation,
   Event,
   LabelKind,
   NewEvent,
@@ -135,16 +137,20 @@ export function EditEventView({ event }: EditEventViewProps) {
       return;
     }
 
-    const newTutorials: NewTutorial[] = tutorials
-      .filter((t) => t.ID === 0)
-      .map((t) => ({
-        eventID: event.ID,
+    function mapTutorialToNewTutorial(t: Tutorial): NewTutorial {
+      return {
+        eventID: event?.ID ?? 0,
         roomNumber: t.room.number,
         buildingID: t.room.building.ID,
         tutors: t.tutors?.map((u) => u.mail),
-      }));
+      };
+    }
 
-    const updateTutorials: Tutorial[] = tutorials.filter((t) => t.ID !== 0);
+    const newTutorials: NewTutorial[] = tutorials
+      .filter((t) => t.ID < 0)
+      .map((t) => mapTutorialToNewTutorial(t));
+
+    const updateTutorials: Tutorial[] = tutorials.filter((t) => t.ID > 0);
 
     const deleteTutorialIDs: number[] =
       event.tutorials
@@ -165,6 +171,21 @@ export function EditEventView({ event }: EditEventViewProps) {
         if (newTutorials.length) {
           await client.request<AddTutorialsMutation>(AddTutorialsDocument, {
             tutorials: newTutorials,
+          });
+        }
+        if (deleteTutorialIDs.length) {
+          await client.request<DeleteTutorialsMutation>(
+            DeleteTutorialsDocument,
+            { tutorialIDs: deleteTutorialIDs }
+          );
+        }
+        if (updateTutorials.length) {
+          updateTutorials.forEach(async (t) => {
+            console.log("updating: ", t);
+            await client.request<UpdateTutorialMutation>(
+              UpdateTutorialDocument,
+              { id: t.ID, tutorial: mapTutorialToNewTutorial(t) }
+            );
           });
         }
         toast.info(`"${data.title}" erfolgreich gespeichert!`);

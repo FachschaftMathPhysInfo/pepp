@@ -6,7 +6,6 @@ import {
   EventCloseupQuery,
   EventCloseupQueryVariables,
   Role,
-  TutorialToUserAssignment,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
 import { Edit3 } from "lucide-react";
@@ -42,12 +41,6 @@ export default function EventDialog({
 
   const [event, setEvent] = useState<Event>();
   const [edit, setEdit] = useState(modify);
-  const [newAssignments, setNewAssignments] = useState<
-    TutorialToUserAssignment[]
-  >([]);
-  const [deleteAssignments, setDeleteAssignments] = useState<
-    TutorialToUserAssignment[]
-  >([]);
   const [authenticationDialogOpen, setAuthenticationDialogOpen] =
     useState(false);
 
@@ -130,10 +123,8 @@ export default function EventDialog({
                 event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
               }
               edit={false}
-              newAssignments={newAssignments}
-              setNewAssignments={setNewAssignments}
-              deleteAssignments={deleteAssignments}
-              setDeleteAssignments={setDeleteAssignments}
+              tutorials={event?.tutorials ?? []}
+              setTutorialsAction={() => {}}
             />
             {user?.role === Role.Admin && (
               <Button variant="secondary" onClick={() => setEdit(true)}>
