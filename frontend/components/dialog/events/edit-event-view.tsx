@@ -142,7 +142,7 @@ export function EditEventView({ event }: EditEventViewProps) {
         eventID: event?.ID ?? 0,
         roomNumber: t.room.number,
         buildingID: t.room.building.ID,
-        tutors: t.tutors?.map((u) => u.mail),
+        tutors: t.tutors?.map((u) => u.ID),
       };
     }
 

@@ -189,7 +189,7 @@ input NewTutorial {
   eventID: Int!
   roomNumber: String!
   buildingID: Int!
-  tutors: [String!]
+  tutors: [Int!]
 }
 
 input NewBuilding {

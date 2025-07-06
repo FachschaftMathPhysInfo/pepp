@@ -64,11 +64,11 @@ export function TutorSelection({
                 );
                 return (
                   <CommandItem
-                    key={tutor.mail}
+                    key={tutor.ID}
                     value={tutor.fn + " " + tutor.sn + tutor.mail}
                     onSelect={() => {
                       const newTutors = isSelected
-                        ? selected.filter((t) => t.mail !== tutor.mail)
+                        ? selected.filter((t) => t.ID !== tutor.ID)
                         : [...selected, tutor];
                       setSelected(newTutors);
                       onSelectedTutorsChange(newTutors);

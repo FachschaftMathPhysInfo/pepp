@@ -47,6 +47,7 @@ query tutorialsOfEvent ($eventID: Int!) {
       }
     }
     tutors {
+      ID
       mail
     }
   }

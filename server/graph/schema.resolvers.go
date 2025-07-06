@@ -277,8 +277,8 @@ func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.Ne
 	var ids []int
 	for i, t := range tutorials {
 		ids = append(ids, int(t.ID))
-		for _, mail := range tutorial[i].Tutors {
-			if _, err := r.Mutation().AddTutorAssignmentForTutorial(ctx, models.TutorialToUserAssignment{TutorialID: t.ID, UserMail: mail}); err != nil {
+		for _, userID := range tutorial[i].Tutors {
+			if _, err := r.Mutation().AddTutorAssignmentForTutorial(ctx, models.TutorialToUserAssignment{TutorialID: t.ID, UserID: int32(userID)}); err != nil {
 				return nil, err
 			}
 		}
@@ -297,26 +297,40 @@ func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial 
 		return 0, err
 	}
 
-	var oldTutorMails []string
+	var oldTutorIDs []int32
 	if err := r.DB.NewSelect().
 		Model((*models.TutorialToUserAssignment)(nil)).
 		Where("tutorial_id = ?", id).
-		Column("user_mail").
-		Scan(ctx, &oldTutorMails); err != nil {
+		Column("user_id").
+		Scan(ctx, &oldTutorIDs); err != nil {
 		return 0, err
 	}
 
-	for _, mail := range tutorial.Tutors {
-		if !slices.Contains(oldTutorMails, mail) {
-			if _, err := r.Mutation().AddTutorAssignmentForTutorial(ctx, models.TutorialToUserAssignment{TutorialID: int32(id), UserMail: mail}); err != nil {
+	for _, tutorID := range tutorial.Tutors {
+		if !slices.Contains(oldTutorIDs, int32(tutorID)) {
+			_, err := r.Mutation().
+				AddTutorAssignmentForTutorial(ctx,
+					models.TutorialToUserAssignment{
+						TutorialID: int32(id),
+						UserID:     int32(tutorID),
+					},
+				)
+			if err != nil {
 				return 0, err
 			}
 		}
 	}
 
-	for _, mail := range oldTutorMails {
-		if !slices.Contains(tutorial.Tutors, mail) {
-			if _, err := r.Mutation().DeleteTutorAssignmentForTutorial(ctx, models.TutorialToUserAssignment{TutorialID: int32(id), UserMail: mail}); err != nil {
+	for _, oldTutorID := range oldTutorIDs {
+		if !slices.Contains(tutorial.Tutors, int(oldTutorID)) {
+			_, err := r.Mutation().
+				DeleteTutorAssignmentForTutorial(ctx,
+					models.TutorialToUserAssignment{
+						TutorialID: int32(id),
+						UserID:     oldTutorID,
+					},
+				)
+			if err != nil {
 				return 0, err
 			}
 		}
