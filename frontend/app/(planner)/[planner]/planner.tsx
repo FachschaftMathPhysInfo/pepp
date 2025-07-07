@@ -134,6 +134,8 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
+      if (user?.role === Role.Admin) fetchUmbrellaData()
+
       setLoading(false);
     }
 
@@ -173,7 +175,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     <TooltipProvider delayDuration={0}>
       {user?.role === Role.Admin && (
         <section className="mb-[20px] space-y-5">
-          <EditPlannerSection umbrella={umbrella} refreshData={fetchUmbrellaData} />
+          <EditPlannerSection umbrella={umbrella} />
         </section>
       )}
 

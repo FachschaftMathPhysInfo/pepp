@@ -136,7 +136,6 @@ export default function UmbrellaSettings() {
           dialogState.mode === "addUmbrella"
         }
         closeDialog={closeDialog}
-        refreshTable={fetchUmbrellas}
         createMode={dialogState.mode === "addUmbrella"}
       />
     </div>
