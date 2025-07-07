@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -214,9 +215,14 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
+	url := os.Getenv("PUBLIC_URL")
+	if url == "" {
+		url = "http://localhost:8080"
+	}
+
 	settings := []*models.Setting{
 		{Key: "primary-color", Value: "#990000", Type: "COLOR"},
-		{Key: "logo-url", Value: "http://localhost:8080/fs-logo.png", Type: "STRING"},
+		{Key: "logo-url", Value: fmt.Sprintf("%s/fs-logo-light.png", url), Type: "STRING"},
 		{Key: "homepage-url", Value: "https://mathphys.info", Type: "STRING"},
 		{Key: "copyright-notice", Value: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.", Type: "STRING"},
 		{Key: "email-greeting", Value: "Hey", Type: "STRING"},
