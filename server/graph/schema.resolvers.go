@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
@@ -494,10 +495,15 @@ func (r *mutationResolver) UpsertSetting(ctx context.Context, setting models.Set
 			return "", fmt.Errorf("unable to parse color: %s", setting.Value)
 		}
 	}
+
 	if _, err := r.DB.NewInsert().
 		Model(&setting).
 		On("CONFLICT (key) DO UPDATE").
 		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	if err := r.FetchSettings(ctx); err != nil {
 		return "", err
 	}
 
