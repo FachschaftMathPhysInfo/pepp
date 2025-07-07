@@ -48,7 +48,7 @@ func Handler(ctx context.Context, w http.ResponseWriter, r *http.Request, re *gr
 		types = ty
 	}
 
-	events, err = re.Query().Events(ctx, nil, []int{umbrellaID}, topics, types, nil, nil, nil)
+	events, err = re.Query().Events(ctx, nil, []int{umbrellaID}, topics, types, nil, nil, nil, nil)
 	if err != nil || len(events) == 0 {
 		http.Error(w, "No events found", http.StatusBadRequest)
 		return

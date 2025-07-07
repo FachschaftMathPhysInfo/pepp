@@ -48,6 +48,10 @@ export default function UmbrellaSettings() {
     const umbrellas = umbrellaData.umbrellas.map((umbrella) => ({
       ...defaultEvent,
       ...umbrella,
+      supportingEvents: umbrella.supportingEvents?.map(e => ({
+        ...defaultEvent,
+        ...e
+      })),
     }));
     setUmbrellas(umbrellas);
   }, [client]);
@@ -132,7 +136,6 @@ export default function UmbrellaSettings() {
           dialogState.mode === "addUmbrella"
         }
         closeDialog={closeDialog}
-        refreshTable={fetchUmbrellas}
         createMode={dialogState.mode === "addUmbrella"}
       />
     </div>

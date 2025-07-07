@@ -68,6 +68,7 @@ type Event {
   from: Time!
   to: Time!
   registrationForm: Form
+  supportingEvents: [Event!]
 }
 
 type Room {
@@ -145,7 +146,7 @@ type Application {
 }
 
 type Query {
-  events(id: [Int!], umbrellaID: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, onlyFuture: Boolean, userID: [Int!]): [Event!]!
+  events(id: [Int!], umbrellaID: [Int!], topic: [String!], type: [String!], needsTutors: Boolean, onlyFuture: Boolean, userID: [Int!], includeSupportingEvents: Boolean): [Event!]!
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: [Int!]): [Room!]!
@@ -307,4 +308,6 @@ type Mutation {
   deleteStudentRegistrationForTutorial(registration: UserToTutorialRegistration!): Int! @auth(rule: IS_USER)
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
   deleteStudentApplicationForEvent(studentID: Int!, eventID: Int!): User!
+  linkSupportingEventToEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
+  unlinkSupportingEventFromEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
 }

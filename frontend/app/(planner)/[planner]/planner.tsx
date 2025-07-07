@@ -75,7 +75,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const renderView = () => {
     switch (view) {
       case View.planner:
-        return <Planner events={events}/>;
+        return <Planner events={events} />;
       case View.table:
         return <DataTable columns={columns} data={events}/>;
     }
@@ -91,7 +91,14 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     );
 
     if (umbrellaData) {
-      setUmbrella({...defaultEvent, ...umbrellaData.umbrellas[0]})
+      setUmbrella({
+        ...defaultEvent,
+        ...umbrellaData.umbrellas[0],
+        supportingEvents: umbrellaData.umbrellas[0].supportingEvents?.map(e => ({
+          ...defaultEvent,
+          ...e
+        }))
+      })
     }
 
     setLoading(false);
@@ -126,6 +133,8 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
+
+      if (user?.role === Role.Admin) fetchUmbrellaData()
 
       setLoading(false);
     }
@@ -166,7 +175,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     <TooltipProvider delayDuration={0}>
       {user?.role === Role.Admin && (
         <section className="mb-[20px] space-y-5">
-          <EditPlannerSection umbrella={umbrella} refreshData={fetchUmbrellaData} />
+          <EditPlannerSection umbrella={umbrella} />
         </section>
       )}
 

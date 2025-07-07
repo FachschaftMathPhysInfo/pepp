@@ -825,8 +825,60 @@ func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context,
 	return user[0], nil
 }
 
+// LinkSupportingEventToEvent is the resolver for the linkSupportingEventToEvent field.
+func (r *mutationResolver) LinkSupportingEventToEvent(ctx context.Context, eventID int, supportingEventID []int) (int, error) {
+	if slices.Contains(supportingEventID, eventID) {
+		return 0, fmt.Errorf("event cannot support itself")
+	}
+
+	var umbrelleIDs []int32
+	if err := r.DB.NewSelect().
+		Model((*models.Event)(nil)).
+		Column("umbrella_id").
+		Where("umbrella_id IS NOT NULL").
+		Where("id IN (?)", bun.In(append(supportingEventID, eventID))).
+		Scan(ctx, &umbrelleIDs); err != nil {
+		return 0, err
+	}
+
+	if len(umbrelleIDs) != 0 {
+		return 0, fmt.Errorf("both events have to be umbrella events")
+	}
+
+	var links []models.EventToSupportingEvent
+	for _, sID := range supportingEventID {
+		links = append(links, models.EventToSupportingEvent{EventID: int32(eventID), SupportingEventID: int32(sID)})
+	}
+
+	if _, err := r.DB.NewInsert().
+		Model(&links).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
+// UnlinkSupportingEventFromEvent is the resolver for the unlinkSupportingEventFromEvent field.
+func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, eventID int, supportingEventID []int) (int, error) {
+	var links []int32
+	for _, id := range supportingEventID {
+		links = append(links, int32(id))
+	}
+
+	if _, err := r.DB.NewDelete().
+		Model((*models.EventToSupportingEvent)(nil)).
+		Where("event_id = ?", eventID).
+		Where("supporting_event_id IN (?)", bun.In(links)).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userID []int) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userID []int, includeSupportingEvents *bool) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
@@ -873,6 +925,16 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 			Where("uea.tutor_id IN (?) OR eta.tutor_id IN (?)", bun.In(userID), bun.In(userID))
 	}
 
+	if includeSupportingEvents != nil && *includeSupportingEvents == true && umbrellaID != nil {
+		subq := r.DB.NewSelect().
+			Model((*models.EventToSupportingEvent)(nil)).
+			Where("event_id IN (?)", bun.In(umbrellaID)).
+			Column("supporting_event_id")
+
+		query = query.
+			WhereOr("e.umbrella_id IN (?)", subq)
+	}
+
 	if err := query.Scan(ctx); err != nil {
 		return nil, err
 	}
@@ -887,6 +949,7 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 		Model(&umbrellas).
 		Relation("Topic").
 		Relation("RegistrationForm").
+		Relation("SupportingEvents").
 		Where("umbrella_id IS NULL").
 		Order("from ASC")
 

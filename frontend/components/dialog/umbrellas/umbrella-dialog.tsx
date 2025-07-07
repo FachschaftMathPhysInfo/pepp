@@ -6,16 +6,15 @@ import EditUmbrellaForm from "@/components/dialog/umbrellas/edit-umbrella-form";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import CopyUmbrellaForm from "@/components/dialog/umbrellas/copy-umbrella-form";
 
-interface EditRoomDialogProps {
+interface UmbrellaDialogProps {
   umbrella: Event;
   umbrellas: Event[];
   isOpen : boolean;
   closeDialog: () => void;
-  refreshTable: () => Promise<void>
   createMode: boolean;
 }
 
-export function UmbrellaDialog({ umbrella, umbrellas, isOpen, closeDialog, refreshTable, createMode = false}: EditRoomDialogProps ) {
+export function UmbrellaDialog({ umbrella, umbrellas, isOpen, closeDialog, createMode = false}: UmbrellaDialogProps) {
 
   return(
     <Dialog open={isOpen}>
@@ -36,7 +35,6 @@ export function UmbrellaDialog({ umbrella, umbrellas, isOpen, closeDialog, refre
               <EditUmbrellaForm
                 umbrella={umbrella}
                 closeDialog={closeDialog}
-                refreshTable={refreshTable}
                 createMode={createMode}
               />
             </TabsContent>
@@ -44,7 +42,6 @@ export function UmbrellaDialog({ umbrella, umbrellas, isOpen, closeDialog, refre
               <CopyUmbrellaForm
                 umbrellas={umbrellas}
                 closeDialog={closeDialog}
-                refreshTable={refreshTable}
               />
             </TabsContent>
           </Tabs>
@@ -52,7 +49,6 @@ export function UmbrellaDialog({ umbrella, umbrellas, isOpen, closeDialog, refre
           <EditUmbrellaForm
             umbrella={umbrella}
             closeDialog={closeDialog}
-            refreshTable={refreshTable}
             createMode={createMode}
           />
         )}

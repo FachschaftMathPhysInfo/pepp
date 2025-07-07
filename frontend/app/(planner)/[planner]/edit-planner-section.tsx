@@ -6,10 +6,9 @@ import {UmbrellaDialog} from "@/components/dialog/umbrellas/umbrella-dialog";
 
 interface EditPlannerSectionProps {
   umbrella: Event;
-  refreshData: () => Promise<void>;
 }
 
-export default function EditPlannerSection({ umbrella, refreshData }: EditPlannerSectionProps) {
+export default function EditPlannerSection({ umbrella }: EditPlannerSectionProps) {
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
 
   if (!umbrella) return;
@@ -28,7 +27,6 @@ export default function EditPlannerSection({ umbrella, refreshData }: EditPlanne
         umbrellas={[umbrella]}
         isOpen={eventDialogOpen}
         closeDialog={() => setEventDialogOpen(false)}
-        refreshTable={refreshData}
         createMode={false}
       />
     </>
