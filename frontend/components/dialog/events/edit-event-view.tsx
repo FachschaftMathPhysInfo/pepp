@@ -189,7 +189,7 @@ export function EditEventView({ event }: EditEventViewProps) {
         }
         toast.info(`"${data.title}" erfolgreich gespeichert!`);
         triggerRefetch();
-      } catch (err) {
+      } catch {
         toast.error(
           "Beim Speichern der Veranstaltung ist ein Fehler aufgetreten."
         );
