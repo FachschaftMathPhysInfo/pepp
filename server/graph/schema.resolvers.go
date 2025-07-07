@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"time"
 
@@ -261,31 +262,81 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, id []int) (int, erro
 }
 
 // AddTutorial is the resolver for the addTutorial field.
-func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*models.Tutorial) ([]int, error) {
+func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.NewTutorial) ([]int, error) {
+	var tutorials []*models.Tutorial
+	for _, t := range tutorial {
+		tutorials = append(tutorials, &models.Tutorial{EventID: int32(t.EventID), RoomNumber: t.RoomNumber, BuildingID: int32(t.BuildingID)})
+	}
+
 	if _, err := r.DB.NewInsert().
-		Model(&tutorial).
+		Model(&tutorials).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
 	var ids []int
-	for _, t := range tutorial {
+	for i, t := range tutorials {
 		ids = append(ids, int(t.ID))
+		for _, userID := range tutorial[i].Tutors {
+			if _, err := r.Mutation().AddTutorAssignmentForTutorial(ctx, models.TutorialToUserAssignment{TutorialID: t.ID, UserID: int32(userID)}); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return ids, nil
 }
 
 // UpdateTutorial is the resolver for the updateTutorial field.
-func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial models.Tutorial) (*models.Tutorial, error) {
+func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial model.NewTutorial) (int, error) {
+	t := models.Tutorial{EventID: int32(tutorial.EventID), RoomNumber: tutorial.RoomNumber, BuildingID: int32(tutorial.BuildingID), ID: int32(id)}
 	if _, err := r.DB.NewUpdate().
-		Model(&tutorial).
-		Where("id = ?", id).
+		Model(&t).
+		WherePK().
 		Exec(ctx); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return &tutorial, nil
+	var oldTutorIDs []int32
+	if err := r.DB.NewSelect().
+		Model((*models.TutorialToUserAssignment)(nil)).
+		Where("tutorial_id = ?", id).
+		Column("user_id").
+		Scan(ctx, &oldTutorIDs); err != nil {
+		return 0, err
+	}
+
+	for _, tutorID := range tutorial.Tutors {
+		if !slices.Contains(oldTutorIDs, int32(tutorID)) {
+			_, err := r.Mutation().
+				AddTutorAssignmentForTutorial(ctx,
+					models.TutorialToUserAssignment{
+						TutorialID: int32(id),
+						UserID:     int32(tutorID),
+					},
+				)
+			if err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	for _, oldTutorID := range oldTutorIDs {
+		if !slices.Contains(tutorial.Tutors, int(oldTutorID)) {
+			_, err := r.Mutation().
+				DeleteTutorAssignmentForTutorial(ctx,
+					models.TutorialToUserAssignment{
+						TutorialID: int32(id),
+						UserID:     oldTutorID,
+					},
+				)
+			if err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return int(t.ID), nil
 }
 
 // DeleteTutorial is the resolver for the deleteTutorial field.
@@ -787,6 +838,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("Tutorials").
 		Relation("Tutorials.Room").
 		Relation("Tutorials.Room.Building").
+		Relation("Tutorials.Tutors").
 		Where(`"e"."umbrella_id" IS NOT NULL`).
 		Order("ASC")
 
@@ -1135,25 +1187,6 @@ func (r *settingResolver) Type(ctx context.Context, obj *models.Setting) (model.
 	return model.ScalarTypeString, fmt.Errorf("unable to resolve type: %s", obj.Type)
 }
 
-// Tutors is the resolver for the tutors field.
-func (r *tutorialResolver) Tutors(ctx context.Context, obj *models.Tutorial) ([]*models.User, error) {
-	var assignments []*models.TutorialToUserAssignment
-	if err := r.DB.NewSelect().
-		Model(&assignments).
-		Relation("User").
-		Where("tutorial_id = ?", obj.ID).
-		Scan(ctx); err != nil {
-		return nil, err
-	}
-
-	var users []*models.User
-	for _, assignment := range assignments {
-		users = append(users, assignment.User)
-	}
-
-	return users, nil
-}
-
 // RegistrationCount is the resolver for the registrationCount field.
 func (r *tutorialResolver) RegistrationCount(ctx context.Context, obj *models.Tutorial) (int, error) {
 	count, err := r.DB.NewSelect().
@@ -1227,11 +1260,6 @@ func (r *newSettingResolver) Type(ctx context.Context, obj *models.Setting, data
 	return nil
 }
 
-// Tutors is the resolver for the tutors field.
-func (r *newTutorialResolver) Tutors(ctx context.Context, obj *models.Tutorial, data []string) error {
-	panic(fmt.Errorf("not implemented: Tutors - tutors"))
-}
-
 // Answer returns AnswerResolver implementation.
 func (r *Resolver) Answer() AnswerResolver { return &answerResolver{r} }
 
@@ -1277,9 +1305,6 @@ func (r *Resolver) NewRoom() NewRoomResolver { return &newRoomResolver{r} }
 // NewSetting returns NewSettingResolver implementation.
 func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{r} }
 
-// NewTutorial returns NewTutorialResolver implementation.
-func (r *Resolver) NewTutorial() NewTutorialResolver { return &newTutorialResolver{r} }
-
 type answerResolver struct{ *Resolver }
 type applicationResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
@@ -1295,4 +1320,3 @@ type newLabelResolver struct{ *Resolver }
 type newQuestionResolver struct{ *Resolver }
 type newRoomResolver struct{ *Resolver }
 type newSettingResolver struct{ *Resolver }
-type newTutorialResolver struct{ *Resolver }

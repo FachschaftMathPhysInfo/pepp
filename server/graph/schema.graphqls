@@ -189,7 +189,7 @@ input NewTutorial {
   eventID: Int!
   roomNumber: String!
   buildingID: Int!
-  tutors: [String!]
+  tutors: [Int!]
 }
 
 input NewBuilding {
@@ -282,7 +282,7 @@ type Mutation {
   updateEvent(id: Int!, event: NewEvent!): Int! @auth(role: ADMIN)
   deleteEvent(id: [Int!]!): Int! @auth(role: ADMIN)
   addTutorial(tutorial: [NewTutorial!]!): [Int!]! @auth(role: ADMIN)
-  updateTutorial(id: Int!, tutorial: NewTutorial!): Tutorial! @auth(role: ADMIN)
+  updateTutorial(id: Int!, tutorial: NewTutorial!): Int! @auth(role: ADMIN)
   deleteTutorial(id: [Int!]!): Int! @auth(role: ADMIN)
   addBuilding(building: NewBuilding!): Building! @auth(role: ADMIN)
   updateBuilding(id: Int!, building: NewBuilding!): Building! @auth(role: ADMIN)

@@ -101,6 +101,7 @@ query eventCloseup($id: Int!) {
     tutorials {
       ID
       tutors {
+        ID
         fn
         sn
         mail
@@ -131,6 +132,7 @@ query eventCloseup($id: Int!) {
 query tutorialAvailabilitys($id: Int!) {
   events(id: [$id]) {
     tutorsAvailable {
+      ID
       mail
       fn
       sn
@@ -159,6 +161,7 @@ query tutorsOfEventOfUmbrella($umbrellaID: [Int!]!) {
   events(umbrellaID: $umbrellaID) {
     tutorials {
       tutors {
+        ID
         mail
       }
     }
