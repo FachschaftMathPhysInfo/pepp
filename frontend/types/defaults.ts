@@ -46,6 +46,7 @@ export const defaultTutorial: Tutorial = {
 };
 
 export const defaultUser: User = {
+  ID: 0,
   fn: "",
   sn: "",
   mail: "",

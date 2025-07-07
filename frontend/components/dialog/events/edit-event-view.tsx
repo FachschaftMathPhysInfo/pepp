@@ -4,18 +4,25 @@ import {
   AddEventDocument,
   AddEventMutation,
   AddEventMutationVariables,
+  AddTutorialsDocument,
+  AddTutorialsMutation,
   DeleteEventDocument,
   DeleteEventMutation,
+  DeleteTutorialsDocument,
+  DeleteTutorialsMutation,
   Event,
   LabelKind,
   NewEvent,
-  TutorialToUserAssignment,
+  NewTutorial,
+  Tutorial,
   UmbrellaDurationDocument,
   UmbrellaDurationQuery,
   UmbrellaDurationQueryVariables,
   UpdateEventDocument,
   UpdateEventMutation,
   UpdateEventMutationVariables,
+  UpdateTutorialDocument,
+  UpdateTutorialMutation,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
 import { PlusCircle, Save, Trash2 } from "lucide-react";
@@ -78,12 +85,7 @@ export function EditEventView({ event }: EditEventViewProps) {
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
-  const [newAssignments, setNewAssignments] = useState<
-    TutorialToUserAssignment[]
-  >([]);
-  const [deleteAssignments, setDeleteAssignments] = useState<
-    TutorialToUserAssignment[]
-  >([]);
+  const [tutorials, setTutorials] = useState(event?.tutorials ?? []);
 
   function formatToHHMM(date: Date): string {
     const hours = date.getHours().toString().padStart(2, "0");
@@ -135,6 +137,28 @@ export function EditEventView({ event }: EditEventViewProps) {
       return;
     }
 
+    function mapTutorialToNewTutorial(t: Tutorial): NewTutorial {
+      return {
+        eventID: event?.ID ?? 0,
+        roomNumber: t.room.number,
+        buildingID: t.room.building.ID,
+        tutors: t.tutors?.map((u) => u.ID),
+      };
+    }
+
+    const newTutorials: NewTutorial[] = tutorials
+      .filter((t) => t.ID < 0)
+      .map((t) => mapTutorialToNewTutorial(t));
+
+    const updateTutorials: Tutorial[] = tutorials.filter((t) => t.ID > 0);
+
+    const deleteTutorialIDs: number[] =
+      event.tutorials
+        ?.filter((t) => {
+          if (!tutorials.find((tut) => t.ID === tut.ID)) return t;
+        })
+        .map((t) => t.ID) ?? [];
+
     const vars: UpdateEventMutationVariables = {
       event: getNewEvent(data),
       id: event.ID,
@@ -144,6 +168,25 @@ export function EditEventView({ event }: EditEventViewProps) {
       const client = getClient(sid!);
       try {
         await client.request<UpdateEventMutation>(UpdateEventDocument, vars);
+        if (newTutorials.length) {
+          await client.request<AddTutorialsMutation>(AddTutorialsDocument, {
+            tutorials: newTutorials,
+          });
+        }
+        if (deleteTutorialIDs.length) {
+          await client.request<DeleteTutorialsMutation>(
+            DeleteTutorialsDocument,
+            { tutorialIDs: deleteTutorialIDs }
+          );
+        }
+        if (updateTutorials.length) {
+          updateTutorials.forEach(async (t) => {
+            await client.request<UpdateTutorialMutation>(
+              UpdateTutorialDocument,
+              { id: t.ID, tutorial: mapTutorialToNewTutorial(t) }
+            );
+          });
+        }
         toast.info(`"${data.title}" erfolgreich gespeichert!`);
         triggerRefetch();
       } catch {
@@ -369,10 +412,8 @@ export function EditEventView({ event }: EditEventViewProps) {
                     event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
                   }
                   edit={true}
-                  newAssignments={newAssignments}
-                  setNewAssignments={setNewAssignments}
-                  deleteAssignments={deleteAssignments}
-                  setDeleteAssignments={setDeleteAssignments}
+                  tutorials={tutorials}
+                  setTutorialsAction={setTutorials}
                 />
               )}
               <FormField

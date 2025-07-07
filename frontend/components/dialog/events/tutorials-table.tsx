@@ -1,14 +1,6 @@
 "use client";
 
 import { defaultRoom, defaultTutorial, defaultUser } from "@/types/defaults";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import {
   AddStudentApplicationForEventMutation,
@@ -23,10 +15,9 @@ import {
   TutorialAvailabilitysDocument,
   TutorialAvailabilitysQuery,
   TutorialAvailabilitysQueryVariables,
-  TutorialToUserAssignment,
   User,
 } from "@/lib/gql/generated/graphql";
-import { Loader2, MoreVertical, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, SquareMinus } from "lucide-react";
 import {
   HoverCard,
   HoverCardContent,
@@ -49,21 +40,17 @@ interface TutorialsTableProps {
   capacities: number[];
   edit: boolean;
   event: Event;
-  deleteAssignments: TutorialToUserAssignment[];
-  setDeleteAssignments: React.Dispatch<
-    React.SetStateAction<TutorialToUserAssignment[]>
-  >;
-  newAssignments: TutorialToUserAssignment[];
-  setNewAssignments: React.Dispatch<
-    React.SetStateAction<TutorialToUserAssignment[]>
-  >;
+  tutorials: Tutorial[];
+  setTutorialsAction: React.Dispatch<React.SetStateAction<Tutorial[]>>;
 }
 
 export function TutorialsTable({
   event,
+  tutorials,
   capacities,
   edit,
   id,
+  setTutorialsAction,
 }: TutorialsTableProps) {
   const router = useRouter();
 
@@ -74,10 +61,9 @@ export function TutorialsTable({
   const [cap, setCap] = useState<number[]>(capacities);
   const [availableTutors, setAvailableTutors] = useState<User[]>([]);
   const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
-  const [selectedRooms, setSelectedRooms] = useState<(Room | undefined)[]>([]);
-  const [tuts, setTuts] = useState<Tutorial[]>(event.tutorials ?? []);
   const [newTutorialTutors, setNewTutorialTutors] = useState<User[]>([]);
   const [newTutorialRoom, setNewTutorialRoom] = useState<Room>();
+  const [tmpID, setTmpID] = useState(-1);
 
   useEffect(() => {
     if (!user) return;
@@ -118,10 +104,6 @@ export function TutorialsTable({
         })) ?? []
       );
 
-      if (event.tutorials) {
-        setSelectedRooms(event.tutorials.map((t) => t.room));
-      }
-
       setAvailableRooms(
         eventData.events[0].roomsAvailable?.map((r) => ({
           ...defaultRoom,
@@ -139,7 +121,7 @@ export function TutorialsTable({
     const vars: AddStudentRegistrationForTutorialMutationVariables = {
       registration: {
         tutorialID: tutorial.ID,
-        userMail: user!.mail,
+        userID: user!.ID,
       },
     };
 
@@ -150,7 +132,7 @@ export function TutorialsTable({
       );
     } catch {
       toast.error(
-        `Beim Eintragen in eine Veranstaltung aus "${event.title}" ist ein Fehler aufgetreten.`
+        "Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten."
       );
     }
   };
@@ -161,7 +143,7 @@ export function TutorialsTable({
     const vars: DeleteStudentRegistrationForTutorialMutationVariables = {
       registration: {
         tutorialID: tutorial.ID,
-        userMail: user!.mail,
+        userID: user!.ID,
       },
     };
 
@@ -172,7 +154,7 @@ export function TutorialsTable({
       );
     } catch {
       toast.error(
-        `Beim Austragen aus einer Veranstaltung in "${event.title}" ist ein Fehler aufgetreten.`
+        "Beim Austragen aus einer Veranstaltung ist ein Fehler aufgetreten."
       );
     }
   };
@@ -192,8 +174,8 @@ export function TutorialsTable({
           registrations: user?.registrations?.filter((r) => r.event.ID !== id),
         });
 
-        setTuts(
-          tuts.map((t) => {
+        setTutorialsAction(
+          tutorials.map((t) => {
             if (t.ID === clickedTutorial.ID) {
               t.registrationCount -= 1;
             }
@@ -217,8 +199,8 @@ export function TutorialsTable({
           }),
         });
 
-        setTuts(
-          tuts.map((t) => {
+        setTutorialsAction(
+          tutorials.map((t) => {
             if (t.ID === clickedTutorial.ID) {
               t.registrationCount += 1;
             } else if (t.ID === registration.ID) {
@@ -239,8 +221,8 @@ export function TutorialsTable({
         registrations: (user!.registrations || []).concat(clickedTutorial),
       });
 
-      setTuts(
-        tuts.map((t) => {
+      setTutorialsAction(
+        tutorials.map((t) => {
           if (t.ID === clickedTutorial.ID) {
             t.registrationCount += 1;
           }
@@ -281,9 +263,9 @@ export function TutorialsTable({
     <div className="rounded-md border overflow-hidden">
       <Table>
         <TableBody>
-          {tuts.length ? (
+          {tutorials && tutorials.length ? (
             <>
-              {tuts.map((e, i) => {
+              {tutorials.map((e, i) => {
                 const capacity = cap[i];
                 const utilization = (e.registrationCount / capacity) * 100;
                 const isRegisteredEvent =
@@ -320,9 +302,14 @@ export function TutorialsTable({
                     <TableCell className="relative z-1">
                       {edit ? (
                         <TutorSelection
-                          selectedTutors={e.tutors!}
+                          selectedTutors={e.tutors ?? undefined}
                           availableTutors={availableTutors}
-                          onSelectedTutorsChange={() => {}}
+                          onSelectedTutorsChange={(tutors) =>
+                            setTutorialsAction((prev) => {
+                              prev[i].tutors = tutors;
+                              return prev;
+                            })
+                          }
                         />
                       ) : (
                         <>
@@ -348,9 +335,9 @@ export function TutorialsTable({
                       {edit ? (
                         <RoomSelection
                           groupedRooms={groupedRooms}
-                          selectedRoom={selectedRooms[i]}
+                          selectedRoom={e.room}
                           onSelectedRoomChange={(room) => {
-                            const oldRoom = selectedRooms[i];
+                            const oldRoom = e.room;
                             handleAvailableRoomsChange(room, oldRoom);
 
                             if (room !== oldRoom) {
@@ -358,17 +345,8 @@ export function TutorialsTable({
                                 prev[i] = room?.capacity ?? 1;
                                 return prev;
                               });
-                              setSelectedRooms((prev) => {
-                                prev[i] = room;
-                                return prev;
-                              });
-                            } else {
-                              setCap((prev) => {
-                                prev[i] = 0;
-                                return prev;
-                              });
-                              setSelectedRooms((prev) => {
-                                prev[i] = undefined;
+                              setTutorialsAction((prev) => {
+                                prev[i].room = room ?? oldRoom;
                                 return prev;
                               });
                             }
@@ -383,21 +361,17 @@ export function TutorialsTable({
                     </TableCell>
                     <TableCell className="relative z-1">
                       {edit ? (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Menü öffnen</span>
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Optionen</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Trash2 className="h-4 w-4 mr-2" /> Löschen
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Button
+                          variant={"ghost"}
+                          onClick={() => {
+                            setTutorialsAction((prev) =>
+                              prev.filter((t) => t.ID !== e.ID)
+                            );
+                            handleAvailableRoomsChange(undefined, e.room);
+                          }}
+                        >
+                          <SquareMinus className="stroke-red-600" />
+                        </Button>
                       ) : (
                         <Button
                           className="w-full"
@@ -455,21 +429,9 @@ export function TutorialsTable({
                 <TutorSelection
                   availableTutors={availableTutors}
                   selectedTutors={newTutorialTutors}
-                  onSelectedTutorsChange={(tutor) => {
-                    const isSelected = newTutorialTutors.find(
-                      (t) => t.mail === tutor.mail
-                    )
-                      ? true
-                      : false;
-
-                    if (isSelected) {
-                      setNewTutorialTutors((prev) =>
-                        prev.filter((t) => t.mail !== tutor.mail)
-                      );
-                    } else {
-                      setNewTutorialTutors((prev) => [...prev, tutor]);
-                    }
-                  }}
+                  onSelectedTutorsChange={(tutors) =>
+                    setNewTutorialTutors(tutors)
+                  }
                 />
               </TableCell>
               <TableCell>
@@ -497,19 +459,20 @@ export function TutorialsTable({
                   disabled={!newTutorialRoom || !newTutorialTutors.length}
                   onClick={() => {
                     if (newTutorialRoom) {
-                      setTuts((prev) => [
+                      setTutorialsAction((prev) => [
                         ...prev,
                         {
                           ...defaultTutorial,
+                          ID: tmpID,
                           tutors: newTutorialTutors,
                           room: newTutorialRoom,
                         },
                       ]);
                     }
                     setCap((prev) => [...prev, newTutorialRoom?.capacity ?? 1]);
-                    setSelectedRooms((prev) => [...prev, newTutorialRoom]);
                     setNewTutorialRoom(undefined);
                     setNewTutorialTutors([]);
+                    setTmpID(tmpID - 1);
                   }}
                 >
                   <Plus />

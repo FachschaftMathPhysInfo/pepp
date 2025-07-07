@@ -20,12 +20,12 @@ type Event struct {
 	NeedsTutors *bool
 	UmbrellaID  *int32
 
-	Umbrella         *Event     `bun:"rel:belongs-to,join:umbrella_id=id"`
-	Topic            *Label     `bun:"rel:belongs-to,join:topic_name=name"`
-	Type             *Label     `bun:"rel:belongs-to,join:type_name=name"`
-	Tutorials        []Tutorial `bun:"rel:has-many,join:id=event_id"`
-	TutorsAvailable  []User     `bun:"m2m:user_to_event_availabilities,join:Event=User"`
-	RegistrationForm *Form      `bun:"rel:has-one,join:id=event_id"`
+	Umbrella         *Event      `bun:"rel:belongs-to,join:umbrella_id=id"`
+	Topic            *Label      `bun:"rel:belongs-to,join:topic_name=name"`
+	Type             *Label      `bun:"rel:belongs-to,join:type_name=name"`
+	Tutorials        []*Tutorial `bun:"rel:has-many,join:id=event_id"`
+	TutorsAvailable  []*User     `bun:"m2m:user_to_event_availabilities,join:Event=User"`
+	RegistrationForm *Form       `bun:"rel:has-one,join:id=event_id"`
 	SupportingEvents []Event    `bun:"m2m:event_to_supporting_events,join:Event=SupportingEvent"`
 }
 
