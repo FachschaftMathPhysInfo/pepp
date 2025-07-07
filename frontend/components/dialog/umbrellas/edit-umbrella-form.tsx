@@ -18,13 +18,14 @@ import {
   UpdateEventDocument,
   UpdateEventMutation
 } from "@/lib/gql/generated/graphql";
-import {Save} from "lucide-react";
+import {ChevronsUpDown, Save} from "lucide-react";
 import {toast} from "sonner";
 import {Textarea} from "@/components/ui/textarea";
 import {DatePickerWithRange} from "@/components/date-picker-with-range";
 import {getNextWeek} from "@/lib/utils";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Checkbox} from "@/components/ui/checkbox";
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList} from "@/components/ui/command";
 
 
 interface RoomFormProps {
@@ -203,38 +204,61 @@ export default function EditUmbrellaForm({umbrella, closeDialog, refreshTable, c
 
         <FormItem className={'flex-grow'}>
           <FormLabel>Importiert Events von</FormLabel>
-          <Popover modal={true}>
-            <PopoverTrigger className="flex w-1/2 items-center justify-start">
-              <div className={'border w-full border-muted-background py-1 px-4 rounded-lg text-start text-muted-foreground'}>
-                {sourceUmbrellaIDs.length === 1  ? (
-                  `${umbrellas.find(umb => umb.id === sourceUmbrellaIDs[0])?.title}`
+          <Popover modal>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-1/2 h-fit space-x-2 flex justify-between items-center"
+              >
+                {sourceUmbrellaIDs.length > 0 ? (
+                  <div className="flex flex-col items-start">
+                    {
+                      sourceUmbrellaIDs.length == 1 ? (
+                        umbrellas.find(umb => umb.id === sourceUmbrellaIDs[0])?.title
+                      ) : (
+                        `${sourceUmbrellaIDs.length} ausgewählt`
+                      )
+                    }
+                  </div>
                 ) : (
-                  `${sourceUmbrellaIDs.length} ausgewählt`
+                  <p>Programm wählen</p>
                 )}
-              </div>
+                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+              </Button>
             </PopoverTrigger>
-            <PopoverContent className={'w-fit'}>
-              {umbrellas.filter(umb => umb.id !== umbrella.ID).map((umb) => (
-                <div key={umb.id} className={'flex items-center'}>
-                  <Checkbox
-                    checked={sourceUmbrellaIDs.includes(umb.id)}
-                    onClick={() => {
-                      if (sourceUmbrellaIDs.includes(umb.id)) {
-                        const newArray = [...sourceUmbrellaIDs]
-                        const index = newArray.indexOf(umb.id, 0);
-                        if (index > -1) {
-                          newArray.splice(index, 1);
-                        }
-                        setSourceUmbrellaIDs(newArray);
-                      } else {
-                        setSourceUmbrellaIDs([...sourceUmbrellaIDs, umb.id])
-                      }
-                    }}
-                    className={'mr-5'}
-                  />
-                  {umb.title}
-                </div>
-              ))}
+            <PopoverContent>
+              <Command>
+                <CommandInput placeholder="Suche Titel..." />
+                <CommandList>
+                  <CommandEmpty>Kein Programm gefunden</CommandEmpty>
+                  <CommandGroup>
+                    {umbrellas.map((umb) => {
+                      const isSelected = !!sourceUmbrellaIDs.find((id) => id === umb.id);
+                      return (
+                        <CommandItem
+                          key={umb.id}
+                          value={umb.title}
+                          onSelect={() => {
+                            if (isSelected) {
+                              setSourceUmbrellaIDs((prev) =>
+                                prev.filter((id) => id !== umb.id)
+                              );
+                            } else {
+                              setSourceUmbrellaIDs((prev) => [...prev, umb.id]);
+                            }
+                          }}
+                        >
+                          <Checkbox className="mr-2" checked={isSelected} />
+                          <div className="flex flex-col">
+                            {umb.title}
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
             </PopoverContent>
           </Popover>
         </FormItem>
