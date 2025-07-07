@@ -72,7 +72,6 @@ export default function Settings() {
   }, [previousEventIds, rowSelection]);
 
   async function onSubmit() {
-    console.log("in Submit: ", selectedEventIds);
     const idsToRemove: number[] = previousEventIds.filter((id) => !selectedEventIds.includes(id));
     const idsToAdd: number[] = selectedEventIds.filter((id) => !previousEventIds.includes(id));
 
@@ -86,7 +85,7 @@ export default function Settings() {
 
       if (idsToAdd.length > 0) {
         await client.request<AddEventAvailabilityOfTutorMutation>(AddEventAvailabilityOfTutorDocument, {
-          email: user?.mail,
+          id: user?.ID,
           eventsAvailable: idsToAdd,
         });
       }
