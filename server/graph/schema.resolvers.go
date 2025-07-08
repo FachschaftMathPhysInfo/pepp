@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/auth"

@@ -6,7 +6,7 @@ import {
   LabelsQueryVariables,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getClient } from "@/lib/graphql";
 import {
@@ -23,6 +23,9 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Separator } from "./ui/separator";
+import { Button } from "./ui/button";
+import { useRouter } from "next/navigation";
 
 interface BadgePickerProps {
   kind: LabelKind;
@@ -39,6 +42,8 @@ export function BadgePicker({
 }: BadgePickerProps) {
   const [labels, setLabels] = useState<Label[]>([]);
   const [open, setOpen] = useState(false);
+
+  const router = useRouter();
 
   useEffect(() => {
     if (labels.length) return;
@@ -75,7 +80,7 @@ export function BadgePicker({
           <ChevronDown className="opacity-50 h-4 w-4" />
         </Badge>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[200px] p-0 overflow-hidden">
         <Command>
           <CommandInput placeholder="Label..." />
           <CommandList>
@@ -106,6 +111,14 @@ export function BadgePicker({
             </CommandGroup>
           </CommandList>
         </Command>
+        <Separator />
+        <Button
+          onClick={() => router.push("/admin/labels")}
+          className="w-full rounded-none"
+          variant={"ghost"}
+        >
+          <Edit /> Labels bearbeiten
+        </Button>
       </PopoverContent>
     </Popover>
   );
