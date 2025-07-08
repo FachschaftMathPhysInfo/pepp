@@ -441,9 +441,13 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, number []string, buil
 }
 
 // AddLabel is the resolver for the addLabel field.
-func (r *mutationResolver) AddLabel(ctx context.Context, label models.Label) (*models.Label, error) {
-	if label.Color == "" {
-		label.Color = "#D1D1D1"
+func (r *mutationResolver) AddLabel(ctx context.Context, label []*models.Label) ([]string, error) {
+	var names []string
+	for _, l := range label {
+		if l.Color == "" {
+			l.Color = "#D1D1D1"
+		}
+		names = append(names, l.Name)
 	}
 
 	if _, err := r.DB.NewInsert().
@@ -452,11 +456,11 @@ func (r *mutationResolver) AddLabel(ctx context.Context, label models.Label) (*m
 		return nil, err
 	}
 
-	return &label, nil
+	return names, nil
 }
 
 // UpdateLabel is the resolver for the updateLabel field.
-func (r *mutationResolver) UpdateLabel(ctx context.Context, label models.Label) (*models.Label, error) {
+func (r *mutationResolver) UpdateLabel(ctx context.Context, label []*models.Label) ([]string, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&label).
 		WherePK().
@@ -464,12 +468,12 @@ func (r *mutationResolver) UpdateLabel(ctx context.Context, label models.Label) 
 		return nil, err
 	}
 
-	updatedLabel, err := r.Query().Labels(ctx, []string{label.Name}, nil, nil)
-	if err != nil {
-		return nil, err
+	var names []string
+	for _, l := range label {
+		names = append(names, l.Name)
 	}
 
-	return updatedLabel[0], nil
+	return names, nil
 }
 
 // DeleteLabel is the resolver for the deleteLabel field.
