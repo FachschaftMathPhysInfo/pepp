@@ -4,7 +4,7 @@ import {z} from "zod";
 import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, use} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {
@@ -17,6 +17,7 @@ import {
 import {Save, ExternalLink} from "lucide-react";
 import {toast} from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import exp from "constants";
 
 
 interface RoomFormProps {
@@ -25,43 +26,25 @@ interface RoomFormProps {
   refreshTable: () => Promise<void>;
   createMode: boolean;
 }
-
-export default function BuildingForm({currentBuilding, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
-  const {sid} = useUser()
-  const [locationType, setLocationType] = useState("ossLink");
-  const useOssLink=locationType === "ossLink";
   
-  const generateOSSLink = (latitude: number, longitude: number, zoomLevel: number) => {
-    if (latitude === undefined || longitude === undefined || zoomLevel === undefined) {
-      return "";
-    }
-    return `https://www.openstreetmap.org/#map=${zoomLevel}/${latitude}/${longitude}`;
-  };
 
-  const [currentOssLink, setCurrentOssLink] = useState<string>("");
-
-  useEffect(() => {
-    if (!createMode && currentBuilding.latitude && currentBuilding.longitude) {
-      setCurrentOssLink(generateOSSLink(
-        currentBuilding.latitude, 
-        currentBuilding.longitude, 
-        currentBuilding.zoomLevel
-      ));
-    }
-  }, [createMode, currentBuilding]);
-
-  // Dynamic schema based on toggle
-  const buildingFormSchema = z.object({
+ const baseFormSchema = z.object({
     name: z.string().optional(),
     street: z.string().nonempty("Bitte gib die Straße an"),
     number: z.string().nonempty("Bitte gib die Hausnummer an"),
     city: z.string().nonempty("Bitte gib die Stadt an"),
     zip: z.string().nonempty("Bitte gib die Postleitzahl an"),
+  });
+
+  const ossLinkFormSchema = baseFormSchema.extend({
     ossLink: z.string()
       .url("Bitte gib einen gültigen OpenStreetMap-Link an")
       .regex(/^https:\/\/www\.openstreetmap\.org\/\S+$/, "Bitte gib einen gültigen OpenStreetMap-Link an")
       .or(z.literal("")) 
       .optional(),
+  });
+
+  const coordinatesFormSchema = baseFormSchema.extend({
     latitude: z.coerce
       .number()
       .min(-90,  "Latitude must be ≥ -90")
@@ -75,36 +58,52 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
       .or(z.literal("")) 
       .optional(),
     zoomLevel: z.coerce.number().optional(),
-  }).refine((data) => {
-    if (useOssLink) {
-      return !!data.ossLink && data.ossLink !== "";
-    } else {
-      
-      return (
-        (data.latitude !== "" && data.latitude !== undefined) &&
-        (data.longitude !== "" && data.longitude !== undefined)
-      );
-    }
-  }, {
-    message: "Bitte gib entweder einen gültigen OpenStreetMap-Link oder gültige Koordinaten an.",
-    path: ["ossLink"]
   });
 
+  export default function BuildingForm({currentBuilding, closeDialog, refreshTable, createMode = false}: RoomFormProps) {
+  const {sid} = useUser();
+  const [locationType, setLocationType] = useState("ossLink");
+  const useOssLink = locationType === "ossLink";
+  
+  const generateOSSLink = (latitude: number, longitude: number, zoomLevel: number) => {
+    if (latitude === undefined || longitude === undefined || zoomLevel === undefined) { 
+      return "";
+    } 
+    return `https://www.openstreetmap.org/#map=${zoomLevel}/${latitude}/${longitude}`;
+  };
+  const buildingFormSchema = useOssLink ? ossLinkFormSchema : coordinatesFormSchema;
   const form = useForm<z.infer<typeof buildingFormSchema>>({
     resolver: zodResolver(buildingFormSchema),
-    defaultValues: {
+    defaultValues: getFormDefaults(),
+  });
+   function getFormDefaults() {
+    const baseDefaults = {
       name: createMode ? "" : currentBuilding.name,
       street: createMode ? "" : currentBuilding.street,
       number: createMode ? "" : currentBuilding.number,
       city: createMode ? "" : currentBuilding.city,
       zip: createMode ? "" : currentBuilding.zip,
-      latitude: createMode ? undefined : currentBuilding.latitude,
-      longitude: createMode ? undefined : currentBuilding.longitude,
-      zoomLevel: createMode ? undefined : currentBuilding.zoomLevel
-    },
-  });
-
+    };
+    if (useOssLink) {
+      const ossLink = (!createMode && currentBuilding.latitude && currentBuilding.longitude)
+        ? generateOSSLink(currentBuilding.latitude, currentBuilding.longitude, currentBuilding.zoomLevel)
+        : "";
+      return {...baseDefaults, ossLink};
+    } else {
+      return {
+        ...baseDefaults,
+        latitude: createMode ? undefined : currentBuilding.latitude,
+        longitude: createMode ? undefined : currentBuilding.longitude,
+        zoomLevel: createMode ? undefined : currentBuilding.zoomLevel,
+      };
+    }
+  }
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
+
+useEffect(() => {
+    form.reset(getFormDefaults());
+    setHasTriedToSubmit(false);
+  }, [locationType, createMode, currentBuilding]);
 
   function getCoordinatesFromOssLink(link: string): { latitude?: number; longitude?: number; zoomLevel?: number } {
     if (!link) return {};
@@ -120,25 +119,27 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
     return {};
   }
 
-  async function onValidSubmit(buildingData: z.infer<typeof buildingFormSchema>) {
+async function onValidSubmit(formData: z.infer<typeof buildingFormSchema>) {
     const client = getClient(String(sid));
     
-    
+    let buildingData: any = {
+      name: formData.name,
+      street: formData.street,
+      number: formData.number,
+      city: formData.city,
+      zip: formData.zip,
+    };
 
-    if (useOssLink && buildingData.ossLink) {
-      const coords = getCoordinatesFromOssLink(buildingData.ossLink);
-      if (coords.latitude !== undefined) buildingData.latitude = coords.latitude;
-      if (coords.longitude !== undefined) buildingData.longitude = coords.longitude;
-      if (coords.zoomLevel !== undefined) buildingData.zoomLevel = coords.zoomLevel;
+    if (useOssLink && 'ossLink' in formData) {
+      const coords = getCoordinatesFromOssLink(formData.ossLink ?? "");
+      buildingData.latitude = coords.latitude;
+      buildingData.longitude = coords.longitude;
+      buildingData.zoomLevel = coords.zoomLevel;
+    } else if (!useOssLink && 'latitude' in formData && 'longitude' in formData) {
+      buildingData.latitude = formData.latitude;
+      buildingData.longitude = formData.longitude;
+      buildingData.zoomLevel = formData.zoomLevel;
     }
-    
-    
-    delete buildingData.ossLink;
-    
-    
-    if (buildingData.latitude === "") buildingData.latitude = undefined;
-    if (buildingData.longitude === "") buildingData.longitude = undefined;
-    if (typeof buildingData.zoomLevel === "string" && buildingData.zoomLevel === "") buildingData.zoomLevel = undefined;
 
     if(createMode) {
       await client.request<AddBuildingMutation>(AddBuildingDocument, {building: buildingData})
@@ -150,6 +151,7 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
     closeDialog();
     toast.info(createMode ? 'Gebäude wurde erfolgreich hinzugefügt' : "Gebäude wurde erfolgreich bearbeitet")
   }
+
 
   return (
     <Form {...form}>
@@ -260,20 +262,6 @@ export default function BuildingForm({currentBuilding, closeDialog, refreshTable
                     <FormControl>
                       <Input placeholder="https://www.openstreetmap.org/..." {...field} />
                     </FormControl>
-                    {!createMode && currentOssLink && (
-                      <div className="text-xs text-muted-foreground mt-1 flex items-center">
-                        <span>Aktueller Link: </span>
-                        <a 
-                          href={currentOssLink} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-500 hover:underline ml-1 inline-flex items-center"
-                        >
-                          {currentOssLink.substring(0, 50)}...
-                          <ExternalLink className="h-3 w-3 ml-1" />
-                        </a>
-                      </div>
-                    )}
                     <FormMessage/>
                   </FormItem>
                 )}
