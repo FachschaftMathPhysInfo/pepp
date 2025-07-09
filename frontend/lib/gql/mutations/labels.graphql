@@ -1,0 +1,11 @@
+mutation addLabel($label: [NewLabel!]!) {
+    addLabel(label: $label)
+}
+
+mutation updateLabel($label: [NewLabel!]!) {
+    updateLabel(label: $label)
+}
+
+mutation deleteLabel($names: [String!]!) {
+    deleteLabel(name: $names)
+}

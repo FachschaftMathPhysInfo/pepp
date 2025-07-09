@@ -108,7 +108,7 @@ export function LabelTable({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    Derzeit gibt es keine Events, bei denen wir Hilfe benötigen.
+                    Es wurden noch keine Labels erstellt
                   </TableCell>
                 </TableRow>
               )}
