@@ -1,5 +1,5 @@
-query labels($kind: LabelKind!) {
-  labels(kind: [$kind]) {
+query labels($kind: [LabelKind!]) {
+  labels(kind: $kind) {
     name
     color
   }
