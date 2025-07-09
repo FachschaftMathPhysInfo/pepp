@@ -47,6 +47,10 @@ export default function EventDialog({
   }, [open]);
 
   useEffect(() => {
+    if (!open && umbrella) setEdit(false);
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
 
     if (id) {
@@ -84,25 +88,14 @@ export default function EventDialog({
       if (id) void fetchEventData();
     }
     if (umbrella){
-      setEvent({
-        ...defaultEvent,
-        umbrella: umbrella,
-        from: umbrella.from,
-        to: umbrella.to,
-        title: "",
-        description: "",
-        tutorials: umbrella.tutorials?.map((t) => ({
-          ...defaultTutorial,
-          ...t,
-          event: {...defaultEvent, ID: umbrella.ID},
-          tutors: t.tutors?.map((tu) => ({...defaultUser, ...tu})),
-        })) ?? [],
-      });
+
+      setEvent(undefined);
+
     }
   }, [id, open, refetchKey, umbrella]);
 
   return edit ? (
-    <EditEventView event={event} umbrella={umbrella}/>
+    <EditEventView event={event} propUmbrella={umbrella}/>
   ) : (
     <>
       <DialogContent className="sm:min-w-[600px]">

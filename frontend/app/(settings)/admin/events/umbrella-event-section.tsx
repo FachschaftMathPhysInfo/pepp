@@ -33,9 +33,6 @@ export default function UmbrellaEventSection({
             onClick={() =>
               setDialogState({
                 mode: "addEvent",
-                event: {
-                  ...defaultEvent
-                },
                 umbrella: umbrella
               })
             }

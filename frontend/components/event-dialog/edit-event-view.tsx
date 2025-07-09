@@ -54,10 +54,10 @@ const FormSchema = z.object({
 
 interface EditEventViewProps {
   event: Event | undefined;
-  umbrella?: Event;
+  propUmbrella?: Event;
 }
 
-export function EditEventView({event}: EditEventViewProps) {
+export function EditEventView({event, propUmbrella}: EditEventViewProps) {
   const pathname = usePathname();
 
   const {sid} = useUser();
@@ -89,6 +89,18 @@ export function EditEventView({event}: EditEventViewProps) {
   };
 
   function getNewEvent(data: z.infer<typeof FormSchema>): NewEvent {
+    if (propUmbrella) {
+      return {
+        title: data.title,
+        description: data.description,
+        topicName: data.topic,
+        typeName: data.type,
+        needsTutors: data.needsTutors,
+        umbrellaID: propUmbrella?.ID,
+        from: mergeDateAndTime(data.date, data.from),
+        to: mergeDateAndTime(data.date, data.to),
+      };
+    }
     return {
       title: data.title,
       description: data.description,
@@ -98,7 +110,7 @@ export function EditEventView({event}: EditEventViewProps) {
       umbrellaID: umbrella?.ID,
       from: mergeDateAndTime(data.date, data.from),
       to: mergeDateAndTime(data.date, data.to),
-    };
+    }
   }
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -182,7 +194,7 @@ export function EditEventView({event}: EditEventViewProps) {
   };
 
   useEffect(() => {
-    if (event || umbrella) return;
+    if (event) return;
 
     const client = getClient();
 
@@ -191,16 +203,22 @@ export function EditEventView({event}: EditEventViewProps) {
         id: extractId(pathname)!,
       };
 
+
       try {
         const umbrellaData = await client.request<UmbrellaDurationQuery>(
           UmbrellaDurationDocument,
           vars
         );
 
+
         const umbrellaEvent = umbrellaData.umbrellas[0];
         form.reset({date: new Date(umbrellaEvent.from)});
 
-        setUmbrella({...defaultEvent, ...umbrellaEvent});
+        if (propUmbrella) {
+          setUmbrella({...defaultEvent, ...propUmbrella});
+        } else {
+          setUmbrella({...defaultEvent, ...umbrellaEvent});
+        }
       } catch {
         toast.error("Fehler beim Laden des Zeitrahmens für die Veranstaltung.");
       }
