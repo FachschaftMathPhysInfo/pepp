@@ -1,6 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Room } from "@/lib/gql/generated/graphql";
-import { ArrowDownToDot, Check, ChevronsUpDown, Users } from "lucide-react";
+import {
+  ArrowDownToDot,
+  Check,
+  ChevronsUpDown,
+  Edit,
+  Users,
+} from "lucide-react";
 import React, { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 import {
@@ -12,6 +18,8 @@ import {
   CommandList,
 } from "../../ui/command";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import { useRouter } from "next/navigation";
 
 interface RoomSelectionProps {
   selectedRoom: Room | undefined;
@@ -25,6 +33,8 @@ export function RoomSelection({
   groupedRooms,
 }: RoomSelectionProps) {
   const [open, setOpen] = useState(false);
+
+  const router = useRouter();
 
   const rooms = structuredClone(groupedRooms);
   if (selectedRoom) {
@@ -59,11 +69,11 @@ export function RoomSelection({
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[200px] p-0 overflow-hidden">
         <Command>
           <CommandInput placeholder="Raum oder Gebäude..." />
           <CommandList>
-            <CommandEmpty>Keinen Raum gefunden.</CommandEmpty>
+            <CommandEmpty>Zur Zeit der Veranstaltung keine verfügbaren Räume gefunden.</CommandEmpty>
             {Object.keys(rooms).map((bID) => {
               const building = rooms[bID][0].building;
               return (
@@ -113,6 +123,15 @@ export function RoomSelection({
             })}
           </CommandList>
         </Command>
+        <Separator />
+        <Button
+          className="w-full rounded-none"
+          variant={"ghost"}
+          onClick={() => router.push("/admin/locations")}
+        >
+          <Edit />
+          Räume verwalten
+        </Button>
       </PopoverContent>
     </Popover>
   );
