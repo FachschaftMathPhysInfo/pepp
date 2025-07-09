@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
@@ -113,13 +112,12 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 	user.SessionID = sessionID
 
 	if user.Password != "" {
-		password, salt, err := auth.Hash(user.Password)
+		passwordHash, err := auth.Hash(user.Password)
 		if err != nil {
 			return "", err
 		}
 
-		user.Salt = salt
-		user.Password = password
+		user.Password = passwordHash
 	}
 
 	if _, err := r.DB.NewInsert().
@@ -160,13 +158,12 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User, id int) (int, error) {
 	if user.Password != "" {
-		password, salt, err := auth.Hash(user.Password)
+		passwordHash, err := auth.Hash(user.Password)
 		if err != nil {
 			return 0, err
 		}
 
-		user.Salt = salt
-		user.Password = password
+		user.Password = passwordHash
 	}
 
 	var oldMail string
@@ -1198,7 +1195,7 @@ func (r *queryResolver) Login(ctx context.Context, mail string, password string)
 		return "", err
 	}
 
-	if err := auth.VerifyPassword(user.Password, password, user.Salt); err != nil {
+	if err := auth.VerifyPassword(user.Password, password); err != nil {
 		return "", err
 	}
 

@@ -15,13 +15,13 @@ import (
 )
 
 func SeedData(ctx context.Context, db *bun.DB) error {
-	password, salt, err := auth.Hash("tutor")
+	password, err := auth.Hash("tutor")
 	if err != nil {
-		return fmt.Errorf("failed to generate password for tutor1:", err)
+		return fmt.Errorf("failed to generate passwords for tutors:", err)
 	}
 	users := []*models.User{
-		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: utils.BoolPtr(true), Salt: salt, Password: password},
-		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: utils.BoolPtr(true), Salt: salt, Password: password},
+		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: utils.BoolPtr(true), Password: password},
+		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: utils.BoolPtr(true), Password: password},
 		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: utils.BoolPtr(true)},
 		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: utils.BoolPtr(true)},
 	}

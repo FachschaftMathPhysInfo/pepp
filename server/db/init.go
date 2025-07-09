@@ -104,7 +104,7 @@ func InitAdminUser(ctx context.Context, db *bun.DB) error {
 		}
 	}
 
-	hash, salt, err := auth.Hash(password)
+	hash, err := auth.Hash(password)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,6 @@ func InitAdminUser(ctx context.Context, db *bun.DB) error {
 		Sn:        "",
 		Mail:      mail,
 		Password:  hash,
-		Salt:      salt,
 		Confirmed: utils.BoolPtr(true),
 		Role:      "ADMIN",
 	}
