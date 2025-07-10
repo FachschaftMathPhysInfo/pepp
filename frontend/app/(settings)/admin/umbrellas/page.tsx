@@ -94,7 +94,7 @@ export default function UmbrellaSettings() {
         />
       </div>
 
-      <SearchInput searchValue={searchValue} setSearchValue={setSearchValue} />
+      <SearchInput searchValue={searchValue} setSearchValueAction={setSearchValue} />
 
       {umbrellas.length === 0 ? (
         <div

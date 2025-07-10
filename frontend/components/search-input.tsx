@@ -6,10 +6,10 @@ import React from "react";
 
 interface SearchInputProps {
   searchValue: string
-  setSearchValue: React.Dispatch<React.SetStateAction<string>>
+  setSearchValueAction: React.Dispatch<React.SetStateAction<string>>
 }
 
-export default function SearchInput( {searchValue, setSearchValue}: SearchInputProps) {
+export default function SearchInput( {searchValue, setSearchValueAction}: SearchInputProps) {
   return (
     <div className={'w-full sm:w-1/2 relative'}>
       <Search className={'absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 z-10'}/>
@@ -20,7 +20,7 @@ export default function SearchInput( {searchValue, setSearchValue}: SearchInputP
         type={'search'}
         className={'w-full'}
         onChange={(e) => {
-          setSearchValue(e.target.value)
+          setSearchValueAction(e.target.value)
         }}
       />
     </div>
