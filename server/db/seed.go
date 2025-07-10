@@ -74,8 +74,8 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 	}
 
 	labels := []*models.Label{
-		{Name: "Mathe", Color: "#87cefa", Kind: "TOPIC"},
 		{Name: "Informatik", Color: "#FFE31A", Kind: "TOPIC"},
+		{Name: "Mathe", Color: "#87cefa", Kind: "TOPIC"},
 		{Name: "Allgemein", Color: "#5D737E", Kind: "TOPIC"},
 		{Name: "Tutorium", Color: "#ABBA7C", Kind: "EVENT_TYPE"},
 		{Name: "Vorlesung", Color: "#ffbf00", Kind: "EVENT_TYPE"},
@@ -102,8 +102,8 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Algorithmen und Datenstrukturen",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicName:   "Informatik",
-			TypeName:    "Tutorium",
+			TopicID:     1,
+			TypeID:      4,
 			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(time.Hour),
@@ -112,8 +112,8 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Analysis",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicName:   "Mathe",
-			TypeName:    "Vorlesung",
+			TopicID:     2,
+			TypeID:      5,
 			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add((24 * time.Hour) * 7),
 			To:          time.Now().Add((24*time.Hour)*7 + 2*time.Hour),
@@ -122,8 +122,8 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Einführungsveranstaltung",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicName:   "Allgemein",
-			TypeName:    "Vorlesung",
+			TopicID:     3,
+			TypeID:      5,
 			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(time.Hour),
@@ -132,8 +132,8 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Lineare Algebra",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicName:   "Mathe",
-			TypeName:    "Tutorium",
+			TopicID:     2,
+			TypeID:      4,
 			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(2 * time.Hour),
 			To:          time.Now().Add(3 * time.Hour),

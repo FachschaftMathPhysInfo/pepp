@@ -91,6 +91,7 @@ query eventCloseup($id: Int!) {
     to
     needsTutors
     topic {
+      ID
       name
       color
     }
@@ -99,6 +100,7 @@ query eventCloseup($id: Int!) {
       title
     }
     type {
+      ID
       name
       color
     }

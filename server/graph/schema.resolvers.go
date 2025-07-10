@@ -441,13 +441,11 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, number []string, buil
 }
 
 // AddLabel is the resolver for the addLabel field.
-func (r *mutationResolver) AddLabel(ctx context.Context, label []*models.Label) ([]string, error) {
-	var names []string
+func (r *mutationResolver) AddLabel(ctx context.Context, label []*models.Label) ([]int, error) {
 	for _, l := range label {
 		if l.Color == "" {
 			l.Color = "#D1D1D1"
 		}
-		names = append(names, l.Name)
 	}
 
 	if _, err := r.DB.NewInsert().
@@ -456,31 +454,32 @@ func (r *mutationResolver) AddLabel(ctx context.Context, label []*models.Label) 
 		return nil, err
 	}
 
-	return names, nil
+	var ids []int
+	for _, l := range label {
+		ids = append(ids, int(l.ID))
+	}
+
+	return ids, nil
 }
 
 // UpdateLabel is the resolver for the updateLabel field.
-func (r *mutationResolver) UpdateLabel(ctx context.Context, label []*models.Label) ([]string, error) {
+func (r *mutationResolver) UpdateLabel(ctx context.Context, id int, label models.Label) (int, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&label).
-		WherePK().
+		Where("id = ?", id).
+		OmitZero().
 		Exec(ctx); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	var names []string
-	for _, l := range label {
-		names = append(names, l.Name)
-	}
-
-	return names, nil
+	return id, nil
 }
 
 // DeleteLabel is the resolver for the deleteLabel field.
-func (r *mutationResolver) DeleteLabel(ctx context.Context, name []string) (int, error) {
+func (r *mutationResolver) DeleteLabel(ctx context.Context, id []int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Label)(nil)).
-		Where("name = ?", name).
+		Where("id = ?", id).
 		Exec(ctx)
 	if err != nil {
 		return 0, err
@@ -661,6 +660,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 	if err := r.DB.NewSelect().
 		Model(&availabilitys).
 		Relation("Event").
+		Relation("Event.Type").
 		WherePK().
 		Scan(ctx); err != nil {
 		return nil, err
@@ -673,7 +673,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 		e := []hermes.Entry{
 			{Key: r.Settings["email-assignment-event-title"], Value: a.Event.Title},
 			{Key: r.Settings["email-assignment-date-title"], Value: a.Event.From.Format("02.01")},
-			{Key: r.Settings["email-assignment-kind-title"], Value: a.Event.TypeName}}
+			{Key: r.Settings["email-assignment-kind-title"], Value: a.Event.Type.Name}}
 		m.Table.Data = append(m.Table.Data, e)
 	}
 
@@ -908,11 +908,11 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 	}
 
 	if typeArg != nil {
-		query = query.Where(`"e"."type_name" IN (?)`, bun.In(typeArg))
+		query = query.Where(`"type__name" IN (?)`, bun.In(typeArg))
 	}
 
 	if topic != nil {
-		query = query.Where(`"e"."topic_name" IN (?)`, bun.In(topic))
+		query = query.Where(`"topic__name" IN (?)`, bun.In(topic))
 	}
 
 	if needsTutors != nil {
@@ -963,7 +963,7 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 		Order("from ASC")
 
 	if id != nil {
-		query = query.Where("id IN (?)", bun.In(id))
+		query = query.Where("e.id IN (?)", bun.In(id))
 	}
 
 	if onlyFuture != nil && *onlyFuture == true {
@@ -1041,7 +1041,7 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 
 	if umbrellaID != nil {
 		query = query.
-			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_name = l.name OR e.type_name = l.name))",
+			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_id = l.id OR e.type_id = l.id))",
 				bun.In(umbrellaID))
 	}
 

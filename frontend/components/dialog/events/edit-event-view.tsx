@@ -66,8 +66,8 @@ const FormSchema = z.object({
   date: z.date({ required_error: "Bitte gib ein Datum an." }),
   from: z.string().min(1, { message: "Bitte gib eine Startzeit an." }),
   to: z.string().min(1, { message: "Bitte gib eine Endzeit an." }),
-  topic: z.string().min(1, { message: "Bitte wähle ein Thema." }),
-  type: z.string().min(1, { message: "Bitte wähle einen Veranstaltungstyp" }),
+  topic: z.number().min(1, { message: "Bitte gib eine Veranstaltungsart an."}),
+  type: z.number().min(1, { message: "Bitte wähle einen Veranstaltungstyp" }),
   description: z.string(),
   needsTutors: z.boolean(),
 });
@@ -106,8 +106,8 @@ export function EditEventView({ event }: EditEventViewProps) {
     return {
       title: data.title,
       description: data.description,
-      topicName: data.topic,
-      typeName: data.type,
+      topicID: data.topic,
+      typeID: data.type,
       needsTutors: data.needsTutors,
       umbrellaID: umbrella?.ID,
       from: mergeDateAndTime(data.date, data.from),
@@ -124,8 +124,8 @@ export function EditEventView({ event }: EditEventViewProps) {
       from: event?.from ? formatToHHMM(new Date(event.from)) : "",
       to: event?.to ? formatToHHMM(new Date(event.to)) : "",
       needsTutors: event?.needsTutors,
-      topic: event?.topic.name ?? "",
-      type: event?.type.name ?? "",
+      topic: event?.topic.ID ?? 0,
+      type: event?.type.ID ?? 0,
     },
   });
 

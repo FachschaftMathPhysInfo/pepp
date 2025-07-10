@@ -30,8 +30,8 @@ import { useRouter } from "next/navigation";
 interface BadgePickerProps {
   kind: LabelKind;
   labelKindDescription?: string;
-  selected: string | null;
-  onChange: (label: string | null) => void;
+  selected: number | null;
+  onChange: (label: number | null) => void;
 }
 
 export function BadgePicker({
@@ -62,7 +62,7 @@ export function BadgePicker({
     void fetchData();
   }, [kind, labels.length, open]);
 
-  const sel = labels.find((label) => label.name === selected);
+  const sel = labels.find((label) => label.ID === selected);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
@@ -91,7 +91,7 @@ export function BadgePicker({
                   key={label.name}
                   value={label.name}
                   onSelect={() => {
-                    onChange(label.name);
+                    onChange(label.ID);
                     setOpen(false);
                   }}
                 >

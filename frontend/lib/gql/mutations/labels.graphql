@@ -2,10 +2,10 @@ mutation addLabel($label: [NewLabel!]!) {
     addLabel(label: $label)
 }
 
-mutation updateLabel($label: [NewLabel!]!) {
-    updateLabel(label: $label)
+mutation updateLabel($id: Int!, $label: NewLabel!) {
+    updateLabel(id: $id, label: $label)
 }
 
-mutation deleteLabel($names: [String!]!) {
-    deleteLabel(name: $names)
+mutation deleteLabel($id: [Int!]!) {
+    deleteLabel(id: $id)
 }

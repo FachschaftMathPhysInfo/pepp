@@ -14,8 +14,8 @@ export const defaultEvent: Event = {
   ID: 0,
   needsTutors: false,
   title: "",
-  topic: { name: "" },
-  type: { name: "" },
+  topic: { ID: 0, name: "", color: "" },
+  type: { ID: 0, name: "", color: "" },
   from: "",
   to: "",
 };
@@ -55,7 +55,9 @@ export const defaultUser: User = {
 };
 
 export const defaultLabel: Label = {
+  ID: 0,
   name: "",
+  color: "",
 };
 
 export const defaultForm: Form = {
