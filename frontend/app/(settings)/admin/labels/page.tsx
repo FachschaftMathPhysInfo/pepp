@@ -25,7 +25,7 @@ export type LabelDialogState = {
   currentLabel?: Label;
 }
 
-export default function IndexPage() {
+export default function LabelSettingsPage() {
   const {sid} = useUser()
   const [dialogState, setDialogState] = useState<LabelDialogState>({mode: null});
   const [loading, setLoading] = useState(false);
@@ -54,8 +54,10 @@ export default function IndexPage() {
 
     try {
       await client.request<DeleteLabelMutation>(DeleteLabelDocument, {
-        names: [dialogState.currentLabel?.name]
+        id: [dialogState.currentLabel?.ID]
       })
+
+      toast.success(`Label ${dialogState.currentLabel?.name} wurde gelöscht!`)
       void fetchLabels()
     } catch (error) {
       console.error('failed deleting tickets: ', error)

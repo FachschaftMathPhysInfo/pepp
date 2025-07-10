@@ -3,5 +3,6 @@ query labels($kind: [LabelKind!]) {
     ID
     name
     color
+    kind
   }
 }

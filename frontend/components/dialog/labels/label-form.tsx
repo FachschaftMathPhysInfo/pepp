@@ -21,16 +21,19 @@ import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {Label} from "@/components/ui/label";
 
 interface LabelFormProps {
-  label: Labeltype;
+  label?: Labeltype;
   closeDialog: () => void;
   mode: "add" | "edit" | null;
   triggerRefetch: () => Promise<void>;
 }
 
 export default function LabelForm(props: LabelFormProps) {
-  const createMode = props.mode === "add";
-  const [color, setColor] = useState<string>(props.label.color ?? "#AEAEAE")
   const {sid} = useUser();
+
+  const createMode = props.mode === "add"
+  const [color, setColor] = useState<string>(props.label?.color === undefined || props.label?.color === "" ?
+    "#AEAEAE" : props.label.color)
+  const [labelKind, setLabelKind] = useState<LabelKind>(props.label?.kind ?? LabelKind.Topic)
   const labelFormSchema = z.object({
     name: z.string().nonempty({
       message: "Bitte gib dem Label einen Namen",
@@ -42,7 +45,7 @@ export default function LabelForm(props: LabelFormProps) {
   const form = useForm<z.infer<typeof labelFormSchema>>({
     resolver: zodResolver(labelFormSchema),
     defaultValues: {
-      name: createMode ? "" : props.label.name,
+      name: createMode ? "" : props.label?.name ?? "",
       color: color
     },
   });
@@ -59,7 +62,7 @@ export default function LabelForm(props: LabelFormProps) {
     const newLabel = {
       name: labelData.name,
       color: color,
-      kind: LabelKind.Topic
+      kind: labelKind,
     };
 
     if (createMode) {
@@ -74,8 +77,15 @@ export default function LabelForm(props: LabelFormProps) {
     } else {
       try {
         await client.request<UpdateLabelMutation>(UpdateLabelDocument, {
+          id: props.label?.ID,
           label: newLabel,
         });
+
+        toast.success(
+          createMode
+            ? "Label wurde erfolgreich erstellt"
+            : "Label wurde erfolgreich bearbeitet"
+        );
       } catch (e) {
         toast.error('Label konnte nicht geupdated werden');
         console.error("Failed updating label: ", e);
@@ -84,11 +94,6 @@ export default function LabelForm(props: LabelFormProps) {
 
     void props.triggerRefetch();
     props.closeDialog();
-    toast.success(
-      createMode
-        ? "Label wurde erfolgreich erstellt"
-        : "Label wurde erfolgreich bearbeitet"
-    );
   }
 
   return (
@@ -100,22 +105,28 @@ export default function LabelForm(props: LabelFormProps) {
         className="space-y-4 w-full"
       >
 
-        <FormItem className={"flex-grow"}>
-          <FormLabel>Typ</FormLabel>
-          <FormControl>
-            <RadioGroup defaultValue={LabelKind.Topic} className={'flex space-x-12'}>
-              <div className="flex items-center gap-3">
-                <RadioGroupItem value={LabelKind.Topic} id="r1"/>
-                <Label htmlFor="r1">Thema</Label>
-              </div>
-              <div className="flex items-center gap-3">
-                <RadioGroupItem value={LabelKind.EventType} id="r2"/>
-                <Label htmlFor="r2">Event-Art</Label>
-              </div>
-            </RadioGroup>
-          </FormControl>
-          <FormMessage/>
-        </FormItem>
+        {createMode && (
+          <FormItem className={"flex-grow"}>
+            <FormLabel>Typ</FormLabel>
+            <FormControl>
+              <RadioGroup
+                defaultValue={labelKind}
+                className={'flex space-x-12'}
+                onValueChange={(value) => setLabelKind(value as LabelKind)}
+              >
+                <div className="flex items-center gap-3">
+                  <RadioGroupItem value={LabelKind.Topic} id="r1"/>
+                  <Label htmlFor="r1">Thema</Label>
+                </div>
+                <div className="flex items-center gap-3">
+                  <RadioGroupItem value={LabelKind.EventType} id="r2"/>
+                  <Label htmlFor="r2">Event-Art</Label>
+                </div>
+              </RadioGroup>
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )}
 
         <FormField
           control={form.control}
@@ -124,7 +135,7 @@ export default function LabelForm(props: LabelFormProps) {
             <FormItem className={"flex-grow"}>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder={props.label.name} {...field} />
+                <Input placeholder={props.label?.name ?? 'Label Name'} {...field} />
               </FormControl>
               <FormMessage/>
             </FormItem>
