@@ -102,6 +102,11 @@ func (r *eventResolver) RoomsAvailable(ctx context.Context, obj *models.Event) (
 	return rooms, nil
 }
 
+// Kind is the resolver for the kind field.
+func (r *labelResolver) Kind(ctx context.Context, obj *models.Label) (model.LabelKind, error) {
+	return model.LabelKind(obj.Kind), nil
+}
+
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (string, error) {
 	sessionID, err := auth.GenerateSessionID()
@@ -439,9 +444,11 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, number []string, buil
 }
 
 // AddLabel is the resolver for the addLabel field.
-func (r *mutationResolver) AddLabel(ctx context.Context, label models.Label) (*models.Label, error) {
-	if label.Color == "" {
-		label.Color = "#D1D1D1"
+func (r *mutationResolver) AddLabel(ctx context.Context, label []*models.Label) ([]int, error) {
+	for _, l := range label {
+		if l.Color == "" {
+			l.Color = "#D1D1D1"
+		}
 	}
 
 	if _, err := r.DB.NewInsert().
@@ -450,31 +457,32 @@ func (r *mutationResolver) AddLabel(ctx context.Context, label models.Label) (*m
 		return nil, err
 	}
 
-	return &label, nil
+	var ids []int
+	for _, l := range label {
+		ids = append(ids, int(l.ID))
+	}
+
+	return ids, nil
 }
 
 // UpdateLabel is the resolver for the updateLabel field.
-func (r *mutationResolver) UpdateLabel(ctx context.Context, label models.Label) (*models.Label, error) {
+func (r *mutationResolver) UpdateLabel(ctx context.Context, id int, label models.Label) (int, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&label).
-		WherePK().
+		Where("id = ?", id).
+		OmitZero().
 		Exec(ctx); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	updatedLabel, err := r.Query().Labels(ctx, []string{label.Name}, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedLabel[0], nil
+	return id, nil
 }
 
 // DeleteLabel is the resolver for the deleteLabel field.
-func (r *mutationResolver) DeleteLabel(ctx context.Context, name []string) (int, error) {
+func (r *mutationResolver) DeleteLabel(ctx context.Context, id []int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Label)(nil)).
-		Where("name = ?", name).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
 		return 0, err
@@ -655,6 +663,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 	if err := r.DB.NewSelect().
 		Model(&availabilitys).
 		Relation("Event").
+		Relation("Event.Type").
 		WherePK().
 		Scan(ctx); err != nil {
 		return nil, err
@@ -667,7 +676,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 		e := []hermes.Entry{
 			{Key: r.Settings["email-assignment-event-title"], Value: a.Event.Title},
 			{Key: r.Settings["email-assignment-date-title"], Value: a.Event.From.Format("02.01")},
-			{Key: r.Settings["email-assignment-kind-title"], Value: a.Event.TypeName}}
+			{Key: r.Settings["email-assignment-kind-title"], Value: a.Event.Type.Name}}
 		m.Table.Data = append(m.Table.Data, e)
 	}
 
@@ -902,11 +911,11 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 	}
 
 	if typeArg != nil {
-		query = query.Where(`"e"."type_name" IN (?)`, bun.In(typeArg))
+		query = query.Where(`"type__name" IN (?)`, bun.In(typeArg))
 	}
 
 	if topic != nil {
-		query = query.Where(`"e"."topic_name" IN (?)`, bun.In(topic))
+		query = query.Where(`"topic__name" IN (?)`, bun.In(topic))
 	}
 
 	if needsTutors != nil {
@@ -957,7 +966,7 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 		Order("from ASC")
 
 	if id != nil {
-		query = query.Where("id IN (?)", bun.In(id))
+		query = query.Where("e.id IN (?)", bun.In(id))
 	}
 
 	if onlyFuture != nil && *onlyFuture == true {
@@ -1035,7 +1044,7 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 
 	if umbrellaID != nil {
 		query = query.
-			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_name = l.name OR e.type_name = l.name))",
+			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_id = l.id OR e.type_id = l.id))",
 				bun.In(umbrellaID))
 	}
 
@@ -1335,6 +1344,9 @@ func (r *Resolver) Application() ApplicationResolver { return &applicationResolv
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
 
+// Label returns LabelResolver implementation.
+func (r *Resolver) Label() LabelResolver { return &labelResolver{r} }
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
@@ -1374,6 +1386,7 @@ func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{
 type answerResolver struct{ *Resolver }
 type applicationResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
+type labelResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type questionResolver struct{ *Resolver }

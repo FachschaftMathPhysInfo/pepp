@@ -50,8 +50,10 @@ enum LabelKind {
 }
 
 type Label {
+  ID: Int!
   name: String!
-  color: String
+  color: String!
+  kind: LabelKind!
 }
 
 type Event {
@@ -178,8 +180,8 @@ input UpdateUser {
 input NewEvent {
   title: String!
   description: String
-  topicName: String
-  typeName: String
+  topicID: Int
+  typeID: Int
   needsTutors: Boolean!
   from: Time!
   to: Time!
@@ -291,9 +293,9 @@ type Mutation {
   addRoom(room: NewRoom!): Room! @auth(role: ADMIN)
   updateRoom(room: NewRoom!): Room! @auth(role: ADMIN)
   deleteRoom(number: [String!]!, buildingID: Int!): Int! @auth(role: ADMIN)
-  addLabel(label: NewLabel!): Label! @auth(role: ADMIN)
-  updateLabel(label: NewLabel!): Label! @auth(role: ADMIN)
-  deleteLabel(name: [String!]!): Int! @auth(role: ADMIN)
+  addLabel(label: [NewLabel!]!): [Int!]! @auth(role: ADMIN)
+  updateLabel(id: Int!, label: NewLabel!): Int! @auth(role: ADMIN)
+  deleteLabel(id: [Int!]!): Int! @auth(role: ADMIN)
   upsertSetting(setting: NewSetting!): String! @auth(role: ADMIN)
   deleteSetting(key: [String!]!): Int! @auth(role: ADMIN)
   addForm(form: NewForm!): Form! @auth(role: ADMIN)

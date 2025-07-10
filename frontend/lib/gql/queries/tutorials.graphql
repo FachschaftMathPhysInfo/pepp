@@ -5,12 +5,16 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
     to
     description
     topic {
+      ID
       name
       color
+      kind
     }
     type {
+      ID
       name
       color
+      kind
     }
   }
   tutorials(eventID: [$eventID], tutorID: [$tutorID]) {

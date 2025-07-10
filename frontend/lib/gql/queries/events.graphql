@@ -15,12 +15,16 @@ query tableEvents(
     to
     needsTutors
     topic {
+      ID
       name
       color
+      kind
     }
     type {
+      ID
       name
       color
+      kind
     }
   }
 }
@@ -53,10 +57,16 @@ query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
     }
   }
   typeLabels: labels(kind: EVENT_TYPE, umbrellaID: [$umbrellaID]) {
+    ID
     name
+    color
+    kind
   }
   topicLabels: labels(kind: TOPIC, umbrellaID: [$umbrellaID]) {
+    ID
     name
+    color
+    kind
   }
   events(umbrellaID: [$umbrellaID], type: $type, topic: $topic, includeSupportingEvents: true) {
     ID
@@ -64,12 +74,16 @@ query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
     from
     to
     topic {
+      ID
       name
       color
+      kind
     }
     type {
+      ID
       name
       color
+      kind
     }
   }
 }
@@ -91,16 +105,20 @@ query eventCloseup($id: Int!) {
     to
     needsTutors
     topic {
+      ID
       name
       color
+      kind
     }
     umbrella {
       ID
       title
     }
     type {
+      ID
       name
       color
+      kind
     }
     tutorials {
       ID
