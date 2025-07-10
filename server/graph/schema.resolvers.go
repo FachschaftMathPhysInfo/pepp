@@ -484,7 +484,7 @@ func (r *mutationResolver) UpdateLabel(ctx context.Context, id int, label models
 func (r *mutationResolver) DeleteLabel(ctx context.Context, id []int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Label)(nil)).
-		Where("id = (?)", bun.In(id)).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
 		return 0, err
