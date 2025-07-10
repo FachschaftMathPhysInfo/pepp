@@ -9,7 +9,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
+import {Table, TableBody, TableCell, TableRow,} from "@/components/ui/table";
 import React from "react";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/lib/gql/generated/graphql";
@@ -64,24 +64,6 @@ export function LabelTable({
         </div>
         <div className="rounded-md border overflow-hidden">
           <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead className={"text-center"} key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (

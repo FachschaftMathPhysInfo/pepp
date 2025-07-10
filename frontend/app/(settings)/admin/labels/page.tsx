@@ -9,6 +9,7 @@ import {
   DeleteLabelDocument,
   DeleteLabelMutation,
   Label,
+  LabelKind,
   LabelsDocument,
   LabelsQuery
 } from "@/lib/gql/generated/graphql";
@@ -19,6 +20,7 @@ import {Skeleton} from "@/components/ui/skeleton";
 import {LabelDialog} from "@/components/dialog/labels/label-dialog";
 import {defaultLabel} from "@/types/defaults";
 import {useUser} from "@/components/providers";
+import {Card, CardContent, CardDescription, CardHeader} from "@/components/ui/card";
 
 export type LabelDialogState = {
   mode: "add" | "edit" | "delete" | null;
@@ -90,8 +92,30 @@ export default function LabelSettingsPage() {
           <p className={'top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2'}>Lade Labels...</p>
         </div>
       ) : (
-        <LabelTable data={labels} setDialogState={setDialogState}/>
-      )}
+          <>
+            <Card>
+              <CardContent>
+                <CardHeader className={'text-xl font-bold pl-0'}>Event Themen</CardHeader>
+                <LabelTable
+                  data={labels.filter(label => label.kind === LabelKind.Topic)}
+                  setDialogState={setDialogState}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent>
+                <CardHeader className={'text-xl font-bold pl-0'}>Event Art</CardHeader>
+                <LabelTable
+                  data={labels.filter(label => label.kind === LabelKind.EventType)}
+                  setDialogState={setDialogState}
+                />
+              </CardContent>
+            </Card>
+
+          </>
+
+  )}
 
       <ConfirmationDialog
         isOpen={dialogState.mode === "delete"}
