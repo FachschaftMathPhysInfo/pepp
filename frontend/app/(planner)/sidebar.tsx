@@ -37,7 +37,7 @@ export function AdminSidebar({ umbrellas }: AdminSidebarProps) {
     },
     {
       title: "Anmeldungen",
-      url: basePath + "/registrations",
+      url: basePath + "/applications",
       icon: BookCheck,
     },
   ];
