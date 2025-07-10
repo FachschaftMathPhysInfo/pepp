@@ -17,7 +17,7 @@ export function LabelDialog(props: LabelDialogProps) {
 
   return (
     <Dialog open={props.isOpen}>
-      <DialogContent className="[&>button]:hidden rounded-lg max-w-[90vw]">
+      <DialogContent className="[&>button]:hidden rounded-lg">
         <DialogHeader>
           <DialogTitle>
             <Sprout className={'inline mr-3'}/>

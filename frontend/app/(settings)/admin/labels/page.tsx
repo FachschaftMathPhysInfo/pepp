@@ -20,7 +20,7 @@ import {Skeleton} from "@/components/ui/skeleton";
 import {LabelDialog} from "@/components/dialog/labels/label-dialog";
 import {defaultLabel} from "@/types/defaults";
 import {useUser} from "@/components/providers";
-import {Card, CardContent, CardDescription, CardHeader} from "@/components/ui/card";
+import {Card, CardContent, CardHeader} from "@/components/ui/card";
 
 export type LabelDialogState = {
   mode: "add" | "edit" | "delete" | null;
@@ -43,7 +43,6 @@ export default function LabelSettingsPage() {
       setLoading(false);
     } catch (error) {
       toast.error('Laden der Labels ist fehlgeschlagen, versuche es später nochmal')
-      console.error('Failed fetching labels: ', error)
     }
   }, [])
 
@@ -62,7 +61,6 @@ export default function LabelSettingsPage() {
       toast.success(`Label ${dialogState.currentLabel?.name} wurde gelöscht!`)
       void fetchLabels()
     } catch (error) {
-      console.error('failed deleting tickets: ', error)
       toast.error('Label konnte nicht gelöscht werden')
     }
   }

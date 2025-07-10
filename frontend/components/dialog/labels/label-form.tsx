@@ -70,9 +70,8 @@ export default function LabelForm(props: LabelFormProps) {
         await client.request<AddLabelMutation>(AddLabelDocument, {
           label: newLabel,
         });
-      } catch (e) {
+      } catch {
         toast.error('Label konnte nicht erstellt werden');
-        console.error("Failed creating label: ", e);
       }
     } else {
       try {
@@ -86,9 +85,8 @@ export default function LabelForm(props: LabelFormProps) {
             ? "Label wurde erfolgreich erstellt"
             : "Label wurde erfolgreich bearbeitet"
         );
-      } catch (e) {
+      } catch {
         toast.error('Label konnte nicht geupdated werden');
-        console.error("Failed updating label: ", e);
       }
     }
 
