@@ -154,17 +154,21 @@ export default function LabelForm(props: LabelFormProps) {
                     <input
                       type={"color"}
                       value={color}
-                      onChange={e => setColor(e.target.value)}
+                      onChange={e => {
+                        const newColor = e.target.value.toUpperCase();
+                        setColor(newColor);
+                        form.setValue("color", newColor);
+                      }}
                       className={'w-full h-full rounded-lg m-0'}
                     />
                   </div>
                   <Input
                     type="text"
                     {...field}
-                    value={field.value}
+                    value={field.value.toUpperCase()}
                     onChange={(e) => {
                       field.onChange(e);
-                      setColor(e.target.value);
+                      setColor(e.target.value.toUpperCase());
                     }}
                   />
                 </div>
