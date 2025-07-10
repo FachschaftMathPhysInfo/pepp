@@ -74,7 +74,11 @@ services:
 | `OIDC_LOGIN_CLIENT_ID` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `pepp` |
 | `OIDC_LOGIN_CLIENT_SECRET` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `insecure_secret` |
 | `OIDC_LOGIN_SCOPES` | Required if `OIDC_LOGIN_PROVIDER_URL` is given | `openid profile email groups` |
-| `OIDC_LOGIN_CLAIM_MAPPING` | Required if `OIDC_LOGIN_PROVIDER_URL` is given. Map single name strings to `name` and splitted to `fn` and `sn` | `'{"mail":"email","name":"name"}'` |
+| `OIDC_LOGIN_CLAIM_MAPPING` | Required if `OIDC_LOGIN_PROVIDER_URL` is given. Map single name strings to `name` and splitted to `fn` and `sn` | `'{"mail":"email","name":"name","groups":"groups"}'` |
+| `OIDC_LOGIN_ADMIN_GROUPS` | User groups which will automatically get admin rights. | `vorkurs-orga root` |
+
+> [!NOTE]
+> When configuring your OIDC-Provider, remember to set the callback uri to `https://<your PUBLIC_URL here>/sso/oidc/callback`.
 
 ## contributions
 1. [create an issue](https://github.com/FachschaftMathPhysInfo/pepp/issues/new)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
@@ -16,11 +17,11 @@ import (
 
 type ClaimMapping map[string]string
 
-func GetOIDCClientConfig(ctx context.Context) (*oauth2.Config, *oidc.Provider, ClaimMapping, error) {
+func GetOIDCClientConfig(ctx context.Context) (*oauth2.Config, *oidc.Provider, ClaimMapping, []string, error) {
 	issuer := utils.MustGetEnv("OIDC_LOGIN_PROVIDER_URL")
 	provider, err := oidc.NewProvider(ctx, issuer)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to connect to OIDC server: %w", err)
+		return nil, nil, nil, nil, fmt.Errorf("failed to connect to OIDC server: %w", err)
 	}
 
 	config := oauth2.Config{
@@ -31,13 +32,16 @@ func GetOIDCClientConfig(ctx context.Context) (*oauth2.Config, *oidc.Provider, C
 		Scopes:       strings.Split(utils.MustGetEnv("OIDC_LOGIN_SCOPES"), " "),
 	}
 
-	raw := utils.MustGetEnv("OIDC_LOGIN_CLAIM_MAPPING")
+	rawMapping := utils.MustGetEnv("OIDC_LOGIN_CLAIM_MAPPING")
 	var mapping ClaimMapping
-	if err := json.Unmarshal([]byte(raw), &mapping); err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to parse OIDC claim mapping: %w", err)
+	if err := json.Unmarshal([]byte(rawMapping), &mapping); err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("failed to parse OIDC claim mapping: %w", err)
 	}
 
-	return &config, provider, mapping, nil
+	rawAdmins := os.Getenv("OIDC_LOGIN_ADMIN_GROUPS")
+	adminGroups := strings.Split(rawAdmins, " ")
+
+	return &config, provider, mapping, adminGroups, nil
 }
 
 func HandleOIDCRedirect(w http.ResponseWriter, r *http.Request, config *oauth2.Config) {
@@ -50,7 +54,7 @@ func HandleOIDCRedirect(w http.ResponseWriter, r *http.Request, config *oauth2.C
 	http.Redirect(w, r, config.AuthCodeURL(state), http.StatusFound)
 }
 
-func HandleOIDCCallback(w http.ResponseWriter, r *http.Request, ctx context.Context, provider *oidc.Provider, config *oauth2.Config, mapping ClaimMapping, db *bun.DB) {
+func HandleOIDCCallback(w http.ResponseWriter, r *http.Request, ctx context.Context, provider *oidc.Provider, config *oauth2.Config, mapping ClaimMapping, adminGroups []string, db *bun.DB) {
 	stCookie, err := r.Cookie("state")
 	if err != nil {
 		http.Error(w, "state not found", http.StatusBadRequest)
@@ -93,6 +97,24 @@ func HandleOIDCCallback(w http.ResponseWriter, r *http.Request, ctx context.Cont
 			}
 		}
 		return ""
+	}
+
+	// god, please forgive me
+	if raw, ok := mapping["groups"]; ok {
+		if grpClaim, found := claims[raw]; found {
+			if arr, ok := grpClaim.([]interface{}); ok {
+				for _, g := range arr {
+					if gs, ok := g.(string); ok {
+						for _, want := range adminGroups {
+							if gs == strings.TrimSpace(want) {
+								user.Role = "ADMIN"
+								break
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	user.Mail = getString("mail")

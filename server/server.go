@@ -138,7 +138,7 @@ func main() {
 	if os.Getenv("OIDC_LOGIN_PROVIDER_URL") != "" {
 		log.Info("starting oidc endpoint...")
 
-		oidcConfig, oidcProvider, mapping, err := auth.GetOIDCClientConfig(ctx)
+		oidcConfig, oidcProvider, claimMapping, adminGroups, err := auth.GetOIDCClientConfig(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -148,7 +148,7 @@ func main() {
 		})
 
 		router.Get("/sso/oidc/callback", func(w http.ResponseWriter, r *http.Request) {
-			auth.HandleOIDCCallback(w, r, ctx, oidcProvider, oidcConfig, mapping, db)
+			auth.HandleOIDCCallback(w, r, ctx, oidcProvider, oidcConfig, claimMapping, adminGroups, db)
 		})
 	}
 
