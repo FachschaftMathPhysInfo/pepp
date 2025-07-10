@@ -1171,6 +1171,10 @@ func (r *queryResolver) Tutorials(ctx context.Context, id []int, eventID []int, 
 		Relation("Room").
 		Relation("Room.Building")
 
+	if id != nil {
+		query = query.Where("t.id IN (?)", bun.In(id))
+	}
+
 	if eventID != nil {
 		query = query.Where("event_id IN (?)", bun.In(eventID))
 	}
