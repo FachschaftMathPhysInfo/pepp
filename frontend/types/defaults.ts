@@ -4,6 +4,7 @@ import {
   Event,
   Form,
   Label,
+  LabelKind,
   Role,
   Room,
   Tutorial,
@@ -58,6 +59,7 @@ export const defaultLabel: Label = {
   ID: 0,
   name: "",
   color: "",
+  kind: LabelKind.EventType,
 };
 
 export const defaultForm: Form = {

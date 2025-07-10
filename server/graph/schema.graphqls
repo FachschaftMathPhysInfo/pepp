@@ -53,6 +53,7 @@ type Label {
   ID: Int!
   name: String!
   color: String!
+  kind: LabelKind!
 }
 
 type Event {

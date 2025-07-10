@@ -102,6 +102,11 @@ func (r *eventResolver) RoomsAvailable(ctx context.Context, obj *models.Event) (
 	return rooms, nil
 }
 
+// Kind is the resolver for the kind field.
+func (r *labelResolver) Kind(ctx context.Context, obj *models.Label) (model.LabelKind, error) {
+	return model.LabelKind(obj.Kind), nil
+}
+
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (string, error) {
 	sessionID, err := auth.GenerateSessionID()
@@ -1341,6 +1346,9 @@ func (r *Resolver) Application() ApplicationResolver { return &applicationResolv
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
 
+// Label returns LabelResolver implementation.
+func (r *Resolver) Label() LabelResolver { return &labelResolver{r} }
+
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 
@@ -1380,6 +1388,7 @@ func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{
 type answerResolver struct{ *Resolver }
 type applicationResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
+type labelResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type questionResolver struct{ *Resolver }
