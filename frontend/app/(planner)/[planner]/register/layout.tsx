@@ -5,7 +5,7 @@ interface RegistrationLayoutProps {
 export default function RegistrationLayout({ children }: RegistrationLayoutProps) {
   return (
     <>
-      <main className="flex justify-center">{children}</main>
+      <main className="flex">{children}</main>
     </>
   );
 }
