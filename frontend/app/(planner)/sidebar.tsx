@@ -1,4 +1,4 @@
-import { BookCheck, Calendar, GraduationCap } from "lucide-react";
+import {BookCheck, Calendar, FerrisWheel, GraduationCap} from "lucide-react";
 
 import {
   Sidebar,
@@ -29,6 +29,11 @@ export function AdminSidebar({ umbrellas }: AdminSidebarProps) {
       title: "Stundenplan",
       url: basePath,
       icon: Calendar,
+    },
+    {
+      title: 'Events',
+      url: basePath + "/events",
+      icon: FerrisWheel,
     },
     {
       title: "Tutorien",
