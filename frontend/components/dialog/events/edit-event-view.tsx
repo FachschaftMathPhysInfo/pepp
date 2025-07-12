@@ -24,39 +24,26 @@ import {
   UpdateTutorialDocument,
   UpdateTutorialMutation,
 } from "@/lib/gql/generated/graphql";
-import React, { useEffect, useState } from "react";
-import { PlusCircle, Save, Trash2 } from "lucide-react";
-import {
-  DialogHeader,
-  DialogDescription,
-  DialogTitle,
-  DialogFooter,
-  DialogContent,
-} from "@/components/ui/dialog";
-import { useRefetch, useUser } from "../../providers";
-import { getClient } from "@/lib/graphql";
+import React, {useEffect, useState} from "react";
+import {PlusCircle, Save, Trash2} from "lucide-react";
+import {DialogContent, DialogFooter, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
+import {useRefetch, useUser} from "../../providers";
+import {getClient} from "@/lib/graphql";
 import TextareaAutosize from "react-textarea-autosize";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { extractId } from "@/lib/utils";
-import { TutorialsTable } from "./tutorials-table";
-import { Input } from "../../ui/input";
-import { defaultEvent } from "@/types/defaults";
-import { Switch } from "../../ui/switch";
-import { BadgePicker } from "../../badge-picker";
-import { DatePicker } from "../../date-picker";
-import { Button } from "../../ui/button";
-import { usePathname } from "next/navigation";
-import { toast } from "sonner";
+import {z} from "zod";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormMessage,} from "@/components/ui/form";
+import {extractId} from "@/lib/utils";
+import {TutorialsTable} from "./tutorials-table";
+import {Input} from "../../ui/input";
+import {defaultEvent} from "@/types/defaults";
+import {Switch} from "../../ui/switch";
+import {BadgePicker} from "../../badge-picker";
+import {DatePicker} from "../../date-picker";
+import {Button} from "../../ui/button";
+import {usePathname} from "next/navigation";
+import {toast} from "sonner";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 
 const FormSchema = z.object({
@@ -180,12 +167,12 @@ export function EditEventView({ event }: EditEventViewProps) {
           );
         }
         if (updateTutorials.length) {
-          updateTutorials.forEach(async (t) => {
+          for (const t of updateTutorials) {
             await client.request<UpdateTutorialMutation>(
               UpdateTutorialDocument,
               { id: t.ID, tutorial: mapTutorialToNewTutorial(t) }
             );
-          });
+          }
         }
         toast.info(`"${data.title}" erfolgreich gespeichert!`);
         triggerRefetch();
@@ -297,7 +284,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                     )}
                   />
                 </DialogTitle>
-                <DialogDescription className="space-y-4">
+                <div className="text-sm text-muted-foreground space-y-4">
                   <FormField
                     control={form.control}
                     name="description"
@@ -402,7 +389,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                       />
                     </div>
                   </div>
-                </DialogDescription>
+                </div>
               </DialogHeader>
               {event && (
                 <TutorialsTable
