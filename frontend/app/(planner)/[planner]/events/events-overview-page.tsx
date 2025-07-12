@@ -16,11 +16,6 @@ import ConfirmationDialog from "@/components/confirmation-dialog";
 import {useUser} from "@/components/providers";
 import {Dialog} from "@/components/ui/dialog";
 
-export type EventOverviewDialogState = {
-  mode: "modify" | "view" | "delete" | null
-  eventID: number | undefined
-}
-
 interface EventsOverviewPageProps {
   umbrellaID: number
 }
@@ -30,7 +25,10 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [events, setEvents] = useState<Event[]>([])
   const [searchValue, setSearchValue] = useState<string>('')
-  const [dialogState, setDialogState] = useState<EventOverviewDialogState>({mode: null, eventID: undefined})
+
+  const [editDialogState, setEditDialogState] = useState<{ open: boolean, id: number }>({open: false, id: 0})
+  const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false)
+  const [deleteDialogState, setDeleteDialogState] = useState<{ open: boolean, id: number }>({open: false, id: 0})
 
   const fetchEvents = useCallback(async () => {
     setLoading(true)
@@ -61,19 +59,16 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
   async function handleDelete() {
     const client = getClient(String(sid))
 
-    if (!dialogState.eventID) {
-      console.log('Tried deleting event without ID')
-      return
-    }
-
     try {
-      await client.request(DeleteEventDocument, {eventIds: [dialogState.eventID]})
+      await client.request(DeleteEventDocument, {eventIds: [deleteDialogState.id]})
+      toast.success("Event gelöscht")
+      void fetchEvents()
     } catch (error) {
       console.error(error)
       toast.error('Konnte Event nicht löschen')
     }
 
-    setDialogState({mode: null, eventID: undefined})
+    setDeleteDialogState({open: false, id: 0})
   }
 
   if (loading) {
@@ -98,7 +93,7 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
         iconNode={<FerrisWheel/>}
         actionButton={
           <Button
-            onClick={() => setDialogState({mode: "modify", eventID: undefined})}
+            onClick={() => setCreateDialogOpen(true)}
           >
             <PlusCircle className={'inline mr-2'}/>
             Event hinzufügen
@@ -110,30 +105,43 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
 
       <div className={'space-y-4'}>
         {events.filter(event => event.title.includes(searchValue)).map(event => (
-          <EventSection key={event.ID} event={event} setDialogState={setDialogState}/>
+          <EventSection
+            key={event.ID}
+            event={event}
+            setEditDialogState={setEditDialogState}
+            setDeleteDialogState={setDeleteDialogState}
+          />
         ))}
       </div>
 
+
       <Dialog
-        open={dialogState.mode === "modify"}
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      >
+        <EventDialog open={createDialogOpen} modify/>
+      </Dialog>
+
+      <Dialog
+        open={editDialogState.open}
         onOpenChange={(open) => {
           if (!open) {
-            setDialogState({mode: null, eventID: undefined})
+            setEditDialogState((prev) => ({open: false, id: prev.id}))
           }
         }}
       >
         <EventDialog
-          open={dialogState.mode === "modify"}
-          id={dialogState.eventID}
-          modify={dialogState.mode === "modify"}
+          open={editDialogState.open}
+          id={editDialogState.id}
+          modify
         />
       </Dialog>
 
 
       <ConfirmationDialog
         description={'Dies wird das Event unwiderruflich löschen'}
-        isOpen={dialogState.mode === "delete"}
-        closeDialog={() => setDialogState({mode: null, eventID: 0})}
+        isOpen={deleteDialogState.open}
+        closeDialog={() => setDeleteDialogState({open: false, id: 0})}
         onConfirm={handleDelete}
         mode={"confirmation"}
       />

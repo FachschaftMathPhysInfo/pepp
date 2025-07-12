@@ -3,12 +3,12 @@ import {Event} from "@/lib/gql/generated/graphql";
 import {Button} from "@/components/ui/button";
 import {Calendar, Clock, Edit2, Trash} from "lucide-react";
 import {formatDateToDDMM, formatDateToHHMM} from "@/lib/utils";
-import {EventOverviewDialogState} from "@/app/(planner)/[planner]/events/events-overview-page";
 import React from "react";
 
 interface EventSectionProps {
   event: Event
-  setDialogState: React.Dispatch<React.SetStateAction<EventOverviewDialogState>>
+  setEditDialogState: React.Dispatch<React.SetStateAction<{ open: boolean, id: number }>>;
+  setDeleteDialogState: React.Dispatch<React.SetStateAction<{ open: boolean, id: number }>>;
 }
 
 export default function EventSection(props: EventSectionProps) {
@@ -22,15 +22,14 @@ export default function EventSection(props: EventSectionProps) {
               <Button
                 variant={"ghost"}
                 onClick={() => {
-                  console.log('Edit mode with event: ', props.event.ID);
-                  props.setDialogState({mode: "modify", eventID: props.event.ID})}
-              }
+                  props.setEditDialogState({open: true, id: props.event.ID})
+                }}
               >
                 <Edit2/>
               </Button>
               <Button
                 variant={"ghost"}
-                onClick={() => props.setDialogState({mode: "delete", eventID: props.event.ID})}
+                onClick={() => props.setDeleteDialogState({open: true, id: props.event.ID})}
               >
                 <Trash className={'stroke-red-600'}/>
               </Button>
