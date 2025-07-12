@@ -1,6 +1,6 @@
 "use client"
 
-import {DeleteEventDocument, Event, PlannerEventsDocument, PlannerEventsQuery} from "@/lib/gql/generated/graphql";
+import {Event, PlannerEventsDocument, PlannerEventsQuery} from "@/lib/gql/generated/graphql";
 import {getClient} from "@/lib/graphql";
 import {useCallback, useEffect, useState} from "react";
 import {defaultEvent} from "@/types/defaults";
@@ -9,11 +9,8 @@ import EventSection from "@/app/(planner)/[planner]/events/event-section";
 import {Skeleton} from "@/components/ui/skeleton";
 import {FerrisWheel, PlusCircle} from "lucide-react";
 import {Button} from "@/components/ui/button";
-import {toast} from "sonner";
 import {ManagementPageHeader} from "@/components/management-page-header";
 import EventDialog from "@/components/dialog/events/event-dialog";
-import ConfirmationDialog from "@/components/confirmation-dialog";
-import {useUser} from "@/components/providers";
 import {Dialog} from "@/components/ui/dialog";
 
 interface EventsOverviewPageProps {
@@ -21,14 +18,11 @@ interface EventsOverviewPageProps {
 }
 
 export default function EventsOverviewPage(props: EventsOverviewPageProps) {
-  const {sid} = useUser()
   const [loading, setLoading] = useState<boolean>(false)
   const [events, setEvents] = useState<Event[]>([])
   const [searchValue, setSearchValue] = useState<string>('')
 
-  const [editDialogState, setEditDialogState] = useState<{ open: boolean, id: number }>({open: false, id: 0})
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false)
-  const [deleteDialogState, setDeleteDialogState] = useState<{ open: boolean, id: number }>({open: false, id: 0})
 
   const fetchEvents = useCallback(async () => {
     setLoading(true)
@@ -55,21 +49,6 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
   useEffect(() => {
     void fetchEvents()
   }, [fetchEvents, props.umbrellaID])
-
-  async function handleDelete() {
-    const client = getClient(String(sid))
-
-    try {
-      await client.request(DeleteEventDocument, {eventIds: [deleteDialogState.id]})
-      toast.success("Event gelöscht")
-      void fetchEvents()
-    } catch (error) {
-      console.error(error)
-      toast.error('Konnte Event nicht löschen')
-    }
-
-    setDeleteDialogState({open: false, id: 0})
-  }
 
   if (loading) {
     return (
@@ -108,44 +87,15 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
           <EventSection
             key={event.ID}
             event={event}
-            setEditDialogState={setEditDialogState}
-            setDeleteDialogState={setDeleteDialogState}
+            fetchEvents={fetchEvents}
           />
         ))}
       </div>
 
 
-      <Dialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-      >
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <EventDialog open={createDialogOpen} modify/>
       </Dialog>
-
-      <Dialog
-        open={editDialogState.open}
-        onOpenChange={(open) => {
-          if (!open) {
-            setEditDialogState((prev) => ({open: false, id: prev.id}))
-          }
-        }}
-      >
-        <EventDialog
-          open={editDialogState.open}
-          id={editDialogState.id}
-          modify
-        />
-      </Dialog>
-
-
-      <ConfirmationDialog
-        description={'Dies wird das Event unwiderruflich löschen'}
-        isOpen={deleteDialogState.open}
-        closeDialog={() => setDeleteDialogState({open: false, id: 0})}
-        onConfirm={handleDelete}
-        mode={"confirmation"}
-      />
-
     </div>
 
 
