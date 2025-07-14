@@ -27,11 +27,10 @@ import {
 import React, { useEffect, useState } from "react";
 import { PlusCircle, Save, Trash2 } from "lucide-react";
 import {
-  DialogHeader,
-  DialogDescription,
-  DialogTitle,
-  DialogFooter,
   DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { useRefetch, useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
@@ -180,12 +179,12 @@ export function EditEventView({ event }: EditEventViewProps) {
           );
         }
         if (updateTutorials.length) {
-          updateTutorials.forEach(async (t) => {
+          for (const t of updateTutorials) {
             await client.request<UpdateTutorialMutation>(
               UpdateTutorialDocument,
               { id: t.ID, tutorial: mapTutorialToNewTutorial(t) }
             );
-          });
+          }
         }
         toast.info(`"${data.title}" erfolgreich gespeichert!`);
         triggerRefetch();
@@ -297,7 +296,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                     )}
                   />
                 </DialogTitle>
-                <DialogDescription className="space-y-4">
+                <div className="text-sm text-muted-foreground space-y-4">
                   <FormField
                     control={form.control}
                     name="description"
@@ -402,7 +401,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                       />
                     </div>
                   </div>
-                </DialogDescription>
+                </div>
               </DialogHeader>
               {event && (
                 <TutorialsTable
