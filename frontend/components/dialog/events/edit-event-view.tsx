@@ -24,26 +24,38 @@ import {
   UpdateTutorialDocument,
   UpdateTutorialMutation,
 } from "@/lib/gql/generated/graphql";
-import React, {useEffect, useState} from "react";
-import {PlusCircle, Save, Trash2} from "lucide-react";
-import {DialogContent, DialogFooter, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
-import {useRefetch, useUser} from "../../providers";
-import {getClient} from "@/lib/graphql";
+import React, { useEffect, useState } from "react";
+import { PlusCircle, Save, Trash2 } from "lucide-react";
+import {
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useRefetch, useUser } from "../../providers";
+import { getClient } from "@/lib/graphql";
 import TextareaAutosize from "react-textarea-autosize";
-import {z} from "zod";
-import {useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {Form, FormControl, FormDescription, FormField, FormItem, FormMessage,} from "@/components/ui/form";
-import {extractId} from "@/lib/utils";
-import {TutorialsTable} from "./tutorials-table";
-import {Input} from "../../ui/input";
-import {defaultEvent} from "@/types/defaults";
-import {Switch} from "../../ui/switch";
-import {BadgePicker} from "../../badge-picker";
-import {DatePicker} from "../../date-picker";
-import {Button} from "../../ui/button";
-import {usePathname} from "next/navigation";
-import {toast} from "sonner";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { extractId } from "@/lib/utils";
+import { TutorialsTable } from "./tutorials-table";
+import { Input } from "../../ui/input";
+import { defaultEvent } from "@/types/defaults";
+import { Switch } from "../../ui/switch";
+import { BadgePicker } from "../../badge-picker";
+import { DatePicker } from "../../date-picker";
+import { Button } from "../../ui/button";
+import { usePathname } from "next/navigation";
+import { toast } from "sonner";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 
 const FormSchema = z.object({
