@@ -10,7 +10,7 @@ type Application struct {
 	bun.BaseModel `bun:",alias:ap"`
 
 	EventID   int32 `bun:",pk"`
-	StudentID int32 `bun:",notnull,type:varchar(255)"`
+	StudentID int32 `bun:",notnull"`
 	Score     int16 `bun:",notnull"`
 	Accepted  *bool
 

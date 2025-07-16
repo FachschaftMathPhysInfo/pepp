@@ -156,7 +156,7 @@ type Query {
   settings(key: [String!], type: [ScalarType!]): [Setting!]!
   users(id: [Int!], mail: [String!]): [User!]! @auth(rule: IS_USER)
   forms(id: [Int!]): [Form!]!
-  applications(eventID: Int, mail: [String!]): [Application!]! @auth(rule: IS_USER)
+  applications(eventID: Int, ids: [Int!]): [Application!]! @auth(rule: IS_USER)
   tutorials(id: [Int!], eventID: [Int!], umbrellaID: [Int!], tutorID: [Int!], studentID: [Int!]): [Tutorial!]!
   login(mail: String!, password: String!): String!
 }

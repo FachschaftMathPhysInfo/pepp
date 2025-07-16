@@ -16,6 +16,7 @@ import (
 
 func SeedData(ctx context.Context, db *bun.DB) error {
 	password, err := auth.Hash("tutor")
+	userpassword, err := auth.Hash("user")
 	if err != nil {
 		return fmt.Errorf("failed to generate passwords for tutors:", err)
 	}
@@ -24,6 +25,8 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: utils.BoolPtr(true), Password: password},
 		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: utils.BoolPtr(true)},
 		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: utils.BoolPtr(true)},
+		{Mail: "applicant1@example.de", Fn: "Applicant", Sn: "One", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant2@example.de", Fn: "Applicant", Sn: "Two", Confirmed: utils.BoolPtr(true), Password: userpassword},
 	}
 	if err := insertData(ctx, db, (*models.User)(nil), users, "Users"); err != nil {
 		return err
@@ -212,6 +215,27 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{QuestionID: 3, Title: "Physik", Points: 1},
 	}
 	if err := insertData(ctx, db, (*models.Answer)(nil), answers, "Answers"); err != nil {
+		return err
+	}
+
+	appToQuestions := []*models.ApplicationToQuestion{
+		{EventID: 2, StudentID: 5, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 5, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 5, QuestionID: 3, AnswerID: 5},
+		//{EventID: 2, StudentID: 6, QuestionID: 1, AnswerID: 1},
+		//{EventID: 2, StudentID: 6, QuestionID: 2, AnswerID: 4},
+		//{EventID: 2, StudentID: 6, QuestionID: 3, AnswerID: 8},
+	}
+
+	if err := insertData(ctx, db, (*models.ApplicationToQuestion)(nil), appToQuestions, "Application To Questions"); err != nil {
+		return err
+	}
+
+	applications := []*models.Application{
+		{EventID: 2, StudentID: 5, Score: int16(answers[1].Points + answers[3].Points + answers[5].Points)},
+		//{EventID: 2, StudentID: 5, Score: int16(answers[1].Points + answers[4].Points + answers[8].Points)},
+	}
+	if err := insertData(ctx, db, (*models.Application)(nil), applications, "Applications"); err != nil {
 		return err
 	}
 

@@ -1097,6 +1097,8 @@ func (r *queryResolver) Users(ctx context.Context, id []int, mail []string) ([]*
 		Relation("Registrations.Room").
 		Relation("Registrations.Room.Building").
 		Relation("Applications").
+		Relation("Applications.Student").
+		Relation("Applications.Event").
 		Relation("Availabilities")
 
 	if id != nil {
@@ -1138,7 +1140,7 @@ func (r *queryResolver) Forms(ctx context.Context, id []int) ([]*models.Form, er
 }
 
 // Applications is the resolver for the applications field.
-func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []string) ([]*models.Application, error) {
+func (r *queryResolver) Applications(ctx context.Context, eventID *int, ids []int) ([]*models.Application, error) {
 	var applications []*models.Application
 
 	query := r.DB.NewSelect().
@@ -1151,8 +1153,8 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []s
 		query = query.Where("event_id = ?", *eventID)
 	}
 
-	if mail != nil {
-		query = query.Where("student_mail IN (?)", bun.In(mail))
+	if len(ids) > 0 {
+		query = query.Where("student_id IN (?)", bun.In(ids))
 	}
 
 	if err := query.Scan(ctx); err != nil {
