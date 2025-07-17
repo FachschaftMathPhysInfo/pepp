@@ -1140,7 +1140,7 @@ func (r *queryResolver) Forms(ctx context.Context, id []int) ([]*models.Form, er
 }
 
 // Applications is the resolver for the applications field.
-func (r *queryResolver) Applications(ctx context.Context, eventID *int, ids []int) ([]*models.Application, error) {
+func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []string) ([]*models.Application, error) {
 	var applications []*models.Application
 
 	query := r.DB.NewSelect().
@@ -1153,8 +1153,8 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, ids []in
 		query = query.Where("event_id = ?", *eventID)
 	}
 
-	if len(ids) > 0 {
-		query = query.Where("student_id IN (?)", bun.In(ids))
+	if len(mail) > 0 {
+		query = query.Where("student_id IN (?)", bun.In(mail))
 	}
 
 	if err := query.Scan(ctx); err != nil {
