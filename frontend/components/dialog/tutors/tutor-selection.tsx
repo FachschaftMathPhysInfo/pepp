@@ -15,7 +15,7 @@ import { Checkbox } from "../../ui/checkbox";
 
 interface TutorSelectionProps {
   selectedTutors?: User[];
-  onSelectedTutorsChange: (tutor: User) => void;
+  onSelectedTutorsChange: (tutors: User[]) => void;
   availableTutors: User[];
 }
 
@@ -27,9 +27,7 @@ export function TutorSelection({
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(selectedTutors ?? []);
 
-  useEffect(() => {
-    setSelected(selectedTutors ?? []);
-  }, [selectedTutors]);
+  useEffect(() => setSelected(selectedTutors ?? []), [selectedTutors]);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
@@ -61,21 +59,19 @@ export function TutorSelection({
             <CommandEmpty>Niemanden gefunden.</CommandEmpty>
             <CommandGroup>
               {availableTutors.map((tutor) => {
-                const isSelected = !!selected.find((t) => t.mail === tutor.mail);
+                const isSelected = !!selected.find(
+                  (t) => t.mail === tutor.mail
+                );
                 return (
                   <CommandItem
-                    key={tutor.mail}
+                    key={tutor.ID}
                     value={tutor.fn + " " + tutor.sn + tutor.mail}
                     onSelect={() => {
-                      onSelectedTutorsChange(tutor);
-
-                      if (isSelected) {
-                        setSelected((prev) =>
-                          prev.filter((t) => t.mail !== tutor.mail)
-                        );
-                      } else {
-                        setSelected((prev) => [...prev, tutor]);
-                      }
+                      const newTutors = isSelected
+                        ? selected.filter((t) => t.ID !== tutor.ID)
+                        : [...selected, tutor];
+                      setSelected(newTutors);
+                      onSelectedTutorsChange(newTutors);
                     }}
                   >
                     <Checkbox className="mr-2" checked={isSelected} />

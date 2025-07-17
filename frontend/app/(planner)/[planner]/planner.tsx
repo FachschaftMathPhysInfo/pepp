@@ -10,7 +10,7 @@ import {
   UmbrellaDetailDocument,
   UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
-import {FacetedFilter} from "@/components/faceted-filter";
+import { FacetedFilter } from "@/components/faceted-filter";
 import React, { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getClient } from "@/lib/graphql";
@@ -18,13 +18,13 @@ import { CopyTextArea } from "@/components/copy-text-area";
 import { CardSkeleton } from "@/components/card-skeleton";
 import { Planner } from "@/components/planner";
 import { useRefetch, useUser } from "@/components/providers";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  Check,
-  ChevronRight,
-  ChevronsUpDown,
-  TriangleAlert,
-} from "lucide-react";
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { Check, ChevronsUpDown, CircleAlert, MoveRight, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { defaultEvent, defaultLabel } from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
@@ -37,7 +37,7 @@ import {
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { cn } from "@/lib/utils";
-import {TooltipProvider} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -48,19 +48,23 @@ enum View {
   table = "Tabelle",
 }
 
-export function PlannerPage({umbrellaID}: PlannerPageProps) {
+export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const {user} = useUser();
-  const {refetchKey} = useRefetch();
+  const { user } = useUser();
+  const { refetchKey } = useRefetch();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
   const [topics, setTopics] = useState<Label[]>([]);
-  const [topicFilter, setTopicFilter] = useState<string[]>(searchParams.getAll("to"));
-  const [typesFilter, setTypesFilter] = useState<string[]>(searchParams.getAll("ty"));
+  const [topicFilter, setTopicFilter] = useState<string[]>(
+    searchParams.getAll("to")
+  );
+  const [typesFilter, setTypesFilter] = useState<string[]>(
+    searchParams.getAll("ty")
+  );
   const [icalPath, setIcalPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
@@ -75,9 +79,9 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const renderView = () => {
     switch (view) {
       case View.planner:
-        return <Planner events={events}/>;
+        return <Planner events={events} />;
       case View.table:
-        return <DataTable columns={columns} data={events}/>;
+        return <DataTable columns={columns} data={events} />;
     }
   };
 
@@ -87,15 +91,24 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
 
     const umbrellaData = await client.request<UmbrellaDetailQuery>(
       UmbrellaDetailDocument,
-      {id: umbrellaID}
+      { id: umbrellaID }
     );
 
     if (umbrellaData) {
-      setUmbrella({...defaultEvent, ...umbrellaData.umbrellas[0]})
+      setUmbrella({
+        ...defaultEvent,
+        ...umbrellaData.umbrellas[0],
+        supportingEvents: umbrellaData.umbrellas[0].supportingEvents?.map(
+          (e) => ({
+            ...defaultEvent,
+            ...e,
+          })
+        ),
+      });
     }
 
     setLoading(false);
-  }, [umbrellaID])
+  }, [umbrellaID]);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -121,14 +134,16 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            topic: {...defaultLabel, ...e.topic},
+            topic: { ...defaultLabel, ...e.topic },
           }))
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
+      if (user?.role === Role.Admin) fetchUmbrellaData();
+
       setLoading(false);
-    }
+    };
 
     void fetchEventData();
   }, [topicFilter, typesFilter, umbrellaID, refetchKey]);
@@ -136,25 +151,25 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
   useEffect(() => {
     router.push(
       pathname +
-      "?" +
-      createQueryString("to", topicFilter) +
-      (typesFilter.length && topicFilter.length ? "&" : "") +
-      createQueryString("ty", typesFilter)
+        "?" +
+        createQueryString("to", topicFilter) +
+        (typesFilter.length && topicFilter.length ? "&" : "") +
+        createQueryString("ty", typesFilter)
     );
   }, [topicFilter, typesFilter]);
 
   useEffect(() => {
     setTypesFilter([]);
     setTopicFilter([]);
-    void fetchUmbrellaData()
+    void fetchUmbrellaData();
   }, [umbrellaID]);
 
   useEffect(() => {
     setIcalPath(
       window.location.origin +
-      "/ical/?e=" +
-      umbrellaID +
-      (searchParams.size ? "&" + searchParams : "")
+        "/ical/?e=" +
+        umbrellaID +
+        (searchParams.size ? "&" + searchParams : "")
     );
   }, [searchParams]);
 
@@ -166,88 +181,89 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     <TooltipProvider delayDuration={0}>
       {user?.role === Role.Admin && (
         <section className="mb-[20px] space-y-5">
-          <EditPlannerSection umbrella={umbrella} refreshData={fetchUmbrellaData} />
+          <EditPlannerSection umbrella={umbrella} />
         </section>
       )}
 
       {events.length > 0 && (
         <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
           <div className="flex items-center justify-center gap-x-4">
-
-            <div className={'flex items-center justify-start gap-x-4 flex-wrap'}>
+            <div
+              className={"flex items-center justify-start gap-x-4 flex-wrap"}
+            >
               {user?.role === Role.Admin && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    Ansicht
-                    <ChevronsUpDown className="h-4 w-4"/>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {Object.values(View).map((v) => (
-                    <DropdownMenuItem key={v} onClick={() => setView(v)}>
-                      <Check
-                        className={cn(
-                          "h-4 w-4 mr-2",
-                          v === view ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {v}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      Ansicht
+                      <ChevronsUpDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {Object.values(View).map((v) => (
+                      <DropdownMenuItem key={v} onClick={() => setView(v)}>
+                        <Check
+                          className={cn(
+                            "h-4 w-4 mr-2",
+                            v === view ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        {v}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               {topics.length >= 2 && (
                 <FacetedFilter
-                  className={'h-full'}
+                  className={"h-full"}
                   options={topics.map((t) => t.name)}
                   setFilter={setTopicFilter}
-                  title={'Themen'}
+                  title={"Themen"}
                 />
               )}
 
               {types.length >= 2 && (
                 <FacetedFilter
-                  className={'h-full'}
+                  className={"h-full"}
                   options={types.map((t) => t.name)}
                   setFilter={setTypesFilter}
-                  title={'Veranstaltungsart'}
+                  title={"Veranstaltungsart"}
                 />
               )}
             </div>
           </div>
 
-          <CopyTextArea label="ICS-Kalender" text={icalPath}/>
+          <CopyTextArea label="ICS-Kalender" text={icalPath} />
         </section>
       )}
 
       {isRestricted && !application && (
         <section>
-          <Alert variant="destructive">
-            <TriangleAlert className="h-4 w-4"/>
+          <Alert
+            className="cursor-pointer"
+            onClick={() => router.push(`${pathname}/register`)}
+            variant="warning"
+          >
+            <CircleAlert className="size-4" />
             <AlertTitle className="font-bold">
               Registrierung erforderlich!
             </AlertTitle>
-            <AlertDescription className="flex flex-col">
+            <AlertDescription className="pr-8">
               Diese Veranstaltung ist aus Kapazitätsgründen
-              zulassungsbeschränkt.
-              <Button
-                variant="secondary"
-                className="mt-2 w-fit h-fit"
-                onClick={() => router.push(`${pathname}/register`)}
-              >
-                Zur Anmeldung
-                <ChevronRight/>
-              </Button>
+              zulassungsbeschränkt. Bitte nimm an einem kurzen Quiz teil, damit
+              wir einschätzen können, ob du diesen Kurs benötigst.
             </AlertDescription>
+            <AlertAction>
+              <MoveRight className="size-4" />
+            </AlertAction>
           </Alert>
         </section>
       )}
 
       <section className="mt-5">
-        {loading ? <CardSkeleton/> : renderView()}
+        {loading ? <CardSkeleton /> : renderView()}
       </section>
     </TooltipProvider>
   );

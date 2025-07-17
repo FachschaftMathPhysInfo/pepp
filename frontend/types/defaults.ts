@@ -4,6 +4,7 @@ import {
   Event,
   Form,
   Label,
+  LabelKind,
   Role,
   Room,
   Tutorial,
@@ -14,8 +15,8 @@ export const defaultEvent: Event = {
   ID: 0,
   needsTutors: false,
   title: "",
-  topic: { name: "" },
-  type: { name: "" },
+  topic: { ID: 0, name: "", color: "", kind: LabelKind.Topic },
+  type: { ID: 0, name: "", color: "", kind: LabelKind.EventType },
   from: "",
   to: "",
 };
@@ -46,6 +47,7 @@ export const defaultTutorial: Tutorial = {
 };
 
 export const defaultUser: User = {
+  ID: 0,
   fn: "",
   sn: "",
   mail: "",
@@ -54,7 +56,10 @@ export const defaultUser: User = {
 };
 
 export const defaultLabel: Label = {
+  ID: 0,
   name: "",
+  color: "",
+  kind: LabelKind.EventType,
 };
 
 export const defaultForm: Form = {

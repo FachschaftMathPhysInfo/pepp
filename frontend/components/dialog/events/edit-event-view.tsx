@@ -4,27 +4,33 @@ import {
   AddEventDocument,
   AddEventMutation,
   AddEventMutationVariables,
+  AddTutorialsDocument,
+  AddTutorialsMutation,
   DeleteEventDocument,
   DeleteEventMutation,
+  DeleteTutorialsDocument,
+  DeleteTutorialsMutation,
   Event,
   LabelKind,
   NewEvent,
-  TutorialToUserAssignment,
+  NewTutorial,
+  Tutorial,
   UmbrellaDurationDocument,
   UmbrellaDurationQuery,
   UmbrellaDurationQueryVariables,
   UpdateEventDocument,
   UpdateEventMutation,
   UpdateEventMutationVariables,
+  UpdateTutorialDocument,
+  UpdateTutorialMutation,
 } from "@/lib/gql/generated/graphql";
 import React, { useEffect, useState } from "react";
 import { PlusCircle, Save, Trash2 } from "lucide-react";
 import {
-  DialogHeader,
-  DialogDescription,
-  DialogTitle,
-  DialogFooter,
   DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { useRefetch, useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
@@ -59,8 +65,8 @@ const FormSchema = z.object({
   date: z.date({ required_error: "Bitte gib ein Datum an." }),
   from: z.string().min(1, { message: "Bitte gib eine Startzeit an." }),
   to: z.string().min(1, { message: "Bitte gib eine Endzeit an." }),
-  topic: z.string().min(1, { message: "Bitte wähle ein Thema." }),
-  type: z.string().min(1, { message: "Bitte wähle einen Veranstaltungstyp" }),
+  topic: z.number().min(1, { message: "Bitte gib eine Veranstaltungsart an."}),
+  type: z.number().min(1, { message: "Bitte wähle einen Veranstaltungstyp" }),
   description: z.string(),
   needsTutors: z.boolean(),
 });
@@ -78,12 +84,7 @@ export function EditEventView({ event }: EditEventViewProps) {
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
-  const [newAssignments, setNewAssignments] = useState<
-    TutorialToUserAssignment[]
-  >([]);
-  const [deleteAssignments, setDeleteAssignments] = useState<
-    TutorialToUserAssignment[]
-  >([]);
+  const [tutorials, setTutorials] = useState(event?.tutorials ?? []);
 
   function formatToHHMM(date: Date): string {
     const hours = date.getHours().toString().padStart(2, "0");
@@ -104,8 +105,8 @@ export function EditEventView({ event }: EditEventViewProps) {
     return {
       title: data.title,
       description: data.description,
-      topicName: data.topic,
-      typeName: data.type,
+      topicID: data.topic,
+      typeID: data.type,
       needsTutors: data.needsTutors,
       umbrellaID: umbrella?.ID,
       from: mergeDateAndTime(data.date, data.from),
@@ -122,8 +123,8 @@ export function EditEventView({ event }: EditEventViewProps) {
       from: event?.from ? formatToHHMM(new Date(event.from)) : "",
       to: event?.to ? formatToHHMM(new Date(event.to)) : "",
       needsTutors: event?.needsTutors,
-      topic: event?.topic.name ?? "",
-      type: event?.type.name ?? "",
+      topic: event?.topic.ID ?? 0,
+      type: event?.type.ID ?? 0,
     },
   });
 
@@ -135,6 +136,28 @@ export function EditEventView({ event }: EditEventViewProps) {
       return;
     }
 
+    function mapTutorialToNewTutorial(t: Tutorial): NewTutorial {
+      return {
+        eventID: event?.ID ?? 0,
+        roomNumber: t.room.number,
+        buildingID: t.room.building.ID,
+        tutors: t.tutors?.map((u) => u.ID),
+      };
+    }
+
+    const newTutorials: NewTutorial[] = tutorials
+      .filter((t) => t.ID < 0)
+      .map((t) => mapTutorialToNewTutorial(t));
+
+    const updateTutorials: Tutorial[] = tutorials.filter((t) => t.ID > 0);
+
+    const deleteTutorialIDs: number[] =
+      event.tutorials
+        ?.filter((t) => {
+          if (!tutorials.find((tut) => t.ID === tut.ID)) return t;
+        })
+        .map((t) => t.ID) ?? [];
+
     const vars: UpdateEventMutationVariables = {
       event: getNewEvent(data),
       id: event.ID,
@@ -144,6 +167,25 @@ export function EditEventView({ event }: EditEventViewProps) {
       const client = getClient(sid!);
       try {
         await client.request<UpdateEventMutation>(UpdateEventDocument, vars);
+        if (newTutorials.length) {
+          await client.request<AddTutorialsMutation>(AddTutorialsDocument, {
+            tutorials: newTutorials,
+          });
+        }
+        if (deleteTutorialIDs.length) {
+          await client.request<DeleteTutorialsMutation>(
+            DeleteTutorialsDocument,
+            { tutorialIDs: deleteTutorialIDs }
+          );
+        }
+        if (updateTutorials.length) {
+          for (const t of updateTutorials) {
+            await client.request<UpdateTutorialMutation>(
+              UpdateTutorialDocument,
+              { id: t.ID, tutorial: mapTutorialToNewTutorial(t) }
+            );
+          }
+        }
         toast.info(`"${data.title}" erfolgreich gespeichert!`);
         triggerRefetch();
       } catch {
@@ -254,7 +296,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                     )}
                   />
                 </DialogTitle>
-                <DialogDescription className="space-y-4">
+                <div className="text-sm text-muted-foreground space-y-4">
                   <FormField
                     control={form.control}
                     name="description"
@@ -359,7 +401,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                       />
                     </div>
                   </div>
-                </DialogDescription>
+                </div>
               </DialogHeader>
               {event && (
                 <TutorialsTable
@@ -369,10 +411,8 @@ export function EditEventView({ event }: EditEventViewProps) {
                     event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
                   }
                   edit={true}
-                  newAssignments={newAssignments}
-                  setNewAssignments={setNewAssignments}
-                  deleteAssignments={deleteAssignments}
-                  setDeleteAssignments={setDeleteAssignments}
+                  tutorials={tutorials}
+                  setTutorialsAction={setTutorials}
                 />
               )}
               <FormField

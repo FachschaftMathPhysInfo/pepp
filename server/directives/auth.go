@@ -25,14 +25,18 @@ func Auth(ctx context.Context, obj interface{}, next graphql.Resolver, rule *mod
 	switch *rule {
 	case model.RuleIsUser:
 		mail, _ := next(ctx)
+		id, _ := next(ctx)
 
 		args := graphql.GetFieldContext(ctx).Args
 		if mails, ok := args["mail"].([]string); ok && len(mails) == 1 {
 			mail = mails[0]
 		}
 
+		if ids, ok := args["id"].([]string); ok && len(ids) == 1 {
+			id = ids[0]
+		}
 		if mail == nil ||
-			(mail != authenticatedUser.Mail && mail != authenticatedUser.SessionID) {
+			(mail != authenticatedUser.Mail && mail != authenticatedUser.SessionID && id != authenticatedUser.ID) {
 			return nil, err
 		}
 		// TODO: model.RuleIsTutor

@@ -11,8 +11,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func VerifyPassword(hashedPassword, password, salt string) error {
-	passwordWithPepper := password + salt + os.Getenv("PEPPER_KEY")
+func VerifyPassword(hashedPassword, password string) error {
+	passwordWithPepper := password + os.Getenv("PEPPER_KEY")
 
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(passwordWithPepper))
 	if err != nil {

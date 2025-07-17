@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strconv"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/email"
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	hermes "github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
@@ -100,6 +102,11 @@ func (r *eventResolver) RoomsAvailable(ctx context.Context, obj *models.Event) (
 	return rooms, nil
 }
 
+// Kind is the resolver for the kind field.
+func (r *labelResolver) Kind(ctx context.Context, obj *models.Label) (model.LabelKind, error) {
+	return model.LabelKind(obj.Kind), nil
+}
+
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (string, error) {
 	sessionID, err := auth.GenerateSessionID()
@@ -110,13 +117,12 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 	user.SessionID = sessionID
 
 	if user.Password != "" {
-		password, salt, err := auth.Hash(user.Password)
+		passwordHash, err := auth.Hash(user.Password)
 		if err != nil {
 			return "", err
 		}
 
-		user.Salt = salt
-		user.Password = password
+		user.Password = passwordHash
 	}
 
 	if _, err := r.DB.NewInsert().
@@ -135,8 +141,8 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 		}
 		if password == "" {
 			// user needs to reconfirm
-			user.Confirmed = false
-			if _, err := r.UpdateUser(ctx, user); err != nil {
+			user.Confirmed = utils.BoolPtr(true)
+			if _, err := r.UpdateUser(ctx, user, int(user.ID)); err != nil {
 				return "", err
 			}
 		}
@@ -155,23 +161,56 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 }
 
 // UpdateUser is the resolver for the updateUser field.
-func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User) (string, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User, id int) (int, error) {
+	if user.Password != "" {
+		passwordHash, err := auth.Hash(user.Password)
+		if err != nil {
+			return 0, err
+		}
+
+		user.Password = passwordHash
+	}
+
+	var oldMail string
+	if err := r.DB.NewSelect().
+		Model((*models.User)(nil)).
+		Where("id = ?", id).
+		Column("mail").
+		Scan(ctx, &oldMail); err != nil {
+		return 0, err
+	}
+
+	if oldMail != user.Mail {
+		user.Confirmed = utils.BoolPtr(false)
+	}
+
 	if _, err := r.DB.NewUpdate().
 		Model(&user).
 		OmitZero().
-		WherePK().
+		Where("id = ?", id).
 		Exec(ctx); err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return user.Mail, nil
+	if oldMail != user.Mail {
+		m := r.MailConfig.Confirmation
+
+		m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
+			os.Getenv("PUBLIC_URL"), user.SessionID)
+
+		if err := email.Send(user, m, r.MailConfig); err != nil {
+			log.Error("failed to send email: ", err)
+		}
+	}
+
+	return int(user.ID), nil
 }
 
 // DeleteUser is the resolver for the deleteUser field.
-func (r *mutationResolver) DeleteUser(ctx context.Context, mail []string) (int, error) {
+func (r *mutationResolver) DeleteUser(ctx context.Context, id []int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.User)(nil)).
-		Where("mail IN (?)", bun.In(mail)).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
 		return 0, err
@@ -205,7 +244,6 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {
-		log.Error(err)
 		return 0, err
 	}
 
@@ -227,31 +265,81 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, id []int) (int, erro
 }
 
 // AddTutorial is the resolver for the addTutorial field.
-func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*models.Tutorial) ([]int, error) {
+func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.NewTutorial) ([]int, error) {
+	var tutorials []*models.Tutorial
+	for _, t := range tutorial {
+		tutorials = append(tutorials, &models.Tutorial{EventID: int32(t.EventID), RoomNumber: t.RoomNumber, BuildingID: int32(t.BuildingID)})
+	}
+
 	if _, err := r.DB.NewInsert().
-		Model(&tutorial).
+		Model(&tutorials).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
 	var ids []int
-	for _, t := range tutorial {
+	for i, t := range tutorials {
 		ids = append(ids, int(t.ID))
+		for _, userID := range tutorial[i].Tutors {
+			if _, err := r.Mutation().AddTutorAssignmentForTutorial(ctx, models.TutorialToUserAssignment{TutorialID: t.ID, UserID: int32(userID)}); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return ids, nil
 }
 
 // UpdateTutorial is the resolver for the updateTutorial field.
-func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial models.Tutorial) (*models.Tutorial, error) {
+func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial model.NewTutorial) (int, error) {
+	t := models.Tutorial{EventID: int32(tutorial.EventID), RoomNumber: tutorial.RoomNumber, BuildingID: int32(tutorial.BuildingID), ID: int32(id)}
 	if _, err := r.DB.NewUpdate().
-		Model(&tutorial).
-		Where("id = ?", id).
+		Model(&t).
+		WherePK().
 		Exec(ctx); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return &tutorial, nil
+	var oldTutorIDs []int32
+	if err := r.DB.NewSelect().
+		Model((*models.TutorialToUserAssignment)(nil)).
+		Where("tutorial_id = ?", id).
+		Column("user_id").
+		Scan(ctx, &oldTutorIDs); err != nil {
+		return 0, err
+	}
+
+	for _, tutorID := range tutorial.Tutors {
+		if !slices.Contains(oldTutorIDs, int32(tutorID)) {
+			_, err := r.Mutation().
+				AddTutorAssignmentForTutorial(ctx,
+					models.TutorialToUserAssignment{
+						TutorialID: int32(id),
+						UserID:     int32(tutorID),
+					},
+				)
+			if err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	for _, oldTutorID := range oldTutorIDs {
+		if !slices.Contains(tutorial.Tutors, int(oldTutorID)) {
+			_, err := r.Mutation().
+				DeleteTutorAssignmentForTutorial(ctx,
+					models.TutorialToUserAssignment{
+						TutorialID: int32(id),
+						UserID:     oldTutorID,
+					},
+				)
+			if err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	return int(t.ID), nil
 }
 
 // DeleteTutorial is the resolver for the deleteTutorial field.
@@ -356,9 +444,11 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, number []string, buil
 }
 
 // AddLabel is the resolver for the addLabel field.
-func (r *mutationResolver) AddLabel(ctx context.Context, label models.Label) (*models.Label, error) {
-	if label.Color == "" {
-		label.Color = "#D1D1D1"
+func (r *mutationResolver) AddLabel(ctx context.Context, label []*models.Label) ([]int, error) {
+	for _, l := range label {
+		if l.Color == "" {
+			l.Color = "#D1D1D1"
+		}
 	}
 
 	if _, err := r.DB.NewInsert().
@@ -367,31 +457,32 @@ func (r *mutationResolver) AddLabel(ctx context.Context, label models.Label) (*m
 		return nil, err
 	}
 
-	return &label, nil
+	var ids []int
+	for _, l := range label {
+		ids = append(ids, int(l.ID))
+	}
+
+	return ids, nil
 }
 
 // UpdateLabel is the resolver for the updateLabel field.
-func (r *mutationResolver) UpdateLabel(ctx context.Context, label models.Label) (*models.Label, error) {
+func (r *mutationResolver) UpdateLabel(ctx context.Context, id int, label models.Label) (int, error) {
 	if _, err := r.DB.NewUpdate().
 		Model(&label).
-		WherePK().
+		Where("id = ?", id).
+		OmitZero().
 		Exec(ctx); err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	updatedLabel, err := r.Query().Labels(ctx, []string{label.Name}, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return updatedLabel[0], nil
+	return id, nil
 }
 
 // DeleteLabel is the resolver for the deleteLabel field.
-func (r *mutationResolver) DeleteLabel(ctx context.Context, name []string) (int, error) {
+func (r *mutationResolver) DeleteLabel(ctx context.Context, id []int) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model((*models.Label)(nil)).
-		Where("name = ?", name).
+		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
 		return 0, err
@@ -409,10 +500,15 @@ func (r *mutationResolver) UpsertSetting(ctx context.Context, setting models.Set
 			return "", fmt.Errorf("unable to parse color: %s", setting.Value)
 		}
 	}
+
 	if _, err := r.DB.NewInsert().
 		Model(&setting).
 		On("CONFLICT (key) DO UPDATE").
 		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	if err := r.FetchSettings(ctx); err != nil {
 		return "", err
 	}
 
@@ -475,16 +571,16 @@ func (r *mutationResolver) DeleteForm(ctx context.Context, id []int) (int, error
 }
 
 // AddTutorAssignmentForTutorial is the resolver for the addTutorAssignmentForTutorial field.
-func (r *mutationResolver) AddTutorAssignmentForTutorial(ctx context.Context, assignment models.TutorialToUserAssignment) (string, error) {
+func (r *mutationResolver) AddTutorAssignmentForTutorial(ctx context.Context, assignment models.TutorialToUserAssignment) (int, error) {
 	if _, err := r.DB.NewInsert().
 		Model(&assignment).
 		Exec(ctx); err != nil {
-		return "", err
+		return 0, err
 	}
 
 	tutorials, err := r.Query().Tutorials(ctx, []int{int(assignment.TutorialID)}, nil, nil, nil, nil)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	tutorial := tutorials[0]
 
@@ -515,35 +611,35 @@ func (r *mutationResolver) AddTutorAssignmentForTutorial(ctx context.Context, as
 				tutorial.Room.Building.Street, tutorial.Room.Building.Number,
 				tutorial.Room.Building.Zip, tutorial.Room.Building.City)}}
 
-	users, err := r.Query().Users(ctx, []string{assignment.UserMail})
+	users, err := r.Query().Users(ctx, []int{int(assignment.UserID)}, nil)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 	user := users[0]
 
 	if err := email.Send(*user, m, r.MailConfig); err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return assignment.UserMail, nil
+	return int(assignment.UserID), nil
 }
 
 // DeleteTutorAssignmentForTutorial is the resolver for the deleteTutorAssignmentForTutorial field.
-func (r *mutationResolver) DeleteTutorAssignmentForTutorial(ctx context.Context, assignment models.TutorialToUserAssignment) (string, error) {
+func (r *mutationResolver) DeleteTutorAssignmentForTutorial(ctx context.Context, assignment models.TutorialToUserAssignment) (int, error) {
 	res, err := r.DB.NewDelete().
 		Model(&assignment).
 		WherePK().
 		Exec(ctx)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	rowsAffected, _ := res.RowsAffected()
 	if rowsAffected == 0 {
-		return "", fmt.Errorf("user was not assigned to this event")
+		return 0, fmt.Errorf("user was not assigned to this event")
 	}
 
-	return assignment.UserMail, nil
+	return int(assignment.UserID), nil
 }
 
 // AddTutorAvailabilityForEvent is the resolver for the addTutorAvailabilityForEvent field.
@@ -551,8 +647,8 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 	availabilitys := []models.UserToEventAvailability{}
 	for _, eID := range availability.EventID {
 		a := models.UserToEventAvailability{
-			UserMail: availability.UserMail,
-			EventID:  int32(eID),
+			UserID:  int32(availability.UserID),
+			EventID: int32(eID),
 		}
 
 		availabilitys = append(availabilitys, a)
@@ -567,6 +663,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 	if err := r.DB.NewSelect().
 		Model(&availabilitys).
 		Relation("Event").
+		Relation("Event.Type").
 		WherePK().
 		Scan(ctx); err != nil {
 		return nil, err
@@ -579,11 +676,11 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 		e := []hermes.Entry{
 			{Key: r.Settings["email-assignment-event-title"], Value: a.Event.Title},
 			{Key: r.Settings["email-assignment-date-title"], Value: a.Event.From.Format("02.01")},
-			{Key: r.Settings["email-assignment-kind-title"], Value: a.Event.TypeName}}
+			{Key: r.Settings["email-assignment-kind-title"], Value: a.Event.Type.Name}}
 		m.Table.Data = append(m.Table.Data, e)
 	}
 
-	user, err := r.Query().Users(ctx, []string{availability.UserMail})
+	user, err := r.Query().Users(ctx, []int{int(availability.UserID)}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -599,13 +696,13 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 func (r *mutationResolver) DeleteTutorAvailabilityForEvent(ctx context.Context, availability model.NewUserToEventAvailability) (*models.User, error) {
 	if _, err := r.DB.NewDelete().
 		Model((*models.UserToEventAvailability)(nil)).
-		Where("user_mail = ?", availability.UserMail).
+		Where("user_id = ?", availability.UserID).
 		Where("event_id IN (?)", bun.In(availability.EventID)).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{availability.UserMail})
+	user, err := r.Query().Users(ctx, []int{availability.UserID}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -614,48 +711,48 @@ func (r *mutationResolver) DeleteTutorAvailabilityForEvent(ctx context.Context, 
 }
 
 // AddStudentRegistrationForTutorial is the resolver for the addStudentRegistrationForTutorial field.
-func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context, registration models.UserToTutorialRegistration) (string, error) {
+func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context, registration models.UserToTutorialRegistration) (int, error) {
 	tutorial := new(models.Tutorial)
 	if err := r.DB.NewSelect().
 		Model(tutorial).
 		Where("id = ?", registration.TutorialID).
 		Scan(ctx); err != nil {
-		return "", err
+		return 0, err
 	}
 
 	count, err := r.DB.NewSelect().
 		Model((*models.UserToTutorialRegistration)(nil)).
 		Relation("Tutorial").
-		Where("user_mail = ?", registration.UserMail).
+		Where("user_id = ?", registration.UserID).
 		Where("tutorial.event_id = ?", tutorial.EventID).
 		Count(ctx)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
 
 	if count != 0 {
-		return "", fmt.Errorf("student is not allowed to be registered in multiple tutorials in one event")
+		return 0, fmt.Errorf("student is not allowed to be registered in multiple tutorials in one event")
 	}
 
 	if _, err := r.DB.NewInsert().
 		Model(&registration).
 		Exec(ctx); err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return registration.UserMail, nil
+	return int(registration.UserID), nil
 }
 
 // DeleteStudentRegistrationForTutorial is the resolver for the deleteStudentRegistrationForTutorial field.
-func (r *mutationResolver) DeleteStudentRegistrationForTutorial(ctx context.Context, registration models.UserToTutorialRegistration) (string, error) {
+func (r *mutationResolver) DeleteStudentRegistrationForTutorial(ctx context.Context, registration models.UserToTutorialRegistration) (int, error) {
 	if _, err := r.DB.NewDelete().
 		Model(&registration).
 		WherePK().
 		Exec(ctx); err != nil {
-		return "", err
+		return 0, err
 	}
 
-	return registration.UserMail, nil
+	return int(registration.UserID), nil
 }
 
 // AddStudentApplicationForEvent is the resolver for the addStudentApplicationForEvent field.
@@ -667,9 +764,9 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 		var points int
 
 		aq := &models.ApplicationToQuestion{
-			StudentMail: application.UserMail,
-			EventID:     int32(application.EventID),
-			QuestionID:  int32(a.QuestionID),
+			StudentID:  int32(application.UserID),
+			EventID:    int32(application.EventID),
+			QuestionID: int32(a.QuestionID),
 		}
 
 		if a.AnswerID != nil {
@@ -697,9 +794,9 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 	}
 
 	a := &models.Application{
-		EventID:     int32(application.EventID),
-		StudentMail: application.UserMail,
-		Score:       int16(score),
+		EventID:   int32(application.EventID),
+		StudentID: int32(application.UserID),
+		Score:     int16(score),
 	}
 
 	if _, err := r.DB.NewInsert().
@@ -714,7 +811,7 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{application.UserMail})
+	user, err := r.Query().Users(ctx, []int{int(application.UserID)}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -723,16 +820,16 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 }
 
 // DeleteStudentApplicationForEvent is the resolver for the deleteStudentApplicationForEvent field.
-func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context, mail string, eventID int) (*models.User, error) {
+func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context, studentID int, eventID int) (*models.User, error) {
 	if _, err := r.DB.NewDelete().
 		Model((*models.Application)(nil)).
-		Where("student_mail = ?", mail).
-		Where("event_id = ?", mail).
+		Where("student_id = ?", studentID).
+		Where("event_id = ?", eventID).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []string{mail})
+	user, err := r.Query().Users(ctx, []int{studentID}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -740,8 +837,60 @@ func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context,
 	return user[0], nil
 }
 
+// LinkSupportingEventToEvent is the resolver for the linkSupportingEventToEvent field.
+func (r *mutationResolver) LinkSupportingEventToEvent(ctx context.Context, eventID int, supportingEventID []int) (int, error) {
+	if slices.Contains(supportingEventID, eventID) {
+		return 0, fmt.Errorf("event cannot support itself")
+	}
+
+	var umbrelleIDs []int32
+	if err := r.DB.NewSelect().
+		Model((*models.Event)(nil)).
+		Column("umbrella_id").
+		Where("umbrella_id IS NOT NULL").
+		Where("id IN (?)", bun.In(append(supportingEventID, eventID))).
+		Scan(ctx, &umbrelleIDs); err != nil {
+		return 0, err
+	}
+
+	if len(umbrelleIDs) != 0 {
+		return 0, fmt.Errorf("both events have to be umbrella events")
+	}
+
+	var links []models.EventToSupportingEvent
+	for _, sID := range supportingEventID {
+		links = append(links, models.EventToSupportingEvent{EventID: int32(eventID), SupportingEventID: int32(sID)})
+	}
+
+	if _, err := r.DB.NewInsert().
+		Model(&links).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
+// UnlinkSupportingEventFromEvent is the resolver for the unlinkSupportingEventFromEvent field.
+func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, eventID int, supportingEventID []int) (int, error) {
+	var links []int32
+	for _, id := range supportingEventID {
+		links = append(links, int32(id))
+	}
+
+	if _, err := r.DB.NewDelete().
+		Model((*models.EventToSupportingEvent)(nil)).
+		Where("event_id = ?", eventID).
+		Where("supporting_event_id IN (?)", bun.In(links)).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userMail []string) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userID []int, includeSupportingEvents *bool) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
@@ -753,6 +902,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("Tutorials").
 		Relation("Tutorials.Room").
 		Relation("Tutorials.Room.Building").
+		Relation("Tutorials.Tutors").
 		Where(`"e"."umbrella_id" IS NOT NULL`).
 		Order("ASC")
 
@@ -761,11 +911,11 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 	}
 
 	if typeArg != nil {
-		query = query.Where(`"e"."type_name" IN (?)`, bun.In(typeArg))
+		query = query.Where(`"type__name" IN (?)`, bun.In(typeArg))
 	}
 
 	if topic != nil {
-		query = query.Where(`"e"."topic_name" IN (?)`, bun.In(topic))
+		query = query.Where(`"topic__name" IN (?)`, bun.In(topic))
 	}
 
 	if needsTutors != nil {
@@ -780,11 +930,21 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		query = query.Where(`"umbrella"."to" >= ?`, time.Now())
 	}
 
-	if userMail != nil {
+	if userID != nil {
 		query = query.
 			Join("JOIN event_to_user_assignments AS eta ON eta.event_id = e.id").
 			Join("LEFT JOIN user_to_event_availability AS uea ON uea.event_id = e.id").
-			Where("uea.tutor_mail IN (?) OR eta.tutor_mail IN (?)", bun.In(userMail), bun.In(userMail))
+			Where("uea.tutor_id IN (?) OR eta.tutor_id IN (?)", bun.In(userID), bun.In(userID))
+	}
+
+	if includeSupportingEvents != nil && *includeSupportingEvents == true && umbrellaID != nil {
+		subq := r.DB.NewSelect().
+			Model((*models.EventToSupportingEvent)(nil)).
+			Where("event_id IN (?)", bun.In(umbrellaID)).
+			Column("supporting_event_id")
+
+		query = query.
+			WhereOr("e.umbrella_id IN (?)", subq)
 	}
 
 	if err := query.Scan(ctx); err != nil {
@@ -801,11 +961,12 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 		Model(&umbrellas).
 		Relation("Topic").
 		Relation("RegistrationForm").
+		Relation("SupportingEvents").
 		Where("umbrella_id IS NULL").
 		Order("from ASC")
 
 	if id != nil {
-		query = query.Where("id IN (?)", bun.In(id))
+		query = query.Where("e.id IN (?)", bun.In(id))
 	}
 
 	if onlyFuture != nil && *onlyFuture == true {
@@ -883,7 +1044,7 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 
 	if umbrellaID != nil {
 		query = query.
-			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_name = l.name OR e.type_name = l.name))",
+			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_id = l.id OR e.type_id = l.id))",
 				bun.In(umbrellaID))
 	}
 
@@ -922,7 +1083,7 @@ func (r *queryResolver) Settings(ctx context.Context, key []string, typeArg []mo
 }
 
 // Users is the resolver for the users field.
-func (r *queryResolver) Users(ctx context.Context, mail []string) ([]*models.User, error) {
+func (r *queryResolver) Users(ctx context.Context, id []int, mail []string) ([]*models.User, error) {
 	var users []*models.User
 
 	query := r.DB.NewSelect().
@@ -936,7 +1097,14 @@ func (r *queryResolver) Users(ctx context.Context, mail []string) ([]*models.Use
 		Relation("Registrations.Room").
 		Relation("Registrations.Room.Building").
 		Relation("Applications").
+		Relation("Applications.Student").
+		Relation("Applications.Event").
 		Relation("Availabilities")
+
+	if id != nil {
+		query = query.
+			Where("id IN (?)", bun.In(id))
+	}
 
 	if mail != nil {
 		query = query.
@@ -972,7 +1140,7 @@ func (r *queryResolver) Forms(ctx context.Context, id []int) ([]*models.Form, er
 }
 
 // Applications is the resolver for the applications field.
-func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []string) ([]*models.Application, error) {
+func (r *queryResolver) Applications(ctx context.Context, eventID *int, ids []int) ([]*models.Application, error) {
 	var applications []*models.Application
 
 	query := r.DB.NewSelect().
@@ -985,8 +1153,8 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []s
 		query = query.Where("event_id = ?", *eventID)
 	}
 
-	if mail != nil {
-		query = query.Where("student_mail IN (?)", bun.In(mail))
+	if len(ids) > 0 {
+		query = query.Where("student_id IN (?)", bun.In(ids))
 	}
 
 	if err := query.Scan(ctx); err != nil {
@@ -997,7 +1165,7 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []s
 }
 
 // Tutorials is the resolver for the tutorials field.
-func (r *queryResolver) Tutorials(ctx context.Context, id []int, eventID []int, umbrellaID []int, tutorMail []string, studentMail []string) ([]*models.Tutorial, error) {
+func (r *queryResolver) Tutorials(ctx context.Context, id []int, eventID []int, umbrellaID []int, tutorID []int, studentID []int) ([]*models.Tutorial, error) {
 	var tutorials []*models.Tutorial
 	query := r.DB.NewSelect().
 		Model(&tutorials).
@@ -1005,20 +1173,24 @@ func (r *queryResolver) Tutorials(ctx context.Context, id []int, eventID []int, 
 		Relation("Room").
 		Relation("Room.Building")
 
+	if id != nil {
+		query = query.Where("t.id IN (?)", bun.In(id))
+	}
+
 	if eventID != nil {
 		query = query.Where("event_id IN (?)", bun.In(eventID))
 	}
 
-	if studentMail != nil {
+	if studentID != nil {
 		query = query.
-			Join(`JOIN "user_to_tutorial_registrations" AS "utr" ON "t"."user_mail" = "utr"."user_mail" AND "t"."id" = "utr"."tutorial_id"`).
-			Where(`"t"."user_mail" IN (?)`, bun.In(studentMail))
+			Join(`JOIN "user_to_tutorial_registrations" AS "utr" ON "t"."user_id" = "utr"."user_id" AND "t"."id" = "utr"."tutorial_id"`).
+			Where(`"t"."user_id" IN (?)`, bun.In(studentID))
 	}
 
-	if tutorMail != nil {
+	if tutorID != nil {
 		query = query.
 			Join("JOIN tutorial_to_user_assignments AS tua ON t.id = tua.tutorial_id").
-			Where("user_mail IN (?)", bun.In(tutorMail))
+			Where("user_id IN (?)", bun.In(tutorID))
 	}
 
 	if err := query.Scan(ctx); err != nil {
@@ -1030,14 +1202,15 @@ func (r *queryResolver) Tutorials(ctx context.Context, id []int, eventID []int, 
 
 // Login is the resolver for the login field.
 func (r *queryResolver) Login(ctx context.Context, mail string, password string) (string, error) {
-	users, err := r.Query().Users(ctx, []string{mail})
-	if err != nil || len(users) == 0 {
-		return "", fmt.Errorf("user not found")
+	user := new(models.User)
+	if err := r.DB.NewSelect().
+		Model(user).
+		Where("mail = ?", mail).
+		Scan(ctx); err != nil {
+		return "", err
 	}
 
-	user := users[0]
-
-	if err := auth.VerifyPassword(user.Password, password, user.Salt); err != nil {
+	if err := auth.VerifyPassword(user.Password, password); err != nil {
 		return "", err
 	}
 
@@ -1050,8 +1223,11 @@ func (r *queryResolver) Login(ctx context.Context, mail string, password string)
 	}
 
 	user.LastLogin = time.Now()
-	_, err = r.Mutation().UpdateUser(ctx, *user)
-	if err != nil {
+
+	if _, err := r.DB.NewUpdate().
+		Model(user).
+		Where("mail = ?", mail).
+		Exec(ctx); err != nil {
 		return "", err
 	}
 
@@ -1090,25 +1266,6 @@ func (r *settingResolver) Type(ctx context.Context, obj *models.Setting) (model.
 	}
 
 	return model.ScalarTypeString, fmt.Errorf("unable to resolve type: %s", obj.Type)
-}
-
-// Tutors is the resolver for the tutors field.
-func (r *tutorialResolver) Tutors(ctx context.Context, obj *models.Tutorial) ([]*models.User, error) {
-	var assignments []*models.TutorialToUserAssignment
-	if err := r.DB.NewSelect().
-		Model(&assignments).
-		Relation("User").
-		Where("tutorial_id = ?", obj.ID).
-		Scan(ctx); err != nil {
-		return nil, err
-	}
-
-	var users []*models.User
-	for _, assignment := range assignments {
-		users = append(users, assignment.User)
-	}
-
-	return users, nil
 }
 
 // RegistrationCount is the resolver for the registrationCount field.
@@ -1184,11 +1341,6 @@ func (r *newSettingResolver) Type(ctx context.Context, obj *models.Setting, data
 	return nil
 }
 
-// Tutors is the resolver for the tutors field.
-func (r *newTutorialResolver) Tutors(ctx context.Context, obj *models.Tutorial, data []string) error {
-	panic(fmt.Errorf("not implemented: Tutors - tutors"))
-}
-
 // Answer returns AnswerResolver implementation.
 func (r *Resolver) Answer() AnswerResolver { return &answerResolver{r} }
 
@@ -1197,6 +1349,9 @@ func (r *Resolver) Application() ApplicationResolver { return &applicationResolv
 
 // Event returns EventResolver implementation.
 func (r *Resolver) Event() EventResolver { return &eventResolver{r} }
+
+// Label returns LabelResolver implementation.
+func (r *Resolver) Label() LabelResolver { return &labelResolver{r} }
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
@@ -1234,12 +1389,10 @@ func (r *Resolver) NewRoom() NewRoomResolver { return &newRoomResolver{r} }
 // NewSetting returns NewSettingResolver implementation.
 func (r *Resolver) NewSetting() NewSettingResolver { return &newSettingResolver{r} }
 
-// NewTutorial returns NewTutorialResolver implementation.
-func (r *Resolver) NewTutorial() NewTutorialResolver { return &newTutorialResolver{r} }
-
 type answerResolver struct{ *Resolver }
 type applicationResolver struct{ *Resolver }
 type eventResolver struct{ *Resolver }
+type labelResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type questionResolver struct{ *Resolver }
@@ -1252,4 +1405,3 @@ type newLabelResolver struct{ *Resolver }
 type newQuestionResolver struct{ *Resolver }
 type newRoomResolver struct{ *Resolver }
 type newSettingResolver struct{ *Resolver }
-type newTutorialResolver struct{ *Resolver }

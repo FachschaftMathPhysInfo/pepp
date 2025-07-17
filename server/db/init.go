@@ -27,6 +27,7 @@ var (
 	relations = []interface{}{
 		(*models.ApplicationToQuestion)(nil),
 		(*models.TutorialToUserAssignment)(nil),
+		(*models.EventToSupportingEvent)(nil),
 		(*models.UserToEventAvailability)(nil),
 		(*models.UserToTutorialRegistration)(nil)}
 
@@ -103,7 +104,7 @@ func InitAdminUser(ctx context.Context, db *bun.DB) error {
 		}
 	}
 
-	hash, salt, err := auth.Hash(password)
+	hash, err := auth.Hash(password)
 	if err != nil {
 		return err
 	}
@@ -113,8 +114,7 @@ func InitAdminUser(ctx context.Context, db *bun.DB) error {
 		Sn:        "",
 		Mail:      mail,
 		Password:  hash,
-		Salt:      salt,
-		Confirmed: true,
+		Confirmed: utils.BoolPtr(true),
 		Role:      "ADMIN",
 	}
 	res, err := db.NewInsert().Model(admin).Ignore().Exec(ctx)

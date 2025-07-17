@@ -1,5 +1,12 @@
+query userID($mailOrSid: String!) {
+  users(mail: [$mailOrSid]) {
+    ID
+  }
+}
+
 query loginUser($sid: String!) {
   users(mail: [$sid]) {
+    ID
     tutorials {
       ID
       event {
@@ -53,6 +60,7 @@ query loginUser($sid: String!) {
 
 query AllUsers {
   users {
+    ID
     fn
     sn
     mail
@@ -68,6 +76,7 @@ query AllUsers {
 
 query registeredEvents {
   users {
+    ID
     registrations {
       event {
         title
@@ -96,6 +105,7 @@ query allApplicants {
 
 query RegisteredTutorials {
   users {
+    ID
     registrations {
       ID
       registrationCount
@@ -119,6 +129,7 @@ query RegisteredTutorials {
         to
       }
       tutors {
+        ID
         mail
         fn
         sn
@@ -129,6 +140,7 @@ query RegisteredTutorials {
 
 query registeredEventIdsOfUser($mail: [String!]!) {
   users(mail: $mail) {
+    ID
     registrations {
       ID
     }
