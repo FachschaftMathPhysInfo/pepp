@@ -53,10 +53,10 @@ export default function ApplicationInfoSection({umbrellaID}: ApplicationInfoSect
         <Card className={'flex-grow'}>
           <CardHeader>
             <CardTitle>
-              Anmeldungen
+              Bewerbungen
             </CardTitle>
             <CardDescription>
-              So viele haben sich schon angemeldet
+              So viele haben sich schon beworben
             </CardDescription>
           </CardHeader>
           <CardContent className={'text-center text-3xl'}>
@@ -85,7 +85,7 @@ export default function ApplicationInfoSection({umbrellaID}: ApplicationInfoSect
             Score
           </CardTitle>
           <CardDescription>
-            So ist der Score unter allen Anmeldungen aufgeteilt
+            So ist der Score unter allen Bewerbungen aufgeteilt
           </CardDescription>
         </CardHeader>
         <CardContent className={'h-full'}>

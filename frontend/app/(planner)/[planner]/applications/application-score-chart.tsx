@@ -18,7 +18,9 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
   const [chartData, setChartData] = useState<ChartData[]>([])
 
   const calculateChartData = useCallback(async () => {
+    // [score: amountOfApplicants]
     const scoreMap = new Map<number, number>()
+
     applicants.forEach(applicant => {
       const application = applicant.applications?.find(
         application => application.event.ID === umbrellaID
@@ -29,9 +31,13 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
       scoreMap.set(application.score, (scoreMap.get(application.score) || 0) + 1);
     })
 
+    const sortedArray = Array.from(scoreMap)
+      .sort((a, b) => a[0] - b[0]);
+    const sortedMap = new Map(sortedArray);
+
     const data: { score: number, amount: number }[] = []
-    scoreMap.forEach((score, amount) => {
-      data.push({score, amount})
+    sortedMap.forEach((value, key) => {
+      data.push({score: key, amount: value})
     })
 
 
@@ -40,12 +46,12 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
   }, [applicants, umbrellaID])
 
   useEffect(() => {
-    void calculateChartData
+    void calculateChartData()
   }, [applicants, umbrellaID]);
 
   const chartConfig: ChartConfig = {
     amount: {
-      label: "Anzahl Anmeldungen",
+      label: "Amount",
       color: "#var(--chart-1)"
     }
   }
@@ -54,7 +60,9 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
     return (
       <div className={'w-full h-full min-h-[200px] relative'}>
         <Skeleton className={'w-full min-h-[200px]'} />
-        <span className={'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'}>Noch keine Anmeldungen zum berechnen</span>
+        <span className={'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'}>
+          Noch keine Anmeldungen zum berechnen
+        </span>
       </div>
     )
   }
