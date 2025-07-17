@@ -16,8 +16,10 @@ type ChartData = {
 
 export default function ApplicationScoreChart({applicants, umbrellaID}: ApplicationScoreChartProps) {
   const [chartData, setChartData] = useState<ChartData[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
   const calculateChartData = useCallback(async () => {
+    setLoading(true)
     // [score: amountOfApplicants]
     const scoreMap = new Map<number, number>()
 
@@ -40,9 +42,8 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
       data.push({score: key, amount: value})
     })
 
-
-    console.log(data)
     setChartData(data)
+    setLoading(false)
   }, [applicants, umbrellaID])
 
   useEffect(() => {
@@ -61,14 +62,14 @@ export default function ApplicationScoreChart({applicants, umbrellaID}: Applicat
       <div className={'w-full h-full min-h-[200px] relative'}>
         <Skeleton className={'w-full min-h-[200px]'} />
         <span className={'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'}>
-          Noch keine Anmeldungen zum berechnen
+          {loading ? "Berechne Daten..." : "Noch keine Anmeldungen zum berechnen"}
         </span>
       </div>
     )
   }
 
   return (
-    <ChartContainer config={chartConfig} className={'w-full min-h-[200px] h-full'}>
+    <ChartContainer config={chartConfig} className={'w-full min-h-[200px] h-full'} >
       <BarChart accessibilityLayer data={chartData}>
         <Bar dataKey={'amount'} fill="var(--chart-1)" radius={4}/>
         <XAxis
