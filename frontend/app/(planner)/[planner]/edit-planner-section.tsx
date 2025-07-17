@@ -43,6 +43,7 @@ export default function EditPlannerSection({umbrella}: EditPlannerSectionProps) 
       >
         <EventDialog
           open={eventDialogOpen}
+          closeDialogAction={() => setEventDialogOpen(false)}
           modify/>
       </Dialog>
     </>
