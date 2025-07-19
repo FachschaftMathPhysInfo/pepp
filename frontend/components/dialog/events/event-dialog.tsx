@@ -32,12 +32,14 @@ interface EventDialogProps {
   id?: number;
   modify?: boolean;
   open: boolean;
+  closeDialogAction?: () => void;
 }
 
 export default function EventDialog({
   id,
   modify = false,
   open,
+  closeDialogAction,
 }: EventDialogProps) {
   const pathname = usePathname();
 
@@ -91,7 +93,7 @@ export default function EventDialog({
   }, [id, open, refetchKey]);
 
   return edit ? (
-    <EditEventView event={event} />
+    <EditEventView event={event} closeDialogAction={closeDialogAction}/>
   ) : (
     <>
       <DialogContent className="sm:min-w-[600px]">
