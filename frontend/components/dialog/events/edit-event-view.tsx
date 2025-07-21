@@ -24,63 +24,51 @@ import {
   UpdateTutorialDocument,
   UpdateTutorialMutation,
 } from "@/lib/gql/generated/graphql";
-import React, { useEffect, useState } from "react";
-import { PlusCircle, Save, Trash2 } from "lucide-react";
-import {
-  DialogHeader,
-  DialogDescription,
-  DialogTitle,
-  DialogFooter,
-  DialogContent,
-} from "@/components/ui/dialog";
-import { useRefetch, useUser } from "../../providers";
-import { getClient } from "@/lib/graphql";
+import React, {useEffect, useState} from "react";
+import {PlusCircle, Save, Trash2} from "lucide-react";
+import {DialogContent, DialogFooter, DialogHeader, DialogTitle,} from "@/components/ui/dialog";
+import {useRefetch, useUser} from "../../providers";
+import {getClient} from "@/lib/graphql";
 import TextareaAutosize from "react-textarea-autosize";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { extractId } from "@/lib/utils";
-import { TutorialsTable } from "./tutorials-table";
-import { Input } from "../../ui/input";
-import { defaultEvent } from "@/types/defaults";
-import { Switch } from "../../ui/switch";
-import { BadgePicker } from "../../badge-picker";
-import { DatePicker } from "../../date-picker";
-import { Button } from "../../ui/button";
-import { usePathname } from "next/navigation";
-import { toast } from "sonner";
+import {z} from "zod";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormMessage,} from "@/components/ui/form";
+import {extractId} from "@/lib/utils";
+import {TutorialsTable} from "./tutorials-table";
+import {Input} from "../../ui/input";
+import {defaultEvent} from "@/types/defaults";
+import {Switch} from "../../ui/switch";
+import {BadgePicker} from "../../badge-picker";
+import {DatePicker} from "../../date-picker";
+import {Button} from "../../ui/button";
+import {usePathname} from "next/navigation";
+import {toast} from "sonner";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 
 const FormSchema = z.object({
   title: z.string().min(1, {
     message: "Bitte wähle einen Veranstaltungstitel.",
   }),
-  date: z.date({ required_error: "Bitte gib ein Datum an." }),
-  from: z.string().min(1, { message: "Bitte gib eine Startzeit an." }),
-  to: z.string().min(1, { message: "Bitte gib eine Endzeit an." }),
-  topic: z.number().min(1, { message: "Bitte gib eine Veranstaltungsart an."}),
-  type: z.number().min(1, { message: "Bitte wähle einen Veranstaltungstyp" }),
+  date: z.date({required_error: "Bitte gib ein Datum an."}),
+  from: z.string().min(1, {message: "Bitte gib eine Startzeit an."}),
+  to: z.string().min(1, {message: "Bitte gib eine Endzeit an."}),
+  topic: z.number().min(1, {message: "Bitte gib eine Veranstaltungsart an."}),
+  type: z.number().min(1, {message: "Bitte wähle einen Veranstaltungstyp"}),
   description: z.string(),
   needsTutors: z.boolean(),
 });
 
 interface EditEventViewProps {
   event: Event | undefined;
+  closeDialogAction?: () => void;
 }
 
-export function EditEventView({ event }: EditEventViewProps) {
+export function EditEventView({event, closeDialogAction}: EditEventViewProps) {
   const pathname = usePathname();
 
-  const { sid } = useUser();
-  const { triggerRefetch } = useRefetch();
+  const {sid} = useUser();
+  const {triggerRefetch} = useRefetch();
 
   const [saveLoading, setSaveLoading] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>();
@@ -176,18 +164,18 @@ export function EditEventView({ event }: EditEventViewProps) {
         if (deleteTutorialIDs.length) {
           await client.request<DeleteTutorialsMutation>(
             DeleteTutorialsDocument,
-            { tutorialIDs: deleteTutorialIDs }
+            {tutorialIDs: deleteTutorialIDs}
           );
         }
         if (updateTutorials.length) {
-          updateTutorials.forEach(async (t) => {
+          for (const t of updateTutorials) {
             await client.request<UpdateTutorialMutation>(
               UpdateTutorialDocument,
-              { id: t.ID, tutorial: mapTutorialToNewTutorial(t) }
+              {id: t.ID, tutorial: mapTutorialToNewTutorial(t)}
             );
-          });
+          }
         }
-        toast.info(`"${data.title}" erfolgreich gespeichert!`);
+        toast.success(`"${data.title}" erfolgreich gespeichert!`);
         triggerRefetch();
       } catch {
         toast.error(
@@ -210,7 +198,7 @@ export function EditEventView({ event }: EditEventViewProps) {
       const client = getClient(sid!);
       try {
         await client.request<AddEventMutation>(AddEventDocument, vars);
-        toast.info(`"${data.title}" erfolgreich erstellt!`);
+        toast.success(`"${data.title}" erfolgreich erstellt!`);
         triggerRefetch();
       } catch {
         toast.error(
@@ -221,6 +209,7 @@ export function EditEventView({ event }: EditEventViewProps) {
 
     await sendData();
     setSaveLoading(false);
+    if (closeDialogAction) closeDialogAction();
   };
 
   const deleteThisEvent = async () => {
@@ -229,7 +218,7 @@ export function EditEventView({ event }: EditEventViewProps) {
       await client.request<DeleteEventMutation>(DeleteEventDocument, {
         eventIds: [event?.ID],
       });
-      toast.info(`"${event?.title}" erfolgreich gelöscht!`);
+      toast.success(`"${event?.title}" erfolgreich gelöscht!`);
       triggerRefetch();
     } catch {
       toast.error("Beim Löschen der Veranstaltung ist ein Fehler aufgetreten.");
@@ -253,9 +242,9 @@ export function EditEventView({ event }: EditEventViewProps) {
         );
 
         const umbrellaEvent = umbrellaData.umbrellas[0];
-        form.reset({ date: new Date(umbrellaEvent.from) });
+        form.reset({date: new Date(umbrellaEvent.from)});
 
-        setUmbrella({ ...defaultEvent, ...umbrellaEvent });
+        setUmbrella({...defaultEvent, ...umbrellaEvent});
       } catch {
         toast.error("Fehler beim Laden des Zeitrahmens für die Veranstaltung.");
       }
@@ -283,7 +272,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                   <FormField
                     control={form.control}
                     name="title"
-                    render={({ field }) => (
+                    render={({field}) => (
                       <FormItem>
                         <FormControl>
                           <input
@@ -292,16 +281,16 @@ export function EditEventView({ event }: EditEventViewProps) {
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage/>
                       </FormItem>
                     )}
                   />
                 </DialogTitle>
-                <DialogDescription className="space-y-4">
+                <div className="text-sm text-muted-foreground space-y-4">
                   <FormField
                     control={form.control}
                     name="description"
-                    render={({ field }) => (
+                    render={({field}) => (
                       <FormItem>
                         <FormControl>
                           <TextareaAutosize
@@ -310,7 +299,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage/>
                       </FormItem>
                     )}
                   />
@@ -318,7 +307,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                     <FormField
                       control={form.control}
                       name="topic"
-                      render={({ field }) => (
+                      render={({field}) => (
                         <FormItem>
                           <FormControl>
                             <BadgePicker
@@ -328,14 +317,14 @@ export function EditEventView({ event }: EditEventViewProps) {
                               onChange={field.onChange}
                             />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage/>
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
                       name="type"
-                      render={({ field }) => (
+                      render={({field}) => (
                         <FormItem>
                           <FormControl>
                             <BadgePicker
@@ -345,7 +334,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                               onChange={field.onChange}
                             />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage/>
                         </FormItem>
                       )}
                     />
@@ -354,7 +343,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                     <FormField
                       control={form.control}
                       name="date"
-                      render={({ field }) => (
+                      render={({field}) => (
                         <FormItem>
                           <FormControl>
                             <DatePicker
@@ -369,7 +358,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                           <FormDescription>
                             Datum der Veranstaltung
                           </FormDescription>
-                          <FormMessage />
+                          <FormMessage/>
                         </FormItem>
                       )}
                     />
@@ -377,32 +366,32 @@ export function EditEventView({ event }: EditEventViewProps) {
                       <FormField
                         control={form.control}
                         name="from"
-                        render={({ field }) => (
+                        render={({field}) => (
                           <FormItem>
                             <FormControl>
                               <Input aria-label="Time" type="time" {...field} />
                             </FormControl>
                             <FormDescription>Von</FormDescription>
-                            <FormMessage />
+                            <FormMessage/>
                           </FormItem>
                         )}
                       />
                       <FormField
                         control={form.control}
                         name="to"
-                        render={({ field }) => (
+                        render={({field}) => (
                           <FormItem>
                             <FormControl>
                               <Input aria-label="Time" type="time" {...field} />
                             </FormControl>
                             <FormDescription>Bis</FormDescription>
-                            <FormMessage />
+                            <FormMessage/>
                           </FormItem>
                         )}
                       />
                     </div>
                   </div>
-                </DialogDescription>
+                </div>
               </DialogHeader>
               {event && (
                 <TutorialsTable
@@ -419,7 +408,7 @@ export function EditEventView({ event }: EditEventViewProps) {
               <FormField
                 control={form.control}
                 name="needsTutors"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormControl>
                       <div className="flex flex-row space-x-2 mt-10">
@@ -447,12 +436,12 @@ export function EditEventView({ event }: EditEventViewProps) {
                 >
                   {event ? (
                     <>
-                      <Save className="h-4 w-4" />
+                      <Save className="h-4 w-4"/>
                       Speichern
                     </>
                   ) : (
                     <>
-                      <PlusCircle className="h-4 w-4" />
+                      <PlusCircle className="h-4 w-4"/>
                       Hinzufügen
                     </>
                   )}
@@ -463,7 +452,7 @@ export function EditEventView({ event }: EditEventViewProps) {
                     variant="destructive"
                     onClick={() => setDeleteConfirmationOpen(true)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4"/>
                     Löschen
                   </Button>
                 )}
