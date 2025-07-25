@@ -1,13 +1,15 @@
 "use client"
 import {useUser} from "@/components/providers";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {getClient} from "@/lib/graphql";
 import {AllApplicantsDocument, AllApplicantsQuery} from "@/lib/gql/generated/graphql";
 import ApplicationScoreChart from "@/app/(planner)/[planner]/applications/application-score-chart";
 
 interface ApplicationInfoSectionProps {
   umbrellaID: number
+  refetchKey: number;
+  setMaximumNewStudents: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export type Applicant = {
@@ -21,7 +23,7 @@ export type Applicant = {
   }[] | null | undefined;
 }
 
-export default function ApplicationInfoSection({umbrellaID}: ApplicationInfoSectionProps) {
+export default function ApplicationInfoSection(props: ApplicationInfoSectionProps) {
   const {sid} = useUser()
   const [peopleApplied, setPeopleApplied] = useState<Applicant[]>([])
   const [peopleAccepted, setPeopleAccepted] = useState<Applicant[]>([])
@@ -30,21 +32,23 @@ export default function ApplicationInfoSection({umbrellaID}: ApplicationInfoSect
     const fetchApplications = async () => {
       const client = getClient(String(sid))
       const applicantsData = await client.request<AllApplicantsQuery>(AllApplicantsDocument, {})
-      setPeopleApplied(applicantsData.users.filter(
+      const appliedPeople = applicantsData.users.filter(
         user => user.applications?.find(
-          application => application.event.ID === umbrellaID
+          application => application.event.ID === props.umbrellaID
         )
-      ))
+      )
+      setPeopleApplied(appliedPeople)
       const acceptedPeople = applicantsData.users.filter(
         user => user.applications?.filter(
-          application => application.event.ID === umbrellaID
+          application => application.event.ID === props.umbrellaID
         )[0]?.accepted === true
       )
       setPeopleAccepted(acceptedPeople)
+      props.setMaximumNewStudents(appliedPeople.length - acceptedPeople.length)
     }
 
     void fetchApplications()
-  }, [umbrellaID, sid])
+  }, [props.umbrellaID, sid, props.refetchKey])
 
 
   return (
@@ -89,7 +93,7 @@ export default function ApplicationInfoSection({umbrellaID}: ApplicationInfoSect
           </CardDescription>
         </CardHeader>
         <CardContent className={'h-full'}>
-          <ApplicationScoreChart applicants={peopleApplied} umbrellaID={umbrellaID}/>
+          <ApplicationScoreChart applicants={peopleApplied} umbrellaID={props.umbrellaID}/>
         </CardContent>
       </Card>
     </div>

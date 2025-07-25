@@ -17,16 +17,19 @@ import {toast} from "sonner";
 
 interface ApplicationManagementSectionProps {
   umbrellaID: number
+  triggerRefetch: () => void;
+  maximumNewStudents: number
 }
 
-const numberSchema = z.object({
-  amountNewStudents: z.coerce.number({
-    required_error: "Bitte gib eine Zahl an",
-    message: "Bitte gib eine Zahl an",
-  }).min(1, 'Bitte gib eine Zahl größer 1 an')
-})
-
 export default function ApplicationManagementSection(props: ApplicationManagementSectionProps) {
+  const numberSchema = z.object({
+    amountNewStudents: z.coerce.number({
+      required_error: "Bitte gib eine Zahl an",
+      message: "Bitte gib eine Zahl an",
+    }).min(1, 'Bitte gib eine Zahl größer 1 an')
+      .max(props.maximumNewStudents, `Es gibt nur ${props.maximumNewStudents} weitere Bewerbungen`),
+  })
+
   const {sid} = useUser()
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const form = useForm<z.infer<typeof numberSchema>>({
@@ -51,6 +54,8 @@ export default function ApplicationManagementSection(props: ApplicationManagemen
         AcceptNewApplicationsDocument,
         {eventID: props.umbrellaID, count: amountNewStudents}
       )
+      props.triggerRefetch()
+      toast.success("Weitere Studis wurden erfolgreich angenommen")
     } catch (error) {
       console.error(error)
       toast.error("Fehler beim akzeptieren der Sutdis")
@@ -83,7 +88,7 @@ export default function ApplicationManagementSection(props: ApplicationManagemen
                           <Input placeholder="0" {...field} className={'w-[200px]'}/>
                         </span>
                     </FormControl>
-                    <FormMessage/>
+                    <FormMessage className={'w-full text-right'}/>
                   </FormItem>
                 )}
               />
