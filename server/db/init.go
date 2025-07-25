@@ -104,7 +104,7 @@ func InitAdminUser(ctx context.Context, db *bun.DB) error {
 
 	password := "admin"
 	if os.Getenv("ENV") == "Production" {
-		password, err = utils.RandString(32)
+		password, err = utils.RandString(24)
 		if err != nil {
 			return err
 		}
