@@ -36,7 +36,7 @@ export function AdminSidebar({ umbrellas }: AdminSidebarProps) {
       icon: GraduationCap,
     },
     {
-      title: "Anmeldungen",
+      title: "Bewerbungen",
       url: basePath + "/applications",
       icon: BookCheck,
     },

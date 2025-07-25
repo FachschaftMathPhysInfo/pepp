@@ -38,7 +38,7 @@ export default function ApplicationInfoSection({umbrellaID}: ApplicationInfoSect
       const acceptedPeople = applicantsData.users.filter(
         user => user.applications?.filter(
           application => application.event.ID === umbrellaID
-        )[0].accepted === true
+        )[0]?.accepted === true
       )
       setPeopleAccepted(acceptedPeople)
     }

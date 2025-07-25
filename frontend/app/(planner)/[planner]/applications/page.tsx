@@ -24,7 +24,7 @@ export default async function ApplicationsPage({params}: ApplicationsPageProps) 
   return (
     <div className={'space-y-6'}>
       <ManagementPageHeader
-      title={'Anmeldungen'}
+      title={'Bewerbungen'}
       description={'Verwalte hier, wer für dieses Programm zugelassen wird'}
       iconNode={<BookCheck/>}
       />
