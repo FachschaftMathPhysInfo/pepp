@@ -950,7 +950,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("Tutorials.Room.Building").
 		Relation("Tutorials.Tutors").
 		Where(`"e"."umbrella_id" IS NOT NULL`).
-		Order("ASC")
+		Order("from ASC")
 
 	if umbrellaID != nil {
 		query = query.Where(`"e"."umbrella_id" IN (?)`, bun.In(umbrellaID))
