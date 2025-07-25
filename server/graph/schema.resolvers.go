@@ -18,6 +18,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/graph/model"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
+	"github.com/gosimple/slug"
 	hermes "github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
@@ -889,6 +890,51 @@ func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, e
 	return eventID, nil
 }
 
+// AcceptTopApplicationsOnEvent is the resolver for the acceptTopApplicationsOnEvent field.
+func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eventID int, count int) (int, error) {
+	var applications []models.Application
+	if err := r.DB.NewSelect().
+		Model(&applications).
+		Relation("Student").
+		Where("event_id = ?", eventID).
+		Where("accepted = false").
+		Order("score ASC").
+		Limit(count).
+		Scan(ctx); err != nil {
+		return 0, err
+	}
+
+	event := new(models.Event)
+	if err := r.DB.NewSelect().Model(event).Where("id = ?", eventID).Scan(ctx); err != nil {
+		return 0, err
+	}
+
+	for i, _ := range applications {
+		applications[i].Accepted = utils.BoolPtr(true)
+	}
+	if _, err := r.DB.NewUpdate().
+		Model(&applications).
+		Column("accepted").
+		Bulk().
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	m := r.MailConfig.ApplicationAccepted
+
+	m.Actions[0].Button.Link = fmt.Sprintf("%s/%s-%s",
+		os.Getenv("PUBLIC_URL"), slug.Make(event.Title), eventID)
+	m.Actions[0].Button.Text = event.Title
+
+	for _, a := range applications {
+		if err := email.Send(*a.Student, m, r.MailConfig); err != nil {
+			log.Error("failed to send email: ", err)
+		}
+	}
+
+	return len(applications), nil
+}
+
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userID []int, includeSupportingEvents *bool) ([]*models.Event, error) {
 	var events []*models.Event
@@ -1097,6 +1143,8 @@ func (r *queryResolver) Users(ctx context.Context, id []int, mail []string) ([]*
 		Relation("Registrations.Room").
 		Relation("Registrations.Room.Building").
 		Relation("Applications").
+		Relation("Applications.Student").
+		Relation("Applications.Event").
 		Relation("Availabilities")
 
 	if id != nil {
@@ -1151,8 +1199,8 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []s
 		query = query.Where("event_id = ?", *eventID)
 	}
 
-	if mail != nil {
-		query = query.Where("student_mail IN (?)", bun.In(mail))
+	if len(mail) > 0 {
+		query = query.Where("student_id IN (?)", bun.In(mail))
 	}
 
 	if err := query.Scan(ctx); err != nil {
