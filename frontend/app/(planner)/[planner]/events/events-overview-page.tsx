@@ -12,6 +12,7 @@ import EventDialog from "@/components/dialog/events/event-dialog";
 import {Dialog} from "@/components/ui/dialog";
 import {columns} from "@/app/(planner)/[planner]/columns";
 import {DataTable} from "@/app/(planner)/[planner]/data-table";
+import {useRefetch} from "@/components/providers";
 
 interface EventsOverviewPageProps {
   umbrellaID: number
@@ -20,6 +21,7 @@ interface EventsOverviewPageProps {
 export default function EventsOverviewPage(props: EventsOverviewPageProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [events, setEvents] = useState<Event[]>([])
+  const {refetchKey} = useRefetch()
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false)
 
   const fetchEvents = useCallback(async () => {
@@ -46,7 +48,7 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
 
   useEffect(() => {
     void fetchEvents()
-  }, [fetchEvents, props.umbrellaID])
+  }, [fetchEvents, props.umbrellaID, refetchKey])
 
   if (loading) {
     return (

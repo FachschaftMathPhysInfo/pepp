@@ -15,7 +15,7 @@ import {ColumnDef} from "@tanstack/react-table";
 import {MoreHorizontal} from "lucide-react";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import {useState} from "react";
-import {useUser} from "@/components/providers";
+import {useRefetch, useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {toast} from "sonner";
 import EventDialog from "@/components/dialog/events/event-dialog";
@@ -100,12 +100,14 @@ export const columns: ColumnDef<Event>[] = [
     cell: ({row}) => {
       const [dialogOpen, setDialogOpen] = useState<"delete" | "edit" | null>(null);
       const {sid} = useUser();
+      const {triggerRefetch} = useRefetch()
 
       const handleDelete = async (id: number) => {
         const client = getClient(String(sid))
 
         try {
           await client.request<DeleteEventMutation>(DeleteEventDocument, {eventIds: [id]})
+          triggerRefetch()
           toast.success("Event wurde erfolgreich gelöscht")
         } catch (error) {
           toast.error("Ein Fehler ist aufgetreten");
@@ -137,6 +139,7 @@ export const columns: ColumnDef<Event>[] = [
             onConfirm={() => handleDelete(row.original.ID)}
             closeDialog={() => setDialogOpen(null)}
           />
+
           <Dialog
             open={dialogOpen === "edit"}
             onOpenChange={(open) => {
