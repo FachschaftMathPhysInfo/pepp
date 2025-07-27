@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
@@ -18,6 +19,11 @@ import (
 	"github.com/uptrace/bun/extra/bunotel"
 	"go.opentelemetry.io/otel/sdk/trace"
 	_ "modernc.org/sqlite"
+)
+
+const (
+	maxRetries    = 5
+	retryInterval = 2 * time.Second
 )
 
 var (
@@ -98,7 +104,7 @@ func InitAdminUser(ctx context.Context, db *bun.DB) error {
 
 	password := "admin"
 	if os.Getenv("ENV") == "Production" {
-		password, err = utils.RandString(32)
+		password, err = utils.RandString(24)
 		if err != nil {
 			return err
 		}
@@ -175,9 +181,15 @@ func connectTCPSocket() (*sql.DB, error) {
 		return nil, fmt.Errorf("sql.Open: %w", err)
 	}
 
-	if err = dbPool.Ping(); err != nil {
-		log.Fatalf("DB unreachable: %s", err)
+	var pingErr error
+	for i := 1; i <= maxRetries; i++ {
+		pingErr = dbPool.Ping()
+		if pingErr == nil {
+			return dbPool, nil
+		}
+		log.Warnf("postgres ping failed (attempt %d/%d): %v", i, maxRetries, pingErr)
+		time.Sleep(retryInterval)
 	}
 
-	return dbPool, nil
+	return nil, fmt.Errorf("could not connect to postgres after %d attempts: %w", maxRetries, pingErr)
 }

@@ -312,4 +312,6 @@ type Mutation {
   deleteStudentApplicationForEvent(studentID: Int!, eventID: Int!): User!
   linkSupportingEventToEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
   unlinkSupportingEventFromEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
+
+  acceptTopApplicationsOnEvent(eventID: Int!, count: Int!): Int! @auth(role: ADMIN)
 }

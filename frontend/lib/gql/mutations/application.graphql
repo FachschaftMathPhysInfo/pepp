@@ -3,3 +3,7 @@ mutation addStudentApplicationForEvent($application:NewUserToEventApplication!) 
     fn
   }
 }
+
+mutation acceptNewApplications($eventID: Int!, $count: Int!) {
+  acceptTopApplicationsOnEvent(eventID: $eventID, count: $count)
+}

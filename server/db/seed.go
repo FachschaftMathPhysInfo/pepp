@@ -16,6 +16,7 @@ import (
 
 func SeedData(ctx context.Context, db *bun.DB) error {
 	password, err := auth.Hash("tutor")
+	userpassword, err := auth.Hash("user")
 	if err != nil {
 		return fmt.Errorf("failed to generate passwords for tutors:", err)
 	}
@@ -24,6 +25,14 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: utils.BoolPtr(true), Password: password},
 		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: utils.BoolPtr(true)},
 		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: utils.BoolPtr(true)},
+		{Mail: "applicant1@example.de", Fn: "Applicant", Sn: "One", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant2@example.de", Fn: "Applicant", Sn: "Two", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant3@example.de", Fn: "Applicant", Sn: "Three", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant4@example.de", Fn: "Applicant", Sn: "Four", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant5@example.de", Fn: "Applicant", Sn: "Five", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant6@example.de", Fn: "Applicant", Sn: "Six", Confirmed: utils.BoolPtr(false), Password: userpassword},
+		{Mail: "applicant7@example.de", Fn: "Applicant", Sn: "Seven", Confirmed: utils.BoolPtr(false), Password: userpassword},
+		{Mail: "applicant8@example.de", Fn: "Applicant", Sn: "Eight", Confirmed: utils.BoolPtr(true), Password: userpassword},
 	}
 	if err := insertData(ctx, db, (*models.User)(nil), users, "Users"); err != nil {
 		return err
@@ -215,6 +224,54 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
+	appToQuestions := []*models.ApplicationToQuestion{
+		{EventID: 2, StudentID: 5, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 5, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 5, QuestionID: 3, AnswerID: 7},
+		{EventID: 2, StudentID: 6, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 6, QuestionID: 2, AnswerID: 4},
+		{EventID: 2, StudentID: 6, QuestionID: 3, AnswerID: 8},
+		{EventID: 2, StudentID: 7, QuestionID: 1, AnswerID: 2},
+		{EventID: 2, StudentID: 7, QuestionID: 2, AnswerID: 6},
+		{EventID: 2, StudentID: 7, QuestionID: 3, AnswerID: 9},
+		{EventID: 2, StudentID: 8, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 8, QuestionID: 2, AnswerID: 5},
+		{EventID: 2, StudentID: 8, QuestionID: 2, AnswerID: 6},
+		{EventID: 2, StudentID: 8, QuestionID: 3, AnswerID: 7},
+		{EventID: 2, StudentID: 9, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 9, QuestionID: 3, AnswerID: 7},
+		{EventID: 2, StudentID: 10, QuestionID: 1, AnswerID: 2},
+		{EventID: 2, StudentID: 10, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 10, QuestionID: 3, AnswerID: 8},
+		{EventID: 2, StudentID: 11, QuestionID: 1, AnswerID: 2},
+		{EventID: 2, StudentID: 11, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 11, QuestionID: 3, AnswerID: 8},
+		{EventID: 2, StudentID: 12, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 12, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 12, QuestionID: 2, AnswerID: 4},
+		{EventID: 2, StudentID: 12, QuestionID: 2, AnswerID: 5},
+		{EventID: 2, StudentID: 12, QuestionID: 2, AnswerID: 6},
+		{EventID: 2, StudentID: 12, QuestionID: 3, AnswerID: 7},
+	}
+
+	if err := insertData(ctx, db, (*models.ApplicationToQuestion)(nil), appToQuestions, "Application To Questions"); err != nil {
+		return err
+	}
+
+	applications := []*models.Application{
+		{EventID: 2, StudentID: 5, Score: int16(answers[0].Points + answers[2].Points + answers[6].Points)},
+		{EventID: 2, StudentID: 6, Score: int16(answers[0].Points + answers[3].Points + answers[7].Points)},
+		{EventID: 2, StudentID: 7, Score: int16(answers[1].Points + answers[5].Points + answers[8].Points)},
+		{EventID: 2, StudentID: 8, Score: int16(answers[0].Points + answers[4].Points + answers[5].Points + answers[6].Points)},
+		{EventID: 2, StudentID: 9, Score: int16(answers[0].Points + answers[6].Points)},
+		{EventID: 2, StudentID: 10, Score: int16(answers[1].Points + answers[2].Points + answers[7].Points)},
+		{EventID: 2, StudentID: 11, Score: int16(answers[1].Points + answers[2].Points + answers[7].Points)},
+		{EventID: 2, StudentID: 12, Score: int16(answers[0].Points + answers[2].Points + answers[3].Points + answers[4].Points + answers[5].Points + answers[6].Points)},
+	}
+	if err := insertData(ctx, db, (*models.Application)(nil), applications, "Applications"); err != nil {
+		return err
+	}
+
 	url := os.Getenv("PUBLIC_URL")
 	if url == "" {
 		url = "http://localhost:8080"
@@ -244,6 +301,9 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{Key: "email-assignment-building-title", Value: "Gebäude", Type: "STRING"},
 		{Key: "email-assignment-intro", Value: "aufgrund deiner angegebenen Verfügbarkeiten, wurdest du der folgenden Veranstaltung zugewiesen:", Type: "STRING"},
 		{Key: "email-assignment-outro", Value: "Sollte dir der Termin doch nicht passen, melde dich bitte zeitnah bei uns, indem du auf diese E-Mail reagierst. Wir freuen uns auf einen erfolgreichen Vorkurs mit dir!", Type: "STRING"},
+		{Key: "email-application-accepted-intro", Value: "deine Anmeldung wurde akzeptiert!", Type: "STRING"},
+		{Key: "email-application-accepted-button-instruction", Value: "Hier geht es direkt zum Vorkurs:", Type: "STRING"},
+		{Key: "email-application-accepted-outro", Value: "Bitte trage dich in Pepp zu den Tutorien ein bei denen du erscheinen wirst. Wir freuen uns auf einen schönen Vorkurs mit dir!", Type: "STRING"},
 		{Key: "auth-standard-enabled", Value: "1", Type: "BOOLEAN"},
 		{Key: "auth-sso-oidc-enabled", Value: "1", Type: "BOOLEAN"},
 		{Key: "auth-sso-oidc-name", Value: "Fachschaftslogin", Type: "STRING"},

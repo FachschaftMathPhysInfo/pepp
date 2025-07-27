@@ -10,9 +10,10 @@ type Config struct {
 	Signature       string
 	Name            string
 
-	Confirmation Email
-	Assignment   Email
-	Availability Email
+	Confirmation        Email
+	Assignment          Email
+	Availability        Email
+	ApplicationAccepted Email
 }
 
 func (c *Config) ApplySettings(s map[string]string) {
@@ -48,4 +49,13 @@ func (c *Config) ApplySettings(s map[string]string) {
 			},
 		},
 	}
+
+	c.ApplicationAccepted.Intros = []string{s["email-application-accepted-intro"]}
+	c.ApplicationAccepted.Outros = []string{s["email-application-accepted-outro"]}
+	c.ApplicationAccepted.Actions = []hermes.Action{{
+		Instructions: s["email-application-accepted-button-instruction"],
+		Button: hermes.Button{
+			Color: s["primary-color"],
+		},
+	}}
 }

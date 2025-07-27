@@ -78,7 +78,7 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
         }
       />
 
-      <DataTable columns={columns} data={events}/>;
+      <DataTable columns={columns} data={events}/>
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <EventDialog open={createDialogOpen} modify/>

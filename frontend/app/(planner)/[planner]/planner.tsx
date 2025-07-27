@@ -10,18 +10,23 @@ import {
   UmbrellaDetailDocument,
   UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
-import {FacetedFilter} from "@/components/faceted-filter";
-import React, {useCallback, useEffect, useState} from "react";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
-import {getClient} from "@/lib/graphql";
-import {CopyTextArea} from "@/components/copy-text-area";
-import {CardSkeleton} from "@/components/card-skeleton";
-import {Planner} from "@/components/planner";
-import {useRefetch, useUser} from "@/components/providers";
-import {Alert, AlertAction, AlertDescription, AlertTitle,} from "@/components/ui/alert";
-import {Check, ChevronsUpDown, CircleAlert, MoveRight} from "lucide-react";
-import {Button} from "@/components/ui/button";
-import {defaultEvent, defaultLabel} from "@/types/defaults";
+import { FacetedFilter } from "@/components/faceted-filter";
+import React, { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { getClient } from "@/lib/graphql";
+import { CopyTextArea } from "@/components/copy-text-area";
+import { CardSkeleton } from "@/components/card-skeleton";
+import { Planner } from "@/components/planner";
+import { useRefetch, useUser } from "@/components/providers";
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { Check, ChevronsUpDown, CircleAlert, MoveRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { defaultEvent, defaultLabel } from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
 import {DataTable} from "./data-table";
@@ -130,7 +135,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
-      if (user?.role === Role.Admin) fetchUmbrellaData();
+      if (user?.role === Role.Admin) void fetchUmbrellaData();
 
       setLoading(false);
     };
@@ -232,7 +237,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       {isRestricted && !application && (
         <section>
           <Alert
-            className="cursor-pointer"
+            className={'cursor-pointer bg-destructive-foreground'}
             onClick={() => router.push(`${pathname}/register`)}
             variant="warning"
           >
