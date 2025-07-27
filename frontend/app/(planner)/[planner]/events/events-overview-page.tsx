@@ -2,16 +2,16 @@
 
 import {Event, PlannerEventsDocument, PlannerEventsQuery} from "@/lib/gql/generated/graphql";
 import {getClient} from "@/lib/graphql";
-import {useCallback, useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {defaultEvent} from "@/types/defaults";
-import SearchInput from "@/components/search-input";
-import EventSection from "@/app/(planner)/[planner]/events/event-section";
 import {Skeleton} from "@/components/ui/skeleton";
 import {FerrisWheel, PlusCircle} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {ManagementPageHeader} from "@/components/management-page-header";
 import EventDialog from "@/components/dialog/events/event-dialog";
 import {Dialog} from "@/components/ui/dialog";
+import {columns} from "@/app/(planner)/[planner]/columns";
+import {DataTable} from "@/app/(planner)/[planner]/data-table";
 
 interface EventsOverviewPageProps {
   umbrellaID: number
@@ -20,8 +20,6 @@ interface EventsOverviewPageProps {
 export default function EventsOverviewPage(props: EventsOverviewPageProps) {
   const [loading, setLoading] = useState<boolean>(false)
   const [events, setEvents] = useState<Event[]>([])
-  const [searchValue, setSearchValue] = useState<string>('')
-
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false)
 
   const fetchEvents = useCallback(async () => {
@@ -57,8 +55,6 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
 
         <div className={'flex flex-col mt-5 space-y-6'}>
           <Skeleton className={'w-full h-[200px]'}/>
-          <Skeleton className={'w-full h-[200px]'}/>
-          <Skeleton className={'w-full h-[200px]'}/>
         </div>
       </div>
     )
@@ -80,18 +76,7 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
         }
       />
 
-      <SearchInput searchValue={searchValue} setSearchValueAction={setSearchValue}/>
-
-      <div className={'space-y-4'}>
-        {events.filter(event => event.title.includes(searchValue)).map(event => (
-          <EventSection
-            key={event.ID}
-            event={event}
-            fetchEvents={fetchEvents}
-          />
-        ))}
-      </div>
-
+      <DataTable columns={columns} data={events}/>;
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <EventDialog open={createDialogOpen} modify/>
