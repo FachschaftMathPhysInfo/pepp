@@ -11,9 +11,8 @@ import React, { useEffect, useState } from "react";
 import { Edit3, Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  DialogHeader,
   DialogContent,
-  DialogDescription,
+  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRefetch, useUser } from "../../providers";
@@ -26,20 +25,23 @@ import EventDescription from "./event-description";
 import { AuthenticationDialog } from "../authentication/authentication-dialog";
 import Link from "next/link";
 import { extractId, slugify } from "@/lib/utils";
-import {usePathname} from "next/navigation";
+import { usePathname } from "next/navigation";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface EventDialogProps {
   id?: number;
   modify?: boolean;
   open: boolean;
+  closeDialogAction?: () => void;
 }
 
 export default function EventDialog({
   id,
   modify = false,
   open,
+  closeDialogAction,
 }: EventDialogProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const { user } = useUser();
   const { refetchKey } = useRefetch();
@@ -91,12 +93,16 @@ export default function EventDialog({
   }, [id, open, refetchKey]);
 
   return edit ? (
-    <EditEventView event={event} />
+    <EditEventView event={event} closeDialogAction={closeDialogAction}/>
   ) : (
     <>
       <DialogContent className="sm:min-w-[600px]">
         {!event && id ? (
           <div className="flex flex-col space-y-3">
+            {/*For Screen-Readers, won't be shown*/}
+            <VisuallyHidden>
+              <DialogTitle>Ladende Eventansicht</DialogTitle>
+            </VisuallyHidden>
             <Skeleton className="h-5 w-[80px]" />
             <Skeleton className="h-3 w-[200px]" />
             <Skeleton className="h-[125px] w-full rounded-xl" />
@@ -105,9 +111,9 @@ export default function EventDialog({
           <div className="space-y-4">
             <DialogHeader>
               <DialogTitle>{event?.title}</DialogTitle>
-              <DialogDescription className="space-y-2">
+              <div className="text-sm text-muted-foreground space-y-2">
                 <EventDescription event={event} />
-              </DialogDescription>
+              </div>
             </DialogHeader>
 
             {!user && event?.tutorials?.length && (
