@@ -35,6 +35,7 @@ export function DataTablePagination<TData>({
         </div>
       )}
 
+      {/*Entries per Page*/}
       <div className="w-full flex justify-between items-center">
         <div className="hidden sm:flex items-center space-x-2 text-sm">
           <span>Einträge pro Seite</span>
@@ -56,8 +57,9 @@ export function DataTablePagination<TData>({
         </div>
 
         <div className="flex items-center space-x-2 text-sm">
+          Seite
           <Select onValueChange={val => table.setPageIndex(parseInt(val))}>
-            <SelectTrigger className="w-[50px] mr-2">
+            <SelectTrigger className="w-[50px] mx-2">
               <SelectValue placeholder={pageIndex + 1} />
             </SelectTrigger>
             <SelectContent>
@@ -67,13 +69,9 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
           von {pageCount}
-
-          <span className="hidden sm:inline">
-            Seite {pageIndex + 1} von {pageCount}
-          </span>
         </div>
 
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-1 sm:hidden">
           <Button
             size="sm"
             variant="outline"

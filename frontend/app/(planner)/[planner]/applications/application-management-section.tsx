@@ -56,8 +56,7 @@ export default function ApplicationManagementSection(props: ApplicationManagemen
       )
       props.triggerRefetch()
       toast.success("Weitere Studis wurden erfolgreich angenommen")
-    } catch (error) {
-      console.error(error)
+    } catch {
       toast.error("Fehler beim akzeptieren der Sutdis")
     }
     setLoading(false)

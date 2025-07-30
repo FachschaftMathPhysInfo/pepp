@@ -28,16 +28,11 @@ import { Check, ChevronsUpDown, CircleAlert, MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { defaultEvent, defaultLabel } from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import { cn } from "@/lib/utils";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {DataTable} from "./data-table";
+import {columns} from "./columns";
+import {cn} from "@/lib/utils";
+import {TooltipProvider} from "@/components/ui/tooltip";
 
 interface PlannerPageProps {
   umbrellaID: number;
