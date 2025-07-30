@@ -28,22 +28,18 @@ export default function EventsOverviewPage(props: EventsOverviewPageProps) {
     setLoading(true)
     const client = getClient()
 
-    try {
-      const data = await client.request<PlannerEventsQuery>(
-        PlannerEventsDocument,
-        {umbrellaID: props.umbrellaID}
-      )
+    const data = await client.request<PlannerEventsQuery>(
+      PlannerEventsDocument,
+      {umbrellaID: props.umbrellaID}
+    )
 
-      setEvents(data.events.map(e => ({
-        ...defaultEvent,
-        ...e,
-        tutorials: [],
-        umbrella: defaultEvent
-      })))
-      setLoading(false)
-    } catch (error) {
-      console.error(error)
-    }
+    setEvents(data.events.map(e => ({
+      ...defaultEvent,
+      ...e,
+      tutorials: [],
+      umbrella: defaultEvent
+    })))
+    setLoading(false)
   }, [props.umbrellaID])
 
   useEffect(() => {

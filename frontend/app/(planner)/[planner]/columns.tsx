@@ -88,9 +88,8 @@ export const columns: ColumnDef<Event>[] = [
           await client.request<DeleteEventMutation>(DeleteEventDocument, {eventIds: [id]})
           triggerRefetch()
           toast.success("Event wurde erfolgreich gelöscht")
-        } catch (error) {
+        } catch {
           toast.error("Ein Fehler ist aufgetreten");
-          console.error(error)
         }
       }
 

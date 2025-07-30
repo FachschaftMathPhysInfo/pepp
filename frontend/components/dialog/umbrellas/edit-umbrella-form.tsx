@@ -1,19 +1,12 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import React, { useEffect, useState } from "react";
-import { useRefetch, useUser } from "@/components/providers";
-import { getClient } from "@/lib/graphql";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {useForm} from "react-hook-form";
+import {z} from "zod";
+import {Button} from "@/components/ui/button";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
+import React, {useEffect, useState} from "react";
+import {useRefetch, useUser} from "@/components/providers";
+import {getClient} from "@/lib/graphql";
 import {
   AddEventDocument,
   AddEventMutation,
@@ -27,25 +20,14 @@ import {
   UpdateEventDocument,
   UpdateEventMutation,
 } from "@/lib/gql/generated/graphql";
-import { ChevronsUpDown, Save } from "lucide-react";
-import { toast } from "sonner";
-import { Textarea } from "@/components/ui/textarea";
-import { DatePickerWithRange } from "@/components/date-picker-with-range";
-import { getNextWeek } from "@/lib/utils";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+import {ChevronsUpDown, Save} from "lucide-react";
+import {toast} from "sonner";
+import {Textarea} from "@/components/ui/textarea";
+import {DatePickerWithRange} from "@/components/date-picker-with-range";
+import {getNextWeek} from "@/lib/utils";
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command";
 
 interface EditUmbrellaFormProps {
   umbrella: Event;
@@ -55,12 +37,12 @@ interface EditUmbrellaFormProps {
 
 // This is the edit AND create form... give it a better name if you find one
 export default function EditUmbrellaForm({
-  umbrella,
-  closeDialog,
-  createMode = false,
-}: EditUmbrellaFormProps) {
-  const { sid } = useUser();
-  const { triggerRefetch } = useRefetch();
+                                           umbrella,
+                                           closeDialog,
+                                           createMode = false,
+                                         }: EditUmbrellaFormProps) {
+  const {sid} = useUser();
+  const {triggerRefetch} = useRefetch();
 
   const umbrellaFormSchema = z.object({
     title: z.string().nonempty({
@@ -92,33 +74,29 @@ export default function EditUmbrellaForm({
     const fetchUmbrellas = async () => {
       const client = getClient(String(sid));
 
-      try {
-        const umbrellaData = await client.request<UmbrellasQuery>(
-          UmbrellasDocument
-        );
-        setUmbrellas(
-          umbrellaData.umbrellas.map((umb) => ({
-            id: umb.ID,
-            title: umb.title,
-          }))
-        );
-        setSourceUmbrellaIDs(
-          umbrellaData.umbrellas
-            .filter((u) =>
-              umbrella.supportingEvents?.map((e) => e.ID).includes(u.ID)
-            )
-            .map((u) => u.ID)
-        );
-      } catch (e) {
-        console.error("Failed fetching umbrellas: ", e);
-      }
+      const umbrellaData = await client.request<UmbrellasQuery>(
+        UmbrellasDocument
+      );
+      setUmbrellas(
+        umbrellaData.umbrellas.map((umb) => ({
+          id: umb.ID,
+          title: umb.title,
+        }))
+      );
+      setSourceUmbrellaIDs(
+        umbrellaData.umbrellas
+          .filter((u) =>
+            umbrella.supportingEvents?.map((e) => e.ID).includes(u.ID)
+          )
+          .map((u) => u.ID)
+      );
     };
 
     void fetchUmbrellas();
   }, [sid]);
 
   function onDatePickerClose(from?: Date, to?: Date) {
-    if (from && to) setDuration({ from: from, to: to });
+    if (from && to) setDuration({from: from, to: to});
   }
 
   async function onValidSubmit(
@@ -134,22 +112,14 @@ export default function EditUmbrellaForm({
     };
 
     if (createMode) {
-      try {
-        await client.request<AddEventMutation>(AddEventDocument, {
-          event: newEvent,
-        });
-      } catch (e) {
-        console.error("Failed creating umbrella: ", e);
-      }
+      await client.request<AddEventMutation>(AddEventDocument, {
+        event: newEvent,
+      });
     } else {
-      try {
-        await client.request<UpdateEventMutation>(UpdateEventDocument, {
-          id: umbrella.ID,
-          event: newEvent,
-        });
-      } catch (e) {
-        console.error("Failed updating umbrella: ", e);
-      }
+      await client.request<UpdateEventMutation>(UpdateEventDocument, {
+        id: umbrella.ID,
+        event: newEvent,
+      });
     }
 
     await handleSubscriptions();
@@ -193,9 +163,8 @@ export default function EditUmbrellaForm({
           }
         );
       }
-    } catch (e) {
+    } catch {
       toast.error("Importieren von externen Events ist fehlgeschlagen");
-      console.error("Failed subscribing to event: ", e);
     }
   }
 
@@ -210,13 +179,13 @@ export default function EditUmbrellaForm({
         <FormField
           control={form.control}
           name="title"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem className={"flex-grow"}>
               <FormLabel>Titel</FormLabel>
               <FormControl>
                 <Input placeholder={umbrella.title} {...field} />
               </FormControl>
-              <FormMessage />
+              <FormMessage/>
             </FormItem>
           )}
         />
@@ -224,7 +193,7 @@ export default function EditUmbrellaForm({
         <FormField
           control={form.control}
           name="description"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Beschreibung</FormLabel>
               <FormControl>
@@ -233,7 +202,7 @@ export default function EditUmbrellaForm({
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
+              <FormMessage/>
             </FormItem>
           )}
         />
@@ -248,7 +217,7 @@ export default function EditUmbrellaForm({
               modal={true}
             />
           </FormControl>
-          <FormMessage />
+          <FormMessage/>
         </FormItem>
 
         <FormItem className={"flex-grow"}>
@@ -264,18 +233,18 @@ export default function EditUmbrellaForm({
                   <div className="flex flex-col items-start">
                     {sourceUmbrellaIDs.length == 1
                       ? umbrellas.find((umb) => umb.id === sourceUmbrellaIDs[0])
-                          ?.title
+                        ?.title
                       : `${sourceUmbrellaIDs.length} ausgewählt`}
                   </div>
                 ) : (
                   <p>Programm wählen</p>
                 )}
-                <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                <ChevronsUpDown className="h-4 w-4 opacity-50"/>
               </Button>
             </PopoverTrigger>
             <PopoverContent className="p-0">
               <Command>
-                <CommandInput placeholder="Suche Titel..." />
+                <CommandInput placeholder="Suche Titel..."/>
                 <CommandList>
                   <CommandEmpty>Kein Programm gefunden</CommandEmpty>
                   <CommandGroup>
@@ -300,7 +269,7 @@ export default function EditUmbrellaForm({
                             }
                           }}
                         >
-                          <Checkbox className="mr-2" checked={isSelected} />
+                          <Checkbox className="mr-2" checked={isSelected}/>
                           <div className="flex flex-col">{umb.title}</div>
                         </CommandItem>
                       );
@@ -328,7 +297,7 @@ export default function EditUmbrellaForm({
             type="submit"
             className={"flex-grow"}
           >
-            <Save />
+            <Save/>
             Speichern
           </Button>
         </div>

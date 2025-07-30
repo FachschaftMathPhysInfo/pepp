@@ -39,7 +39,6 @@ export default function AccountForm() {
   async function onValidSubmit(userData: z.infer<typeof accountFormSchema>) {
     if (!user || !sid) {
       toast.error("Ein Fehler ist aufgetreten, melde dich erneut an")
-      console.error('Error updating user: sid or user undefined')
       return
     }
 
@@ -57,9 +56,8 @@ export default function AccountForm() {
 
     try {
       await client.request<UpdateUserMutation>(UpdateUserDocument, updateData)
-    } catch (error) {
+    } catch {
       toast.error('Ein Fehler ist aufgetreten, versuche es später erneut')
-      console.error(error)
       return
     }
 
