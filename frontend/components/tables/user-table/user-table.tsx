@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import {
   DeleteUserDocument,
   DeleteUserMutation,
-  Role,
+  Role, UpdateUser,
   UpdateUserDocument,
   UpdateUserMutation,
   User,
@@ -49,18 +49,25 @@ export function UserTable({ data, refreshData }: DataTableProps) {
   };
 
   const handleRoleChange = async (
+    id: number,
     mail: string,
     fn: string,
     sn: string,
     newRole: Role
   ): Promise<void> => {
-    await client.request<UpdateUserMutation>(UpdateUserDocument, {
-      email: mail,
+    const changedUser: UpdateUser = {
+      mail: mail,
       fn: fn,
       sn: sn,
-      role: newRole,
+      role: newRole
+    }
+
+    await client.request<UpdateUserMutation>(UpdateUserDocument, {
+      user: changedUser,
+      id: id
     });
   };
+
   const [dialogState, setDialogState] = useState<{
     mode: "makeAdmin" | "removeAdmin" | "deleteUser" | "deleteAdmin" | null;
     user?: { id: number, mail: string; fn: string; sn: string; newRole: Role };
@@ -166,6 +173,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
         onConfirm={async () => {
           if (dialogState.user) {
             await handleRoleChange(
+              dialogState.user.id,
               dialogState.user.mail,
               dialogState.user.fn,
               dialogState.user.sn,
@@ -186,6 +194,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
         onConfirm={async () => {
           if (dialogState.user) {
             await handleRoleChange(
+              dialogState.user.id,
               dialogState.user.mail,
               dialogState.user.fn,
               dialogState.user.sn,
