@@ -41,11 +41,13 @@ interface DataTableProps {
 export function UserTable({ data, refreshData }: DataTableProps) {
   const { sid } = useUser();
   const [client, setClient] = useState<GraphQLClient>(getClient());
-  const handleDeleteUser = async (mail: string): Promise<void> => {
+
+  const handleDeleteUser = async (id: number): Promise<void> => {
     await client.request<DeleteUserMutation>(DeleteUserDocument, {
-      email: mail,
+      id: [id],
     });
   };
+
   const handleRoleChange = async (
     mail: string,
     fn: string,
@@ -61,7 +63,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
   };
   const [dialogState, setDialogState] = useState<{
     mode: "makeAdmin" | "removeAdmin" | "deleteUser" | "deleteAdmin" | null;
-    user?: { mail: string; fn: string; sn: string; newRole: Role };
+    user?: { id: number, mail: string; fn: string; sn: string; newRole: Role };
   }>({ mode: null });
   const columns = UserColumns({ setDialogState });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -171,7 +173,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
             );
           }
           refreshData();
-          toast.info(
+          toast.success(
             `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zum Admin gemacht`
           );
         }}
@@ -191,7 +193,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
             );
           }
           refreshData();
-          toast.info(
+          toast.success(
             `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zu User gemacht`
           );
         }}
@@ -203,11 +205,11 @@ export function UserTable({ data, refreshData }: DataTableProps) {
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} unwiederruflich löschen`}
         onConfirm={async () => {
           if (dialogState.user) {
-            await handleDeleteUser(dialogState.user.mail);
+            await handleDeleteUser(dialogState.user.id);
           }
 
           refreshData();
-          toast.info(
+          toast.success(
             `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich entfernt`
           );
         }}
