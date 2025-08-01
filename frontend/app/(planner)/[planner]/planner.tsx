@@ -183,7 +183,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
           <div className="flex items-center justify-center gap-x-4">
             <div
-              className={"flex items-center justify-start gap-x-4 flex-wrap"}
+              className={"flex items-center justify-start gap-x-4 flex-wrap gap-y-2"}
             >
               {user?.role === Role.Admin && (
                 <DropdownMenu>
