@@ -27,8 +27,11 @@ interface PlannerProps {
 export function Planner({ events }: PlannerProps) {
   const { user } = useUser();
   const groupedEvents = groupEvents(events);
-  const weeks = Object.entries(groupedEvents);
+  const weeks: [number, Record<string, Event[]>][] =
+    Object.entries(groupedEvents).map(([week, days]) => [Number(week), days]);
   const totalWeeks = weeks.length;
+
+  if (!totalWeeks) return
 
   // state for small-screen navigation
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
@@ -50,10 +53,10 @@ export function Planner({ events }: PlannerProps) {
 
   // render a single week
   const renderWeek = (
-    [week, days]: [string, Record<string, Event[]>],
+    [weekNumber, days]: [number, Record<string, Event[]>],
     weekIndex: number
   ) => (
-    <div key={week} className="space-y-4 flex-1">
+    <div key={weekNumber} className="space-y-4 flex-1">
       {totalWeeks > 1 && (
         <h2 className="text-2xl font-semibold text-center">
           Woche {weekIndex + 1}
