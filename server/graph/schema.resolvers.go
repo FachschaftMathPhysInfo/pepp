@@ -936,7 +936,7 @@ func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eve
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topic []string, typeArg []string, needsTutors *bool, onlyFuture *bool, userID []int, includeSupportingEvents *bool) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topicID []int, typeID []int, needsTutors *bool, onlyFuture *bool, userID []int, includeSupportingEvents *bool) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
@@ -950,18 +950,18 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("Tutorials.Room.Building").
 		Relation("Tutorials.Tutors").
 		Where(`"e"."umbrella_id" IS NOT NULL`).
-		Order("from ASC")
+		Order("e.from ASC")
 
 	if umbrellaID != nil {
 		query = query.Where(`"e"."umbrella_id" IN (?)`, bun.In(umbrellaID))
 	}
 
-	if typeArg != nil {
-		query = query.Where(`"type__name" IN (?)`, bun.In(typeArg))
+	if typeID != nil {
+		query = query.Where(`"e"."type_id" IN (?)`, bun.In(typeID))
 	}
 
-	if topic != nil {
-		query = query.Where(`"topic__name" IN (?)`, bun.In(topic))
+	if topicID != nil {
+		query = query.Where(`"e"."topic_id" IN (?)`, bun.In(topicID))
 	}
 
 	if needsTutors != nil {
