@@ -8,7 +8,7 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
-  RowSelectionState,
+  RowSelectionState, getPaginationRowModel,
 } from "@tanstack/react-table";
 
 import {
@@ -48,6 +48,7 @@ export function EventTable({
     columns,
     // Makes the row IDs use the Event IDs
     getRowId: (row) => String(row.ID),
+    getPaginationRowModel: getPaginationRowModel(),
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
