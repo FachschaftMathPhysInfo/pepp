@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  useReactTable,
+  useReactTable, getPaginationRowModel,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -82,6 +82,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
