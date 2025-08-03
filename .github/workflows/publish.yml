@@ -1,9 +1,13 @@
 name: Build & Publish Docker Image
 
 on:
+  release:
+    types: [published]
+
   push:
-    branches: [ main ]
-    
+    branches:
+      - main
+
   workflow_dispatch: {}
 
 permissions:
@@ -13,10 +17,13 @@ permissions:
 
 env:
   IMAGE_NAME: fachschaftmathphysinfo/pepp
+  REGISTRY: ghcr.io
 
 jobs:
-  build-and-publish-image:
+  testing:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    name: Build & Push “testing” Tag
 
     steps:
       - name: Checkout repository
@@ -25,18 +32,47 @@ jobs:
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build & tag as testing
+        run: |
+          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          docker build -t $IMAGE:testing .
+      
+      - name: Push testing tag
+        run: |
+          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          docker push $IMAGE:testing
+
+  release:
+    if: github.event_name == 'release' && github.event.action == 'published'
+    runs-on: ubuntu-latest
+    name: Build & Push Release Tags
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine release tag
+        run: echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
       - name: Build & tag Docker image
         run: |
-          IMAGE=ghcr.io/${{ env.IMAGE_NAME }}
-          docker build -t $IMAGE:latest .
-          docker tag $IMAGE:latest $IMAGE:${{ github.sha }}
+          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          docker build -t $IMAGE:${{ env.RELEASE_TAG }} .
+          docker tag $IMAGE:${{ env.RELEASE_TAG }} $IMAGE:latest
 
-      - name: Push Docker images
+      - name: Push release images
         run: |
-          IMAGE=ghcr.io/${{ env.IMAGE_NAME }}
+          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          docker push $IMAGE:${{ env.RELEASE_TAG }}
           docker push $IMAGE:latest
-          docker push $IMAGE:${{ github.sha }}
