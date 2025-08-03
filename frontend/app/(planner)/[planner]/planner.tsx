@@ -24,20 +24,15 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
-import { Check, ChevronsUpDown, CircleAlert, MoveRight, TriangleAlert } from "lucide-react";
+import { Check, ChevronsUpDown, CircleAlert, MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { defaultEvent, defaultLabel } from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import { cn } from "@/lib/utils";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {DataTable} from "./data-table";
+import {columns} from "./columns";
+import {cn} from "@/lib/utils";
+import {TooltipProvider} from "@/components/ui/tooltip";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -59,12 +54,8 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
   const [topics, setTopics] = useState<Label[]>([]);
-  const [topicFilter, setTopicFilter] = useState<string[]>(
-    searchParams.getAll("to")
-  );
-  const [typesFilter, setTypesFilter] = useState<string[]>(
-    searchParams.getAll("ty")
-  );
+  const [topicFilter, setTopicFilter] = useState<number[]>([]);
+  const [typesFilter, setTypesFilter] = useState<number[]>([]);
   const [icalPath, setIcalPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
@@ -118,8 +109,8 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
       const vars: PlannerEventsQueryVariables = {
         umbrellaID: umbrellaID ?? 0,
-        topic: topicFilter.length == 0 ? undefined : topicFilter,
-        type: typesFilter.length == 0 ? undefined : typesFilter,
+        topic: topicFilter.length ? topicFilter : undefined,
+        type: typesFilter.length ? typesFilter : undefined,
       };
 
       const eventData = await client.request<PlannerEventsQuery>(
@@ -140,7 +131,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
-      if (user?.role === Role.Admin) fetchUmbrellaData();
+      if (user?.role === Role.Admin) void fetchUmbrellaData();
 
       setLoading(false);
     };
@@ -148,15 +139,18 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     void fetchEventData();
   }, [topicFilter, typesFilter, umbrellaID, refetchKey]);
 
-  useEffect(() => {
-    router.push(
-      pathname +
-        "?" +
-        createQueryString("to", topicFilter) +
-        (typesFilter.length && topicFilter.length ? "&" : "") +
-        createQueryString("ty", typesFilter)
-    );
-  }, [topicFilter, typesFilter]);
+  //
+  // TODO: Reimplementation of the link filter feature
+  //
+  // useEffect(() => {
+  //   router.push(
+  //     pathname +
+  //       "?" +
+  //       createQueryString("to", topicFilter) +
+  //       (typesFilter.length && topicFilter.length ? "&" : "") +
+  //       createQueryString("ty", typesFilter)
+  //   );
+  // }, [topicFilter, typesFilter]);
 
   useEffect(() => {
     setTypesFilter([]);
@@ -189,7 +183,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
           <div className="flex items-center justify-center gap-x-4">
             <div
-              className={"flex items-center justify-start gap-x-4 flex-wrap"}
+              className={"flex items-center justify-start gap-x-4 flex-wrap gap-y-2"}
             >
               {user?.role === Role.Admin && (
                 <DropdownMenu>
@@ -218,7 +212,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
               {topics.length >= 2 && (
                 <FacetedFilter
                   className={"h-full"}
-                  options={topics.map((t) => t.name)}
+                  options={topics}
                   setFilter={setTopicFilter}
                   title={"Themen"}
                 />
@@ -227,7 +221,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
               {types.length >= 2 && (
                 <FacetedFilter
                   className={"h-full"}
-                  options={types.map((t) => t.name)}
+                  options={types}
                   setFilter={setTypesFilter}
                   title={"Veranstaltungsart"}
                 />
@@ -242,7 +236,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       {isRestricted && !application && (
         <section>
           <Alert
-            className="cursor-pointer"
+            className={'cursor-pointer bg-destructive-foreground dark:bg-background'}
             onClick={() => router.push(`${pathname}/register`)}
             variant="warning"
           >

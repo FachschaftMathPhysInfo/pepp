@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Button } from "./ui/button";
-import { Copy, CopyCheck } from "lucide-react";
+import {useState} from "react";
+import {Button} from "./ui/button";
+import {Copy, CopyCheck} from "lucide-react";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 
 interface CopyTextAreaProps {
@@ -8,17 +8,13 @@ interface CopyTextAreaProps {
   text: string;
 }
 
-export function CopyTextArea({ label, text }: CopyTextAreaProps) {
+export function CopyTextArea({label, text}: CopyTextAreaProps) {
   const [isCopied, setIsCopied] = useState(false);
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error("failed to copy text:", err);
-    }
+    await navigator.clipboard.writeText(text);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   return (
@@ -40,9 +36,9 @@ export function CopyTextArea({ label, text }: CopyTextAreaProps) {
         size="icon"
       >
         {isCopied ? (
-          <CopyCheck className="h-5 w-5" />
+          <CopyCheck className="h-5 w-5"/>
         ) : (
-          <Copy className="h-5 w-5" />
+          <Copy className="h-5 w-5"/>
         )}
       </Button>
     </div>

@@ -10,9 +10,9 @@ type Application struct {
 	bun.BaseModel `bun:",alias:ap"`
 
 	EventID   int32 `bun:",pk"`
-	StudentID int32 `bun:",notnull,type:varchar(255)"`
+	StudentID int32 `bun:",pk"`
 	Score     int16 `bun:",notnull"`
-	Accepted  *bool
+	Accepted  *bool `bun:",default:false"`
 
 	Event   *Event `bun:"rel:belongs-to,join:event_id=id"`
 	Student *User  `bun:"rel:belongs-to,join:student_id=id"`

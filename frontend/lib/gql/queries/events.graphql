@@ -49,7 +49,7 @@ query availableEventIdsOfUser($mail: [String!]!) {
   }
 }
 
-query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
+query plannerEvents($umbrellaID: Int!, $type: [Int!], $topic: [Int!]) {
   umbrellas(id: [$umbrellaID]) {
     title
     registrationForm {
@@ -68,7 +68,7 @@ query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
     color
     kind
   }
-  events(umbrellaID: [$umbrellaID], type: $type, topic: $topic, includeSupportingEvents: true) {
+  events(umbrellaID: [$umbrellaID], typeID: $type, topicID: $topic, includeSupportingEvents: true) {
     ID
     title
     from

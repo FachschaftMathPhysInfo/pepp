@@ -13,7 +13,7 @@ interface UserColumnProps {
   setDialogState: React.Dispatch<
     SetStateAction<{
       mode: "makeAdmin" | "removeAdmin" | "deleteUser" | "deleteAdmin" | null;
-      user?: { mail: string; fn: string; sn: string; newRole: Role };
+      user?: { id: number, mail: string; fn: string; sn: string; newRole: Role };
     }>
   >;
 }
@@ -97,6 +97,7 @@ export function UserColumns({setDialogState}: UserColumnProps): ColumnDef<User>[
                         setDialogState({
                           mode: "removeAdmin",
                           user: {
+                            id: row.original.ID,
                             mail: row.original.mail,
                             fn: row.original.fn,
                             sn: row.original.sn,
@@ -113,6 +114,7 @@ export function UserColumns({setDialogState}: UserColumnProps): ColumnDef<User>[
                         setDialogState({
                           mode: "makeAdmin",
                           user: {
+                            id: row.original.ID,
                             mail: row.original.mail,
                             fn: row.original.fn,
                             sn: row.original.sn,
@@ -130,6 +132,7 @@ export function UserColumns({setDialogState}: UserColumnProps): ColumnDef<User>[
                         setDialogState({
                           mode: "deleteUser",
                           user: {
+                            id: row.original.ID,
                             mail: row.original.mail,
                             fn: row.original.fn,
                             sn: row.original.sn,
@@ -146,6 +149,7 @@ export function UserColumns({setDialogState}: UserColumnProps): ColumnDef<User>[
                         setDialogState({
                           mode: "deleteAdmin",
                           user: {
+                            id: row.original.ID,
                             mail: row.original.mail,
                             fn: row.original.fn,
                             sn: row.original.sn,

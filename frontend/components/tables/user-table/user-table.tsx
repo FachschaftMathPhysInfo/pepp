@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  useReactTable,
+  useReactTable, getPaginationRowModel,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import {
   DeleteUserDocument,
   DeleteUserMutation,
-  Role,
+  Role, UpdateUser,
   UpdateUserDocument,
   UpdateUserMutation,
   User,
@@ -41,27 +41,36 @@ interface DataTableProps {
 export function UserTable({ data, refreshData }: DataTableProps) {
   const { sid } = useUser();
   const [client, setClient] = useState<GraphQLClient>(getClient());
-  const handleDeleteUser = async (mail: string): Promise<void> => {
+
+  const handleDeleteUser = async (id: number): Promise<void> => {
     await client.request<DeleteUserMutation>(DeleteUserDocument, {
-      email: mail,
+      id: [id],
     });
   };
+
   const handleRoleChange = async (
+    id: number,
     mail: string,
     fn: string,
     sn: string,
     newRole: Role
   ): Promise<void> => {
-    await client.request<UpdateUserMutation>(UpdateUserDocument, {
-      email: mail,
+    const changedUser: UpdateUser = {
+      mail: mail,
       fn: fn,
       sn: sn,
-      role: newRole,
+      role: newRole
+    }
+
+    await client.request<UpdateUserMutation>(UpdateUserDocument, {
+      user: changedUser,
+      id: id
     });
   };
+
   const [dialogState, setDialogState] = useState<{
     mode: "makeAdmin" | "removeAdmin" | "deleteUser" | "deleteAdmin" | null;
-    user?: { mail: string; fn: string; sn: string; newRole: Role };
+    user?: { id: number, mail: string; fn: string; sn: string; newRole: Role };
   }>({ mode: null });
   const columns = UserColumns({ setDialogState });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -73,6 +82,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
@@ -164,6 +174,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
         onConfirm={async () => {
           if (dialogState.user) {
             await handleRoleChange(
+              dialogState.user.id,
               dialogState.user.mail,
               dialogState.user.fn,
               dialogState.user.sn,
@@ -171,7 +182,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
             );
           }
           refreshData();
-          toast.info(
+          toast.success(
             `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zum Admin gemacht`
           );
         }}
@@ -184,6 +195,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
         onConfirm={async () => {
           if (dialogState.user) {
             await handleRoleChange(
+              dialogState.user.id,
               dialogState.user.mail,
               dialogState.user.fn,
               dialogState.user.sn,
@@ -191,7 +203,7 @@ export function UserTable({ data, refreshData }: DataTableProps) {
             );
           }
           refreshData();
-          toast.info(
+          toast.success(
             `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich zu User gemacht`
           );
         }}
@@ -203,11 +215,11 @@ export function UserTable({ data, refreshData }: DataTableProps) {
         description={`Dies wird ${dialogState.user?.fn} ${dialogState.user?.sn} unwiederruflich löschen`}
         onConfirm={async () => {
           if (dialogState.user) {
-            await handleDeleteUser(dialogState.user.mail);
+            await handleDeleteUser(dialogState.user.id);
           }
 
           refreshData();
-          toast.info(
+          toast.success(
             `${dialogState.user?.fn} ${dialogState.user?.sn} wurde erfolgreich entfernt`
           );
         }}

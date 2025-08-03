@@ -1,11 +1,11 @@
 // See https://github.com/shadcn-ui/ui/blob/main/apps/www/app/(app)/examples/tasks/components/data-table-faceted-filter.tsx
-import * as React from "react"
-import {useEffect} from "react"
-import {Check, PlusCircle} from "lucide-react"
+import * as React from "react";
+import { useEffect } from "react";
+import { Check, PlusCircle } from "lucide-react";
 
-import {cn} from "@/lib/utils"
-import {Badge} from "@/components/ui/badge"
-import {Button} from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -14,33 +14,43 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@/components/ui/command"
-import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
-import {Separator} from "@/components/ui/separator"
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/lib/gql/generated/graphql";
 
 interface FacetedFilterProps {
-  title?: string
-  options: string[],
-  setFilter: React.Dispatch<React.SetStateAction<string[]>>,
-  className?: string
+  title?: string;
+  options: Label[];
+  setFilter: React.Dispatch<React.SetStateAction<number[]>>;
+  className?: string;
 }
 
-export function FacetedFilter({title, options, setFilter, className}: FacetedFilterProps) {
-  const [selectedFilter, setSelectedFilter] = React.useState<string[]>([])
+export function FacetedFilter({
+  title,
+  options,
+  setFilter,
+  className,
+}: FacetedFilterProps) {
+  const [selectedFilter, setSelectedFilter] = React.useState<number[]>([]);
 
   useEffect(() => {
-    setFilter(selectedFilter)
-  }, [selectedFilter])
+    setFilter(selectedFilter);
+  }, [selectedFilter]);
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <PlusCircle/>
+          <PlusCircle />
           {title}
           {selectedFilter?.length > 0 && (
             <>
-              <Separator orientation="vertical" className="mx-2 h-4"/>
+              <Separator orientation="vertical" className="mx-2 h-4" />
               <Badge
                 variant="secondary"
                 className="rounded-sm px-1 font-normal lg:hidden"
@@ -57,14 +67,14 @@ export function FacetedFilter({title, options, setFilter, className}: FacetedFil
                   </Badge>
                 ) : (
                   options
-                    .filter((option) => selectedFilter.includes(option))
+                    .filter((option) => selectedFilter.includes(option.ID))
                     .map((option) => (
                       <Badge
                         variant="secondary"
-                        key={option}
+                        key={option.ID}
                         className="rounded-sm px-1 font-normal"
                       >
-                        {option}
+                        {option.name}
                       </Badge>
                     ))
                 )}
@@ -74,25 +84,25 @@ export function FacetedFilter({title, options, setFilter, className}: FacetedFil
         </Button>
       </PopoverTrigger>
       <PopoverContent className={cn("w-[200px] p-0", className)} align="start">
-        <Command className={'h-full'}>
-          <CommandInput placeholder={title}/>
+        <Command className={"h-full"}>
+          <CommandInput placeholder={title} />
           <CommandList>
             <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
-                const isSelected = selectedFilter.includes(option)
+                const isSelected = selectedFilter.includes(option.ID);
                 return (
                   <CommandItem
-                    key={option}
+                    key={option.ID}
                     onSelect={() => {
-                      const newFilters  = [...selectedFilter]
+                      const newFilters = [...selectedFilter];
                       if (isSelected) {
-                        const index = newFilters.indexOf(option)
-                        if (index > -1) newFilters.splice(index, 1)
+                        const index = newFilters.indexOf(option.ID);
+                        if (index > -1) newFilters.splice(index, 1);
                       } else {
-                        newFilters.push(option)
+                        newFilters.push(option.ID);
                       }
-                      setSelectedFilter(newFilters)
+                      setSelectedFilter(newFilters);
                     }}
                   >
                     <div
@@ -103,16 +113,16 @@ export function FacetedFilter({title, options, setFilter, className}: FacetedFil
                           : "opacity-50 [&_svg]:invisible"
                       )}
                     >
-                      <Check/>
+                      <Check />
                     </div>
-                    <span>{option}</span>
+                    <span>{option.name}</span>
                   </CommandItem>
-                )
+                );
               })}
             </CommandGroup>
             {selectedFilter.length > 0 && (
               <>
-                <CommandSeparator/>
+                <CommandSeparator />
                 <CommandGroup>
                   <CommandItem
                     onSelect={() => setSelectedFilter([])}
@@ -127,5 +137,6 @@ export function FacetedFilter({title, options, setFilter, className}: FacetedFil
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
+

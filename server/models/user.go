@@ -15,7 +15,7 @@ type User struct {
 	Fn        string    `bun:"type:varchar(255),notnull"`
 	Sn        string    `bun:"type:varchar(255),notnull"`
 	Confirmed *bool     `bun:",notnull,default:false"`
-	SessionID string    `bun:"type:varchar(11)"`
+	SessionID string    `bun:"type:varchar(15)"`
 	LastLogin time.Time `bun:",nullzero,notnull,default:current_timestamp"`
 	Password  string    `bun:"type:varchar(64)"`
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp"`

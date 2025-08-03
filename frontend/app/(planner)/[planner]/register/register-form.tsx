@@ -165,9 +165,8 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
       );
       toast("Anmeldung abgeschickt!");
       handleQuit();
-    } catch (err) {
+    } catch {
       toast("Ein Fehler ist aufgetreten");
-      console.error(err);
     }
   };
 
