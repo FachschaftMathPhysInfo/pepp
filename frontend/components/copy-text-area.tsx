@@ -34,6 +34,7 @@ export function CopyTextArea({label, text}: CopyTextAreaProps) {
         onClick={() => handleCopy()}
         variant="secondary"
         size="icon"
+        className={'shrink-0'}
       >
         {isCopied ? (
           <CopyCheck className="h-5 w-5"/>
