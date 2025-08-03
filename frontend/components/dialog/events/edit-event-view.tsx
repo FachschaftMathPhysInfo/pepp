@@ -242,7 +242,16 @@ export function EditEventView({event, closeDialogAction}: EditEventViewProps) {
         );
 
         const umbrellaEvent = umbrellaData.umbrellas[0];
-        form.reset({date: new Date(umbrellaEvent.from)});
+        form.reset({
+          title: "",
+          description: "",
+          date: new Date(umbrellaEvent.from),
+          from: "",
+          to: "",
+          needsTutors: false,
+          topic: 0,
+          type: 0,
+        });
 
         setUmbrella({...defaultEvent, ...umbrellaEvent});
       } catch {
