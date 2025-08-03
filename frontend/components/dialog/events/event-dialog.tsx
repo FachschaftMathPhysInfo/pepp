@@ -18,7 +18,12 @@ import {
 import { useRefetch, useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import { TutorialsTable } from "./tutorials-table";
-import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
+import {
+  defaultEvent,
+  defaultTutorial,
+  defaultUser,
+  defaultForm,
+} from "@/types/defaults";
 import { Button } from "../../ui/button";
 import { EditEventView } from "./edit-event-view";
 import EventDescription from "./event-description";
@@ -41,15 +46,20 @@ export default function EventDialog({
   open,
   closeDialogAction,
 }: EventDialogProps) {
-  const pathname = usePathname();
-
   const { user } = useUser();
   const { refetchKey } = useRefetch();
+
+  const pathname = usePathname();
 
   const [event, setEvent] = useState<Event>();
   const [edit, setEdit] = useState(modify);
   const [authenticationDialogOpen, setAuthenticationDialogOpen] =
     useState(false);
+
+  const application = user?.applications?.find(
+    (a) => a.event.ID === event?.umbrella?.ID
+  );
+  const isRestricted = !!event?.umbrella?.registrationForm
 
   useEffect(() => {
     if (!open && id) setEdit(false);
@@ -78,7 +88,14 @@ export default function EventDialog({
         setEvent({
           ...defaultEvent,
           ...e,
-          umbrella: { ...defaultEvent, ...e.umbrella },
+          umbrella: {
+            ...defaultEvent,
+            ...e.umbrella,
+            registrationForm: {
+              ...defaultForm,
+              ...e.umbrella?.registrationForm,
+            },
+          },
           tutorials: e.tutorials?.map((t) => ({
             ...defaultTutorial,
             ...t,
@@ -93,7 +110,7 @@ export default function EventDialog({
   }, [id, open, refetchKey]);
 
   return edit ? (
-    <EditEventView event={event} closeDialogAction={closeDialogAction}/>
+    <EditEventView event={event} closeDialogAction={closeDialogAction} />
   ) : (
     <>
       <DialogContent className="sm:min-w-[600px]">
@@ -128,6 +145,21 @@ export default function EventDialog({
                 <span>, um dich eintragen zu können.</span>
               </div>
             )}
+
+            {isRestricted && (
+              <>
+                {!application?.accepted && (
+                  <div className="flex flex-row space-x-2">
+                    <Info className="size-5 text-yellow-500" />
+                    <p className="text-muted-foreground text-sm">
+                      Bitte warte bis wir deine Bewerbung überprüft haben. Du
+                      enthälst zeitnah eine E-Mail wie es weiter geht.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
             <TutorialsTable
               id={id!}
               event={event!}

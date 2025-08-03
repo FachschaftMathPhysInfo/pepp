@@ -113,6 +113,9 @@ query eventCloseup($id: Int!) {
     umbrella {
       ID
       title
+      registrationForm {
+        eventID
+      }
     }
     type {
       ID
