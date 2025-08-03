@@ -146,7 +146,7 @@ export default function EventDialog({
               </div>
             )}
 
-            {isRestricted && (
+            {isRestricted && user && (
               <>
                 {!application?.accepted && (
                   <div className="flex flex-row space-x-2">
