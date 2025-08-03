@@ -153,7 +153,7 @@ export default function EventDialog({
                     <Info className="size-5 text-yellow-500" />
                     <p className="text-muted-foreground text-sm">
                       Bitte warte bis wir deine Bewerbung überprüft haben. Du
-                      enthälst zeitnah eine E-Mail wie es weiter geht.
+                      erhälst zeitnah eine E-Mail wie es weiter geht.
                     </p>
                   </div>
                 )}

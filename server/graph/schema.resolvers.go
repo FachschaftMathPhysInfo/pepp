@@ -740,8 +740,6 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 			return 0, err
 		}
 
-		log.Info("accepted: ", accepted)
-
 		if accepted == nil || !*accepted {
 			return 0, fmt.Errorf("student is not accepted for event")
 		}
