@@ -716,9 +716,33 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 	tutorial := new(models.Tutorial)
 	if err := r.DB.NewSelect().
 		Model(tutorial).
+		Relation("Event").
 		Where("id = ?", registration.TutorialID).
 		Scan(ctx); err != nil {
 		return 0, err
+	}
+
+	formExists, err := r.DB.NewSelect().
+		Model((*models.Form)(nil)).
+		Where("event_id = ?", tutorial.Event.UmbrellaID).
+		Exists(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if formExists {
+		var accepted *bool
+		if err := r.DB.NewSelect().
+			Model((*models.Application)(nil)).
+			Where("student_id = ?", registration.UserID).
+			Column("accepted").
+			Scan(ctx, &accepted); err != nil {
+			return 0, err
+		}
+
+		if accepted == nil || !*accepted {
+			return 0, fmt.Errorf("student is not accepted for event")
+		}
 	}
 
 	count, err := r.DB.NewSelect().
@@ -945,6 +969,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("Type").
 		Relation("TutorsAvailable").
 		Relation("Umbrella").
+		Relation("Umbrella.RegistrationForm").
 		Relation("Tutorials").
 		Relation("Tutorials.Room").
 		Relation("Tutorials.Room.Building").
