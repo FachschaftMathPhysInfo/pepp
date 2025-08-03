@@ -717,7 +717,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 	if err := r.DB.NewSelect().
 		Model(tutorial).
 		Relation("Event").
-		Where("id = ?", registration.TutorialID).
+		Where("t.id = ?", registration.TutorialID).
 		Scan(ctx); err != nil {
 		return 0, err
 	}

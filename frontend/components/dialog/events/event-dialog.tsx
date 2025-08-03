@@ -59,7 +59,7 @@ export default function EventDialog({
   const application = user?.applications?.find(
     (a) => a.event.ID === event?.umbrella?.ID
   );
-  const isRestricted = !!event?.umbrella?.registrationForm
+  const isRestricted = !!event?.umbrella?.registrationForm?.eventID
 
   useEffect(() => {
     if (!open && id) setEdit(false);
