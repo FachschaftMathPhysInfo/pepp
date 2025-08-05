@@ -303,42 +303,6 @@ export function EditEventView({event, closeDialogAction}: EditEventViewProps) {
                       </FormItem>
                     )}
                   />
-                  <div className="space-x-2 flex flex-row">
-                    <FormField
-                      control={form.control}
-                      name="topic"
-                      render={({field}) => (
-                        <FormItem>
-                          <FormControl>
-                            <BadgePicker
-                              kind={LabelKind.Topic}
-                              labelKindDescription="Thema"
-                              selected={field.value}
-                              onChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="type"
-                      render={({field}) => (
-                        <FormItem>
-                          <FormControl>
-                            <BadgePicker
-                              kind={LabelKind.EventType}
-                              labelKindDescription="Veranstaltungstyp"
-                              selected={field.value}
-                              onChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormMessage/>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                   <div className="flex flex-row justify-between space-x-2">
                     <FormField
                       control={form.control}

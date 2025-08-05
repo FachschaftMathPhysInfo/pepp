@@ -10,37 +10,23 @@ import {
   UmbrellaDetailDocument,
   UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
-import { FacetedFilter } from "@/components/faceted-filter";
-import React, { useCallback, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { getClient } from "@/lib/graphql";
-import { CopyTextArea } from "@/components/copy-text-area";
-import { CardSkeleton } from "@/components/card-skeleton";
-import { Planner } from "@/components/planner";
-import { useRefetch, useUser } from "@/components/providers";
-import {
-  Alert,
-  AlertAction,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
-import { Check, ChevronsUpDown, CircleAlert, MoveRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { defaultEvent, defaultLabel } from "@/types/defaults";
+import {FacetedFilter} from "@/components/faceted-filter";
+import React, {useCallback, useEffect, useState} from "react";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {getClient} from "@/lib/graphql";
+import {CopyTextArea} from "@/components/copy-text-area";
+import {CardSkeleton} from "@/components/card-skeleton";
+import {useRefetch, useUser} from "@/components/providers";
+import {Alert, AlertAction, AlertDescription, AlertTitle,} from "@/components/ui/alert";
+import {CircleAlert, MoveRight} from "lucide-react";
+import {defaultEvent, defaultLabel} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {DataTable} from "./data-table";
-import {columns} from "./columns";
-import {cn} from "@/lib/utils";
 import {TooltipProvider} from "@/components/ui/tooltip";
+import {EventCalendar} from "@/components/event-calendar";
+import {apiEventsToCalendarEvents} from "@/lib/utils/tableUtils";
 
 interface PlannerPageProps {
   umbrellaID: number;
-}
-
-enum View {
-  planner = "Stundenplan",
-  table = "Tabelle",
 }
 
 export function PlannerPage({ umbrellaID }: PlannerPageProps) {
@@ -59,22 +45,13 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [icalPath, setIcalPath] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
-  const [view, setView] = useState(View.planner);
   const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
 
-  const createQueryString = useCallback((name: string, values: string[]) => {
-    const params = new URLSearchParams(values.map((v) => [name, v]));
-    return params.toString();
-  }, []);
-
-  const renderView = () => {
-    switch (view) {
-      case View.planner:
-        return <Planner events={events} />;
-      case View.table:
-        return <DataTable columns={columns} data={events} />;
-    }
-  };
+  // TODO: reimplement this later
+  // const createQueryString = useCallback((name: string, values: string[]) => {
+  //   const params = new URLSearchParams(values.map((v) => [name, v]));
+  //   return params.toString();
+  // }, []);
 
   const fetchUmbrellaData = useCallback(async () => {
     setLoading(true);
@@ -185,30 +162,6 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
             <div
               className={"flex items-center justify-start gap-x-4 flex-wrap gap-y-2"}
             >
-              {user?.role === Role.Admin && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      Ansicht
-                      <ChevronsUpDown className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    {Object.values(View).map((v) => (
-                      <DropdownMenuItem key={v} onClick={() => setView(v)}>
-                        <Check
-                          className={cn(
-                            "h-4 w-4 mr-2",
-                            v === view ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        {v}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-
               {topics.length >= 2 && (
                 <FacetedFilter
                   className={"h-full"}
@@ -257,7 +210,10 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       )}
 
       <section className="mt-5">
-        {loading ? <CardSkeleton /> : renderView()}
+        {loading ?
+          <CardSkeleton /> :
+          <EventCalendar events={apiEventsToCalendarEvents(events)} initialView={"agenda"} />
+        }
       </section>
     </TooltipProvider>
   );
