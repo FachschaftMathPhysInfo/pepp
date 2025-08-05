@@ -15,7 +15,6 @@ import {
   subWeeks,
 } from "date-fns"
 import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon,} from "lucide-react"
-import {toast} from "sonner"
 
 import {cn} from "@/lib/utils"
 import {Button} from "@/components/ui/button"
@@ -39,11 +38,9 @@ import {
   WeekCellsHeight,
   WeekView,
 } from "@/components/event-calendar"
-import {useRefetch, useUser} from "@/components/providers";
+import {useUser} from "@/components/providers";
 import type {Event} from "@/lib/gql/generated/graphql"
-import {DeleteEventDocument, DeleteEventMutation, LabelKind, Role} from "@/lib/gql/generated/graphql";
-import {getClient} from "@/lib/graphql";
-import ConfirmationDialog from "@/components/confirmation-dialog";
+import {LabelKind, Role} from "@/lib/gql/generated/graphql";
 
 export interface EventCalendarProps {
   events?: Event[]
@@ -54,19 +51,15 @@ export interface EventCalendarProps {
 }
 
 export function EventCalendar({
-  events = [],
-  onEventAdd,
-  onEventUpdate,
-  className,
-  initialView = "month",
-}: EventCalendarProps) {
+                                events = [],
+                                className,
+                                initialView = "month",
+                              }: EventCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarView>(initialView)
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const { user, sid } = useUser();
-  const { triggerRefetch } = useRefetch();
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const {user} = useUser();
 
   // Add keyboard shortcuts for view switching
   useEffect(() => {
@@ -172,63 +165,14 @@ export function EventCalendar({
     setIsEventDialogOpen(true)
   }
 
-  const handleEventSave = (event: Event) => {
-    if (event.ID) {
-      onEventUpdate?.(event)
-      // Show toast notification when an event is updated
-      toast(`Event "${event.title}" updated`, {
-        description: format(new Date(event.from), "MMM d, yyyy"),
-        position: "bottom-left",
-      })
-    } else {
-      onEventAdd?.({
-        ...event,
-        ID: Math.random(),
-      })
-      // Show toast notification when an event is added
-      toast(`Event "${event.title}" added`, {
-        description: format(new Date(event.from), "MMM d, yyyy"),
-        position: "bottom-left",
-      })
-    }
-    setIsEventDialogOpen(false)
-    setSelectedEvent(null)
-  }
 
-  async function  handleEventDelete (eventId?: number)  {
-    const deletedEvent = events.find((e) => e.ID === eventId)
-    if (!deletedEvent) return;
-
-    try {
-      const client = getClient(String(sid))
-      await client.request<DeleteEventMutation>(DeleteEventDocument, {eventIds: [deletedEvent.ID]})
-
-      toast.success(`Event "${deletedEvent.title}" gelöscht`, {
-        description: format(new Date(deletedEvent.from), "MMM d, yyyy"),
-      })
-      triggerRefetch()
-      setIsEventDialogOpen(false)
-      setSelectedEvent(null)
-    } catch {
-      toast.error('Fehler beim Löschen des Events.')
-    }
-  }
-
-  const handleEventUpdate = (updatedEvent: Event) => {
-    onEventUpdate?.(updatedEvent)
-
-    // Show toast notification when an event is updated via drag and drop
-    toast.info(`Event "${updatedEvent.title}" moved`, {
-      description: format(new Date(updatedEvent.from), "MMM d, yyyy"),
-    })
-  }
 
   const viewTitle = useMemo(() => {
     if (view === "month") {
       return format(currentDate, "MMMM yyyy")
     } else if (view === "week") {
-      const start = startOfWeek(currentDate, { weekStartsOn: 0 })
-      const end = endOfWeek(currentDate, { weekStartsOn: 0 })
+      const start = startOfWeek(currentDate, {weekStartsOn: 0})
+      const end = endOfWeek(currentDate, {weekStartsOn: 0})
       if (isSameMonth(start, end)) {
         return format(start, "MMMM yyyy")
       } else {
@@ -274,7 +218,7 @@ export function EventCalendar({
         } as React.CSSProperties
       }
     >
-      <CalendarDndProvider onEventUpdateAction={handleEventUpdate}>
+      <CalendarDndProvider onEventUpdateAction={() => {return}}>
         <div
           className={cn(
             "flex items-center justify-between p-2 sm:p-4",
@@ -301,7 +245,7 @@ export function EventCalendar({
                 onClick={handlePrevious}
                 aria-label="Previous"
               >
-                <ChevronLeftIcon size={16} aria-hidden="true" />
+                <ChevronLeftIcon size={16} aria-hidden="true"/>
               </Button>
               <Button
                 variant="ghost"
@@ -309,7 +253,7 @@ export function EventCalendar({
                 onClick={handleNext}
                 aria-label="Next"
               >
-                <ChevronRightIcon size={16} aria-hidden="true" />
+                <ChevronRightIcon size={16} aria-hidden="true"/>
               </Button>
             </div>
             <h2 className="text-sm font-semibold sm:text-lg md:text-xl">
@@ -410,16 +354,6 @@ export function EventCalendar({
             setIsEventDialogOpen(false)
             setSelectedEvent(null)
           }}
-          onSaveAction={handleEventSave}
-          onDeleteAction={() => setDeleteDialogOpen(true)}
-        />
-
-        <ConfirmationDialog
-          description={`Dies wird das Event ${selectedEvent?.title} löschen`}
-          isOpen={deleteDialogOpen}
-          closeDialog={() => setDeleteDialogOpen(false)}
-          onConfirm={() => handleEventDelete(selectedEvent?.ID)}
-          mode={"confirmation"}
         />
 
       </CalendarDndProvider>
