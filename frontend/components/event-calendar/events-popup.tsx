@@ -4,14 +4,16 @@ import { useEffect, useMemo, useRef } from "react"
 import { format, isSameDay } from "date-fns"
 import { XIcon } from "lucide-react"
 
-import { EventItem, type CalendarEvent } from "@/components/event-calendar"
+import { EventItem} from "@/components/event-calendar"
+import type { Event } from "@/lib/gql/generated/graphql"
+
 
 interface EventsPopupProps {
   date: Date
-  events: CalendarEvent[]
+  events: Event[]
   position: { top: number; left: number }
   onCloseAction: () => void
-  onEventSelectAction: (event: CalendarEvent) => void
+  onEventSelectAction: (event: Event) => void
 }
 
 export function EventsPopup({
@@ -54,7 +56,7 @@ export function EventsPopup({
     }
   }, [onCloseAction])
 
-  const handleEventClick = (event: CalendarEvent) => {
+  const handleEventClick = (event: Event) => {
     onEventSelectAction(event)
     onCloseAction()
   }
@@ -108,14 +110,14 @@ export function EventsPopup({
           <div className="text-muted-foreground py-2 text-sm">No events</div>
         ) : (
           events.map((event) => {
-            const eventStart = new Date(event.start)
-            const eventEnd = new Date(event.end)
+            const eventStart = new Date(event.from)
+            const eventEnd = new Date(event.to)
             const isFirstDay = isSameDay(date, eventStart)
             const isLastDay = isSameDay(date, eventEnd)
 
             return (
               <div
-                key={event.id}
+                key={event.ID}
                 className="cursor-pointer"
                 onClick={() => handleEventClick(event)}
               >

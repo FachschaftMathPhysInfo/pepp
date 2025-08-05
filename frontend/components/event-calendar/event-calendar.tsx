@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
-import { RiCalendarCheckLine } from "@remixicon/react"
+import React, {useEffect, useMemo, useState} from "react"
+import {RiCalendarCheckLine} from "@remixicon/react"
 import {
   addDays,
   addHours,
@@ -14,16 +14,11 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns"
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PlusIcon,
-} from "lucide-react"
-import { toast } from "sonner"
+import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon,} from "lucide-react"
+import {toast} from "sonner"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import {cn} from "@/lib/utils"
+import {Button} from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +30,6 @@ import {
   AgendaDaysToShow,
   AgendaView,
   CalendarDndProvider,
-  CalendarEvent,
   CalendarView,
   DayView,
   EventDialog,
@@ -46,14 +40,15 @@ import {
   WeekView,
 } from "@/components/event-calendar"
 import {useRefetch, useUser} from "@/components/providers";
-import {DeleteEventDocument, DeleteEventMutation, Role} from "@/lib/gql/generated/graphql";
+import type {Event} from "@/lib/gql/generated/graphql"
+import {DeleteEventDocument, DeleteEventMutation, LabelKind, Role} from "@/lib/gql/generated/graphql";
 import {getClient} from "@/lib/graphql";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 
 export interface EventCalendarProps {
-  events?: CalendarEvent[]
-  onEventAdd?: (event: CalendarEvent) => void
-  onEventUpdate?: (event: CalendarEvent) => void
+  events?: Event[]
+  onEventAdd?: (event: Event) => void
+  onEventUpdate?: (event: Event) => void
   className?: string
   initialView?: CalendarView
 }
@@ -68,7 +63,7 @@ export function EventCalendar({
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarView>(initialView)
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const { user, sid } = useUser();
   const { triggerRefetch } = useRefetch();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -140,7 +135,7 @@ export function EventCalendar({
     setCurrentDate(new Date())
   }
 
-  const handleEventSelect = (event: CalendarEvent) => {
+  const handleEventSelect = (event: Event) => {
     console.log("Event selected:", event) // Debug log
     setSelectedEvent(event)
     setIsEventDialogOpen(true)
@@ -164,33 +159,35 @@ export function EventCalendar({
       startTime.setMilliseconds(0)
     }
 
-    const newEvent: CalendarEvent = {
-      id: "",
+    const newEvent: Event = {
+      ID: 0,
       title: "",
-      start: startTime,
-      end: addHours(startTime, 1),
-      allDay: false,
+      from: startTime,
+      to: addHours(startTime, 1),
+      needsTutors: false,
+      topic: {ID: 0, name: "", kind: LabelKind.Topic, color: ""},
+      type: {ID: 0, name: "", kind: LabelKind.EventType, color: ""}
     }
     setSelectedEvent(newEvent)
     setIsEventDialogOpen(true)
   }
 
-  const handleEventSave = (event: CalendarEvent) => {
-    if (event.id) {
+  const handleEventSave = (event: Event) => {
+    if (event.ID) {
       onEventUpdate?.(event)
       // Show toast notification when an event is updated
       toast(`Event "${event.title}" updated`, {
-        description: format(new Date(event.start), "MMM d, yyyy"),
+        description: format(new Date(event.from), "MMM d, yyyy"),
         position: "bottom-left",
       })
     } else {
       onEventAdd?.({
         ...event,
-        id: Math.random().toString(36).substring(2, 11),
+        ID: Math.random(),
       })
       // Show toast notification when an event is added
       toast(`Event "${event.title}" added`, {
-        description: format(new Date(event.start), "MMM d, yyyy"),
+        description: format(new Date(event.from), "MMM d, yyyy"),
         position: "bottom-left",
       })
     }
@@ -198,16 +195,16 @@ export function EventCalendar({
     setSelectedEvent(null)
   }
 
-  async function  handleEventDelete (eventId?: string)  {
-    const deletedEvent = events.find((e) => e.id === eventId)
+  async function  handleEventDelete (eventId?: number)  {
+    const deletedEvent = events.find((e) => e.ID === eventId)
     if (!deletedEvent) return;
 
     try {
       const client = getClient(String(sid))
-      await client.request<DeleteEventMutation>(DeleteEventDocument, {eventIds: [parseInt(deletedEvent.id)]})
+      await client.request<DeleteEventMutation>(DeleteEventDocument, {eventIds: [deletedEvent.ID]})
 
       toast.success(`Event "${deletedEvent.title}" gelöscht`, {
-        description: format(new Date(deletedEvent.start), "MMM d, yyyy"),
+        description: format(new Date(deletedEvent.from), "MMM d, yyyy"),
       })
       triggerRefetch()
       setIsEventDialogOpen(false)
@@ -217,12 +214,12 @@ export function EventCalendar({
     }
   }
 
-  const handleEventUpdate = (updatedEvent: CalendarEvent) => {
+  const handleEventUpdate = (updatedEvent: Event) => {
     onEventUpdate?.(updatedEvent)
 
     // Show toast notification when an event is updated via drag and drop
     toast.info(`Event "${updatedEvent.title}" moved`, {
-      description: format(new Date(updatedEvent.start), "MMM d, yyyy"),
+      description: format(new Date(updatedEvent.from), "MMM d, yyyy"),
     })
   }
 
@@ -421,7 +418,7 @@ export function EventCalendar({
           description={`Dies wird das Event ${selectedEvent?.title} löschen`}
           isOpen={deleteDialogOpen}
           closeDialog={() => setDeleteDialogOpen(false)}
-          onConfirm={() => handleEventDelete(selectedEvent?.id)}
+          onConfirm={() => handleEventDelete(selectedEvent?.ID)}
           mode={"confirmation"}
         />
 

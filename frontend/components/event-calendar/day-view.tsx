@@ -21,19 +21,19 @@ import {
   isMultiDayEvent,
   useCurrentTimeIndicator,
   WeekCellsHeight,
-  type CalendarEvent,
 } from "@/components/event-calendar"
+import type { Event } from "@/lib/gql/generated/graphql"
 import { EndHour, StartHour } from "@/components/event-calendar/constants"
 
 interface DayViewProps {
   currentDate: Date
-  events: CalendarEvent[]
-  onEventSelectAction: (event: CalendarEvent) => void
+  events: Event[]
+  onEventSelectAction: (event: Event) => void
   onEventCreateAction: (startTime: Date) => void
 }
 
 interface PositionedEvent {
-  event: CalendarEvent
+  event: Event
   top: number
   height: number
   left: number
@@ -58,22 +58,22 @@ export function DayView({
   const dayEvents = useMemo(() => {
     return events
       .filter((event) => {
-        const eventStart = new Date(event.start)
-        const eventEnd = new Date(event.end)
+        const eventStart = new Date(event.from)
+        const eventEnd = new Date(event.to)
         return (
           isSameDay(currentDate, eventStart) ||
           isSameDay(currentDate, eventEnd) ||
           (currentDate > eventStart && currentDate < eventEnd)
         )
       })
-      .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+      .sort((a, b) => new Date(a.from).getTime() - new Date(b.from).getTime())
   }, [currentDate, events])
 
   // Filter all-day events
   const allDayEvents = useMemo(() => {
     return dayEvents.filter((event) => {
       // Include explicitly marked all-day events or multi-day events
-      return event.allDay || isMultiDayEvent(event)
+      return isMultiDayEvent(event)
     })
   }, [dayEvents])
 
@@ -81,7 +81,7 @@ export function DayView({
   const timeEvents = useMemo(() => {
     return dayEvents.filter((event) => {
       // Exclude all-day events and multi-day events
-      return !event.allDay && !isMultiDayEvent(event)
+      return !isMultiDayEvent(event)
     })
   }, [dayEvents])
 
@@ -92,10 +92,10 @@ export function DayView({
 
     // Sort events by start time and duration
     const sortedEvents = [...timeEvents].sort((a, b) => {
-      const aStart = new Date(a.start)
-      const bStart = new Date(b.start)
-      const aEnd = new Date(a.end)
-      const bEnd = new Date(b.end)
+      const aStart = new Date(a.from)
+      const bStart = new Date(b.from)
+      const aEnd = new Date(a.to)
+      const bEnd = new Date(b.to)
 
       // First sort by start time
       if (aStart < bStart) return -1
@@ -108,11 +108,11 @@ export function DayView({
     })
 
     // Track columns for overlapping events
-    const columns: { event: CalendarEvent; end: Date }[][] = []
+    const columns: { event: Event; end: Date }[][] = []
 
     sortedEvents.forEach((event) => {
-      const eventStart = new Date(event.start)
-      const eventEnd = new Date(event.end)
+      const eventStart = new Date(event.from)
+      const eventEnd = new Date(event.to)
 
       // Adjust start and end times if they're outside this day
       const adjustedStart = isSameDay(currentDate, eventStart)
@@ -141,7 +141,7 @@ export function DayView({
           const overlaps = col.some((c) =>
             areIntervalsOverlapping(
               { start: adjustedStart, end: adjustedEnd },
-              { start: new Date(c.event.start), end: new Date(c.event.end) }
+              { start: new Date(c.event.from), end: new Date(c.event.to) }
             )
           )
           if (!overlaps) {
@@ -174,7 +174,7 @@ export function DayView({
     return result
   }, [currentDate, timeEvents])
 
-  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+  const handleEventClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation()
     onEventSelectAction(event)
   }
@@ -197,14 +197,14 @@ export function DayView({
             </div>
             <div className="border-border/70 relative border-r p-1 last:border-r-0">
               {allDayEvents.map((event) => {
-                const eventStart = new Date(event.start)
-                const eventEnd = new Date(event.end)
+                const eventStart = new Date(event.from)
+                const eventEnd = new Date(event.to)
                 const isFirstDay = isSameDay(currentDate, eventStart)
                 const isLastDay = isSameDay(currentDate, eventEnd)
 
                 return (
                   <EventItem
-                    key={`spanning-${event.id}`}
+                    key={`spanning-${event.ID}`}
                     onClick={(e) => handleEventClick(event, e)}
                     event={event}
                     view="month"
@@ -241,7 +241,7 @@ export function DayView({
           {/* Positioned events */}
           {positionedEvents.map((positionedEvent) => (
             <div
-              key={positionedEvent.event.id}
+              key={positionedEvent.event.ID}
               className="absolute z-10 px-0.5"
               style={{
                 top: `${positionedEvent.top}px`,

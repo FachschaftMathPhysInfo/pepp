@@ -1,20 +1,20 @@
 "use client"
 
-import { useMemo } from "react"
+import React, { useMemo } from "react"
 import { RiCalendarEventLine } from "@remixicon/react"
 import { addDays, format, isToday } from "date-fns"
 
 import {
   AgendaDaysToShow,
-  CalendarEvent,
   EventItem,
   getAgendaEventsForDay,
 } from "@/components/event-calendar"
+import type { Event } from "@/lib/gql/generated/graphql"
 
 interface AgendaViewProps {
   currentDate: Date
-  events: CalendarEvent[]
-  onEventSelectAction: (event: CalendarEvent) => void
+  events: Event[]
+  onEventSelectAction: (event: Event) => void
 }
 
 export function AgendaView({
@@ -30,7 +30,7 @@ export function AgendaView({
     )
   }, [currentDate])
 
-  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+  const handleEventClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation()
     console.log("Agenda view event clicked:", event)
     onEventSelectAction(event)
@@ -74,7 +74,7 @@ export function AgendaView({
               <div className="mt-6 space-y-2">
                 {dayEvents.map((event) => (
                   <EventItem
-                    key={event.id}
+                    key={event.ID}
                     event={event}
                     view="agenda"
                     onClick={(e) => handleEventClick(event, e)}

@@ -23,7 +23,6 @@ import {defaultEvent, defaultLabel} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {EventCalendar} from "@/components/event-calendar";
-import {apiEventsToCalendarEvents} from "@/lib/utils/tableUtils";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -212,7 +211,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       <section className="mt-5">
         {loading ?
           <CardSkeleton /> :
-          <EventCalendar events={apiEventsToCalendarEvents(events)} initialView={"agenda"} />
+          <EventCalendar events={events} initialView={"agenda"} />
         }
       </section>
     </TooltipProvider>

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, {useEffect, useMemo, useState} from "react"
 import {
   addDays,
   eachDayOfInterval,
@@ -14,11 +14,7 @@ import {
   startOfWeek,
 } from "date-fns"
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {
   DraggableEvent,
   DroppableCell,
@@ -30,34 +26,35 @@ import {
   getSpanningEventsForDay,
   sortEvents,
   useEventVisibility,
-  type CalendarEvent,
 } from "@/components/event-calendar"
-import { DefaultStartHour } from "@/components/event-calendar/constants"
+import {DefaultStartHour} from "@/components/event-calendar/constants"
+import type {Event} from "@/lib/gql/generated/graphql"
+
 
 interface MonthViewProps {
   currentDate: Date
-  events: CalendarEvent[]
-  onEventSelectAction: (event: CalendarEvent) => void
+  events: Event[]
+  onEventSelectAction: (event: Event) => void
   onEventCreateAction: (startTime: Date) => void
 }
 
 export function MonthView({
-  currentDate,
-  events,
-  onEventSelectAction,
-  onEventCreateAction,
-}: MonthViewProps) {
+                            currentDate,
+                            events,
+                            onEventSelectAction,
+                            onEventCreateAction,
+                          }: MonthViewProps) {
   const days = useMemo(() => {
     const monthStart = startOfMonth(currentDate)
     const monthEnd = endOfMonth(monthStart)
-    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 })
-    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 })
+    const calendarStart = startOfWeek(monthStart, {weekStartsOn: 0})
+    const calendarEnd = endOfWeek(monthEnd, {weekStartsOn: 0})
 
-    return eachDayOfInterval({ start: calendarStart, end: calendarEnd })
+    return eachDayOfInterval({start: calendarStart, end: calendarEnd})
   }, [currentDate])
 
   const weekdays = useMemo(() => {
-    return Array.from({ length: 7 }).map((_, i) => {
+    return Array.from({length: 7}).map((_, i) => {
       const date = addDays(startOfWeek(new Date()), i)
       return format(date, "EEE")
     })
@@ -78,13 +75,13 @@ export function MonthView({
     return result
   }, [days])
 
-  const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
+  const handleEventClick = (event: Event, e: React.MouseEvent) => {
     e.stopPropagation()
     onEventSelectAction(event)
   }
 
   const [isMounted, setIsMounted] = useState(false)
-  const { contentRef, getVisibleEventCount } = useEventVisibility({
+  const {contentRef, getVisibleEventCount} = useEventVisibility({
     eventHeight: EventHeight,
     eventGap: EventGap,
   })
@@ -147,7 +144,8 @@ export function MonthView({
                       onEventCreateAction(startTime)
                     }}
                   >
-                    <div className="group-data-today:bg-primary group-data-today:text-primary-foreground mt-1 inline-flex size-6 items-center justify-center rounded-full text-sm">
+                    <div
+                      className="group-data-today:bg-primary group-data-today:text-primary-foreground mt-1 inline-flex size-6 items-center justify-center rounded-full text-sm">
                       {format(day, "d")}
                     </div>
                     <div
@@ -155,8 +153,8 @@ export function MonthView({
                       className="min-h-[calc((var(--event-height)+var(--event-gap))*2)] sm:min-h-[calc((var(--event-height)+var(--event-gap))*3)] lg:min-h-[calc((var(--event-height)+var(--event-gap))*4)]"
                     >
                       {sortEvents(allDayEvents).map((event, index) => {
-                        const eventStart = new Date(event.start)
-                        const eventEnd = new Date(event.end)
+                        const eventStart = new Date(event.from)
+                        const eventEnd = new Date(event.to)
                         const isFirstDay = isSameDay(day, eventStart)
                         const isLastDay = isSameDay(day, eventEnd)
 
@@ -168,7 +166,7 @@ export function MonthView({
                         if (!isFirstDay) {
                           return (
                             <div
-                              key={`spanning-${event.id}-${day.toISOString().slice(0, 10)}`}
+                              key={`spanning-${event.ID}-${day.toISOString().slice(0, 10)}`}
                               className="aria-hidden:hidden"
                               aria-hidden={isHidden ? "true" : undefined}
                             >
@@ -180,14 +178,12 @@ export function MonthView({
                                 isLastDay={isLastDay}
                               >
                                 <div className="invisible" aria-hidden={true}>
-                                  {!event.allDay && (
-                                    <span>
-                                      {format(
-                                        new Date(event.start),
-                                        "h:mm"
-                                      )}{" "}
-                                    </span>
-                                  )}
+                                  <span>
+                                    {format(
+                                      new Date(event.from),
+                                      "h:mm"
+                                    )}{" "}
+                                  </span>
                                   {event.title}
                                 </div>
                               </EventItem>
@@ -197,7 +193,7 @@ export function MonthView({
 
                         return (
                           <div
-                            key={event.id}
+                            key={event.ID}
                             className="aria-hidden:hidden"
                             aria-hidden={isHidden ? "true" : undefined}
                           >
@@ -240,14 +236,14 @@ export function MonthView({
                               </div>
                               <div className="space-y-1">
                                 {sortEvents(allEvents).map((event) => {
-                                  const eventStart = new Date(event.start)
-                                  const eventEnd = new Date(event.end)
+                                  const eventStart = new Date(event.from)
+                                  const eventEnd = new Date(event.to)
                                   const isFirstDay = isSameDay(day, eventStart)
                                   const isLastDay = isSameDay(day, eventEnd)
 
                                   return (
                                     <EventItem
-                                      key={event.id}
+                                      key={event.ID}
                                       onClick={(e) =>
                                         handleEventClick(event, e)
                                       }

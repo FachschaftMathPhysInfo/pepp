@@ -6,13 +6,14 @@ import { CSS } from "@dnd-kit/utilities"
 import { differenceInDays } from "date-fns"
 
 import {
-  CalendarEvent,
   EventItem,
   useCalendarDnd,
 } from "@/components/event-calendar"
+import type { Event } from "@/lib/gql/generated/graphql"
+
 
 interface DraggableEventProps {
-  event: CalendarEvent
+  event: Event
   view: "month" | "week" | "day"
   showTime?: boolean
   onClick?: (e: React.MouseEvent) => void
@@ -44,14 +45,14 @@ export function DraggableEvent({
   } | null>(null)
 
   // Check if this is a multi-day event
-  const eventStart = new Date(event.start)
-  const eventEnd = new Date(event.end)
+  const eventStart = new Date(event.from)
+  const eventEnd = new Date(event.to)
   const isMultiDayEvent =
-    isMultiDay || event.allDay || differenceInDays(eventEnd, eventStart) >= 1
+    isMultiDay || differenceInDays(eventEnd, eventStart) >= 1
 
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
-      id: `${event.id}-${view}`,
+      id: `${event.ID}-${view}`,
       data: {
         event,
         view,
@@ -76,7 +77,7 @@ export function DraggableEvent({
   }
 
   // Don't render if this event is being dragged
-  if (isDragging || activeId === `${event.id}-${view}`) {
+  if (isDragging || activeId === `${event.ID}-${view}`) {
     return (
       <div
         ref={setNodeRef}

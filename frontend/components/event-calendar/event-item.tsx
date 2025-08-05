@@ -9,8 +9,9 @@ import { cn } from "@/lib/utils"
 import {
   getBorderRadiusClasses,
   getEventColorClasses,
-  type CalendarEvent,
 } from "@/components/event-calendar"
+import type { Event } from "@/lib/gql/generated/graphql"
+
 
 // Using date-fns format with custom formatting:
 // 'h' - hours (1-12)
@@ -21,7 +22,7 @@ const formatTimeWithOptionalMinutes = (date: Date) => {
 }
 
 interface EventWrapperProps {
-  event: CalendarEvent
+  event: Event
   isFirstDay?: boolean
   isLastDay?: boolean
   isDragging?: boolean
@@ -54,9 +55,9 @@ function EventWrapper({
   const displayEnd = currentTime
     ? new Date(
         new Date(currentTime).getTime() +
-          (new Date(event.end).getTime() - new Date(event.start).getTime())
+          (new Date(event.to).getTime() - new Date(event.from).getTime())
       )
-    : new Date(event.end)
+    : new Date(event.to)
 
   const isEventInPast = isPast(displayEnd)
 
@@ -64,7 +65,7 @@ function EventWrapper({
     <button
       className={cn(
         "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg data-past-event:line-through sm:px-2",
-        getEventColorClasses(event.color),
+        getEventColorClasses(event.type.color),
         getBorderRadiusClasses(isFirstDay, isLastDay),
         className
       )}
@@ -82,7 +83,7 @@ function EventWrapper({
 }
 
 interface EventItemProps {
-  event: CalendarEvent
+  event: Event
   view: "month" | "week" | "day" | "agenda"
   isDragging?: boolean
   onClick?: (e: React.MouseEvent) => void
@@ -114,21 +115,21 @@ export function EventItem({
   onMouseDown,
   onTouchStart,
 }: EventItemProps) {
-  const eventColor = event.color
+  const eventColor = event.type.color
 
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = useMemo(() => {
-    return currentTime || new Date(event.start)
-  }, [currentTime, event.start])
+    return currentTime || new Date(event.from)
+  }, [currentTime, event.from])
 
   const displayEnd = useMemo(() => {
     return currentTime
       ? new Date(
           new Date(currentTime).getTime() +
-            (new Date(event.end).getTime() - new Date(event.start).getTime())
+            (new Date(event.to).getTime() - new Date(event.from).getTime())
         )
-      : new Date(event.end)
-  }, [currentTime, event.start, event.end])
+      : new Date(event.to)
+  }, [currentTime, event.from, event.to])
 
   // Calculate event duration in minutes
   const durationMinutes = useMemo(() => {
@@ -136,8 +137,6 @@ export function EventItem({
   }, [displayStart, displayEnd])
 
   const getEventTime = () => {
-    if (event.allDay) return "All day"
-
     // For short events (less than 45 minutes), only show start time
     if (durationMinutes < 45) {
       return formatTimeWithOptionalMinutes(displayStart)
@@ -167,11 +166,9 @@ export function EventItem({
       >
         {children || (
           <span className="truncate">
-            {!event.allDay && (
               <span className="truncate font-normal opacity-70 sm:text-[11px]">
                 {formatTimeWithOptionalMinutes(displayStart)}{" "}
               </span>
-            )}
             {event.title}
           </span>
         )}
@@ -230,7 +227,7 @@ export function EventItem({
         getEventColorClasses(eventColor),
         className
       )}
-      data-past-event={isPast(new Date(event.end)) || undefined}
+      data-past-event={isPast(new Date(event.to)) || undefined}
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
@@ -239,20 +236,6 @@ export function EventItem({
     >
       <div className="text-sm font-medium">{event.title}</div>
       <div className="text-xs opacity-70">
-        {event.allDay ? (
-          <span>All day</span>
-        ) : (
-          <span className="uppercase">
-            {formatTimeWithOptionalMinutes(displayStart)} -{" "}
-            {formatTimeWithOptionalMinutes(displayEnd)}
-          </span>
-        )}
-        {event.location && (
-          <>
-            <span className="px-1 opacity-35"> · </span>
-            <span>{event.location}</span>
-          </>
-        )}
       </div>
       {event.description && (
         <div className="my-1 text-xs opacity-90">{event.description}</div>

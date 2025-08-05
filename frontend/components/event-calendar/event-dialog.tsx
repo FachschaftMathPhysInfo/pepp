@@ -20,33 +20,31 @@ import {Label} from "@/components/ui/label"
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select"
 import {Textarea} from "@/components/ui/textarea"
-import type {CalendarEvent, EventColor} from "@/components/event-calendar"
+import type {Event} from "@/lib/gql/generated/graphql"
 import {DefaultEndHour, DefaultStartHour, EndHour, StartHour,} from "@/components/event-calendar/constants"
+import {defaultEvent} from "@/types/defaults";
 
 interface EventDialogProps {
-  event: CalendarEvent | null
+  event: Event | null
   isOpen: boolean
   onCloseAction: () => void
-  onSaveAction: (event: CalendarEvent) => void
-  onDeleteAction: (eventId: string) => void
+  onSaveAction: (event: Event) => void
+  onDeleteAction: (eventId: number) => void
 }
 
 export function EventDialog({
-  event,
-  isOpen,
-  onCloseAction,
-  onSaveAction,
-  onDeleteAction,
-}: EventDialogProps) {
+                              event,
+                              isOpen,
+                              onCloseAction,
+                              onSaveAction,
+                              onDeleteAction,
+                            }: EventDialogProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [startDate, setStartDate] = useState<Date>(new Date())
   const [endDate, setEndDate] = useState<Date>(new Date())
   const [startTime, setStartTime] = useState(`${DefaultStartHour}:00`)
   const [endTime, setEndTime] = useState(`${DefaultEndHour}:00`)
-  const [allDay, setAllDay] = useState(false)
-  const [location, setLocation] = useState("")
-  const [color, setColor] = useState<EventColor>("sky")
   const [error, setError] = useState<string | null>(null)
   const [startDateOpen, setStartDateOpen] = useState(false)
   const [endDateOpen, setEndDateOpen] = useState(false)
@@ -61,16 +59,13 @@ export function EventDialog({
       setTitle(event.title || "")
       setDescription(event.description || "")
 
-      const start = new Date(event.start)
-      const end = new Date(event.end)
+      const start = new Date(event.from)
+      const end = new Date(event.to)
 
       setStartDate(start)
       setEndDate(end)
       setStartTime(formatTimeForInput(start))
       setEndTime(formatTimeForInput(end))
-      setAllDay(event.allDay || false)
-      setLocation(event.location || "")
-      setColor((event.color as EventColor) || "sky")
       setError(null) // Reset error when opening dialog
     } else {
       resetForm()
@@ -84,9 +79,6 @@ export function EventDialog({
     setEndDate(new Date())
     setStartTime(`${DefaultStartHour}:00`)
     setEndTime(`${DefaultEndHour}:00`)
-    setAllDay(false)
-    setLocation("")
-    setColor("sky")
     setError(null)
   }
 
@@ -107,7 +99,7 @@ export function EventDialog({
         // Use a fixed date to avoid unnecessary date object creations
         const date = new Date(2000, 0, 1, hour, minute)
         const label = format(date, "h:mm a")
-        options.push({ value, label })
+        options.push({value, label})
       }
     }
     return options
@@ -117,30 +109,26 @@ export function EventDialog({
     const start = new Date(startDate)
     const end = new Date(endDate)
 
-    if (!allDay) {
-      const [startHours = 0, startMinutes = 0] = startTime
-        .split(":")
-        .map(Number)
-      const [endHours = 0, endMinutes = 0] = endTime.split(":").map(Number)
 
-      if (
-        startHours < StartHour ||
-        startHours > EndHour ||
-        endHours < StartHour ||
-        endHours > EndHour
-      ) {
-        setError(
-          `Selected time must be between ${StartHour}:00 and ${EndHour}:00`
-        )
-        return
-      }
+    const [startHours = 0, startMinutes = 0] = startTime
+      .split(":")
+      .map(Number)
+    const [endHours = 0, endMinutes = 0] = endTime.split(":").map(Number)
 
-      start.setHours(startHours, startMinutes, 0)
-      end.setHours(endHours, endMinutes, 0)
-    } else {
-      start.setHours(0, 0, 0, 0)
-      end.setHours(23, 59, 59, 999)
+    if (
+      startHours < StartHour ||
+      startHours > EndHour ||
+      endHours < StartHour ||
+      endHours > EndHour
+    ) {
+      setError(
+        `Selected time must be between ${StartHour}:00 and ${EndHour}:00`
+      )
+      return
     }
+
+    start.setHours(startHours, startMinutes, 0)
+    end.setHours(endHours, endMinutes, 0)
 
     // Validate that end date is not before start date
     if (isBefore(end, start)) {
@@ -148,24 +136,13 @@ export function EventDialog({
       return
     }
 
-    // Use generic title if empty
-    const eventTitle = title.trim() ? title : "(no title)"
-
-    onSaveAction({
-      id: event?.id || "",
-      title: eventTitle,
-      description,
-      start,
-      end,
-      allDay,
-      location,
-      color,
-    })
+    // TODO: Implement
+    onSaveAction({...defaultEvent})
   }
 
   const handleDelete = () => {
-    if (event?.id) {
-      onDeleteAction(event.id)
+    if (event?.ID) {
+      onDeleteAction(event.ID)
     }
   }
 
@@ -173,9 +150,9 @@ export function EventDialog({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCloseAction()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{event?.id ? "Edit Event" : "Create Event"}</DialogTitle>
+          <DialogTitle>{event?.ID ? "Edit Event" : "Create Event"}</DialogTitle>
           <DialogDescription className="sr-only">
-            {event?.id
+            {event?.ID
               ? "Edit the details of this event"
               : "Add a new event to your calendar"}
           </DialogDescription>
@@ -254,21 +231,21 @@ export function EventDialog({
               </Popover>
             </div>
 
-              <div className="min-w-28 *:not-first:mt-1.5">
-                <Label htmlFor="start-time">Start Uhrzeit</Label>
-                <Select value={startTime} onValueChange={setStartTime}>
-                  <SelectTrigger id="start-time">
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="min-w-28 *:not-first:mt-1.5">
+              <Label htmlFor="start-time">Start Uhrzeit</Label>
+              <Select value={startTime} onValueChange={setStartTime}>
+                <SelectTrigger id="start-time">
+                  <SelectValue placeholder="Select time"/>
+                </SelectTrigger>
+                <SelectContent>
+                  {timeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
           </div>
 
@@ -305,7 +282,7 @@ export function EventDialog({
                     mode="single"
                     selected={endDate}
                     defaultMonth={endDate}
-                    disabled={{ before: startDate }}
+                    disabled={{before: startDate}}
                     onSelect={(date) => {
                       if (date) {
                         setEndDate(date)
@@ -319,33 +296,33 @@ export function EventDialog({
             </div>
 
             <div className="min-w-28 *:not-first:mt-1.5">
-                <Label htmlFor="end-time">End Time</Label>
-                <Select value={endTime} onValueChange={setEndTime}>
-                  <SelectTrigger id="end-time">
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Label htmlFor="end-time">End Time</Label>
+              <Select value={endTime} onValueChange={setEndTime}>
+                <SelectTrigger id="end-time">
+                  <SelectValue placeholder="Select time"/>
+                </SelectTrigger>
+                <SelectContent>
+                  {timeOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
           </div>
 
         </div>
         <DialogFooter className="flex-row sm:justify-between">
-          {event?.id && (
+          {event?.ID && (
             <Button
               variant="outline"
               size="icon"
               onClick={handleDelete}
               aria-label="Delete event"
             >
-              <RiDeleteBinLine size={16} aria-hidden="true" className={'stroke-destructive'} />
+              <RiDeleteBinLine size={16} aria-hidden="true" className={'stroke-destructive'}/>
             </Button>
           )}
           <div className="flex flex-1 justify-end gap-2">
