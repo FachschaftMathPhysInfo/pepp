@@ -75,8 +75,8 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       to: data.to,
     }
 
-    if (event) await handleCreation(data, newEvent);
-    else await handleUpdate(data, newEvent);
+    if (event) await handleUpdate(data, newEvent);
+    else await handleCreation(data, newEvent);
   }
 
   async function handleCreation(data: z.infer<typeof eventFormSchema>, newEvent: NewEvent) {
@@ -156,47 +156,8 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           )}
         />
 
-        {/* Labels */}
-        <div className={'flex items-center gap-2'}>
-          <FormField
-            control={form.control}
-            name="topicID"
-            render={({field}) => (
-              <FormItem>
-                <FormLabel className={'hidden'}>Thema</FormLabel>
-                <FormControl>
-                  <BadgePicker
-                    kind={LabelKind.Topic}
-                    selected={field.value}
-                    onChange={(label) => field.onChange(label)}
-                  />
-                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="typeID"
-            render={({field}) => (
-              <FormItem>
-                <FormLabel className={'hidden'}>Art des Events</FormLabel>
-                <FormControl>
-                  <BadgePicker
-                    kind={LabelKind.EventType}
-                    selected={field.value}
-                    onChange={(label) => field.onChange(label)}
-                  />
-                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
-        </div>
-
         {/* Time */}
-        <div className={'flex items-cente justify-between flex-wrap'}>
+        <div className={'flex items-cente justify-between flex-wrap gap-2'}>
           <FormField
             control={form.control}
             name="date"
@@ -243,28 +204,69 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           </div>
         </div>
 
+        {/* Labels */}
+        <div className={'flex items-center justify-between flex-wrap gap-2'}>
+          <div className={'flex items-center gap-2'}>
+            <FormField
+              control={form.control}
+              name="topicID"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel className={'hidden'}>Thema</FormLabel>
+                  <FormControl>
+                    <BadgePicker
+                      kind={LabelKind.Topic}
+                      selected={field.value}
+                      onChange={(label) => field.onChange(label)}
+                    />
+                  </FormControl>
+                  <FormMessage/>
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="needsTutors"
-          render={({field}) => (
-            <FormItem>
-              <FormLabel className={'hidden'}>Benötigt Tutor:innen</FormLabel>
-              <FormControl>
-                <span className={'flex items-center gap-2'}>
+            <FormField
+              control={form.control}
+              name="typeID"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel className={'hidden'}>Art des Events</FormLabel>
+                  <FormControl>
+                    <BadgePicker
+                      kind={LabelKind.EventType}
+                      selected={field.value}
+                      onChange={(label) => field.onChange(label)}
+                    />
+                  </FormControl>
+                  <FormMessage/>
+                </FormItem>
+              )}
+            />
+          </div>
+
+
+          <FormField
+            control={form.control}
+            name="needsTutors"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel className={'hidden'}>Benötigt Tutor:innen</FormLabel>
+                <FormControl>
+                <span className={'flex items-center gap-2 min-w-fit'}>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                   Benötigt Tutor:innen
                 </span>
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <div className="w-full flex justify-between items-center">
+        <div className="w-full flex justify-between items-center mt-8">
           <Button
             type={"button"}
             variant={"outline"}
