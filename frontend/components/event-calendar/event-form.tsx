@@ -27,8 +27,9 @@ import {BadgePicker} from "@/components/badge-picker";
 import {DatePicker} from "@/components/date-picker";
 import {Checkbox} from "@/components/ui/checkbox";
 import {DialogFooter} from "@/components/ui/dialog";
-import {formatDateToHHMM} from "@/lib/utils";
+import {extractId, formatDateToHHMM} from "@/lib/utils";
 import ConfirmationDialog from "@/components/confirmation-dialog";
+import {usePathname} from "next/navigation";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -48,6 +49,8 @@ interface EventFormProps {
 }
 
 export function EventForm({event, edit, onCloseAction}: EventFormProps) {
+  const pathname = usePathname()
+  const umbrellaID = extractId(pathname)
   const {sid} = useUser();
   const {triggerRefetch} = useRefetch();
   const [submitted, setSubmitted] = useState(false);
@@ -82,7 +85,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     else await handleCreation(data, newEvent);
   }
 
-  const mergeDateAndTime = (date: Date, time: string) => {
+  function mergeDateAndTime (date: Date, time: string) {
     const [hours, minutes] = time.split(":").map(Number);
 
     const mergedDate = new Date(date);
@@ -95,7 +98,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     const client = getClient(String(sid))
 
     try {
-      await client.request<AddEventMutation>(AddEventDocument, {event: newEvent})
+      await client.request<AddEventMutation>(AddEventDocument, {event: {...newEvent, umbrellaID: umbrellaID}})
       toast.success(`Event ${data.title} wurde erstellt`)
       triggerRefetch()
       onCloseAction()
@@ -256,7 +259,6 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                 )}
               />
             </div>
-
 
             <FormField
               control={form.control}
