@@ -27,6 +27,7 @@ import {BadgePicker} from "@/components/badge-picker";
 import {DatePicker} from "@/components/date-picker";
 import {Checkbox} from "@/components/ui/checkbox";
 import {DialogFooter} from "@/components/ui/dialog";
+import {formatDateToHHMM} from "@/lib/utils";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -56,8 +57,8 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       title: event?.title ?? "",
       description: event?.description ?? "",
       date: event ? new Date(event.from) : new Date(),
-      from: event?.from ?? new Date(),
-      to: event?.to ?? new Date(),
+      from: formatDateToHHMM(event ? new Date(event.from) : new Date()),
+      to: formatDateToHHMM(event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)),
       topicID: event?.topic.ID ?? 0,
       typeID: event?.type.ID ?? 0,
       needsTutors: event?.needsTutors ?? true,
@@ -71,13 +72,22 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       topicID: data.topicID,
       typeID: data.typeID,
       needsTutors: data.needsTutors,
-      from: data.from,
-      to: data.to,
+      from: mergeDateAndTime(data.date, data.from),
+      to: mergeDateAndTime(data.date, data.to),
     }
 
     if (event) await handleUpdate(data, newEvent);
     else await handleCreation(data, newEvent);
   }
+
+  const mergeDateAndTime = (date: Date, time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+
+    const mergedDate = new Date(date);
+    mergedDate.setHours(hours, minutes, 0, 0);
+
+    return mergedDate;
+  };
 
   async function handleCreation(data: z.infer<typeof eventFormSchema>, newEvent: NewEvent) {
     const client = getClient(String(sid))
@@ -118,7 +128,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       toast.success(`Event ${event.title} wurde gelöscht`)
       onCloseAction();
     } catch {
-      toast.error("Ein Fehler beim Löschen des events ist aufgetreten")
+      toast.error("Ein Fehler beim Löschen des Events ist aufgetreten")
     }
   }
 
@@ -182,7 +192,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               render={({field}) => (
                 <FormItem>
                   <FormControl>
-                    <Input aria-label="Time" type="time" {...field} />
+                    <Input aria-label="start time" type="time" {...field} />
                   </FormControl>
                   <FormMessage/>
                 </FormItem>
@@ -195,7 +205,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                 <FormItem className={'flex items-center gap-2'}>
                   bis
                   <FormControl>
-                    <Input aria-label="Time" type="time" {...field} />
+                    <Input aria-label="Time" type="time" placeholder={event?.to} {...field} />
                   </FormControl>
                   <FormMessage/>
                 </FormItem>
@@ -266,6 +276,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           />
         </div>
 
+        {/* Footer */}
         <div className="w-full flex justify-between items-center mt-8">
           <Button
             type={"button"}
