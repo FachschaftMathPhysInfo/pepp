@@ -46,13 +46,18 @@ query tutorialsOfEvent ($eventID: Int!) {
     ID
     room {
       number
+      name
       building {
         ID
+        name
+        number
       }
     }
     tutors {
       ID
       mail
+      fn
+      sn
     }
   }
 }

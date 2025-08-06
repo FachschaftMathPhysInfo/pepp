@@ -82,6 +82,7 @@ export function TutorialsTable({
     }, {} as { [key: string]: Room[] });
   };
 
+  // Fetch Available Rooms and Tutors
   useEffect(() => {
     if (!edit) return;
 
@@ -271,13 +272,11 @@ export function TutorialsTable({
                 const isRegisteredEvent =
                   e.room.number === registration?.room.number &&
                   e.room.building.ID === registration?.room.building.ID;
-                const isTutor = usersTutorials?.find(
+                const isTutor = !!usersTutorials?.find(
                   (t) =>
                     t.room.number === e.room.number &&
                     t.room.building.ID === e.room.building.ID
-                )
-                  ? true
-                  : false;
+                );
 
                 return (
                   <TableRow key={e.room?.number} className="relative">

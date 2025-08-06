@@ -4,7 +4,7 @@ import {useRefetch, useUser} from "@/components/providers";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {zodResolver} from "@hookform/resolvers/zod";
-import React, {useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {
   AddEventDocument,
   AddEventMutation,
@@ -12,7 +12,7 @@ import {
   DeleteEventMutation,
   Event,
   LabelKind,
-  NewEvent,
+  NewEvent, Tutorial, TutorialsOfEventDocument, TutorialsOfEventQuery,
   UpdateEventDocument,
   UpdateEventMutation
 } from "@/lib/gql/generated/graphql"
@@ -22,7 +22,7 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import {Button} from "@/components/ui/button";
-import {PlusCircle, Save, Trash} from "lucide-react";
+import {CirclePlus, PlusCircle, Save, Trash} from "lucide-react";
 import {BadgePicker} from "@/components/badge-picker";
 import {DatePicker} from "@/components/date-picker";
 import {Checkbox} from "@/components/ui/checkbox";
@@ -30,6 +30,10 @@ import {DialogFooter} from "@/components/ui/dialog";
 import {extractId, formatDateToHHMM} from "@/lib/utils";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import {usePathname} from "next/navigation";
+import {defaultBuilding, defaultTutorial, defaultUser} from "@/types/defaults";
+import {Card, CardContent} from "@/components/ui/card";
+import TutorialElement from "@/components/dialog/events/tutorial-element";
+import TutorialCard from "@/components/dialog/events/tutorial-card";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -55,6 +59,41 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
   const {triggerRefetch} = useRefetch();
   const [submitted, setSubmitted] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+
+  const fetchTutorials = useCallback(async () => {
+    if (!event) return;
+
+    const client = getClient()
+    try {
+      const tutorialData = await client.request<TutorialsOfEventQuery>(
+        TutorialsOfEventDocument,
+        {eventID: event.ID}
+      )
+      const newTutorials: Tutorial[] = tutorialData.tutorials.map(
+        tutorial => ({
+          ...defaultTutorial,
+          ...tutorial,
+          event: event,
+          room: {...tutorial.room, building: {...defaultBuilding, ...tutorial.room.building}},
+          tutors: tutorial.tutors?.map(tutor => ({
+            ...defaultUser,
+            ...tutor,
+          }))
+        })
+      )
+
+      console.log(newTutorials);
+      setTutorials(newTutorials);
+    } catch {
+      toast.error(`Fehler beim Laden der Tutorien des Events ${event.title}`)
+    }
+  }, [event])
+
+  // Fetch tutorials of event
+  useEffect(() => {
+    void fetchTutorials()
+  }, [event]);
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
@@ -92,7 +131,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     mergedDate.setHours(hours, minutes, 0, 0);
 
     return mergedDate;
-  };
+  }
 
   async function handleCreation(data: z.infer<typeof eventFormSchema>, newEvent: NewEvent) {
     const client = getClient(String(sid))
@@ -281,6 +320,10 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
             />
           </div>
 
+          {event && (
+            <TutorialCard tutorials={tutorials} />
+          )}
+
           {/* Footer */}
           <div className="w-full flex justify-between items-center mt-8">
             <Button
@@ -289,7 +332,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               onClick={() => setConfirmationDialogOpen(true)}
               className={'aspect-square'}
             >
-              <Trash className={'stroke-destructive'}/>
+              <Trash className={'stroke-red-600'}/>
             </Button>
 
             <DialogFooter className={'flex items-center gap-4'}>
@@ -314,7 +357,6 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
         onConfirm={handleDelete}
         description={`Dies wird das Event ${event?.title} unwiderruflich löschen`}
       />
-
     </>
   )
 }
