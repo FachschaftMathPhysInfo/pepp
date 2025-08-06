@@ -28,6 +28,7 @@ import {DatePicker} from "@/components/date-picker";
 import {Checkbox} from "@/components/ui/checkbox";
 import {DialogFooter} from "@/components/ui/dialog";
 import {formatDateToHHMM} from "@/lib/utils";
+import ConfirmationDialog from "@/components/confirmation-dialog";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -50,6 +51,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
   const {sid} = useUser();
   const {triggerRefetch} = useRefetch();
   const [submitted, setSubmitted] = useState(false);
+  const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
@@ -133,135 +135,136 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
-        className={'w-full flex flex-col gap-y-4'}
-      >
-        <FormField
-          control={form.control}
-          name="title"
-          render={({field}) => (
-            <FormItem>
-              <FormLabel>Titel</FormLabel>
-              <FormControl>
-                <Input placeholder="Veranstaltungstitel" {...field}  />
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({field}) => (
-            <FormItem>
-              <FormLabel>Beschreibung</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Beschreibung des Events" {...field}  />
-              </FormControl>
-              <FormMessage/>
-            </FormItem>
-          )}
-        />
-
-        {/* Time */}
-        <div className={'flex items-cente justify-between flex-wrap gap-2'}>
+    <>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
+          className={'w-full flex flex-col gap-y-4'}
+        >
           <FormField
             control={form.control}
-            name="date"
+            name="title"
             render={({field}) => (
               <FormItem>
-                <FormLabel className={'hidden'}>Datum</FormLabel>
+                <FormLabel>Titel</FormLabel>
                 <FormControl>
-                  <DatePicker
-                    selected={field.value}
-                    onChange={(date) => field.onChange(date)}
-                  />
+                  <Input placeholder="Veranstaltungstitel" {...field}  />
                 </FormControl>
                 <FormMessage/>
               </FormItem>
             )}
           />
 
-          <div className="flex items-center space-x-2">
-            <FormField
-              control={form.control}
-              name="from"
-              render={({field}) => (
-                <FormItem>
-                  <FormControl>
-                    <Input aria-label="start time" type="time" {...field} />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="to"
-              render={({field}) => (
-                <FormItem className={'flex items-center gap-2'}>
-                  bis
-                  <FormControl>
-                    <Input aria-label="Time" type="time" placeholder={event?.to} {...field} />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        {/* Labels */}
-        <div className={'flex items-center justify-between flex-wrap gap-2'}>
-          <div className={'flex items-center gap-2'}>
-            <FormField
-              control={form.control}
-              name="topicID"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel className={'hidden'}>Thema</FormLabel>
-                  <FormControl>
-                    <BadgePicker
-                      kind={LabelKind.Topic}
-                      selected={field.value}
-                      onChange={(label) => field.onChange(label)}
-                    />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="typeID"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel className={'hidden'}>Art des Events</FormLabel>
-                  <FormControl>
-                    <BadgePicker
-                      kind={LabelKind.EventType}
-                      selected={field.value}
-                      onChange={(label) => field.onChange(label)}
-                    />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
-
-
           <FormField
             control={form.control}
-            name="needsTutors"
+            name="description"
             render={({field}) => (
               <FormItem>
-                <FormLabel className={'hidden'}>Benötigt Tutor:innen</FormLabel>
+                <FormLabel>Beschreibung</FormLabel>
                 <FormControl>
+                  <Textarea placeholder="Beschreibung des Events" {...field}  />
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+
+          {/* Time */}
+          <div className={'flex items-cente justify-between flex-wrap gap-2'}>
+            <FormField
+              control={form.control}
+              name="date"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel className={'hidden'}>Datum</FormLabel>
+                  <FormControl>
+                    <DatePicker
+                      selected={field.value}
+                      onChange={(date) => field.onChange(date)}
+                    />
+                  </FormControl>
+                  <FormMessage/>
+                </FormItem>
+              )}
+            />
+
+            <div className="flex items-center space-x-2">
+              <FormField
+                control={form.control}
+                name="from"
+                render={({field}) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input aria-label="start time" type="time" {...field} />
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="to"
+                render={({field}) => (
+                  <FormItem className={'flex items-center gap-2'}>
+                    bis
+                    <FormControl>
+                      <Input aria-label="Time" type="time" placeholder={event?.to} {...field} />
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Labels */}
+          <div className={'flex items-center justify-between flex-wrap gap-2'}>
+            <div className={'flex items-center gap-2'}>
+              <FormField
+                control={form.control}
+                name="topicID"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel className={'hidden'}>Thema</FormLabel>
+                    <FormControl>
+                      <BadgePicker
+                        kind={LabelKind.Topic}
+                        selected={field.value}
+                        onChange={(label) => field.onChange(label)}
+                      />
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="typeID"
+                render={({field}) => (
+                  <FormItem>
+                    <FormLabel className={'hidden'}>Art des Events</FormLabel>
+                    <FormControl>
+                      <BadgePicker
+                        kind={LabelKind.EventType}
+                        selected={field.value}
+                        onChange={(label) => field.onChange(label)}
+                      />
+                    </FormControl>
+                    <FormMessage/>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+
+            <FormField
+              control={form.control}
+              name="needsTutors"
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel className={'hidden'}>Benötigt Tutor:innen</FormLabel>
+                  <FormControl>
                 <span className={'flex items-center gap-2 min-w-fit'}>
                   <Checkbox
                     checked={field.value}
@@ -269,37 +272,47 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                   />
                   Benötigt Tutor:innen
                 </span>
-                </FormControl>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Footer */}
-        <div className="w-full flex justify-between items-center mt-8">
-          <Button
-            type={"button"}
-            variant={"outline"}
-            onClick={() => handleDelete()}
-            className={'aspect-square'}
-          >
-            <Trash className={'stroke-destructive'}/>
-          </Button>
-
-          <DialogFooter className={'flex items-center gap-4'}>
-            <Button type="button" variant={"outline"} onClick={onCloseAction}>
-              Abbrechen
-            </Button>
-            <Button type={"submit"} disabled={!form.formState.isValid && submitted}>
-              {edit ? (
-                <><Save/> Speichern</>
-              ) : (
-                <><PlusCircle/> Erstellen</>
+                  </FormControl>
+                  <FormMessage/>
+                </FormItem>
               )}
-            </Button></DialogFooter>
-        </div>
-      </form>
-    </Form>
+            />
+          </div>
+
+          {/* Footer */}
+          <div className="w-full flex justify-between items-center mt-8">
+            <Button
+              type={"button"}
+              variant={"outline"}
+              onClick={() => setConfirmationDialogOpen(true)}
+              className={'aspect-square'}
+            >
+              <Trash className={'stroke-destructive'}/>
+            </Button>
+
+            <DialogFooter className={'flex items-center gap-4'}>
+              <Button type="button" variant={"outline"} onClick={onCloseAction}>
+                Abbrechen
+              </Button>
+              <Button type={"submit"} disabled={!form.formState.isValid && submitted}>
+                {edit ? (
+                  <><Save/> Speichern</>
+                ) : (
+                  <><PlusCircle/> Erstellen</>
+                )}
+              </Button></DialogFooter>
+          </div>
+        </form>
+      </Form>
+
+      <ConfirmationDialog
+        isOpen={confirmationDialogOpen}
+        mode={"confirmation"}
+        closeDialog={() => setConfirmationDialogOpen(false)}
+        onConfirm={handleDelete}
+        description={`Dies wird das Event ${event?.title} unwiderruflich löschen`}
+      />
+
+    </>
   )
 }
