@@ -1,10 +1,8 @@
 import {Button} from "@/components/ui/button";
 import {Event,} from "@/lib/gql/generated/graphql";
-import {Edit2, PlusCircle} from "lucide-react";
+import {Edit2} from "lucide-react";
 import {useState} from "react";
 import {UmbrellaDialog} from "@/components/dialog/umbrellas/umbrella-dialog";
-import {Dialog} from "@/components/ui/dialog";
-import EventDialog from "@/components/dialog/events/event-dialog";
 
 interface EditPlannerSectionProps {
   umbrella: Event;
@@ -12,7 +10,6 @@ interface EditPlannerSectionProps {
 
 export default function EditPlannerSection({umbrella}: EditPlannerSectionProps) {
   const [umbrellaDialogOpen, setUmbrellaDialogOpen] = useState(false);
-  const [eventDialogOpen, setEventDialogOpen] = useState(false);
 
   if (!umbrella) return;
 
@@ -23,10 +20,6 @@ export default function EditPlannerSection({umbrella}: EditPlannerSectionProps) 
         <Button variant={"ghost"} onClick={() => setUmbrellaDialogOpen(true)}>
           <Edit2/>
         </Button>
-        <Button variant={"secondary"} onClick={() => setEventDialogOpen(true)}>
-          <PlusCircle className={'inline mr-2'}/>
-          Event hinzufügen
-        </Button>
       </div>
 
       <UmbrellaDialog
@@ -36,16 +29,6 @@ export default function EditPlannerSection({umbrella}: EditPlannerSectionProps) 
         closeDialog={() => setUmbrellaDialogOpen(false)}
         createMode={false}
       />
-
-      <Dialog
-        open={eventDialogOpen}
-        onOpenChange={setEventDialogOpen}
-      >
-        <EventDialog
-          open={eventDialogOpen}
-          closeDialogAction={() => setEventDialogOpen(false)}
-          modify/>
-      </Dialog>
     </>
   );
 }

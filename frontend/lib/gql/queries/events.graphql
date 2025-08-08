@@ -71,6 +71,7 @@ query plannerEvents($umbrellaID: Int!, $type: [Int!], $topic: [Int!]) {
   events(umbrellaID: [$umbrellaID], typeID: $type, topicID: $topic, includeSupportingEvents: true) {
     ID
     title
+    description
     from
     to
     topic {
