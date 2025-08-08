@@ -1,39 +1,35 @@
-"use client"
+"use client";
 
-import React, { useMemo } from "react"
-import type { DraggableAttributes } from "@dnd-kit/core"
-import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities"
-import { differenceInMinutes, format, getMinutes, isPast } from "date-fns"
+import React, { useMemo } from "react";
+import type { DraggableAttributes } from "@dnd-kit/core";
+import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
+import { differenceInMinutes, format, getMinutes, isPast } from "date-fns";
 
-import { cn } from "@/lib/utils"
-import {
-  getBorderRadiusClasses,
-  getEventColorClasses,
-} from "@/components/event-calendar"
-import type { Event } from "@/lib/gql/generated/graphql"
-
+import { cn, hexToRGBA } from "@/lib/utils";
+import { getBorderRadiusClasses } from "@/components/event-calendar";
+import type { Event } from "@/lib/gql/generated/graphql";
 
 // Using date-fns format with custom formatting:
 // 'h' - hours (1-12)
 // 'a' - am/pm
 // ':mm' - minutes with leading zero (only if the token 'mm' is present)
 const formatTimeWithOptionalMinutes = (date: Date) => {
-  return format(date, getMinutes(date) === 0 ? "ha" : "h:mma").toLowerCase()
-}
+  return format(date, getMinutes(date) === 0 ? "ha" : "h:mma").toLowerCase();
+};
 
 interface EventWrapperProps {
-  event: Event
-  isFirstDay?: boolean
-  isLastDay?: boolean
-  isDragging?: boolean
-  onClick?: (e: React.MouseEvent) => void
-  className?: string
-  children: React.ReactNode
-  currentTime?: Date
-  dndListeners?: SyntheticListenerMap
-  dndAttributes?: DraggableAttributes
-  onMouseDown?: (e: React.MouseEvent) => void
-  onTouchStart?: (e: React.TouchEvent) => void
+  event: Event;
+  isFirstDay?: boolean;
+  isLastDay?: boolean;
+  isDragging?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+  className?: string;
+  children: React.ReactNode;
+  currentTime?: Date;
+  dndListeners?: SyntheticListenerMap;
+  dndAttributes?: DraggableAttributes;
+  onMouseDown?: (e: React.MouseEvent) => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
 }
 
 // Shared wrapper component for event styling
@@ -57,15 +53,17 @@ function EventWrapper({
         new Date(currentTime).getTime() +
           (new Date(event.to).getTime() - new Date(event.from).getTime())
       )
-    : new Date(event.to)
+    : new Date(event.to);
 
-  const isEventInPast = isPast(displayEnd)
+  const isEventInPast = isPast(displayEnd);
 
   return (
     <button
+      style={{
+        backgroundColor: hexToRGBA(event.type.color, 0.3),
+      }}
       className={cn(
         "focus-visible:border-ring focus-visible:ring-ring/50 flex h-full w-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg data-past-event:line-through sm:px-2",
-        getEventColorClasses(event.type.color),
         getBorderRadiusClasses(isFirstDay, isLastDay),
         className
       )}
@@ -79,24 +77,24 @@ function EventWrapper({
     >
       {children}
     </button>
-  )
+  );
 }
 
 interface EventItemProps {
-  event: Event
-  view: "month" | "week" | "day" | "agenda"
-  isDragging?: boolean
-  onClick?: (e: React.MouseEvent) => void
-  showTime?: boolean
-  currentTime?: Date // For updating time during drag
-  isFirstDay?: boolean
-  isLastDay?: boolean
-  children?: React.ReactNode
-  className?: string
-  dndListeners?: SyntheticListenerMap
-  dndAttributes?: DraggableAttributes
-  onMouseDown?: (e: React.MouseEvent) => void
-  onTouchStart?: (e: React.TouchEvent) => void
+  event: Event;
+  view: "month" | "week" | "day" | "agenda";
+  isDragging?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+  showTime?: boolean;
+  currentTime?: Date; // For updating time during drag
+  isFirstDay?: boolean;
+  isLastDay?: boolean;
+  children?: React.ReactNode;
+  className?: string;
+  dndListeners?: SyntheticListenerMap;
+  dndAttributes?: DraggableAttributes;
+  onMouseDown?: (e: React.MouseEvent) => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
 }
 
 export function EventItem({
@@ -115,12 +113,10 @@ export function EventItem({
   onMouseDown,
   onTouchStart,
 }: EventItemProps) {
-  const eventColor = event.type.color
-
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = useMemo(() => {
-    return currentTime || new Date(event.from)
-  }, [currentTime, event.from])
+    return currentTime || new Date(event.from);
+  }, [currentTime, event.from]);
 
   const displayEnd = useMemo(() => {
     return currentTime
@@ -128,23 +124,25 @@ export function EventItem({
           new Date(currentTime).getTime() +
             (new Date(event.to).getTime() - new Date(event.from).getTime())
         )
-      : new Date(event.to)
-  }, [currentTime, event.from, event.to])
+      : new Date(event.to);
+  }, [currentTime, event.from, event.to]);
 
   // Calculate event duration in minutes
   const durationMinutes = useMemo(() => {
-    return differenceInMinutes(displayEnd, displayStart)
-  }, [displayStart, displayEnd])
+    return differenceInMinutes(displayEnd, displayStart);
+  }, [displayStart, displayEnd]);
 
   const getEventTime = () => {
     // For short events (less than 45 minutes), only show start time
     if (durationMinutes < 45) {
-      return formatTimeWithOptionalMinutes(displayStart)
+      return formatTimeWithOptionalMinutes(displayStart);
     }
 
     // For longer events, show both start and end time
-    return `${formatTimeWithOptionalMinutes(displayStart)} - ${formatTimeWithOptionalMinutes(displayEnd)}`
-  }
+    return `${formatTimeWithOptionalMinutes(
+      displayStart
+    )} - ${formatTimeWithOptionalMinutes(displayEnd)}`;
+  };
 
   if (view === "month") {
     return (
@@ -166,14 +164,14 @@ export function EventItem({
       >
         {children || (
           <span className="truncate">
-              <span className="truncate font-normal opacity-70 sm:text-[11px]">
-                {formatTimeWithOptionalMinutes(displayStart)}{" "}
-              </span>
+            <span className="truncate font-normal opacity-70 sm:text-[11px]">
+              {formatTimeWithOptionalMinutes(displayStart)}{" "}
+            </span>
             {event.title}
           </span>
         )}
       </EventWrapper>
-    )
+    );
   }
 
   if (view === "week" || view === "day") {
@@ -216,15 +214,17 @@ export function EventItem({
           </>
         )}
       </EventWrapper>
-    )
+    );
   }
 
   // Agenda view - kept separate since it's significantly different
   return (
     <button
+      style={{
+        backgroundColor: hexToRGBA(event.type.color, 0.3),
+      }}
       className={cn(
         "focus-visible:border-ring focus-visible:ring-ring/50 flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:ring-[3px] data-past-event:line-through data-past-event:opacity-90",
-        getEventColorClasses(eventColor),
         className
       )}
       data-past-event={isPast(new Date(event.to)) || undefined}
@@ -235,11 +235,10 @@ export function EventItem({
       {...dndAttributes}
     >
       <div className="text-sm font-medium">{event.title}</div>
-      <div className="text-xs opacity-70">
-      </div>
+      <div className="text-xs opacity-70"></div>
       {event.description && (
         <div className="my-1 text-xs opacity-90">{event.description}</div>
       )}
     </button>
-  )
+  );
 }
