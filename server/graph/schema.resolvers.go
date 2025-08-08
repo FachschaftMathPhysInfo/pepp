@@ -571,6 +571,90 @@ func (r *mutationResolver) DeleteForm(ctx context.Context, id []int) (int, error
 	return int(rowsAffected), nil
 }
 
+// AddQuestion is the resolver for the addQuestion field.
+func (r *mutationResolver) AddQuestion(ctx context.Context, question models.Question, answer []*models.Answer) (int, error) {
+	if _, err := r.DB.NewInsert().
+		Model(&question).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	if _, err := r.Mutation().AddAnswer(ctx, int(question.ID), answer); err != nil {
+		return 0, err
+	}
+
+	return int(question.ID), nil
+}
+
+// UpdateQuestion is the resolver for the updateQuestion field.
+func (r *mutationResolver) UpdateQuestion(ctx context.Context, id int, question models.Question) (int, error) {
+	if _, err := r.DB.NewUpdate().
+		Model(&question).
+		Where("id = ?", id).
+		OmitZero().
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+// DeleteQuestion is the resolver for the deleteQuestion field.
+func (r *mutationResolver) DeleteQuestion(ctx context.Context, id []int) (int, error) {
+	res, err := r.DB.NewDelete().
+		Model((*models.Question)(nil)).
+		Where("id IN (?)", id).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, _ := res.RowsAffected()
+	return int(rowsAffected), nil
+}
+
+// AddAnswer is the resolver for the addAnswer field.
+func (r *mutationResolver) AddAnswer(ctx context.Context, questionID int, answer []*models.Answer) (int, error) {
+	for i, _ := range answer {
+		answer[i].QuestionID = int32(questionID)
+	}
+
+	if _, err := r.DB.NewInsert().
+		Model(&answer).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return len(answer), nil
+}
+
+// UpdateAnswer is the resolver for the updateAnswer field.
+func (r *mutationResolver) UpdateAnswer(ctx context.Context, id int, answer models.Answer) (int, error) {
+	if _, err := r.DB.NewUpdate().
+		Model(&answer).
+		Where("id = ?", id).
+		OmitZero().
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+// DeleteAnswer is the resolver for the deleteAnswer field.
+func (r *mutationResolver) DeleteAnswer(ctx context.Context, id []int) (int, error) {
+	res, err := r.DB.NewDelete().
+		Model((*models.Answer)(nil)).
+		Where("id IN (?)", id).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	rowsAffected, _ := res.RowsAffected()
+	return int(rowsAffected), nil
+}
+
 // AddTutorAssignmentForTutorial is the resolver for the addTutorAssignmentForTutorial field.
 func (r *mutationResolver) AddTutorAssignmentForTutorial(ctx context.Context, assignment models.TutorialToUserAssignment) (int, error) {
 	if _, err := r.DB.NewInsert().

@@ -226,16 +226,21 @@ input NewAnswer {
 }
 
 input NewQuestion {
+  formID: Int!
   title: String!
   type: QuestionType!
-  answers: [NewAnswer!]!
   required: Boolean!
+}
+
+input UpdateQuestion {
+  id: Int!
+  title: String
+  required: Boolean
 }
 
 input NewForm {
   title: String!
   description: String
-  questions: [NewQuestion!]!
 }
 
 input NewSetting {
@@ -301,13 +306,19 @@ type Mutation {
   addForm(form: NewForm!): Form! @auth(role: ADMIN)
   updateForm(id: Int!, form: NewForm!): Form! @auth(role: ADMIN)
   deleteForm(id: [Int!]!): Int! @auth(role: ADMIN)
+  addQuestion(question: NewQuestion!, answer: [NewAnswer!]!): Int! @auth(role: ADMIN)
+  updateQuestion(id: Int!, question: UpdateQuestion!): Int! @auth(role: ADMIN)
+  deleteQuestion(id: [Int!]!): Int! @auth(role: ADMIN)
+  addAnswer(questionID: Int!, answer: [NewAnswer!]!): Int! @auth(role: ADMIN)
+  updateAnswer(id: Int!, answer: NewAnswer!): Int! @auth(role: ADMIN)
+  deleteAnswer(id: [Int!]!): Int! @auth(role: ADMIN)
 
   addTutorAssignmentForTutorial(assignment: TutorialToUserAssignment!): Int! @auth(role: ADMIN)
   deleteTutorAssignmentForTutorial(assignment: TutorialToUserAssignment!): Int! @auth(role: ADMIN)
   addTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
   deleteTutorAvailabilityForEvent(availability: NewUserToEventAvailability!): User!
-  addStudentRegistrationForTutorial(registration: UserToTutorialRegistration!): Int! @auth(rule: IS_USER)
-  deleteStudentRegistrationForTutorial(registration: UserToTutorialRegistration!): Int! @auth(rule: IS_USER)
+  addStudentRegistrationForTutorial(registration: UserToTutorialRegistration!): Int!
+  deleteStudentRegistrationForTutorial(registration: UserToTutorialRegistration!): Int!
   addStudentApplicationForEvent(application: NewUserToEventApplication!): User!
   deleteStudentApplicationForEvent(studentID: Int!, eventID: Int!): User!
   linkSupportingEventToEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
