@@ -97,6 +97,39 @@ query umbrellaOfEvent($id: Int!) {
   }
 }
 
+query eventTutorials($id: Int!) {
+  events(id: [$id]) {
+    tutorials {
+      ID
+      tutors {
+        ID
+        fn
+        sn
+        mail
+        confirmed
+      }
+      room {
+        capacity
+        floor
+        name
+        number
+        building {
+          ID
+          name
+          street
+          number
+          city
+          zip
+          latitude
+          longitude
+          zoomLevel
+        }
+      }
+      registrationCount
+    }
+  }
+}
+
 query eventCloseup($id: Int!) {
   events(id: [$id]) {
     ID

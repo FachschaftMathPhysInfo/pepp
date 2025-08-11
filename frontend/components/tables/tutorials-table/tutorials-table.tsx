@@ -1,0 +1,310 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  AddStudentApplicationForEventMutation,
+  AddStudentRegistrationForTutorialDocument,
+  AddStudentRegistrationForTutorialMutationVariables,
+  DeleteStudentRegistrationForTutorialDocument,
+  DeleteStudentRegistrationForTutorialMutation,
+  DeleteStudentRegistrationForTutorialMutationVariables,
+  Event,
+  EventTutorialsDocument,
+  EventTutorialsQuery,
+  Tutorial,
+} from "@/lib/gql/generated/graphql";
+import { Loader2 } from "lucide-react";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../../ui/hover-card";
+import { MailLinkWithLabel } from "@/components/email-link";
+import { useUser } from "../../providers";
+import { getClient } from "@/lib/graphql";
+import React, { useEffect, useState } from "react";
+import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
+import { RoomHoverCard } from "../../room-hover-card";
+import { useRouter } from "next/navigation";
+import { slugify } from "@/lib/utils";
+import { toast } from "sonner";
+import { defaultTutorial, defaultUser } from "@/types/defaults";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface TutorialsTableProps {
+  event: Event;
+}
+
+export function TutorialsTable({ event }: TutorialsTableProps) {
+  const router = useRouter();
+  const client = getClient();
+
+  const { user, setUser, sid } = useUser();
+  const [loading, setLoading] = useState(false);
+  const [registration, setRegistration] = useState<Tutorial | undefined>();
+  const [usersTutorials, setUsersTutorials] = useState<Tutorial[]>();
+  const [tutorials, setTutorials] = useState<Tutorial[]>();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const eventData = await client.request<EventTutorialsQuery>(
+          EventTutorialsDocument,
+          { id: event.ID }
+        );
+        setTutorials(
+          eventData.events[0].tutorials?.map((t) => ({
+            ...defaultTutorial,
+            ...t,
+            tutors: t.tutors?.map((u) => ({ ...defaultUser, ...u })),
+          }))
+        );
+      } catch {
+        toast.error("Beim laden der Tutorien ist ein Fehler aufgetreten.");
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    setRegistration(user.registrations?.find((r) => r.event.ID === event.ID));
+    setUsersTutorials(user.tutorials?.filter((t) => t.event.ID === event.ID));
+  }, [user]);
+
+  const registerForTutorial = async (tutorial: Tutorial) => {
+    const client = getClient(sid!);
+
+    const vars: AddStudentRegistrationForTutorialMutationVariables = {
+      registration: {
+        tutorialID: tutorial.ID,
+        userID: user!.ID,
+      },
+    };
+
+    try {
+      await client.request<AddStudentApplicationForEventMutation>(
+        AddStudentRegistrationForTutorialDocument,
+        vars
+      );
+    } catch {
+      toast.error(
+        "Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten."
+      );
+    }
+  };
+
+  const unregisterFromTutorial = async (tutorial: Tutorial) => {
+    const client = getClient(sid!);
+
+    const vars: DeleteStudentRegistrationForTutorialMutationVariables = {
+      registration: {
+        tutorialID: tutorial.ID,
+        userID: user!.ID,
+      },
+    };
+
+    try {
+      await client.request<DeleteStudentRegistrationForTutorialMutation>(
+        DeleteStudentRegistrationForTutorialDocument,
+        vars
+      );
+    } catch {
+      toast.error(
+        "Beim Austragen aus einer Veranstaltung ist ein Fehler aufgetreten."
+      );
+    }
+  };
+
+  const handleRegistrationChange = async (clickedTutorial: Tutorial) => {
+    setLoading(true);
+
+    if (registration) {
+      if (clickedTutorial.ID === registration.ID) {
+        //
+        // unregister from tutorial
+        //
+        await unregisterFromTutorial(registration);
+
+        setUser({
+          ...user!,
+          registrations: user?.registrations?.filter(
+            (r) => r.event.ID !== event.ID
+          ),
+        });
+
+        setTutorials(
+          tutorials?.map((t) => {
+            if (t.ID === clickedTutorial.ID) {
+              t.registrationCount -= 1;
+            }
+            return t;
+          })
+        );
+      } else {
+        //
+        // change to different tutorial
+        //
+        await unregisterFromTutorial(registration);
+        await registerForTutorial(clickedTutorial);
+
+        setUser({
+          ...user!,
+          registrations: user!.registrations?.map((t) => {
+            if (t.event.ID === event.ID) {
+              t = clickedTutorial;
+            }
+            return t;
+          }),
+        });
+
+        setTutorials(
+          tutorials?.map((t) => {
+            if (t.ID === clickedTutorial.ID) {
+              t.registrationCount += 1;
+            } else if (t.ID === registration.ID) {
+              t.registrationCount -= 1;
+            }
+            return t;
+          })
+        );
+      }
+    } else {
+      //
+      // initial registration for tutorial
+      //
+      await registerForTutorial(clickedTutorial);
+
+      setUser({
+        ...user!,
+        registrations: (user!.registrations || []).concat(clickedTutorial),
+      });
+
+      setTutorials(
+        tutorials?.map((t) => {
+          if (t.ID === clickedTutorial.ID) {
+            t.registrationCount += 1;
+          }
+          return t;
+        })
+      );
+    }
+
+    setLoading(false);
+  };
+
+  if (!tutorials) return <Skeleton />;
+
+  return (
+    <div className="rounded-md border overflow-hidden">
+      <Table>
+        <TableBody>
+          {tutorials && tutorials.length ? (
+            <>
+              {tutorials.map((e) => {
+                const utilization =
+                  (e.registrationCount / (e.room.capacity ?? 1)) * 100;
+                const isRegisteredEvent =
+                  e.room.number === registration?.room.number &&
+                  e.room.building.ID === registration?.room.building.ID;
+                const isTutor = !!usersTutorials?.find(
+                  (t) =>
+                    t.room.number === e.room.number &&
+                    t.room.building.ID === e.room.building.ID
+                );
+
+                return (
+                  <TableRow key={e.room?.number} className="relative">
+                    <div
+                      className="light:hidden absolute inset-0 z-0"
+                      style={{
+                        width: `${utilization}%`,
+                        backgroundColor: `${
+                          utilization < 100 ? "#024b30" : "#8b0000"
+                        }`,
+                      }}
+                    />
+                    <div
+                      className="dark:hidden absolute inset-0 z-0"
+                      style={{
+                        width: `${utilization}%`,
+                        backgroundColor: `${
+                          utilization < 100 ? "#BBF7D0" : "#FECACA"
+                        }`,
+                      }}
+                    />
+                    <TableCell className="relative z-1">
+                      {e.tutors?.map((t) => (
+                        <HoverCard key={t.mail}>
+                          <HoverCardTrigger asChild>
+                            <p className="hover:underline">
+                              {t.fn + " " + t.sn[0] + "."}
+                            </p>
+                          </HoverCardTrigger>
+                          <HoverCardContent>
+                            <MailLinkWithLabel
+                              mail={t.mail}
+                              label={t.fn + " " + t.sn}
+                            />
+                          </HoverCardContent>
+                        </HoverCard>
+                      ))}
+                    </TableCell>
+                    <TableCell className="relative z-1">
+                      <RoomHoverCard room={e.room} />
+                    </TableCell>
+                    <TableCell className="relative z-1">
+                      {e.registrationCount}/{e.room.capacity}
+                    </TableCell>
+                    <TableCell className="relative z-1">
+                      <Button
+                        className="w-full"
+                        disabled={
+                          (usersTutorials && !isTutor) ||
+                          (!isRegisteredEvent && utilization == 100) ||
+                          !user ||
+                          loading
+                        }
+                        variant={
+                          isRegisteredEvent && user ? "destructive" : "outline"
+                        }
+                        onClick={() => {
+                          if (isTutor) {
+                            router.push(
+                              `/profile/tutorials/${slugify(event.title)}-${
+                                event.ID
+                              }`
+                            );
+                          } else {
+                            handleRegistrationChange(e);
+                          }
+                        }}
+                      >
+                        {loading && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        {isTutor
+                          ? "Verwalten"
+                          : registration && user
+                          ? isRegisteredEvent
+                            ? "Austragen"
+                            : "Wechseln"
+                          : "Eintragen"}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </>
+          ) : (
+            <TableRow>
+              <TableCell colSpan={4} className="h-24 text-center">
+                Für diese Veranstaltung existieren noch keine Anmeldungen.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}

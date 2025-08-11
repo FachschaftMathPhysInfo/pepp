@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import React, {useEffect, useMemo, useState} from "react"
-import {RiCalendarCheckLine} from "@remixicon/react"
+import React, { useEffect, useMemo, useState } from "react";
+import { RiCalendarCheckLine } from "@remixicon/react";
 import {
   addDays,
   addHours,
@@ -13,18 +13,23 @@ import {
   startOfWeek,
   subMonths,
   subWeeks,
-} from "date-fns"
-import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon,} from "lucide-react"
+} from "date-fns";
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PlusIcon,
+} from "lucide-react";
 
-import {cn} from "@/lib/utils"
-import {Button} from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   AgendaDaysToShow,
   AgendaView,
@@ -37,29 +42,29 @@ import {
   MonthView,
   WeekCellsHeight,
   WeekView,
-} from "@/components/event-calendar"
-import {useUser} from "@/components/providers";
-import type {Event} from "@/lib/gql/generated/graphql"
-import {LabelKind, Role} from "@/lib/gql/generated/graphql";
+} from "@/components/event-calendar";
+import { useUser } from "@/components/providers";
+import type { Event } from "@/lib/gql/generated/graphql";
+import { LabelKind, Role } from "@/lib/gql/generated/graphql";
 
 export interface EventCalendarProps {
-  events?: Event[]
-  onEventAdd?: (event: Event) => void
-  onEventUpdate?: (event: Event) => void
-  className?: string
-  initialView?: CalendarView
+  events?: Event[];
+  onEventAdd?: (event: Event) => void;
+  onEventUpdate?: (event: Event) => void;
+  className?: string;
+  initialView?: CalendarView;
 }
 
 export function EventCalendar({
-                                events = [],
-                                className,
-                                initialView = "month",
-                              }: EventCalendarProps) {
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<CalendarView>(initialView)
-  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
-  const {user} = useUser();
+  events = [],
+  className,
+  initialView = "month",
+}: EventCalendarProps) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [view, setView] = useState<CalendarView>(initialView);
+  const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const { user } = useUser();
 
   // Add keyboard shortcuts for view switching
   useEffect(() => {
@@ -72,84 +77,84 @@ export function EventCalendar({
         e.target instanceof HTMLTextAreaElement ||
         (e.target instanceof HTMLElement && e.target.isContentEditable)
       ) {
-        return
+        return;
       }
 
       switch (e.key.toLowerCase()) {
         case "m":
-          setView("month")
-          break
+          setView("month");
+          break;
         case "w":
-          setView("week")
-          break
+          setView("week");
+          break;
         case "d":
-          setView("day")
-          break
+          setView("day");
+          break;
         case "a":
-          setView("agenda")
-          break
+          setView("agenda");
+          break;
       }
-    }
+    };
 
-    window.addEventListener("keydown", handleKeyDown)
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [isEventDialogOpen])
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isEventDialogOpen]);
 
   const handlePrevious = () => {
     if (view === "month") {
-      setCurrentDate(subMonths(currentDate, 1))
+      setCurrentDate(subMonths(currentDate, 1));
     } else if (view === "week") {
-      setCurrentDate(subWeeks(currentDate, 1))
+      setCurrentDate(subWeeks(currentDate, 1));
     } else if (view === "day") {
-      setCurrentDate(addDays(currentDate, -1))
+      setCurrentDate(addDays(currentDate, -1));
     } else if (view === "agenda") {
       // For agenda view, go back 30 days (a full month)
-      setCurrentDate(addDays(currentDate, -AgendaDaysToShow))
+      setCurrentDate(addDays(currentDate, -AgendaDaysToShow));
     }
-  }
+  };
 
   const handleNext = () => {
     if (view === "month") {
-      setCurrentDate(addMonths(currentDate, 1))
+      setCurrentDate(addMonths(currentDate, 1));
     } else if (view === "week") {
-      setCurrentDate(addWeeks(currentDate, 1))
+      setCurrentDate(addWeeks(currentDate, 1));
     } else if (view === "day") {
-      setCurrentDate(addDays(currentDate, 1))
+      setCurrentDate(addDays(currentDate, 1));
     } else if (view === "agenda") {
       // For agenda view, go forward 30 days (a full month)
-      setCurrentDate(addDays(currentDate, AgendaDaysToShow))
+      setCurrentDate(addDays(currentDate, AgendaDaysToShow));
     }
-  }
+  };
 
   const handleToday = () => {
-    setCurrentDate(new Date())
-  }
+    setCurrentDate(new Date());
+  };
 
   const handleEventSelect = (event: Event) => {
-    console.log("Event selected:", event) // Debug log
-    setSelectedEvent(event)
-    setIsEventDialogOpen(true)
-  }
+    console.log("Event selected:", event); // Debug log
+    setSelectedEvent(event);
+    setIsEventDialogOpen(true);
+  };
 
   const handleEventCreate = (startTime: Date) => {
-    console.log("Creating new event at:", startTime) // Debug log
+    console.log("Creating new event at:", startTime); // Debug log
 
     // Snap to 15-minute intervals
-    const minutes = startTime.getMinutes()
-    const remainder = minutes % 15
+    const minutes = startTime.getMinutes();
+    const remainder = minutes % 15;
     if (remainder !== 0) {
       if (remainder < 7.5) {
         // Round down to nearest 15 min
-        startTime.setMinutes(minutes - remainder)
+        startTime.setMinutes(minutes - remainder);
       } else {
         // Round up to nearest 15 min
-        startTime.setMinutes(minutes + (15 - remainder))
+        startTime.setMinutes(minutes + (15 - remainder));
       }
-      startTime.setSeconds(0)
-      startTime.setMilliseconds(0)
+      startTime.setSeconds(0);
+      startTime.setMilliseconds(0);
     }
 
     const newEvent: Event = {
@@ -158,25 +163,23 @@ export function EventCalendar({
       from: startTime,
       to: addHours(startTime, 1),
       needsTutors: false,
-      topic: {ID: 0, name: "", kind: LabelKind.Topic, color: ""},
-      type: {ID: 0, name: "", kind: LabelKind.EventType, color: ""}
-    }
-    setSelectedEvent(newEvent)
-    setIsEventDialogOpen(true)
-  }
-
-
+      topic: { ID: 0, name: "", kind: LabelKind.Topic, color: "" },
+      type: { ID: 0, name: "", kind: LabelKind.EventType, color: "" },
+    };
+    setSelectedEvent(newEvent);
+    setIsEventDialogOpen(true);
+  };
 
   const viewTitle = useMemo(() => {
     if (view === "month") {
-      return format(currentDate, "MMMM yyyy")
+      return format(currentDate, "MMMM yyyy");
     } else if (view === "week") {
-      const start = startOfWeek(currentDate, {weekStartsOn: 0})
-      const end = endOfWeek(currentDate, {weekStartsOn: 0})
+      const start = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const end = endOfWeek(currentDate, { weekStartsOn: 0 });
       if (isSameMonth(start, end)) {
-        return format(start, "MMMM yyyy")
+        return format(start, "MMMM yyyy");
       } else {
-        return `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`
+        return `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`;
       }
     } else if (view === "day") {
       return (
@@ -191,21 +194,21 @@ export function EventCalendar({
             {format(currentDate, "EEE MMMM d, yyyy")}
           </span>
         </>
-      )
+      );
     } else if (view === "agenda") {
       // Show the month range for agenda view
-      const start = currentDate
-      const end = addDays(currentDate, AgendaDaysToShow - 1)
+      const start = currentDate;
+      const end = addDays(currentDate, AgendaDaysToShow - 1);
 
       if (isSameMonth(start, end)) {
-        return format(start, "MMMM yyyy")
+        return format(start, "MMMM yyyy");
       } else {
-        return `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`
+        return `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`;
       }
     } else {
-      return format(currentDate, "MMMM yyyy")
+      return format(currentDate, "MMMM yyyy");
     }
-  }, [currentDate, view])
+  }, [currentDate, view]);
 
   return (
     <div
@@ -218,7 +221,11 @@ export function EventCalendar({
         } as React.CSSProperties
       }
     >
-      <CalendarDndProvider onEventUpdateAction={() => {return}}>
+      <CalendarDndProvider
+        onEventUpdateAction={() => {
+          return;
+        }}
+      >
         <div
           className={cn(
             "flex items-center justify-between p-2 sm:p-4",
@@ -245,7 +252,7 @@ export function EventCalendar({
                 onClick={handlePrevious}
                 aria-label="Previous"
               >
-                <ChevronLeftIcon size={16} aria-hidden="true"/>
+                <ChevronLeftIcon size={16} aria-hidden="true" />
               </Button>
               <Button
                 variant="ghost"
@@ -253,7 +260,7 @@ export function EventCalendar({
                 onClick={handleNext}
                 aria-label="Next"
               >
-                <ChevronRightIcon size={16} aria-hidden="true"/>
+                <ChevronRightIcon size={16} aria-hidden="true" />
               </Button>
             </div>
             <h2 className="text-sm font-semibold sm:text-lg md:text-xl">
@@ -298,8 +305,8 @@ export function EventCalendar({
               <Button
                 className="max-[479px]:aspect-square max-[479px]:p-0!"
                 onClick={() => {
-                  setSelectedEvent(null) // Ensure we're creating a new event
-                  setIsEventDialogOpen(true)
+                  setSelectedEvent(null); // Ensure we're creating a new event
+                  setIsEventDialogOpen(true);
                 }}
               >
                 <PlusIcon
@@ -351,12 +358,11 @@ export function EventCalendar({
           event={selectedEvent}
           isOpen={isEventDialogOpen}
           onCloseAction={() => {
-            setIsEventDialogOpen(false)
-            setSelectedEvent(null)
+            setIsEventDialogOpen(false);
+            setSelectedEvent(null);
           }}
         />
-
       </CalendarDndProvider>
     </div>
-  )
+  );
 }
