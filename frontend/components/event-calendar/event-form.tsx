@@ -1,39 +1,54 @@
-"use client"
+"use client";
 
-import {useRefetch, useUser} from "@/components/providers";
-import {useForm} from "react-hook-form";
-import {z} from "zod";
-import {zodResolver} from "@hookform/resolvers/zod";
-import React, {useCallback, useEffect, useState} from "react";
+import { useRefetch, useUser } from "@/components/providers";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   AddEventDocument,
   AddEventMutation,
   DeleteEventDocument,
   DeleteEventMutation,
+  EditEventTutorialsQuery,
   Event,
+  EventTutorialsDocument,
+  EventTutorialsQuery,
   LabelKind,
-  NewEvent, Tutorial, TutorialsOfEventDocument, TutorialsOfEventQuery,
+  NewEvent,
+  Tutorial,
+  TutorialsOfEventDocument,
+  TutorialsOfEventQuery,
   UpdateEventDocument,
-  UpdateEventMutation
-} from "@/lib/gql/generated/graphql"
-import {getClient} from "@/lib/graphql";
-import {toast} from "sonner";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/textarea";
-import {Button} from "@/components/ui/button";
-import {CirclePlus, PlusCircle, Save, Trash} from "lucide-react";
-import {BadgePicker} from "@/components/badge-picker";
-import {DatePicker} from "@/components/date-picker";
-import {Checkbox} from "@/components/ui/checkbox";
-import {DialogFooter} from "@/components/ui/dialog";
-import {extractId, formatDateToHHMM} from "@/lib/utils";
+  UpdateEventMutation,
+} from "@/lib/gql/generated/graphql";
+import { getClient } from "@/lib/graphql";
+import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { PlusCircle, Save, Trash } from "lucide-react";
+import { BadgePicker } from "@/components/badge-picker";
+import { DatePicker } from "@/components/date-picker";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DialogFooter } from "@/components/ui/dialog";
+import { extractId, formatDateToHHMM } from "@/lib/utils";
 import ConfirmationDialog from "@/components/confirmation-dialog";
-import {usePathname} from "next/navigation";
-import {defaultBuilding, defaultTutorial, defaultUser} from "@/types/defaults";
-import {Card, CardContent} from "@/components/ui/card";
-import TutorialElement from "@/components/dialog/events/tutorial-element";
-import TutorialCard from "@/components/dialog/events/tutorial-card";
+import { usePathname } from "next/navigation";
+import {
+  defaultBuilding,
+  defaultTutorial,
+  defaultUser,
+} from "@/types/defaults";
+import { EditTutorialsTable } from "../tables/tutorials-table/edit-tutorials-table";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -41,10 +56,12 @@ const eventFormSchema = z.object({
   date: z.date(),
   from: z.string().nonempty("Bitte gib eine Startzeit an."),
   to: z.string().nonempty("Bitte gib eine Endzeit an."),
-  topicID: z.number({required_error: "Bitte wähle das Thema der Veranstaltung"}),
-  typeID: z.number({required_error: "Bitte wähle den Typ der Veranstaltung"}),
+  topicID: z.number({
+    required_error: "Bitte wähle das Thema der Veranstaltung",
+  }),
+  typeID: z.number({ required_error: "Bitte wähle den Typ der Veranstaltung" }),
   needsTutors: z.boolean(),
-})
+});
 
 interface EventFormProps {
   event: Event | null;
@@ -52,11 +69,11 @@ interface EventFormProps {
   onCloseAction: () => void;
 }
 
-export function EventForm({event, edit, onCloseAction}: EventFormProps) {
-  const pathname = usePathname()
-  const umbrellaID = extractId(pathname)
-  const {sid} = useUser();
-  const {triggerRefetch} = useRefetch();
+export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
+  const pathname = usePathname();
+  const umbrellaID = extractId(pathname);
+  const { sid } = useUser();
+  const { triggerRefetch } = useRefetch();
   const [submitted, setSubmitted] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
@@ -64,35 +81,38 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
   const fetchTutorials = useCallback(async () => {
     if (!event) return;
 
-    const client = getClient()
+    const client = getClient();
     try {
-      const tutorialData = await client.request<TutorialsOfEventQuery>(
-        TutorialsOfEventDocument,
-        {eventID: event.ID}
-      )
+      const tutorialData = await client.request<EventTutorialsQuery>(
+        EventTutorialsDocument,
+        { id: event.ID }
+      );
       const newTutorials: Tutorial[] = tutorialData.tutorials.map(
-        tutorial => ({
+        (tutorial) => ({
           ...defaultTutorial,
           ...tutorial,
           event: event,
-          room: {...tutorial.room, building: {...defaultBuilding, ...tutorial.room.building}},
-          tutors: tutorial.tutors?.map(tutor => ({
+          room: {
+            ...tutorial.room,
+            building: { ...defaultBuilding, ...tutorial.room.building },
+          },
+          tutors: tutorial.tutors?.map((tutor) => ({
             ...defaultUser,
             ...tutor,
-          }))
+          })),
         })
-      )
+      );
 
       console.log(newTutorials);
       setTutorials(newTutorials);
     } catch {
-      toast.error(`Fehler beim Laden der Tutorien des Events ${event.title}`)
+      toast.error(`Fehler beim Laden der Tutorien des Events ${event.title}`);
     }
-  }, [event])
+  }, [event]);
 
   // Fetch tutorials of event
   useEffect(() => {
-    void fetchTutorials()
+    void fetchTutorials();
   }, [event]);
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
@@ -102,12 +122,14 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       description: event?.description ?? "",
       date: event ? new Date(event.from) : new Date(),
       from: formatDateToHHMM(event ? new Date(event.from) : new Date()),
-      to: formatDateToHHMM(event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)),
+      to: formatDateToHHMM(
+        event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
+      ),
       topicID: event?.topic.ID ?? 0,
       typeID: event?.type.ID ?? 0,
       needsTutors: event?.needsTutors ?? true,
-    }
-  })
+    },
+  });
 
   async function handleSave(data: z.infer<typeof eventFormSchema>) {
     const newEvent: NewEvent = {
@@ -118,13 +140,13 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       needsTutors: data.needsTutors,
       from: mergeDateAndTime(data.date, data.from),
       to: mergeDateAndTime(data.date, data.to),
-    }
+    };
 
     if (event) await handleUpdate(data, newEvent);
     else await handleCreation(data, newEvent);
   }
 
-  function mergeDateAndTime (date: Date, time: string) {
+  function mergeDateAndTime(date: Date, time: string) {
     const [hours, minutes] = time.split(":").map(Number);
 
     const mergedDate = new Date(date);
@@ -133,32 +155,40 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     return mergedDate;
   }
 
-  async function handleCreation(data: z.infer<typeof eventFormSchema>, newEvent: NewEvent) {
-    const client = getClient(String(sid))
+  async function handleCreation(
+    data: z.infer<typeof eventFormSchema>,
+    newEvent: NewEvent
+  ) {
+    const client = getClient(String(sid));
 
     try {
-      await client.request<AddEventMutation>(AddEventDocument, {event: {...newEvent, umbrellaID: umbrellaID}})
-      toast.success(`Event ${data.title} wurde erstellt`)
-      triggerRefetch()
-      onCloseAction()
+      await client.request<AddEventMutation>(AddEventDocument, {
+        event: { ...newEvent, umbrellaID: umbrellaID },
+      });
+      toast.success(`Event ${data.title} wurde erstellt`);
+      triggerRefetch();
+      onCloseAction();
     } catch {
-      toast.error("Ein Fehler beim Erstellen des Events ist aufgtreten")
+      toast.error("Ein Fehler beim Erstellen des Events ist aufgtreten");
     }
   }
 
-  async function handleUpdate(data: z.infer<typeof eventFormSchema>, newEvent: NewEvent) {
-    const client = getClient(String(sid))
+  async function handleUpdate(
+    data: z.infer<typeof eventFormSchema>,
+    newEvent: NewEvent
+  ) {
+    const client = getClient(String(sid));
 
     try {
-      await client.request<UpdateEventMutation>(
-        UpdateEventDocument,
-        {id: event?.ID, event: newEvent}
-      )
-      toast.success(`Event ${data.title} wurde aktualisiert`)
-      triggerRefetch()
-      onCloseAction()
+      await client.request<UpdateEventMutation>(UpdateEventDocument, {
+        id: event?.ID,
+        event: newEvent,
+      });
+      toast.success(`Event ${data.title} wurde aktualisiert`);
+      triggerRefetch();
+      onCloseAction();
     } catch {
-      toast.error("Ein Fehler beim Aktualisieren des Events ist aufgetreten")
+      toast.error("Ein Fehler beim Aktualisieren des Events ist aufgetreten");
     }
   }
 
@@ -166,13 +196,15 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     if (!event) return;
 
     try {
-      const client = getClient(String(sid))
-      await client.request<DeleteEventMutation>(DeleteEventDocument, {eventIds: [event.ID]})
-      triggerRefetch()
-      toast.success(`Event ${event.title} wurde gelöscht`)
+      const client = getClient(String(sid));
+      await client.request<DeleteEventMutation>(DeleteEventDocument, {
+        eventIds: [event.ID],
+      });
+      triggerRefetch();
+      toast.success(`Event ${event.title} wurde gelöscht`);
       onCloseAction();
     } catch {
-      toast.error("Ein Fehler beim Löschen des Events ist aufgetreten")
+      toast.error("Ein Fehler beim Löschen des Events ist aufgetreten");
     }
   }
 
@@ -181,18 +213,18 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
-          className={'w-full flex flex-col gap-y-4'}
+          className={"w-full flex flex-col gap-y-4"}
         >
           <FormField
             control={form.control}
             name="title"
-            render={({field}) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Titel</FormLabel>
                 <FormControl>
-                  <Input placeholder="Veranstaltungstitel" {...field}  />
+                  <Input placeholder="Veranstaltungstitel" {...field} />
                 </FormControl>
-                <FormMessage/>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -200,32 +232,32 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           <FormField
             control={form.control}
             name="description"
-            render={({field}) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Beschreibung</FormLabel>
                 <FormControl>
-                  <Textarea placeholder="Beschreibung des Events" {...field}  />
+                  <Textarea placeholder="Beschreibung des Events" {...field} />
                 </FormControl>
-                <FormMessage/>
+                <FormMessage />
               </FormItem>
             )}
           />
 
           {/* Time */}
-          <div className={'flex items-cente justify-between flex-wrap gap-2'}>
+          <div className={"flex items-cente justify-between flex-wrap gap-2"}>
             <FormField
               control={form.control}
               name="date"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={'hidden'}>Datum</FormLabel>
+                  <FormLabel className={"hidden"}>Datum</FormLabel>
                   <FormControl>
                     <DatePicker
                       selected={field.value}
                       onChange={(date) => field.onChange(date)}
                     />
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -234,25 +266,30 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               <FormField
                 control={form.control}
                 name="from"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormControl>
                       <Input aria-label="start time" type="time" {...field} />
                     </FormControl>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
                 name="to"
-                render={({field}) => (
-                  <FormItem className={'flex items-center gap-2'}>
+                render={({ field }) => (
+                  <FormItem className={"flex items-center gap-2"}>
                     bis
                     <FormControl>
-                      <Input aria-label="Time" type="time" placeholder={event?.to} {...field} />
+                      <Input
+                        aria-label="Time"
+                        type="time"
+                        placeholder={event?.to}
+                        {...field}
+                      />
                     </FormControl>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -260,14 +297,14 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           </div>
 
           {/* Labels */}
-          <div className={'flex items-center justify-between flex-wrap gap-2'}>
-            <div className={'flex items-center gap-2'}>
+          <div className={"flex items-center justify-between flex-wrap gap-2"}>
+            <div className={"flex items-center gap-2"}>
               <FormField
                 control={form.control}
                 name="topicID"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={'hidden'}>Thema</FormLabel>
+                    <FormLabel className={"hidden"}>Thema</FormLabel>
                     <FormControl>
                       <BadgePicker
                         kind={LabelKind.Topic}
@@ -275,7 +312,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                         onChange={(label) => field.onChange(label)}
                       />
                     </FormControl>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -283,9 +320,9 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               <FormField
                 control={form.control}
                 name="typeID"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel className={'hidden'}>Art des Events</FormLabel>
+                    <FormLabel className={"hidden"}>Art des Events</FormLabel>
                     <FormControl>
                       <BadgePicker
                         kind={LabelKind.EventType}
@@ -293,7 +330,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                         onChange={(label) => field.onChange(label)}
                       />
                     </FormControl>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -302,26 +339,32 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
             <FormField
               control={form.control}
               name="needsTutors"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={'hidden'}>Benötigt Tutor:innen</FormLabel>
+                  <FormLabel className={"hidden"}>
+                    Benötigt Tutor:innen
+                  </FormLabel>
                   <FormControl>
-                <span className={'flex items-center gap-2 min-w-fit'}>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                  Benötigt Tutor:innen
-                </span>
+                    <span className={"flex items-center gap-2 min-w-fit"}>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      Benötigt Tutor:innen
+                    </span>
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
           {event && (
-            <TutorialCard tutorials={tutorials} />
+            <EditTutorialsTable
+              id={event.ID}
+              tutorials={tutorials}
+              setTutorialsAction={setTutorials}
+            />
           )}
 
           {/* Footer */}
@@ -330,22 +373,30 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               type={"button"}
               variant={"outline"}
               onClick={() => setConfirmationDialogOpen(true)}
-              className={'aspect-square'}
+              className={"aspect-square"}
             >
-              <Trash className={'stroke-red-600'}/>
+              <Trash className={"stroke-red-600"} />
             </Button>
 
-            <DialogFooter className={'flex items-center gap-4'}>
+            <DialogFooter className={"flex items-center gap-4"}>
               <Button type="button" variant={"outline"} onClick={onCloseAction}>
                 Abbrechen
               </Button>
-              <Button type={"submit"} disabled={!form.formState.isValid && submitted}>
+              <Button
+                type={"submit"}
+                disabled={!form.formState.isValid && submitted}
+              >
                 {edit ? (
-                  <><Save/> Speichern</>
+                  <>
+                    <Save /> Speichern
+                  </>
                 ) : (
-                  <><PlusCircle/> Erstellen</>
+                  <>
+                    <PlusCircle /> Erstellen
+                  </>
                 )}
-              </Button></DialogFooter>
+              </Button>
+            </DialogFooter>
           </div>
         </form>
       </Form>
@@ -358,5 +409,5 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
         description={`Dies wird das Event ${event?.title} unwiderruflich löschen`}
       />
     </>
-  )
+  );
 }

@@ -41,24 +41,34 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
   }
 }
 
-query tutorialsOfEvent ($eventID: Int!) {
-  tutorials(eventID: [$eventID]) {
+query eventTutorials($id: Int!) {
+  tutorials(eventID: [$id]) {
     ID
+    tutors {
+      ID
+      fn
+      sn
+      mail
+      confirmed
+    }
     room {
-      number
+      capacity
+      floor
       name
+      number
       building {
         ID
         name
+        street
         number
+        city
+        zip
+        latitude
+        longitude
+        zoomLevel
       }
     }
-    tutors {
-      ID
-      mail
-      fn
-      sn
-    }
+    registrationCount
   }
 }
 
