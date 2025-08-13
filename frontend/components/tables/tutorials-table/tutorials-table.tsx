@@ -30,6 +30,7 @@ import { slugify } from "@/lib/utils";
 import { toast } from "sonner";
 import { defaultTutorial, defaultUser } from "@/types/defaults";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
 
 interface TutorialsTableProps {
   event: Event;
@@ -44,16 +45,18 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
   const [registration, setRegistration] = useState<Tutorial | undefined>();
   const [usersTutorials, setUsersTutorials] = useState<Tutorial[]>();
   const [tutorials, setTutorials] = useState<Tutorial[]>();
+  const [authenticationDialogOpen, setAuthenticationDialogOpen] =
+    useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const eventData = await client.request<EventTutorialsQuery>(
+        const tutorialData = await client.request<EventTutorialsQuery>(
           EventTutorialsDocument,
           { id: event.ID }
         );
         setTutorials(
-          eventData.events[0].tutorials?.map((t) => ({
+          tutorialData.tutorials.map((t) => ({
             ...defaultTutorial,
             ...t,
             tutors: t.tutors?.map((u) => ({ ...defaultUser, ...u })),
@@ -196,115 +199,135 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
   if (!tutorials) return <Skeleton />;
 
   return (
-    <div className="rounded-md border overflow-hidden">
-      <Table>
-        <TableBody>
-          {tutorials && tutorials.length ? (
-            <>
-              {tutorials.map((e) => {
-                const utilization =
-                  (e.registrationCount / (e.room.capacity ?? 1)) * 100;
-                const isRegisteredEvent =
-                  e.room.number === registration?.room.number &&
-                  e.room.building.ID === registration?.room.building.ID;
-                const isTutor = !!usersTutorials?.find(
-                  (t) =>
-                    t.room.number === e.room.number &&
-                    t.room.building.ID === e.room.building.ID
-                );
+    <>
+      {!user && (
+        <div>
+          <span>Bitte </span>
+          <span
+            className="cursor-pointer text-blue-500 hover:underline"
+            onClick={() => setAuthenticationDialogOpen(true)}
+          >
+            anmelden
+          </span>
+          <span>, um dich eintragen zu können.</span>
+        </div>
+      )}
+      <div className="rounded-md border overflow-hidden">
+        <Table>
+          <TableBody>
+            {tutorials && tutorials.length ? (
+              <>
+                {tutorials.map((e) => {
+                  const utilization =
+                    (e.registrationCount / (e.room.capacity ?? 1)) * 100;
+                  const isRegisteredEvent =
+                    e.room.number === registration?.room.number &&
+                    e.room.building.ID === registration?.room.building.ID;
+                  const isTutor = !!usersTutorials?.find(
+                    (t) =>
+                      t.room.number === e.room.number &&
+                      t.room.building.ID === e.room.building.ID
+                  );
 
-                return (
-                  <TableRow key={e.room?.number} className="relative">
-                    <div
-                      className="light:hidden absolute inset-0 z-0"
-                      style={{
-                        width: `${utilization}%`,
-                        backgroundColor: `${
-                          utilization < 100 ? "#024b30" : "#8b0000"
-                        }`,
-                      }}
-                    />
-                    <div
-                      className="dark:hidden absolute inset-0 z-0"
-                      style={{
-                        width: `${utilization}%`,
-                        backgroundColor: `${
-                          utilization < 100 ? "#BBF7D0" : "#FECACA"
-                        }`,
-                      }}
-                    />
-                    <TableCell className="relative z-1">
-                      {e.tutors?.map((t) => (
-                        <HoverCard key={t.mail}>
-                          <HoverCardTrigger asChild>
-                            <p className="hover:underline">
-                              {t.fn + " " + t.sn[0] + "."}
-                            </p>
-                          </HoverCardTrigger>
-                          <HoverCardContent>
-                            <MailLinkWithLabel
-                              mail={t.mail}
-                              label={t.fn + " " + t.sn}
-                            />
-                          </HoverCardContent>
-                        </HoverCard>
-                      ))}
-                    </TableCell>
-                    <TableCell className="relative z-1">
-                      <RoomHoverCard room={e.room} />
-                    </TableCell>
-                    <TableCell className="relative z-1">
-                      {e.registrationCount}/{e.room.capacity}
-                    </TableCell>
-                    <TableCell className="relative z-1">
-                      <Button
-                        className="w-full"
-                        disabled={
-                          (usersTutorials && !isTutor) ||
-                          (!isRegisteredEvent && utilization == 100) ||
-                          !user ||
-                          loading
-                        }
-                        variant={
-                          isRegisteredEvent && user ? "destructive" : "outline"
-                        }
-                        onClick={() => {
-                          if (isTutor) {
-                            router.push(
-                              `/profile/tutorials/${slugify(event.title)}-${
-                                event.ID
-                              }`
-                            );
-                          } else {
-                            handleRegistrationChange(e);
-                          }
+                  return (
+                    <TableRow key={e.room?.number} className="relative">
+                      <div
+                        className="light:hidden absolute inset-0 z-0"
+                        style={{
+                          width: `${utilization}%`,
+                          backgroundColor: `${
+                            utilization < 100 ? "#024b30" : "#8b0000"
+                          }`,
                         }}
-                      >
-                        {loading && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        {isTutor
-                          ? "Verwalten"
-                          : registration && user
-                          ? isRegisteredEvent
-                            ? "Austragen"
-                            : "Wechseln"
-                          : "Eintragen"}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </>
-          ) : (
-            <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
-                Für diese Veranstaltung existieren noch keine Anmeldungen.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+                      />
+                      <div
+                        className="dark:hidden absolute inset-0 z-0"
+                        style={{
+                          width: `${utilization}%`,
+                          backgroundColor: `${
+                            utilization < 100 ? "#BBF7D0" : "#FECACA"
+                          }`,
+                        }}
+                      />
+                      <TableCell className="relative z-1">
+                        {e.tutors?.map((t) => (
+                          <HoverCard key={t.mail}>
+                            <HoverCardTrigger asChild>
+                              <p className="hover:underline">
+                                {t.fn + " " + t.sn[0] + "."}
+                              </p>
+                            </HoverCardTrigger>
+                            <HoverCardContent>
+                              <MailLinkWithLabel
+                                mail={t.mail}
+                                label={t.fn + " " + t.sn}
+                              />
+                            </HoverCardContent>
+                          </HoverCard>
+                        ))}
+                      </TableCell>
+                      <TableCell className="relative z-1">
+                        <RoomHoverCard room={e.room} />
+                      </TableCell>
+                      <TableCell className="relative z-1">
+                        {e.registrationCount}/{e.room.capacity}
+                      </TableCell>
+                      <TableCell className="relative z-1">
+                        <Button
+                          className="w-full"
+                          disabled={
+                            (usersTutorials && !isTutor) ||
+                            (!isRegisteredEvent && utilization == 100) ||
+                            !user ||
+                            loading
+                          }
+                          variant={
+                            isRegisteredEvent && user
+                              ? "destructive"
+                              : "outline"
+                          }
+                          onClick={() => {
+                            if (isTutor) {
+                              router.push(
+                                `/profile/tutorials/${slugify(event.title)}-${
+                                  event.ID
+                                }`
+                              );
+                            } else {
+                              handleRegistrationChange(e);
+                            }
+                          }}
+                        >
+                          {loading && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          {isTutor
+                            ? "Verwalten"
+                            : registration && user
+                            ? isRegisteredEvent
+                              ? "Austragen"
+                              : "Wechseln"
+                            : "Eintragen"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </>
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  Für diese Veranstaltung existieren noch keine Anmeldungen.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <AuthenticationDialog
+        open={authenticationDialogOpen}
+        closeDialog={() => setAuthenticationDialogOpen(false)}
+      />
+    </>
   );
 }

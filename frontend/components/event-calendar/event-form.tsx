@@ -8,19 +8,23 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   AddEventDocument,
   AddEventMutation,
+  AddTutorialsDocument,
+  AddTutorialsMutation,
   DeleteEventDocument,
   DeleteEventMutation,
-  EditEventTutorialsQuery,
+  DeleteTutorialsDocument,
+  DeleteTutorialsMutation,
   Event,
   EventTutorialsDocument,
   EventTutorialsQuery,
   LabelKind,
   NewEvent,
+  NewTutorial,
   Tutorial,
-  TutorialsOfEventDocument,
-  TutorialsOfEventQuery,
   UpdateEventDocument,
   UpdateEventMutation,
+  UpdateTutorialDocument,
+  UpdateTutorialMutation,
 } from "@/lib/gql/generated/graphql";
 import { getClient } from "@/lib/graphql";
 import { toast } from "sonner";
@@ -40,7 +44,7 @@ import { BadgePicker } from "@/components/badge-picker";
 import { DatePicker } from "@/components/date-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
-import { extractId, formatDateToHHMM } from "@/lib/utils";
+import { extractId } from "@/lib/utils";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import { usePathname } from "next/navigation";
 import {
@@ -103,7 +107,6 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
         })
       );
 
-      console.log(newTutorials);
       setTutorials(newTutorials);
     } catch {
       toast.error(`Fehler beim Laden der Tutorien des Events ${event.title}`);
@@ -115,14 +118,20 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
     void fetchTutorials();
   }, [event]);
 
+  function formatToHHMM(date: Date): string {
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
+
   const form = useForm<z.infer<typeof eventFormSchema>>({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
       title: event?.title ?? "",
       description: event?.description ?? "",
       date: event ? new Date(event.from) : new Date(),
-      from: formatDateToHHMM(event ? new Date(event.from) : new Date()),
-      to: formatDateToHHMM(
+      from: formatToHHMM(event ? new Date(event.from) : new Date()),
+      to: formatToHHMM(
         event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
       ),
       topicID: event?.topic.ID ?? 0,
@@ -169,7 +178,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       triggerRefetch();
       onCloseAction();
     } catch {
-      toast.error("Ein Fehler beim Erstellen des Events ist aufgtreten");
+      toast.error("Beim erstellen des Events ist ein Fehler aufgetreten");
     }
   }
 
@@ -179,16 +188,56 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
   ) {
     const client = getClient(String(sid));
 
+    function mapTutorialToNewTutorial(t: Tutorial): NewTutorial {
+      return {
+        eventID: event?.ID ?? 0,
+        roomNumber: t.room.number,
+        buildingID: t.room.building.ID,
+        tutors: t.tutors?.map((u) => u.ID),
+      };
+    }
+
+    const newTutorials: NewTutorial[] = tutorials
+      .filter((t) => t.ID < 0)
+      .map((t) => mapTutorialToNewTutorial(t));
+
+    const updateTutorials: Tutorial[] = tutorials.filter((t) => t.ID > 0);
+
+    const deleteTutorialIDs: number[] =
+      tutorials
+        ?.filter((t) => {
+          if (!tutorials.find((tut) => t.ID === tut.ID)) return t;
+        })
+        .map((t) => t.ID) ?? [];
+
     try {
       await client.request<UpdateEventMutation>(UpdateEventDocument, {
         id: event?.ID,
         event: newEvent,
       });
+      if (newTutorials.length) {
+        await client.request<AddTutorialsMutation>(AddTutorialsDocument, {
+          tutorials: newTutorials,
+        });
+      }
+      if (deleteTutorialIDs.length) {
+        await client.request<DeleteTutorialsMutation>(DeleteTutorialsDocument, {
+          tutorialIDs: deleteTutorialIDs,
+        });
+      }
+      if (updateTutorials.length) {
+        for (const t of updateTutorials) {
+          await client.request<UpdateTutorialMutation>(UpdateTutorialDocument, {
+            id: t.ID,
+            tutorial: mapTutorialToNewTutorial(t),
+          });
+        }
+      }
       toast.success(`Event ${data.title} wurde aktualisiert`);
       triggerRefetch();
       onCloseAction();
     } catch {
-      toast.error("Ein Fehler beim Aktualisieren des Events ist aufgetreten");
+      toast.error("Beim aktualisieren des Events ist ein Fehler aufgetreten");
     }
   }
 
@@ -204,7 +253,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       toast.success(`Event ${event.title} wurde gelöscht`);
       onCloseAction();
     } catch {
-      toast.error("Ein Fehler beim Löschen des Events ist aufgetreten");
+      toast.error("Beim löschen des Events ist ein Fehler aufgetreten");
     }
   }
 
