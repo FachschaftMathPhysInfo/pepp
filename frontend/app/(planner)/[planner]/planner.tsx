@@ -151,9 +151,11 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
 
   return (
     umbrellaLoading ?
-      <div className={'w-fill h-[calc(100vh-80px] flex flex-col gap-y-2 justify-center items-center text-center'}>
-            <Loader2 size={100} className={'animate-spin'} />
-            Lade Programme
+      <div className="flex flex-1 justify-center items-center text-center">
+        <span className={'flex flex-col gap-y-2'}>
+          <Loader2 size={100} className="animate-spin" />
+          <p>Lade Events</p>
+        </span>
       </div>
      :
       <TooltipProvider delayDuration={0}>

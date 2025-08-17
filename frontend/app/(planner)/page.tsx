@@ -19,20 +19,18 @@ export default function IndexPage() {
   }, [])
 
   return (
-    <div className={'w-fill h-[60vh] flex flex-col gap-y-8 justify-center items-center text-center'}>
+    <div className="flex flex-1 flex-col justify-center items-center text-center gap-y-8">
       {umbrellasInFutureExist ? (
         <>
-          <Loader2 size={100} className={'animate-spin'} />
-          Lade Event
+          <Loader2 size={100} className="animate-spin" />
+          Lade Programme
         </>
       ) : (
         <>
-          <CalendarOff size={100} className={'flex-shrink-0'}/>
+          <CalendarOff size={100} className="flex-shrink-0" />
           Aktuell sind noch keine Veranstaltungen geplant.
         </>
       )}
-
-
     </div>
-  )
+  );
 }
