@@ -68,6 +68,9 @@ query eventTutorials($id: Int!) {
         zoomLevel
       }
     }
+    event {
+      ID
+    }
     registrationCount
   }
 }

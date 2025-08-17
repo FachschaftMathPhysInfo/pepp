@@ -24,7 +24,7 @@ import {RoomHoverCard} from "../../room-hover-card";
 import {useRouter} from "next/navigation";
 import {slugify} from "@/lib/utils";
 import {toast} from "sonner";
-import {defaultTutorial, defaultUser} from "@/types/defaults";
+import {defaultEvent, defaultTutorial, defaultUser} from "@/types/defaults";
 import {Skeleton} from "@/components/ui/skeleton";
 import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
 
@@ -53,7 +53,10 @@ export function TutorialsTable({event}: TutorialsTableProps) {
         tutorialData.tutorials.map((t) => ({
           ...defaultTutorial,
           ...t,
-          tutors: t.tutors?.map((u) => ({...defaultUser, ...u})),
+          tutors: t.tutors?.map(
+            (u) => ({...defaultUser, ...u})
+          ),
+          event: {...defaultEvent, ...t.event},
         }))
       );
     } catch {
