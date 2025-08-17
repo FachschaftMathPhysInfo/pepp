@@ -16,8 +16,8 @@ import {
 
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover"
 import {
-  DraggableEvent,
-  DroppableCell,
+  CalendarEventItem,
+  CalendarCell,
   EventGap,
   EventHeight,
   EventItem,
@@ -135,7 +135,7 @@ export function MonthView({
                   data-today={isToday(day) || undefined}
                   data-outside-cell={!isCurrentMonth || undefined}
                 >
-                  <DroppableCell
+                  <CalendarCell
                     id={cellId}
                     date={day}
                     onClick={() => {
@@ -197,12 +197,10 @@ export function MonthView({
                             className="aria-hidden:hidden"
                             aria-hidden={isHidden ? "true" : undefined}
                           >
-                            <DraggableEvent
+                            <CalendarEventItem
                               event={event}
                               view="month"
                               onClick={(e) => handleEventClick(event, e)}
-                              isFirstDay={isFirstDay}
-                              isLastDay={isLastDay}
                             />
                           </div>
                         )
@@ -260,7 +258,7 @@ export function MonthView({
                         </Popover>
                       )}
                     </div>
-                  </DroppableCell>
+                  </CalendarCell>
                 </div>
               )
             })}

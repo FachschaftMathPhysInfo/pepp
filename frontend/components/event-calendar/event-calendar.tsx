@@ -33,7 +33,6 @@ import {
 import {
   AgendaDaysToShow,
   AgendaView,
-  CalendarDndProvider,
   CalendarView,
   DayView,
   EventDialog,
@@ -218,11 +217,6 @@ export function EventCalendar({
         } as React.CSSProperties
       }
     >
-      <CalendarDndProvider
-        onEventUpdateAction={() => {
-          return;
-        }}
-      >
         <div
           className={cn(
             "flex items-center justify-between p-2 sm:p-4",
@@ -359,7 +353,6 @@ export function EventCalendar({
             setSelectedEvent(null);
           }}
         />
-      </CalendarDndProvider>
     </div>
   );
 }

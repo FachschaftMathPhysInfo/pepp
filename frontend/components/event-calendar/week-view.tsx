@@ -20,8 +20,8 @@ import {
 
 import {cn} from "@/lib/utils"
 import {
-  DraggableEvent,
-  DroppableCell,
+  CalendarEventItem,
+  CalendarCell,
   EventItem,
   isMultiDayEvent,
   useCurrentTimeIndicator,
@@ -335,7 +335,7 @@ export function WeekView({
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="h-full w-full">
-                  <DraggableEvent
+                  <CalendarEventItem
                     event={positionedEvent.event}
                     view="week"
                     onClick={(e) => handleEventClick(positionedEvent.event, e)}
@@ -369,7 +369,7 @@ export function WeekView({
                   {[0, 1, 2, 3].map((quarter) => {
                     const quarterHourTime = hourValue + quarter * 0.25
                     return (
-                      <DroppableCell
+                      <CalendarCell
                         key={`${hour.toString()}-${quarter}`}
                         id={`week-cell-${day.toISOString()}-${quarterHourTime}`}
                         date={day}
