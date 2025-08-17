@@ -15,10 +15,9 @@ import React, {useCallback, useEffect, useState} from "react";
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {getClient} from "@/lib/graphql";
 import {CopyTextArea} from "@/components/copy-text-area";
-import {CardSkeleton} from "@/components/card-skeleton";
 import {useRefetch, useUser} from "@/components/providers";
 import {Alert, AlertAction, AlertDescription, AlertTitle,} from "@/components/ui/alert";
-import {CircleAlert, MoveRight} from "lucide-react";
+import {CircleAlert, Loader2, MoveRight} from "lucide-react";
 import {defaultEvent, defaultLabel} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
 import {TooltipProvider} from "@/components/ui/tooltip";
@@ -28,13 +27,13 @@ interface PlannerPageProps {
   umbrellaID: number;
 }
 
-export function PlannerPage({ umbrellaID }: PlannerPageProps) {
+export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  const { user } = useUser();
-  const { refetchKey } = useRefetch();
+  const {user} = useUser();
+  const {refetchKey} = useRefetch();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [types, setTypes] = useState<Label[]>([]);
@@ -42,7 +41,8 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [topicFilter, setTopicFilter] = useState<number[]>([]);
   const [typesFilter, setTypesFilter] = useState<number[]>([]);
   const [icalPath, setIcalPath] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [umbrellaLoading, setUmbrellaLoading] = useState<boolean>(true);
+  const [eventsLoading, setEventsLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
 
@@ -53,12 +53,12 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   // }, []);
 
   const fetchUmbrellaData = useCallback(async () => {
-    setLoading(true);
+    setUmbrellaLoading(true);
     const client = getClient();
 
     const umbrellaData = await client.request<UmbrellaDetailQuery>(
       UmbrellaDetailDocument,
-      { id: umbrellaID }
+      {id: umbrellaID}
     );
 
     if (umbrellaData) {
@@ -74,12 +74,12 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       });
     }
 
-    setLoading(false);
+    setUmbrellaLoading(false);
   }, [umbrellaID]);
 
   useEffect(() => {
     const fetchEventData = async () => {
-      setLoading(true);
+      setEventsLoading(true);
 
       const client = getClient();
 
@@ -101,7 +101,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            topic: { ...defaultLabel, ...e.topic },
+            topic: {...defaultLabel, ...e.topic},
           }))
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
@@ -109,7 +109,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
       if (user?.role === Role.Admin) void fetchUmbrellaData();
 
-      setLoading(false);
+      setEventsLoading(false);
     };
 
     void fetchEventData();
@@ -137,9 +137,9 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   useEffect(() => {
     setIcalPath(
       window.location.origin +
-        "/ical/?e=" +
-        umbrellaID +
-        (searchParams.size ? "&" + searchParams : "")
+      "/ical/?e=" +
+      umbrellaID +
+      (searchParams.size ? "&" + searchParams : "")
     );
   }, [searchParams]);
 
@@ -147,73 +147,78 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     (a) => a.event.ID === umbrellaID
   );
 
+  console.log('Is loading: ', eventsLoading)
+
   return (
-    <TooltipProvider delayDuration={0}>
-      {user?.role === Role.Admin && (
-        <section className="mb-[20px] space-y-5">
-          <EditPlannerSection umbrella={umbrella} />
-        </section>
-      )}
+    umbrellaLoading ?
+      <div className={'w-fill h-[calc(100vh-80px] flex flex-col gap-y-2 justify-center items-center text-center'}>
+            <Loader2 size={100} className={'animate-spin'} />
+            Lade Programme
+      </div>
+     :
+      <TooltipProvider delayDuration={0}>
+        {user?.role === Role.Admin && (
+          <section className="mb-[20px] space-y-5">
+            <EditPlannerSection umbrella={umbrella}/>
+          </section>
+        )}
 
-      {events.length > 0 && (
-        <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
-          <div className="flex items-center justify-center gap-x-4">
-            <div
-              className={"flex items-center justify-start gap-x-4 flex-wrap gap-y-2"}
-            >
-              {topics.length >= 2 && (
-                <FacetedFilter
-                  className={"h-full"}
-                  options={topics}
-                  setFilter={setTopicFilter}
-                  title={"Themen"}
-                />
-              )}
+        {events.length > 0 && (
+          <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
+            <div className="flex items-center justify-center gap-x-4">
+              <div
+                className={"flex items-center justify-start gap-x-4 flex-wrap gap-y-2"}
+              >
+                {topics.length >= 2 && (
+                  <FacetedFilter
+                    className={"h-full"}
+                    options={topics}
+                    setFilter={setTopicFilter}
+                    title={"Themen"}
+                  />
+                )}
 
-              {types.length >= 2 && (
-                <FacetedFilter
-                  className={"h-full"}
-                  options={types}
-                  setFilter={setTypesFilter}
-                  title={"Veranstaltungsart"}
-                />
-              )}
+                {types.length >= 2 && (
+                  <FacetedFilter
+                    className={"h-full"}
+                    options={types}
+                    setFilter={setTypesFilter}
+                    title={"Veranstaltungsart"}
+                  />
+                )}
+              </div>
             </div>
-          </div>
 
-          <CopyTextArea label="ICS-Kalender" text={icalPath} />
+            <CopyTextArea label="ICS-Kalender" text={icalPath}/>
+          </section>
+        )}
+
+        {isRestricted && !application && (
+          <section>
+            <Alert
+              className={'cursor-pointer bg-destructive-foreground dark:bg-background my-4'}
+              onClick={() => router.push(`${pathname}/register`)}
+              variant="warning"
+            >
+              <CircleAlert className="size-4"/>
+              <AlertTitle className="font-bold">
+                Registrierung erforderlich!
+              </AlertTitle>
+              <AlertDescription className="pr-8">
+                Diese Veranstaltung ist aus Kapazitätsgründen
+                zulassungsbeschränkt. Bitte nimm an einem kurzen Quiz teil, damit
+                wir einschätzen können, ob du diesen Kurs benötigst.
+              </AlertDescription>
+              <AlertAction>
+                <MoveRight className="size-4"/>
+              </AlertAction>
+            </Alert>
+          </section>
+        )}
+
+        <section className="mt-5">
+          <EventCalendar events={events} initialView={"agenda"}/>
         </section>
-      )}
-
-      {isRestricted && !application && (
-        <section>
-          <Alert
-            className={'cursor-pointer bg-destructive-foreground dark:bg-background my-4'}
-            onClick={() => router.push(`${pathname}/register`)}
-            variant="warning"
-          >
-            <CircleAlert className="size-4" />
-            <AlertTitle className="font-bold">
-              Registrierung erforderlich!
-            </AlertTitle>
-            <AlertDescription className="pr-8">
-              Diese Veranstaltung ist aus Kapazitätsgründen
-              zulassungsbeschränkt. Bitte nimm an einem kurzen Quiz teil, damit
-              wir einschätzen können, ob du diesen Kurs benötigst.
-            </AlertDescription>
-            <AlertAction>
-              <MoveRight className="size-4" />
-            </AlertAction>
-          </Alert>
-        </section>
-      )}
-
-      <section className="mt-5">
-        {loading ?
-          <CardSkeleton /> :
-          <EventCalendar events={events} initialView={"agenda"} />
-        }
-      </section>
-    </TooltipProvider>
+      </TooltipProvider>
   );
 }

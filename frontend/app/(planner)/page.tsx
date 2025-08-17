@@ -23,7 +23,7 @@ export default function IndexPage() {
       {umbrellasInFutureExist ? (
         <>
           <Loader2 size={100} className={'animate-spin'} />
-          Lade Programme
+          Lade Event
         </>
       ) : (
         <>
