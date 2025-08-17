@@ -217,6 +217,7 @@ export function TutorialsTable({event}: TutorialsTableProps) {
           <span>, um dich eintragen zu können.</span>
         </div>
       )}
+      {user && !event.tutorialsOpen && "Die Anmeldungen zu den Tutorien ist aktuell geschlossen. Bitte warte bis die Anmeldung freigegeben wird."}
       <div className="rounded-md border overflow-hidden relative">
         <Table>
           <TableBody>
@@ -287,6 +288,7 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                             (usersTutorials && !isTutor) ||
                             (!isRegisteredEvent && utilization == 100) ||
                             !user ||
+                            !event.tutorialsOpen ||
                             loading
                           }
                           variant={
