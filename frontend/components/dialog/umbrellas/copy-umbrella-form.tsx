@@ -135,6 +135,7 @@ export default function CopyUmbrellaForm({
       from: returnDateWithOffset(event.from, startingOffset),
       to: returnDateWithOffset(event.to, startingOffset),
       umbrellaID: umbrellaID,
+      tutorialsOpen: false,
     }));
 
     await client.request<AddEventMutation>(AddEventDocument, {
