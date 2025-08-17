@@ -91,6 +91,8 @@ models:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Answer
   NewQuestion:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Question
+  UpdateQuestion:
+    model: github.com/FachschaftMathPhysInfo/pepp/server/models.Question
   NewForm:
     model: github.com/FachschaftMathPhysInfo/pepp/server/models.Form
   NewBuilding:

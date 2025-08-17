@@ -65,6 +65,11 @@ export function TutorialsTable({
   const [newTutorialRoom, setNewTutorialRoom] = useState<Room>();
   const [tmpID, setTmpID] = useState(-1);
 
+  const application = user?.applications?.find(
+    (a) => a.event.ID === event?.umbrella?.ID
+  );
+  const isRestricted = !!event?.umbrella?.registrationForm?.eventID
+
   useEffect(() => {
     if (!user) return;
     setRegistration(user.registrations?.find((r) => r.event.ID === id));
@@ -378,7 +383,8 @@ export function TutorialsTable({
                             (usersTutorials && !isTutor) ||
                             (!isRegisteredEvent && utilization == 100) ||
                             !user ||
-                            loading
+                            loading ||
+                            (isRestricted && (!application?.accepted || !application))
                           }
                           variant={
                             isRegisteredEvent && user

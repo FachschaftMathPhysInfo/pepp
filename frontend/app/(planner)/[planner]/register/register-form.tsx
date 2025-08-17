@@ -163,10 +163,10 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
         AddStudentApplicationForEventDocument,
         vars
       );
-      toast("Anmeldung abgeschickt!");
+      toast.success("Anmeldung abgeschickt!");
       handleQuit();
     } catch {
-      toast("Ein Fehler ist aufgetreten");
+      toast.error("Ein Fehler ist aufgetreten");
     }
   };
 
