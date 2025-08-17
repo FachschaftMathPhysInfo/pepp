@@ -104,8 +104,8 @@ func newDBCommand(migrator *migrate.Migrator) *cli.Command {
 				},
 			},
 			{
-				Name:  "create_go",
-				Usage: "create Go migration",
+				Name:  "create",
+				Usage: "create migration",
 				Action: func(c *cli.Context) error {
 					name := strings.Join(c.Args().Slice(), "_")
 					mf, err := migrator.CreateGoMigration(c.Context, name)
@@ -113,40 +113,6 @@ func newDBCommand(migrator *migrate.Migrator) *cli.Command {
 						return err
 					}
 					fmt.Printf("created migration %s (%s)\n", mf.Name, mf.Path)
-					return nil
-				},
-			},
-			{
-				Name:  "create_sql",
-				Usage: "create up and down SQL migrations",
-				Action: func(c *cli.Context) error {
-					name := strings.Join(c.Args().Slice(), "_")
-					files, err := migrator.CreateSQLMigrations(c.Context, name)
-					if err != nil {
-						return err
-					}
-
-					for _, mf := range files {
-						fmt.Printf("created migration %s (%s)\n", mf.Name, mf.Path)
-					}
-
-					return nil
-				},
-			},
-			{
-				Name:  "create_tx_sql",
-				Usage: "create up and down transactional SQL migrations",
-				Action: func(c *cli.Context) error {
-					name := strings.Join(c.Args().Slice(), "_")
-					files, err := migrator.CreateTxSQLMigrations(c.Context, name)
-					if err != nil {
-						return err
-					}
-
-					for _, mf := range files {
-						fmt.Printf("created transaction migration %s (%s)\n", mf.Name, mf.Path)
-					}
-
 					return nil
 				},
 			},
