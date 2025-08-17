@@ -38,7 +38,7 @@ export function TutorialsTable({event}: TutorialsTableProps) {
 
   const {user, setUser, sid} = useUser();
   const [loading, setLoading] = useState(false);
-  const [registration, setRegistration] = useState<Tutorial | undefined>();
+  const [currentRegistration, setCurrentRegistration] = useState<Tutorial | undefined>();
   const [usersTutorials, setUsersTutorials] = useState<Tutorial[]>();
   const [tutorials, setTutorials] = useState<Tutorial[]>();
   const [authenticationDialogOpen, setAuthenticationDialogOpen] = useState(false);
@@ -65,13 +65,12 @@ export function TutorialsTable({event}: TutorialsTableProps) {
   }, [event.ID])
   const setTutorialsforUser = useCallback(() => {
     if (!user) return;
-    setRegistration(user.registrations?.find((r) => r.event.ID === event.ID));
+    setCurrentRegistration(user.registrations?.find((r) => r.event.ID === event.ID));
     setUsersTutorials(user.tutorials?.filter((t) => t.event.ID === event.ID));
   }, [user, event.ID, tutorials])
 
   useEffect(() => {
     void fetchTutorials();
-    void setTutorialsforUser()
   }, [user, event.ID]);
 
   useEffect(() => {
@@ -82,12 +81,12 @@ export function TutorialsTable({event}: TutorialsTableProps) {
     if (!user) return;
     setLoading(true);
 
-    if (registration) {
-      if (clickedTutorial.ID === registration.ID) {
+    if (currentRegistration) {
+      if (clickedTutorial.ID === currentRegistration.ID) {
         //
         // unregister from tutorial
         //
-        await unregisterFromTutorial(registration);
+        await unregisterFromTutorial(currentRegistration);
 
         setUser({
           ...user,
@@ -108,7 +107,7 @@ export function TutorialsTable({event}: TutorialsTableProps) {
         //
         // change to different tutorial
         //
-        await unregisterFromTutorial(registration);
+        await unregisterFromTutorial(currentRegistration);
         await registerForTutorial(clickedTutorial);
 
         setUser({
@@ -125,7 +124,7 @@ export function TutorialsTable({event}: TutorialsTableProps) {
           tutorials?.map((t) => {
             if (t.ID === clickedTutorial.ID) {
               t.registrationCount += 1;
-            } else if (t.ID === registration.ID) {
+            } else if (t.ID === currentRegistration.ID) {
               t.registrationCount -= 1;
             }
             return t;
@@ -218,25 +217,28 @@ export function TutorialsTable({event}: TutorialsTableProps) {
           <span>, um dich eintragen zu können.</span>
         </div>
       )}
-      <div className="rounded-md border overflow-hidden">
+      <div className="rounded-md border overflow-hidden relative">
         <Table>
           <TableBody>
+            {loading && (
+              <div className={'w-full h-full absolute flex items-center justify-center z-10'}>
+                <div>
+                  <Loader2 size={16} className={'animate-spin mr-2'}/>
+                  Aktualisiere
+                </div>
+              </div>
+            )}
             {tutorials && tutorials.length ? (
               <>
-                {tutorials.map((e) => {
-                  const utilization =
-                    (e.registrationCount / (e.room.capacity ?? 1)) * 100;
-                  const isRegisteredEvent =
-                    e.room.number === registration?.room.number &&
-                    e.room.building.ID === registration?.room.building.ID;
+                {tutorials.map((rowTutorial) => {
+                  const utilization = (rowTutorial.registrationCount / (rowTutorial.room.capacity ?? 1)) * 100;
+                  const isRegisteredEvent = rowTutorial.ID === currentRegistration?.ID;
                   const isTutor = !!usersTutorials?.find(
-                    (t) =>
-                      t.room.number === e.room.number &&
-                      t.room.building.ID === e.room.building.ID
+                    userTutorial => userTutorial.ID === rowTutorial?.ID
                   );
 
                   return (
-                    <TableRow key={e.room?.number} className="relative">
+                    <TableRow key={rowTutorial.room?.number} className="relative">
                       <div
                         className="light:hidden absolute inset-0 z-0"
                         style={{
@@ -256,7 +258,7 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                         }}
                       />
                       <TableCell className="relative z-1">
-                        {e.tutors?.map((t) => (
+                        {rowTutorial.tutors?.map((t) => (
                           <HoverCard key={t.mail}>
                             <HoverCardTrigger asChild>
                               <p className="hover:underline">
@@ -273,10 +275,10 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                         ))}
                       </TableCell>
                       <TableCell className="relative z-1">
-                        <RoomHoverCard room={e.room}/>
+                        <RoomHoverCard room={rowTutorial.room}/>
                       </TableCell>
                       <TableCell className="relative z-1">
-                        {e.registrationCount}/{e.room.capacity}
+                        {rowTutorial.registrationCount}/{rowTutorial.room.capacity}
                       </TableCell>
                       <TableCell className="relative z-1">
                         <Button
@@ -300,16 +302,13 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                                 }`
                               );
                             } else {
-                              void handleRegistrationChange(e);
+                              void handleRegistrationChange(rowTutorial);
                             }
                           }}
                         >
-                          {loading && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-                          )}
                           {isTutor
                             ? "Verwalten"
-                            : registration && user
+                            : currentRegistration && user
                               ? isRegisteredEvent
                                 ? "Austragen"
                                 : "Wechseln"
