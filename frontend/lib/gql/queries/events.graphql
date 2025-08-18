@@ -1,23 +1,36 @@
-query tableEvents($needsTutors: Boolean, $onlyFuture: Boolean, $umbrellaID: [Int!]) {
-  events(needsTutors: $needsTutors, onlyFuture: $onlyFuture, umbrellaID: $umbrellaID) {
+query tableEvents(
+  $needsTutors: Boolean
+  $onlyFuture: Boolean
+  $umbrellaID: [Int!]
+) {
+  events(
+    needsTutors: $needsTutors
+    onlyFuture: $onlyFuture
+    umbrellaID: $umbrellaID
+  ) {
     ID
     title
+    description
     from
     to
     needsTutors
     topic {
-       name
-       color
+      ID
+      name
+      color
+      kind
     }
     type {
-       name
-       color
+      ID
+      name
+      color
+      kind
     }
   }
 }
 
-query futureEvents {
-  events(onlyFuture: true) {
+query futureEvents($needsTutors: Boolean) {
+  events(onlyFuture: true, needsTutors: $needsTutors) {
     ID
     title
     umbrella {
@@ -27,23 +40,51 @@ query futureEvents {
   }
 }
 
-query plannerEvents($umbrellaID: Int!, $type: [String!], $topic: [String!]) {
+query availableEventIdsOfUser($mail: [String!]!) {
+  users(mail: $mail) {
+    ID
+    availabilities {
+      ID
+    }
+  }
+}
+
+query plannerEvents($umbrellaID: Int!, $type: [Int!], $topic: [Int!]) {
   umbrellas(id: [$umbrellaID]) {
     title
+    registrationForm {
+      eventID
+    }
   }
   typeLabels: labels(kind: EVENT_TYPE, umbrellaID: [$umbrellaID]) {
+    ID
     name
+    color
+    kind
   }
   topicLabels: labels(kind: TOPIC, umbrellaID: [$umbrellaID]) {
+    ID
     name
+    color
+    kind
   }
-  events(umbrellaID: [$umbrellaID], type: $type, topic: $topic) {
+  events(umbrellaID: [$umbrellaID], typeID: $type, topicID: $topic, includeSupportingEvents: true) {
     ID
     title
+    description
     from
     to
     topic {
+      ID
+      name
       color
+      kind
+    }
+    type {
+      ID
+      name
+      color
+      kind
     }
   }
 }
@@ -63,19 +104,34 @@ query eventCloseup($id: Int!) {
     description
     from
     to
+    needsTutors
     topic {
+      ID
       name
       color
+      kind
+    }
+    umbrella {
+      ID
+      title
+      registrationForm {
+        eventID
+      }
     }
     type {
+      ID
       name
       color
+      kind
     }
-    tutorsAssigned {
+    tutorials {
+      ID
       tutors {
+        ID
         fn
         sn
         mail
+        confirmed
       }
       room {
         capacity
@@ -94,7 +150,46 @@ query eventCloseup($id: Int!) {
           zoomLevel
         }
       }
-      registrations
+      registrationCount
+    }
+  }
+}
+
+query tutorialAvailabilitys($id: Int!) {
+  events(id: [$id]) {
+    tutorsAvailable {
+      ID
+      mail
+      fn
+      sn
+    }
+    roomsAvailable {
+      floor
+      number
+      name
+      capacity
+      building {
+        ID
+        number
+        name
+        street
+        zip
+        city
+        latitude
+        longitude
+        zoomLevel
+      }
+    }
+  }
+}
+
+query tutorsOfEventOfUmbrella($umbrellaID: [Int!]!) {
+  events(umbrellaID: $umbrellaID) {
+    tutorials {
+      tutors {
+        ID
+        mail
+      }
     }
   }
 }

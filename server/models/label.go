@@ -7,7 +7,8 @@ import (
 type Label struct {
 	bun.BaseModel `bun:",alias:l"`
 
-	Name  string `bun:",pk,type:varchar(50)"`
+	ID    int32  `bun:",pk,autoincrement"`
+	Name  string `bun:",type:varchar(50),unique"`
 	Color string `bun:",type:varchar(7)"`
 	Kind  string `bun:",notnull,type:varchar(20)"`
 }

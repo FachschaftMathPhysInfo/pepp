@@ -12,10 +12,10 @@ type Building struct {
 	Street    string  `bun:",notnull,type:varchar(255)"`
 	Number    string  `bun:",notnull,type:varchar(255)"`
 	City      string  `bun:",notnull,type:varchar(255)"`
-	Zip       int32   `bun:",notnull"`
-	Latitude  float64 `bun:",notnull,type:decimal(9,6)"`
-	Longitude float64 `bun:",notnull,type:decimal(9,6)"`
-	ZoomLevel int8    `bun:"default:15"`
+	Zip       string  `bun:",notnull,type:varchar(10)"`
+	Latitude  float64 `bun:",notnull"`
+	Longitude float64 `bun:",notnull"`
+	ZoomLevel int     `bun:",notnull"`
 
 	Rooms []*Room `bun:"rel:has-many,join:id=building_id"`
 }

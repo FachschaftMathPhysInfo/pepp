@@ -10,22 +10,24 @@ import (
 )
 
 func DeleteUnconfirmedPeople(ctx context.Context, r *graph.Resolver, tracer trace.Tracer) error {
-	ctx, span := tracer.Start(ctx, "delete-unconfirmed-people")
-	defer span.End()
+	if tracer != nil {
+		_, span := tracer.Start(ctx, "delete-unconfirmed-people")
+		defer span.End()
+	}
 
 	twoHoursAgo := time.Now().Add(-2 * time.Hour)
 
-	var mails []string
+	var ids []int
 	if _, err := r.DB.NewSelect().
 		Model((*models.User)(nil)).
-		Column("mail").
+		Column("id").
 		Where("confirmed = ?", false).
 		Where("created_at <= ?", twoHoursAgo).
-		Exec(ctx, &mails); err != nil {
+		Exec(ctx, &ids); err != nil {
 		return err
 	}
 
-	if _, err := r.Mutation().DeleteUser(ctx, mails); err != nil {
+	if _, err := r.Mutation().DeleteUser(ctx, ids); err != nil {
 		return err
 	}
 
@@ -33,8 +35,11 @@ func DeleteUnconfirmedPeople(ctx context.Context, r *graph.Resolver, tracer trac
 }
 
 func CleanSessionIds(ctx context.Context, r *graph.Resolver, tracer trace.Tracer) error {
-	ctx, span := tracer.Start(ctx, "clean-session-ids")
-	defer span.End()
+	if tracer != nil {
+
+		_, span := tracer.Start(ctx, "clean-session-ids")
+		defer span.End()
+	}
 
 	twelveHoursAgo := time.Now().Add(-12 * time.Hour)
 

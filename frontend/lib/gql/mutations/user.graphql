@@ -1,8 +1,33 @@
-mutation registration($fn: String!, $sn: String, $mail: String!, $password: String!) {
-  addUser(user: {fn: $fn, sn: $sn, mail: $mail, password: $password}) {
+mutation registration($fn: String!, $sn: String!, $mail: String!, $password: String!) {
+  addUser(user: {fn: $fn, sn: $sn, mail: $mail, password: $password})
+}
+
+mutation addTutor($firstName: String!, $lastName: String!, $email: String!) {
+  addUser(user: {fn: $firstName, sn: $lastName, mail: $email})
+}
+
+mutation TutorRegistration($firstName: String!, $lastName: String!, $email: String!) {
+  addUser(user: {fn: $firstName, sn: $lastName, mail: $email})
+}
+
+mutation addEventAvailabilityOfTutor($id: Int!, $eventsAvailable: [Int!]!) {
+  addTutorAvailabilityForEvent(
+    availability: {userID: $id, eventID: $eventsAvailable}
+  ){
     fn
-    sn
-    mail
-    confirmed
   }
+}
+
+mutation deleteEventAvailabilityOfTutor($id: Int!, $eventsAvailable: [Int!]!) {
+  deleteTutorAvailabilityForEvent(availability: {userID: $id, eventID: $eventsAvailable}) {
+    fn
+  }
+}
+
+mutation updateUser($user: UpdateUser!, $id: Int!) {
+  updateUser(user: $user, id: $id)
+}
+
+mutation deleteUser($id: [Int!]!) {
+  deleteUser(id: $id)
 }

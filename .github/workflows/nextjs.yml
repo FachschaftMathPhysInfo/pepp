@@ -7,6 +7,13 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      node-version:
+        description: |
+          Manually run the workflow. The node.js version to use can be specified.
+          If not specified, the default is 20.x
+        default: '20.x'
 
 jobs:
   build:
@@ -31,6 +38,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Generate Queries and Mutations
+        run: npm run codegen
 
       - name: Build project
         run: npm run build

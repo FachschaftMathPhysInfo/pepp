@@ -1,7 +1,17 @@
 .env.local
+pepp.db
+server/graph/generated.go
+server/graph/model/
+frontend/lib/gql/generated/
 
 # vscode
 .vscode/
 
 # jetbrains
 .idea/
+
+# certs
+*.crt
+*.key
+*.csr
+*.srl

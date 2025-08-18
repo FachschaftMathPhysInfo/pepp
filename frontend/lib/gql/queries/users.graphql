@@ -1,0 +1,167 @@
+query userID($mailOrSid: String!) {
+  users(mail: [$mailOrSid]) {
+    ID
+  }
+}
+
+query loginUser($sid: String!) {
+  users(mail: [$sid]) {
+    ID
+    tutorials {
+      ID
+      event {
+        ID
+        title
+        from
+      }
+      room {
+        number
+        building {
+          ID
+        }
+      }
+    }
+    registrations {
+      ID
+      event {
+        ID
+      }
+      room {
+        capacity
+        floor
+        name
+        number
+        building {
+          ID
+          name
+          street
+          number
+          city
+          zip
+          latitude
+          longitude
+          zoomLevel
+        }
+      }
+    }
+    fn
+    sn
+    mail
+    confirmed
+    role
+    applications {
+      event {
+        ID
+      }
+      accepted
+    }
+  }
+}
+
+query AllUsers {
+  users {
+    ID
+    fn
+    sn
+    mail
+    role
+    confirmed
+    tutorials {
+      event {
+        ID
+      }
+    }
+  }
+}
+
+query registeredEvents {
+  users {
+    ID
+    registrations {
+      event {
+        title
+        description
+        from
+        to
+      }
+    }
+  }
+}
+
+query allApplicants {
+  users {
+    mail
+    fn
+    sn
+    applications {
+      event {
+        ID
+      }
+      score
+      accepted
+    }
+  }
+}
+
+query RegisteredTutorials {
+  users {
+    ID
+    registrations {
+      ID
+      registrationCount
+      room {
+        name
+        building {
+          ID
+          name
+        }
+      }
+      students {
+        mail
+        fn
+        sn
+      }
+      event {
+        ID
+        title
+        description
+        from
+        to
+      }
+      tutors {
+        ID
+        mail
+        fn
+        sn
+      }
+    }
+  }
+}
+
+query registeredEventIdsOfUser($mail: [String!]!) {
+  users(mail: $mail) {
+    ID
+    registrations {
+      ID
+    }
+  }
+}
+
+query GetTutorialIdsOfEvent($eventId: [Int!]) {
+  events(id: $eventId) {
+    ID
+    title
+    from
+    to
+    tutorials {
+      ID
+    }
+    umbrella {
+      ID
+      title
+    }
+    topic {
+      color
+    }
+  }
+}

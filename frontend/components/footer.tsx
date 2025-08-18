@@ -1,18 +1,6 @@
-"use client"
-
-import React, { useEffect, useState } from "react";
-
 export function Footer() {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) return null;
-
   return (
-    <footer className="bottom-0 left-0 w-full p-10 text-sm text-muted-foreground">
+    <footer className="bottom-0 left-0 w-full py-5 px-10 text-sm text-muted-foreground border-t mt-5">
       <span>
         Built by{" "}
         <a className="cursor-pointer underline" href="https://mathphys.info">

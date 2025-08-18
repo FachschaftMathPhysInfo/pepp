@@ -1,5 +1,19 @@
 mutation updateEvent($id: Int!, $event: NewEvent!) {
-  updateEvent(id: $id, event: $event) {
-    ID
-  }
+  updateEvent(id: $id, event: $event)
+}
+
+mutation addEvent($event: [NewEvent!]!) {
+  addEvent(event: $event)
+}
+
+mutation deleteEvent($eventIds: [Int!]!) {
+  deleteEvent(id: $eventIds)
+}
+
+mutation subscribeToEvent($subscriberID: Int!, $sourceIDs: [Int!]!) {
+  linkSupportingEventToEvent(eventID: $subscriberID, supportingEventID: $sourceIDs)
+}
+
+mutation unsubscribeFromEvent($subscriberID: Int!, $sourceIDs: [Int!]!){
+  unlinkSupportingEventFromEvent(eventID: $subscriberID, supportingEventID: $sourceIDs)
 }

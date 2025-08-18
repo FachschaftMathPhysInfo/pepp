@@ -12,26 +12,39 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Event } from "@/lib/gql/generated/graphql";
-import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { cn, extractId, slugify } from "@/lib/utils";
+import { Check, ChevronsUpDown } from "lucide-react";
 import React, { useState } from "react";
-import { useUmbrella } from "./providers";
+import {Button} from "./ui/button";
+import {usePathname, useRouter} from "next/navigation";
 
-interface UmbrellaPopoverSelectionProps {
+interface UmbrellaPopoverSelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   umbrellas: Event[];
-  children: React.ReactNode;
+  heading?: boolean;
 }
 
 export function UmbrellaPopoverSelection({
   umbrellas,
-  children,
+  className
 }: UmbrellaPopoverSelectionProps) {
-  const { umbrellaID, setUmbrellaID } = useUmbrella();
+  const pathname = usePathname()
+  const router = useRouter()
+  const umbrellaID = extractId(pathname)
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>{children}</PopoverTrigger>
+      <PopoverTrigger asChild className="p-6">
+        <Button
+          variant="outline"
+          role="combobox"
+          className={cn(className)}
+        >
+          {umbrellas.find((u) => u.ID == umbrellaID)?.title ??
+            "Event auswählen..."}
+          <ChevronsUpDown className="h-7 w-7 shrink-0 opacity-40" />
+        </Button>
+      </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0">
         <Command>
           <CommandInput placeholder="Event suchen..." />
@@ -43,7 +56,7 @@ export function UmbrellaPopoverSelection({
                   key={u.ID}
                   value={u.title}
                   onSelect={() => {
-                    setUmbrellaID(u.ID);
+                    router.push("/" + slugify(u.title) + "-" + u.ID)
                     setIsOpen(false);
                   }}
                 >

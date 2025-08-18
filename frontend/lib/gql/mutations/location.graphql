@@ -1,0 +1,31 @@
+mutation addRoom ($room : NewRoom!) {
+    addRoom(room: $room) {
+        number
+    }
+}
+
+mutation addBuilding ($building: NewBuilding!) {
+    addBuilding(building: $building) {
+        ID
+    }
+}
+
+mutation deleteBuilding($ID: [Int!]!) {
+    deleteBuilding(id: $ID)
+}
+
+mutation deleteRoom($roomNumber: [String!]!, $buildingID: Int!) {
+    deleteRoom(number: $roomNumber, buildingID: $buildingID)
+}
+
+mutation updateRoom($room: NewRoom!) {
+    updateRoom(room: $room){
+        number
+    }
+}
+
+mutation updateBuilding($buildingID: Int!, $building: NewBuilding!) {
+    updateBuilding(id: $buildingID, building: $building) {
+        ID
+    }
+}

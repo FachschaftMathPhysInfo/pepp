@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from "@/lib/utils/tailwindUtils"
+import { cn } from "@/lib/utils"
 import {calculateFontColor} from "@/lib/utils/colorUtils"
 
 const badgeVariants = cva(
@@ -35,7 +35,7 @@ function Badge({ color, className, variant, ...props }: BadgeProps) {
   return (
     <div className={cn(badgeVariants({ variant }), className)} {...props} style={{
       backgroundColor: color,
-      color: color ? calculateFontColor(color) : "black"
+      color: color && calculateFontColor(color)
     }} />
   )
 }

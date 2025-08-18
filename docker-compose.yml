@@ -1,37 +1,27 @@
 ---
-volumes:
-  data:
+# volumes:
+#   data:
 
 services:
-  postgres:
-    image: postgres:15.6-alpine
-    restart: always
-    volumes:
-      - data:/var/lib/postgresql/data
-    env_file: .env.local
+  # postgres:
+  #   image: postgres:15.6-alpine
+  #   volumes:
+  #     - data:/var/lib/postgresql/data
+  #     - ./postgresql.conf:/etc/postgresql/config/postgresql.conf:ro
+  #     - ./tls/certs/root.crt:/etc/postgres/security/root.crt:ro
+  #     - ./tls/certs/server.crt:/etc/postgres/security/server.crt:ro
+  #     - ./tls/certs/server.key:/etc/postgres/security/server.key:ro
+  #   command: -c config_file=/etc/postgresql/config/postgresql.conf
+  #   env_file: .env.local
 
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib
-    volumes:
-      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
-
-  server:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    restart: always
-    env_file: .env.local
+  # otel-collector:
+  #   image: otel/opentelemetry-collector-contrib
+  #   volumes:
+  #     - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
+  
+  pepp:
+    build: .
+    image: pepp:latest
     ports:
       - 8080:8080
-    depends_on:
-      - postgres
-      - otel-collector
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    restart: always
     env_file: .env.local
-    depends_on:
-      - server

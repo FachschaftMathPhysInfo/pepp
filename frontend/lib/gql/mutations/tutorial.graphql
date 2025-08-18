@@ -1,0 +1,11 @@
+mutation addTutorials($tutorials: [NewTutorial!]!) {
+    addTutorial(tutorial: $tutorials)
+}
+
+mutation updateTutorial($id: Int!, $tutorial: NewTutorial!) {
+    updateTutorial(tutorial: $tutorial, id: $id)
+}
+
+mutation deleteTutorials($tutorialIDs: [Int!]!) {
+    deleteTutorial(id: $tutorialIDs)
+}

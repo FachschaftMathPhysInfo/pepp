@@ -3,18 +3,36 @@ package db
 import (
 	"context"
 	"fmt"
-	"log"
+	"os"
 	"strconv"
 	"time"
 
+	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
+	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
+	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
 
-func seedData(ctx context.Context, db *bun.DB) error {
+func SeedData(ctx context.Context, db *bun.DB) error {
+	password, err := auth.Hash("tutor")
+	userpassword, err := auth.Hash("user")
+	if err != nil {
+		return fmt.Errorf("failed to generate passwords for tutors:", err)
+	}
 	users := []*models.User{
-		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: true},
-		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: true},
+		{Mail: "tutor1@example.de", Fn: "Tutorin", Sn: "One", Confirmed: utils.BoolPtr(true), Password: password},
+		{Mail: "tutor2@example.de", Fn: "Tutor", Sn: "Two", Confirmed: utils.BoolPtr(true), Password: password},
+		{Mail: "student1@example.de", Fn: "Student", Sn: "One", Confirmed: utils.BoolPtr(true)},
+		{Mail: "student2@example.de", Fn: "Student", Sn: "Two", Confirmed: utils.BoolPtr(true)},
+		{Mail: "applicant1@example.de", Fn: "Applicant", Sn: "One", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant2@example.de", Fn: "Applicant", Sn: "Two", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant3@example.de", Fn: "Applicant", Sn: "Three", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant4@example.de", Fn: "Applicant", Sn: "Four", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant5@example.de", Fn: "Applicant", Sn: "Five", Confirmed: utils.BoolPtr(true), Password: userpassword},
+		{Mail: "applicant6@example.de", Fn: "Applicant", Sn: "Six", Confirmed: utils.BoolPtr(false), Password: userpassword},
+		{Mail: "applicant7@example.de", Fn: "Applicant", Sn: "Seven", Confirmed: utils.BoolPtr(false), Password: userpassword},
+		{Mail: "applicant8@example.de", Fn: "Applicant", Sn: "Eight", Confirmed: utils.BoolPtr(true), Password: userpassword},
 	}
 	if err := insertData(ctx, db, (*models.User)(nil), users, "Users"); err != nil {
 		return err
@@ -25,10 +43,19 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		Street:    "INF",
 		Number:    "205",
 		City:      "Heidelberg",
-		Zip:       69115,
+		Zip:       "69115",
 		Latitude:  49.417493,
 		Longitude: 8.675197,
-		ZoomLevel: 19,
+		ZoomLevel: 17,
+	}, {
+		Name:      "Kirchhoff-Institut für Physik",
+		Street:    "INF",
+		Number:    "227",
+		City:      "Heidelberg",
+		Zip:       "69115",
+		Latitude:  49.4162501,
+		Longitude: 8.6694734,
+		ZoomLevel: 17,
 	}}
 	if err := insertData(ctx, db, (*models.Building)(nil), buildings, "Buildings"); err != nil {
 		return err
@@ -44,15 +71,22 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		Number:     "2.141",
 		Capacity:   35,
 		BuildingID: 1,
+	}, {
+		Number:     "503",
+		Name:       "Labor 1",
+		Capacity:   30,
+		Floor:      5,
+		BuildingID: 2,
 	}}
 	if err := insertData(ctx, db, (*models.Room)(nil), rooms, "Rooms"); err != nil {
 		return err
 	}
 
 	labels := []*models.Label{
+		{Name: "Informatik", Color: "#FFE31A", Kind: "TOPIC"},
 		{Name: "Mathe", Color: "#87cefa", Kind: "TOPIC"},
-		{Name: "Informatik", Color: "#33ff33", Kind: "TOPIC"},
-		{Name: "Tutorium", Color: "#00ff80", Kind: "EVENT_TYPE"},
+		{Name: "Allgemein", Color: "#5D737E", Kind: "TOPIC"},
+		{Name: "Tutorium", Color: "#ABBA7C", Kind: "EVENT_TYPE"},
 		{Name: "Vorlesung", Color: "#ffbf00", Kind: "EVENT_TYPE"},
 	}
 	if err := insertData(ctx, db, (*models.Label)(nil), labels, "Labels"); err != nil {
@@ -60,6 +94,7 @@ func seedData(ctx context.Context, db *bun.DB) error {
 	}
 
 	umbrellaID := int32(1)
+	umbrellaID2 := int32(2)
 	events := []*models.Event{
 		{
 			Title:       fmt.Sprintf("Vorkurs %s", strconv.Itoa(time.Now().Year())),
@@ -68,11 +103,17 @@ func seedData(ctx context.Context, db *bun.DB) error {
 			To:          time.Now().Add(3 * (time.Hour * 24)),
 		},
 		{
+			Title:       fmt.Sprintf("Programmiervorkurs %s", strconv.Itoa(time.Now().Year())),
+			Description: "Lorem Ipsum",
+			From:        time.Now().Add(-time.Hour),
+			To:          time.Now().Add(3 * (time.Hour * 24)),
+		},
+		{
 			Title:       "Algorithmen und Datenstrukturen",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicName:   "Informatik",
-			TypeName:    "Tutorium",
-			NeedsTutors: true,
+			TopicID:     1,
+			TypeID:      4,
+			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(-time.Hour),
 			To:          time.Now().Add(time.Hour),
 			UmbrellaID:  &umbrellaID,
@@ -80,19 +121,29 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Analysis",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicName:   "Mathe",
-			TypeName:    "Vorlesung",
-			NeedsTutors: true,
+			TopicID:     2,
+			TypeID:      5,
+			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add((24 * time.Hour) * 7),
 			To:          time.Now().Add((24*time.Hour)*7 + 2*time.Hour),
 			UmbrellaID:  &umbrellaID,
 		},
 		{
+			Title:       "Einführungsveranstaltung",
+			Description: "Lorem Ipsum dolor sit amed",
+			TopicID:     3,
+			TypeID:      5,
+			NeedsTutors: utils.BoolPtr(true),
+			From:        time.Now().Add(-time.Hour),
+			To:          time.Now().Add(time.Hour),
+			UmbrellaID:  &umbrellaID2,
+		},
+		{
 			Title:       "Lineare Algebra",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicName:   "Mathe",
-			TypeName:    "Tutorium",
-			NeedsTutors: true,
+			TopicID:     2,
+			TypeID:      4,
+			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(2 * time.Hour),
 			To:          time.Now().Add(3 * time.Hour),
 			UmbrellaID:  &umbrellaID,
@@ -101,30 +152,58 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
-	eventID := int32(2)
-	buildingID := int32(1)
-	assignments := []*models.EventToUserAssignment{
-		{EventID: eventID, UserMail: "tutor1@example.de", RoomNumber: "101", BuildingID: buildingID},
-		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "101", BuildingID: buildingID},
-		{EventID: eventID, UserMail: "tutor2@example.de", RoomNumber: "2.141", BuildingID: buildingID},
+	tutorials := []*models.Tutorial{
+		{EventID: 3, RoomNumber: "101", BuildingID: 1},
+		{EventID: 3, RoomNumber: "2.141", BuildingID: 1},
+		{EventID: 5, RoomNumber: "503", BuildingID: 2},
 	}
-	if err := insertData(ctx, db, (*models.EventToUserAssignment)(nil), assignments, "Event to User assignments"); err != nil {
+	if err := insertData(ctx, db, (*models.Tutorial)(nil), tutorials, "Tutorials"); err != nil {
+		return err
+	}
+
+	assignments := []*models.TutorialToUserAssignment{
+		{TutorialID: 1, UserID: 1},
+		{TutorialID: 1, UserID: 2},
+		{TutorialID: 2, UserID: 2},
+		{TutorialID: 3, UserID: 2},
+	}
+	if err := insertData(ctx, db, (*models.TutorialToUserAssignment)(nil), assignments, "Tutorial to User assignments"); err != nil {
+		return err
+	}
+
+	availabilitys := []*models.UserToEventAvailability{
+		{EventID: 3, UserID: 1},
+		{EventID: 3, UserID: 2},
+		{EventID: 4, UserID: 1},
+		{EventID: 5, UserID: 2},
+	}
+	if err := insertData(ctx, db, (*models.UserToEventAvailability)(nil), availabilitys, "User to Event availabilitys"); err != nil {
+		return err
+	}
+
+	registrations := []*models.UserToTutorialRegistration{
+		{TutorialID: 1, UserID: 3},
+		{TutorialID: 2, UserID: 4},
+		{TutorialID: 3, UserID: 3},
+		{TutorialID: 3, UserID: 4},
+	}
+	if err := insertData(ctx, db, (*models.UserToTutorialRegistration)(nil), registrations, "User to Tutorial registrations"); err != nil {
 		return err
 	}
 
 	form := []*models.Form{{
 		Title:       "Beispielregistrierung",
 		Description: "Lorem Ipsum dolor sit amed",
-		EventID:     1,
+		EventID:     2,
 	}}
 	if err := insertData(ctx, db, (*models.Form)(nil), form, "Form"); err != nil {
 		return err
 	}
 
 	questions := []*models.Question{
-		{Title: "Wie viel Programmiererfahrung hast du?", Type: "SCALE", FormID: 1},
-		{Title: "Welche der folgenden Konzepte kennst du noch nicht?", Type: "MULTIPLE_CHOICE", Required: false, FormID: 1},
-		{Title: "Welchen Studiengang belegst du?", Type: "SINGLE_CHOICE", Required: true, FormID: 1},
+		{Title: "Wie viel Programmiererfahrung hast du?", Type: "SCALE", FormID: 2},
+		{Title: "Welche der folgenden Konzepte kennst du noch nicht?", Type: "MULTIPLE_CHOICE", Required: false, FormID: 2},
+		{Title: "Welchen Studiengang belegst du?", Type: "SINGLE_CHOICE", Required: true, FormID: 2},
 	}
 	if err := insertData(ctx, db, (*models.Question)(nil), questions, "Questions"); err != nil {
 		return err
@@ -145,9 +224,62 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		return err
 	}
 
+	appToQuestions := []*models.ApplicationToQuestion{
+		{EventID: 2, StudentID: 5, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 5, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 5, QuestionID: 3, AnswerID: 7},
+		{EventID: 2, StudentID: 6, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 6, QuestionID: 2, AnswerID: 4},
+		{EventID: 2, StudentID: 6, QuestionID: 3, AnswerID: 8},
+		{EventID: 2, StudentID: 7, QuestionID: 1, AnswerID: 2},
+		{EventID: 2, StudentID: 7, QuestionID: 2, AnswerID: 6},
+		{EventID: 2, StudentID: 7, QuestionID: 3, AnswerID: 9},
+		{EventID: 2, StudentID: 8, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 8, QuestionID: 2, AnswerID: 5},
+		{EventID: 2, StudentID: 8, QuestionID: 2, AnswerID: 6},
+		{EventID: 2, StudentID: 8, QuestionID: 3, AnswerID: 7},
+		{EventID: 2, StudentID: 9, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 9, QuestionID: 3, AnswerID: 7},
+		{EventID: 2, StudentID: 10, QuestionID: 1, AnswerID: 2},
+		{EventID: 2, StudentID: 10, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 10, QuestionID: 3, AnswerID: 8},
+		{EventID: 2, StudentID: 11, QuestionID: 1, AnswerID: 2},
+		{EventID: 2, StudentID: 11, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 11, QuestionID: 3, AnswerID: 8},
+		{EventID: 2, StudentID: 12, QuestionID: 1, AnswerID: 1},
+		{EventID: 2, StudentID: 12, QuestionID: 2, AnswerID: 3},
+		{EventID: 2, StudentID: 12, QuestionID: 2, AnswerID: 4},
+		{EventID: 2, StudentID: 12, QuestionID: 2, AnswerID: 5},
+		{EventID: 2, StudentID: 12, QuestionID: 2, AnswerID: 6},
+		{EventID: 2, StudentID: 12, QuestionID: 3, AnswerID: 7},
+	}
+
+	if err := insertData(ctx, db, (*models.ApplicationToQuestion)(nil), appToQuestions, "Application To Questions"); err != nil {
+		return err
+	}
+
+	applications := []*models.Application{
+		{EventID: 2, StudentID: 5, Score: int16(answers[0].Points + answers[2].Points + answers[6].Points)},
+		{EventID: 2, StudentID: 6, Score: int16(answers[0].Points + answers[3].Points + answers[7].Points)},
+		{EventID: 2, StudentID: 7, Score: int16(answers[1].Points + answers[5].Points + answers[8].Points)},
+		{EventID: 2, StudentID: 8, Score: int16(answers[0].Points + answers[4].Points + answers[5].Points + answers[6].Points)},
+		{EventID: 2, StudentID: 9, Score: int16(answers[0].Points + answers[6].Points)},
+		{EventID: 2, StudentID: 10, Score: int16(answers[1].Points + answers[2].Points + answers[7].Points)},
+		{EventID: 2, StudentID: 11, Score: int16(answers[1].Points + answers[2].Points + answers[7].Points)},
+		{EventID: 2, StudentID: 12, Score: int16(answers[0].Points + answers[2].Points + answers[3].Points + answers[4].Points + answers[5].Points + answers[6].Points)},
+	}
+	if err := insertData(ctx, db, (*models.Application)(nil), applications, "Applications"); err != nil {
+		return err
+	}
+
+	url := os.Getenv("PUBLIC_URL")
+	if url == "" {
+		url = "http://localhost:8080"
+	}
+
 	settings := []*models.Setting{
 		{Key: "primary-color", Value: "#990000", Type: "COLOR"},
-		{Key: "logo-url", Value: "https://mathphys.info/mathphysinfo-logo.png", Type: "STRING"},
+		{Key: "logo-url", Value: fmt.Sprintf("%s/fs-logo-light.png", url), Type: "STRING"},
 		{Key: "homepage-url", Value: "https://mathphys.info", Type: "STRING"},
 		{Key: "copyright-notice", Value: "Copyright © 2024, Fachschaft MathPhysInfo. All rights reserved.", Type: "STRING"},
 		{Key: "email-greeting", Value: "Hey", Type: "STRING"},
@@ -169,6 +301,12 @@ func seedData(ctx context.Context, db *bun.DB) error {
 		{Key: "email-assignment-building-title", Value: "Gebäude", Type: "STRING"},
 		{Key: "email-assignment-intro", Value: "aufgrund deiner angegebenen Verfügbarkeiten, wurdest du der folgenden Veranstaltung zugewiesen:", Type: "STRING"},
 		{Key: "email-assignment-outro", Value: "Sollte dir der Termin doch nicht passen, melde dich bitte zeitnah bei uns, indem du auf diese E-Mail reagierst. Wir freuen uns auf einen erfolgreichen Vorkurs mit dir!", Type: "STRING"},
+		{Key: "email-application-accepted-intro", Value: "deine Anmeldung wurde akzeptiert!", Type: "STRING"},
+		{Key: "email-application-accepted-button-instruction", Value: "Hier geht es direkt zum Vorkurs:", Type: "STRING"},
+		{Key: "email-application-accepted-outro", Value: "Bitte trage dich in Pepp zu den Tutorien ein bei denen du erscheinen wirst. Wir freuen uns auf einen schönen Vorkurs mit dir!", Type: "STRING"},
+		{Key: "auth-standard-enabled", Value: "1", Type: "BOOLEAN"},
+		{Key: "auth-sso-oidc-enabled", Value: "1", Type: "BOOLEAN"},
+		{Key: "auth-sso-oidc-name", Value: "Fachschaftslogin", Type: "STRING"},
 	}
 	if err := insertData(ctx, db, (*models.Setting)(nil), settings, "Settings"); err != nil {
 		return err
@@ -185,11 +323,9 @@ func insertData[T any](ctx context.Context, db *bun.DB, model T, data []T, descr
 
 	if count == 0 {
 		if _, err := db.NewInsert().Model(&data).Exec(ctx); err != nil {
-			return err
+			return fmt.Errorf("%s: %s", description, err)
 		}
-		log.Printf("%s seeded successfully\n", description)
-	} else {
-		log.Printf("%s already exist, skipping seed\n", description)
+		log.Infof("%s seeded successfully\n", description)
 	}
 	return nil
 }

@@ -1,0 +1,19 @@
+query allBuildings {
+    buildings {
+        ID
+        name
+        street
+        number
+        city
+        zip
+        latitude
+        longitude
+        zoomLevel
+        rooms {
+            name
+            number
+            capacity
+            floor
+        }
+    }
+}

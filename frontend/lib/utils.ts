@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Event } from "./gql/generated/graphql";
+import { addDays } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -72,4 +73,78 @@ export const calculateEventDurationInHours = (from: string, to: string) => {
   const toDate = new Date(to);
   const durationMs = toDate.getTime() - fromDate.getTime();
   return durationMs / (1000 * 60 * 60);
+};
+
+export const extractId = (slug: string) => {
+  const match = slug.match(/(?:^|\/)[^/]+-(\d+)(?:\/?|$)/);
+  if (match && match[1]) {
+    return parseInt(match[1], 10);
+  }
+  return null;
+};
+
+export const slugify = (title: string) => {
+  let slug = title.toLowerCase();
+  slug = slug.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  slug = slug.replace(/[^a-z0-9\s-]/g, "");
+  slug = slug.replace(/[\s-]+/g, "-");
+  slug = slug.replace(/^-+|-+$/g, "");
+  return slug;
+};
+
+export const hexToRGBA = (hex: string, alpha = 1) => {
+  hex = hex.replace(/^#/, "");
+
+  let r, g, b;
+  if (hex.length === 3) {
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
+  } else if (hex.length === 6) {
+    r = parseInt(hex.substring(0, 2), 16);
+    g = parseInt(hex.substring(2, 4), 16);
+    b = parseInt(hex.substring(4, 6), 16);
+  } else {
+    throw new Error("Invalid hex color");
+  }
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+export function getNextWeek(): Date {
+  const soon = new Date();
+  soon.setDate(soon.getDate() + 7);
+  return soon;
+}
+
+export const groupEventsByUmbrellaId = (events: Event[]) => {
+  return events?.reduce((acc, event) => {
+    const umbrellaId = event.umbrella?.ID;
+    if (!acc[umbrellaId ?? 0]) {
+      acc[umbrellaId ?? 0] = [];
+    }
+    acc[umbrellaId ?? 0].push(event);
+    return acc;
+  }, {} as { [key: string]: Event[] });
+};
+
+export const formatDate = (date: Date, locale: string = "en-us"): string => {
+  return date.toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+export const getDateAdjustedForTimezone = (dateInput: Date | string): Date => {
+  if (typeof dateInput === "string") {
+    // Split the date string to get year, month, and day parts
+    const parts = dateInput.split("-").map((part) => parseInt(part, 10));
+    // Create a new Date object using the local timezone
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    return date;
+  } else {
+    // If dateInput is already a Date object, return it directly
+    return dateInput;
+  }
 };

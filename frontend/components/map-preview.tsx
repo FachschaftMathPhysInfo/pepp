@@ -12,13 +12,19 @@ interface MapPreviewProps {
 const MapPreview: React.FC<MapPreviewProps> = ({
   latitude,
   longitude,
-  zoom,
+  zoom = 17,
   width = "100%",
   height = "100%",
   className,
 }) => {
-  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${longitude}%2C${latitude}&layer=mapnik&marker=${latitude}%2C${longitude}&zoom=${zoom}`;
-
+  const delta = 0.0005;
+  const minLon = longitude - delta;
+  const minLat = latitude - delta;
+  const maxLon = longitude + delta;
+  const maxLat = latitude + delta;
+  
+  const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${minLon}%2C${minLat}%2C${maxLon}%2C${maxLat}&layer=mapnik&marker=${latitude}%2C${longitude}&zoom=${zoom}`;
+  
   return (
     <div className="flex justify-center">
       <iframe
