@@ -72,16 +72,31 @@ Next.js bietet serverseitiges Rendering und statische Seiten-Generierung, was zu
 ```bash
 frontend
 ├── app # Alle Unterordner (ausg. (*)) sind Routing-Einheiten
-│   ├── (form-tutor)
-│   │   └── form-tutor # Formular zur Eintragung von Verfügbarkeiten für Tutorien
+│   ├── (confirm) # E-Mail bestätigung
+│   │   ├── confirm-failed
+│   │   └── confirm-success
+│   ├── form-tutor # Formular zur Eintragung von Verfügbarkeiten für Tutorien
 │   ├── (planner) # Landingpage Studenplan mit weiteren Administrationsmöglichkeiten
-│   │   ├── applications
-│   │   ├── events
-│   │   ├── overview
-│   │   ├── settings
-│   │   └── tutorials
-│   └── (registration)
-│       └── register
+│   │   └── [planner]
+│   │       ├── applications
+│   │       ├── events
+│   │       ├── register
+│   │       ├── @registration
+│   │       │   └── (.)register
+│   │       └── tutorials
+│   └── (settings)
+│       ├── admin
+│       │   ├── auth
+│       │   ├── labels
+│       │   ├── locations
+│       │   ├── mails
+│       │   ├── umbrellas
+│       │   └── users
+│       └── profile
+│           ├── availabilities
+│           ├── registrations
+│           └── tutorials
+│               └── [tutorial]
 ├── assets # Statische Ressourcen
 │   └── fonts
 ├── components # Wiederverwendbare UI-Komponenten
@@ -157,17 +172,12 @@ Provider dienen der Bereitstellung komponentenübergreifender Daten in einem Kon
     type UserContextType = {
       user: User | null;
       setUser: (user: User | null) => void;
+      sid: string | null;
+      logout: () => void;
+      login: (sid: string) => void;
     };
     ```
-- `UmbrellaProvider`: Wird beim Laden der Seite gesetzt. Enthält die ID des *Umbrella-Events*, ein übergeordnetes `Event`, welche einen Vorkurs an `Event`s als Parent unter sich vereint. Die ID wird aus dem Suchparameter `e` geladen. Ist dieses nicht gegeben, wird das in nächster Zukunft liegende *Umbrella-Event* gewählt und als Suchparameter gesetzt. `e` kann optional auch die ID einer Veranstaltung innerhalb eines Vorkurses haben. Dadurch wird neben dem Parent *Umbrella-Event* auch eine `closeupID` gesetzt und die Veranstaltung im Popup geöffnet (*Randnotiz*: Das Veranstaltungspopup lässt sich alleine durch das Setzen, bzw. Entfernen der `closeupID` öffnen oder schließen).
-    ```typescript
-    type UmbrellaContextType = {
-      umbrellaID: number | null;
-      setUmbrellaID: (id: number | null) => void;
-      closeupID: number | null;
-      setCloseupID: (id: number | null) => void;
-    };
-    ```
+- 
 
 ### 2.2.2 Backend: [GraphQL](https://graphql.org/) ([gqlgen](https://gqlgen.com/))
 GraphQL ermöglicht es, genau die Daten abzufragen, die für die jeweilige Ansicht benötigt werden, was die Netzwerkbelastung reduziert und die Client-Performance steigert. Mit gqlgen in Go kann man ein performantes Backend entwickeln, das typsicher, leicht und skalierbar ist.
@@ -224,17 +234,17 @@ Für die Implementierung des *API-Endpunktes* wird [`gqlgen`](https://gqlgen.com
 4. Jetzt kann vom Frontend eine entsprechende Query gestartet werden (s. 2.2.1.2)
 
 #### 2.2.2.3 Datenbankanbindung
-Zur Anbindung der Datenbank kommt das Object-Relational Mapping (ORM) [`bun`](https://bun.uptrace.dev/) zum Einsatz, ein leistungsstarkes Tool, das die Interaktion mit PostgreSQL stark vereinfacht. Die Initialisierung der Datenbankverbindung sowie grundlegende Konfigurationsarbeiten werden im Modul `server/db/` durchgeführt. Dieses Modul beinhaltet nicht nur den Aufbau der Verbindung, sondern auch die Migration des Datenbankschemas und das Einfügen von Testdaten. Solche Testdaten dienen der lokalen Entwicklungs- und Testumgebung und ermöglichen es, neue Funktionen effizient zu evaluieren.
+Zur Anbindung der Datenbank kommt das Object-Relational Mapping (ORM) [`bun`](https://bun.uptrace.dev/) zum Einsatz, ein leistungsstarkes Tool, das die Interaktion mit PostgreSQL stark vereinfacht. Die Initialisierung der Datenbankverbindung sowie grundlegende Konfigurationsarbeiten werden im Modul `server/db/` durchgeführt. Dieses Modul beinhaltet nicht nur den Aufbau der Verbindung, sondern auch die Migration des Datenbankschemas und das Einfügen von Testdaten. Solche Testdaten dienen der lokalen Entwicklungs- und Testumgebung und können auch in eine SQLite Datenbank geschrieben werden. Das erleichtert die Entwicklung, da kein dedizierter Postgres Server hochgefahren werden muss; es ist aber ratsam in der Production-Ümbgebung dennoch auf Posgres zu setzen, da große Datenmengen schneller verarbeitet werden und die Anbindung via mTLS im Docker-Netzwerk sehr sicher ist.
 
-Für die Weiterentwicklung der Software empfiehlt es sich, sich am bestehenden Schema in der Datei `server/graph/schema.resolvers.go` zu orientieren. Diese Datei enthält bereits implementierte Queries und Mutations, die als Vorlagen dienen können, um neue Funktionalitäten konsistent und wartbar hinzuzufügen. Es ist dabei ratsam, Datenbankanfragen primär in dieser zentralen Datei zu definieren, um eine übersichtliche und einheitliche Codebasis zu gewährleisten.
+Für die Weiterentwicklung des Backends empfiehlt es sich, sich am bestehenden Schema in der Datei `server/graph/schema.resolvers.go` zu orientieren. Diese Datei enthält bereits implementierte Queries und Mutations, die als Vorlagen dienen können, um neue Funktionalitäten konsistent und wartbar hinzuzufügen. Dabei sollten Datenbankanfragen primär in dieser zentralen Datei zu definiert werden, um eine übersichtliche und einheitliche Codebasis zu gewährleisten.
 
-Sollten komplexere oder wiederverwendbare Funktionen benötigt werden, wie beispielsweise Passwort-Hashing oder datenbankunabhängige Logiken, sollten diese in eigene Module ausgelagert werden. Ein Beispiel hierfür ist das Modul `server/password/`, das alle notwendigen Funktionen für die sichere Verarbeitung und Verwaltung von Passwörtern bereitstellt. Eine ähnliche Struktur kann auch für andere funktionale Bereiche übernommen werden, um die Übersichtlichkeit und Wiederverwendbarkeit zu fördern.
+Sollten komplexere oder wiederverwendbare Funktionen benötigt werden, wie beispielsweise Passwort-Hashing oder datenbankunabhängige Logiken, sollten diese in eigene Module ausgelagert werden. Ein Beispiel hierfür ist das Modul `server/auth/`, das alle notwendigen Funktionen für die sichere Verarbeitung und Verwaltung von Passwörtern bereitstellt. Eine ähnliche Struktur kann auch für andere funktionale Bereiche übernommen werden, um die Übersichtlichkeit und Wiederverwendbarkeit zu fördern.
 
 #### 2.2.2.4 Sicherheit
 
 Das Backend implementiert alle standardmäßigen Methoden zur datenschutzkonformen und sicheren Speicherung von Passwörtern sowie Nutzerdaten.
 
-- **Speicherung**: Passwörter werden sowohl mit *Salt* als auch *Pepper* versehen und gehashed gespeichert. Der *Pepper* ist als Umgebungsvariable anzugeben
+- **Speicherung**: Passwörter werden sowohl mit *Salt* als auch *Pepper* versehen und gehashed gespeichert. Der *Pepper* ist als Umgebungsvariable anzugeben. *Randnotiz*: Die Salts werden indirekt durch die [bcrypt Implementierung](https://pkg.go.dev/golang.org/x/crypto/bcrypt) in Go gehandhabt. Sie sind daher nicht als dedizierte Entität in der Datenbank zu finden.
 - **Kommunikation**: Das serverseitige Docker-Netzwerk ist nach dem *Zero Trust* Prinzip gebaut, jegliche Kommunikation ist demnach via *mTLS* durch self-signed Zertifikate gesichert.
 
 ### 2.2.3 Datenbank: [PostgreSQL](https://www.postgresql.org/)
@@ -243,10 +253,9 @@ PostgreSQL ist ein leistungsstarkes und SQL-konformes relationales Datenbanksyst
 #### 2.2.3.1 ER-Diagram
 Die wichtigsten Eigenschaften dargestellter Entitäten werden hier erläutert:
 - `events`: Die Software unterscheidet zwischen zwei Arten von Events. Zunächst jene im folgenden als *Umbrella-Event* bezeichnet, und Events, welche zu einem *Umbrella-Event* gehören. Einfacher ausgedrückt, sprechen wir hier von Veranstaltungen, welche zu einem Vorkurs gehören.
-    - Ein Tutorium ist *kein* `Event`. Es handelt sich um eine ternäre Beziehung aus Tutor, Raum und Event.
 - `rooms`: Räume existieren nur mit refereziertem `Building`. Der Primärschlüssel setzt sich daher zusammen aus Raum-`number` und `building_id`.
 
-![Datenbankmodell](pics/pepp-er.jpg)
+![Datenbankmodell](https://github.com/FachschaftMathPhysInfo/pepp/blob/main/server/models/pepp-er.svg)
 
 # 3 Hauptfunktionen
 
@@ -260,10 +269,6 @@ Folgende Abbildung beinhaltet (v.o.):
 - den Stundenplan mit Veranstaltungen gruppiert nach Woche (horizontal) und Tag (vertikal).
 
 ![Stundenplan](pics/pepp-planner.png)
-
-Auf folgender Abbildung ist die Ansicht eines Admin-Nutzers, eingetragen in einem Tutorium der Veranstaltung *'Algorithmen und Datenstrukturen'* zu sehen. Unabhängig davon kann über ein zusätzliches Panel (parallel zur Vorkurswahl), der gesamte Vorkurs bearbeitet werden.
-
-![Stundenplan](pics/pepp-planner-admin.png)
 
 ## 3.2 Veranstaltungssuche
 Die Veranstaltungssuche erleichtert das Auffinden spezifischer Veranstaltungen anhand verschiedener Filterkriterien wie Titel, Dozent oder Datum. Die Suchfunktion implementiert *Fuzzy finding*, d.h. Abkürzungen wie *'alda'* führen zum Suchergebnis *'Algorithmen und Datenstrukturen'*. Diese Funktion ist besonders nützlich für Organisatoren, die gezielt nach Veranstaltungen suchen, und für Studenten, die sich über einzelne Veranstaltungen informieren möchten.
@@ -313,6 +318,7 @@ Um alle Beteiligten stets informiert zu halten, versendet *pepp* Mails. Auf folg
     SMTP_PORT=465
     FROM_ADDRESS=vorkurs@example.de
     ```
+    Alle weiteren Konfigurationsmöglichkeiten sind bitte dem README zu entnehmen.
 2. OpenTelemetry-Collector-Konfiguration `otel-collector-config.yaml` anpassen ([mehr Infos](https://opentelemetry.io/docs/collector/configuration/#basics))
 3. mTLS-Zertifikate generieren: `./gen_certs.sh`
 4. Docker-Image bauen: `docker compose build`
@@ -321,8 +327,7 @@ Um alle Beteiligten stets informiert zu halten, versendet *pepp* Mails. Auf folg
 # 5. Weiterentwicklung und Ausblick
 - Overbooking
 - Mailman 3 API
-- Drittanbiederauthentifizierungsservices
-
+  
 # 6. Fazit
 Die vorgestellte Softwarelösung *pepp* adressiert effektiv die organisatorischen Herausforderungen der Verwaltung von Vorkursen für Erstsemester. Durch eine Kombination aus intuitiver Benutzeroberfläche, modularer Architektur und Funktionen wie Veranstaltungsplanung, Raumverwaltung, Tutorienmanagement und Anmeldesystem bietet die Anwendung eine umfassende Plattform zur Optimierung wiederkehrender Prozesse.  
 
