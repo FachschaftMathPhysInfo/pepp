@@ -27,6 +27,7 @@ import {toast} from "sonner";
 import {defaultEvent, defaultTutorial, defaultUser} from "@/types/defaults";
 import {Skeleton} from "@/components/ui/skeleton";
 import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
+import {useTheme} from "next-themes";
 
 interface TutorialsTableProps {
   event: Event;
@@ -35,6 +36,7 @@ interface TutorialsTableProps {
 export function TutorialsTable({event}: TutorialsTableProps) {
   const router = useRouter();
   const client = getClient();
+  const {theme} = useTheme();
 
   const {user, setUser, sid} = useUser();
   const [loading, setLoading] = useState(false);
@@ -238,26 +240,20 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                   );
 
                   return (
-                    <TableRow key={rowTutorial.room?.number} className="relative">
-                      <div
-                        className="light:hidden absolute inset-0 z-0"
-                        style={{
-                          width: `${utilization}%`,
-                          backgroundColor: `${
-                            utilization < 100 ? "#024b30" : "#8b0000"
-                          }`,
-                        }}
-                      />
-                      <div
-                        className="dark:hidden absolute inset-0 z-0"
-                        style={{
-                          width: `${utilization}%`,
-                          backgroundColor: `${
-                            utilization < 100 ? "#BBF7D0" : "#FECACA"
-                          }`,
-                        }}
-                      />
-                      <TableCell className="relative z-1">
+                    <TableRow
+                      key={rowTutorial.room?.number}
+                      className="relative"
+                      style={{
+                        backgroundImage: `linear-gradient(to right, ${
+                          utilization < 100
+                            // theme did not wanna work here...
+                            ? (document.documentElement.classList.contains('dark') ? "#024b30" : "#BBF7D0")
+                            : (document.documentElement.classList.contains('dark') ? "#8b0000" : "#FECACA")
+                        } ${utilization}%, transparent ${utilization}%)`,
+                      }}
+                    >
+
+                      <TableCell className="relative z-10">
                         {rowTutorial.tutors?.map((t) => (
                           <HoverCard key={t.mail}>
                             <HoverCardTrigger asChild>
@@ -274,13 +270,13 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                           </HoverCard>
                         ))}
                       </TableCell>
-                      <TableCell className="relative z-1">
+                      <TableCell className="relative z-10">
                         <RoomHoverCard room={rowTutorial.room}/>
                       </TableCell>
-                      <TableCell className="relative z-1">
+                      <TableCell className="relative z-10">
                         {rowTutorial.registrationCount}/{rowTutorial.room.capacity}
                       </TableCell>
-                      <TableCell className="relative z-1">
+                      <TableCell className="relative z-10">
                         <Button
                           className="w-full"
                           disabled={
