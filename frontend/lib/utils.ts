@@ -1,7 +1,6 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { Event } from "./gql/generated/graphql";
-import { addDays } from "date-fns";
+import {type ClassValue, clsx} from "clsx";
+import {twMerge} from "tailwind-merge";
+import {Event} from "./gql/generated/graphql";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -141,10 +140,24 @@ export const getDateAdjustedForTimezone = (dateInput: Date | string): Date => {
     // Split the date string to get year, month, and day parts
     const parts = dateInput.split("-").map((part) => parseInt(part, 10));
     // Create a new Date object using the local timezone
-    const date = new Date(parts[0], parts[1] - 1, parts[2]);
-    return date;
+    return new Date(parts[0], parts[1] - 1, parts[2]);
   } else {
     // If dateInput is already a Date object, return it directly
     return dateInput;
   }
 };
+
+export function getInitialCalendarDate(events: Event[]): Date {
+  const now = new Date();
+
+  if (events.length === 0) return now;
+
+  const sortedEvents = events
+    .map(event => new Date(event.from))
+    .sort((a, b) => a.getTime() - b.getTime());
+
+  const firstEventDate = sortedEvents[0];
+
+  if (firstEventDate > now) return firstEventDate;
+  return now;
+}
