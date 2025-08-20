@@ -801,9 +801,24 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 	if err := r.DB.NewSelect().
 		Model(tutorial).
 		Relation("Event").
+		Relation("Room").
 		Where("t.id = ?", registration.TutorialID).
 		Scan(ctx); err != nil {
 		return 0, err
+	}
+
+	tutorialCapacity := tutorial.Room.Capacity
+	registrationCount, err := r.DB.NewSelect().
+		Model((*models.UserToTutorialRegistration)(nil)).
+		Relation("Tutorial").
+		Where("tutorial_id = ?", tutorial.ID).
+		Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	if int(tutorialCapacity)-registrationCount <= 0 {
+		return 0, fmt.Errorf("tutorial capacity exceeded")
 	}
 
 	formExists, err := r.DB.NewSelect().
