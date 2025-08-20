@@ -807,7 +807,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 	}
 
 	if !*tutorial.Event.TutorialsOpen {
-		return 0, fmt.Errorf("tutorial is not open")
+		return 0, fmt.Errorf("tutorial is not open for registrations, yet")
 	}
 
 	formExists, err := r.DB.NewSelect().
