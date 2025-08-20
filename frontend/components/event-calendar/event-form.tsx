@@ -134,8 +134,8 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       to: formatToHHMM(
         event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
       ),
-      topicID: event?.topic.ID ?? 0,
-      typeID: event?.type.ID ?? 0,
+      topicID: event?.topic.ID,
+      typeID: event?.type.ID,
       needsTutors: event?.needsTutors ?? true,
     },
   });
