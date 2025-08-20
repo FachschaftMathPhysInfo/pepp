@@ -107,13 +107,15 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
 
-      if (user?.role === Role.Admin) void fetchUmbrellaData();
-
       setEventsLoading(false);
     };
 
     void fetchEventData();
   }, [topicFilter, typesFilter, umbrellaID, refetchKey]);
+
+  useEffect(() => {
+    void fetchUmbrellaData();
+  }, [refetchKey]);
 
   //
   // TODO: Reimplementation of the link filter feature
