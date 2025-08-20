@@ -64,6 +64,7 @@ export function TutorialsTable({
   const [newTutorialTutors, setNewTutorialTutors] = useState<User[]>([]);
   const [newTutorialRoom, setNewTutorialRoom] = useState<Room>();
   const [tmpID, setTmpID] = useState(-1);
+  const [refetch, setRefetch] = useState<boolean>(false);
 
   const application = user?.applications?.find(
     (a) => a.event.ID === event?.umbrella?.ID
@@ -118,8 +119,8 @@ export function TutorialsTable({
       );
     };
 
-    fetchData();
-  }, [edit]);
+    void fetchData();
+  }, [edit, refetch]);
 
   const registerForTutorial = async (tutorial: Tutorial) => {
     const client = getClient(sid!);
@@ -136,10 +137,15 @@ export function TutorialsTable({
         AddStudentRegistrationForTutorialDocument,
         vars
       );
-    } catch {
-      toast.error(
-        "Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten."
-      );
+    } catch (error) {
+      console.log(error);
+
+      if(String(error).includes('capacity exceeded')) {
+        toast.error("Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein")
+        setRefetch(prev => !prev);
+      } else {
+        toast.error("Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten...");
+      }
     }
   };
 
@@ -399,7 +405,7 @@ export function TutorialsTable({
                                 }`
                               );
                             } else {
-                              handleRegistrationChange(e);
+                              void handleRegistrationChange(e);
                             }
                           }}
                         >
