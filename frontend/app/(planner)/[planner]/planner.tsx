@@ -188,7 +188,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       {isRestricted && !application && (
         <section>
           <Alert
-            className={'cursor-pointer bg-destructive-foreground dark:bg-background my-4'}
+            className={'cursor-pointer bg-destructive-foreground my-4'}
             onClick={() => router.push(`${pathname}/register`)}
             variant="warning"
           >
