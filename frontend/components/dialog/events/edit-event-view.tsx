@@ -11,7 +11,6 @@ import {
   DeleteTutorialsDocument,
   DeleteTutorialsMutation,
   Event,
-  LabelKind,
   NewEvent,
   NewTutorial,
   Tutorial,
@@ -39,7 +38,6 @@ import {TutorialsTable} from "./tutorials-table";
 import {Input} from "../../ui/input";
 import {defaultEvent} from "@/types/defaults";
 import {Switch} from "../../ui/switch";
-import {BadgePicker} from "../../badge-picker";
 import {DatePicker} from "../../date-picker";
 import {Button} from "../../ui/button";
 import {usePathname} from "next/navigation";
@@ -100,6 +98,7 @@ export function EditEventView({event, closeDialogAction}: EditEventViewProps) {
       umbrellaID: umbrella?.ID,
       from: mergeDateAndTime(data.date, data.from),
       to: mergeDateAndTime(data.date, data.to),
+      tutorialsOpen: false,
     };
   }
 
