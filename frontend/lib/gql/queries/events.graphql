@@ -74,6 +74,7 @@ query plannerEvents($umbrellaID: Int!, $type: [Int!], $topic: [Int!]) {
     description
     from
     to
+    tutorialsOpen
     topic {
       ID
       name
