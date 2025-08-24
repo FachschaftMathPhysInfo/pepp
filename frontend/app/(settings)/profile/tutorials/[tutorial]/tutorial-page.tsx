@@ -22,7 +22,7 @@ import {
   defaultUser,
 } from "@/types/defaults";
 import { useEffect, useState } from "react";
-import { StudentsTable } from "./students-table";
+import { StudentsTable } from "../../../../../components/tables/students-table/students-table";
 import EventDescription from "@/components/dialog/events/event-description";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";

@@ -1,5 +1,5 @@
 import { extractId } from "@/lib/utils";
-import { TutorialPage } from "./tutorial-page";
+import { TutorialPage } from "@/components/tutorial-page";
 
 export default async function TutorialDetailPage({
   params,
