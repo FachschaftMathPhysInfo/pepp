@@ -11,48 +11,51 @@ See the [documentation](https://fachschaftmathphysinfo.github.io/pepp).
 To run migrations:
 
 ```shell
-BUNDEBUG=2 go run ./cmd/migrate db migrate
+BUNDEBUG=2 go run ./cli db migrate
 ```
 
 To rollback migrations:
 
 ```shell
-go run ./cmd/migrate db rollback
+go run ./cli db rollback
 ```
 
 To view status of migrations:
 
 ```shell
-go run ./cmd/migrate db status
+go run ./cli db status
 ```
 
 To create a migration:
 
 ```shell
-go run . db create migration_name
+go run ./cli db create migration_name
 ```
 
 To get help:
 
 ```shell
-go run . db
+go run ./cli db
 
 NAME:
-   bun db - database commands
+   pepp db - database migrations
 
 USAGE:
-   bun db command [command options] [arguments...]
+   pepp db [command options]
 
 COMMANDS:
-   init        create migration tables
-   migrate     migrate database
-   rollback    rollback the last migration group
-   unlock      unlock migrations
-   create      create a migration
-   help, h     Shows a list of commands or help for one command
+   init          create migration tables
+   migrate       migrate database
+   rollback      rollback the last migration group
+   lock          lock migrations
+   unlock        unlock migrations
+   create        create migration
+   status        print migrations status
+   mark_applied  mark migrations as applied without actually running them
+   help, h       Shows a list of commands or help for one command
 
 OPTIONS:
-   --help, -h  show help (default: false)
+   --help, -h  show help
 ```
 
 See [docs](https://bun.uptrace.dev/guide/migrations.html) for details.
