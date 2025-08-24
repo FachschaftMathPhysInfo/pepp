@@ -193,3 +193,11 @@ query tutorsOfEventOfUmbrella($umbrellaID: [Int!]!) {
     }
   }
 }
+
+query eventsOfUmbrella($umbrellaIDs: [Int!]!) {
+  events(umbrellaID: $umbrellaIDs) {
+    ID
+    title,
+    from
+  }
+}
