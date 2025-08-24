@@ -32,14 +32,15 @@ export default function UmbrellaTutorialsLayout({
     const client = getClient(sid!);
     const eventData = await client.request(EventsOfUmbrellaDocument, {umbrellaIDs: [umbrellaID]})
 
-    const eventInfos = eventData.events.map((event) => ({
-      title: event.title,
-      description: <>{new Date(event.from).toLocaleDateString()}</>,
-      href: `/profile/tutorials/${slugify(event.title)}-${event.ID}`,
-    }));
+    const eventInfos = eventData.events
+      .filter(event => !!event.tutorials?.length)
+      .map((event) => ({
+        title: event.title,
+        description: <>{new Date(event.from).toLocaleDateString()}</>,
+        href: `${slugify(event.title)}-${event.ID}`,
+      }));
 
     setEvents(eventInfos);
-
   }, [umbrellaID]);
 
   useEffect(() => {

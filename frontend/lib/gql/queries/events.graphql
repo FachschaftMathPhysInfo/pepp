@@ -199,6 +199,9 @@ query eventsOfUmbrella($umbrellaIDs: [Int!]!) {
   events(umbrellaID: $umbrellaIDs) {
     ID
     title,
-    from
+    from,
+    tutorials {
+      ID
+    }
   }
 }
