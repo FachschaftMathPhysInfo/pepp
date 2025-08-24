@@ -113,12 +113,16 @@ useEffect(() => {
         const newDefaults = getFormDefaults();
 
         // create a link from coordinates or parse coordinates from link when switching tabs
-        if (useOssLink && currentValues.latitude && currentValues.longitude) {
+        if (
+            useOssLink &&
+            typeof currentValues.latitude !== "undefined" &&
+            typeof currentValues.longitude !== "undefined"
+        ) {
             // Generate OSS link from coordinates when switching to OSS tab
             currentValues.ossLink = generateOSSLink(
-                currentValues.latitude,
-                currentValues.longitude,
-                currentValues.zoomLevel || 15
+                Number(currentValues.latitude),
+                Number(currentValues.longitude),
+                Number(currentValues.zoomLevel) || 15
             );
         } else if (!useOssLink && currentValues.ossLink) {
             const coords = getCoordinatesFromOssLink(currentValues.ossLink);
