@@ -1,6 +1,6 @@
 "use client";
 
-import {Button} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   AddStudentApplicationForEventMutation,
   AddStudentRegistrationForTutorialDocument,
@@ -13,68 +13,76 @@ import {
   EventTutorialsQuery,
   Tutorial,
 } from "@/lib/gql/generated/graphql";
-import {Loader2} from "lucide-react";
-import {HoverCard, HoverCardContent, HoverCardTrigger,} from "../../ui/hover-card";
-import {MailLinkWithLabel} from "@/components/email-link";
-import {useUser} from "../../providers";
-import {getClient} from "@/lib/graphql";
-import React, {useCallback, useEffect, useState} from "react";
-import {Table, TableBody, TableCell, TableRow} from "../../ui/table";
-import {RoomHoverCard} from "../../room-hover-card";
-import {useRouter} from "next/navigation";
-import {slugify} from "@/lib/utils";
-import {toast} from "sonner";
-import {defaultEvent, defaultTutorial, defaultUser} from "@/types/defaults";
-import {Skeleton} from "@/components/ui/skeleton";
-import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
+import { Loader2, Lock } from "lucide-react";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../../ui/hover-card";
+import { MailLinkWithLabel } from "@/components/email-link";
+import { useUser } from "../../providers";
+import { getClient } from "@/lib/graphql";
+import React, { useCallback, useEffect, useState } from "react";
+import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
+import { RoomHoverCard } from "../../room-hover-card";
+import { useRouter } from "next/navigation";
+import { slugify } from "@/lib/utils";
+import { toast } from "sonner";
+import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface TutorialsTableProps {
   event: Event;
 }
 
-export function TutorialsTable({event}: TutorialsTableProps) {
+export function TutorialsTable({ event }: TutorialsTableProps) {
   const router = useRouter();
   const client = getClient();
 
-  const {user, setUser, sid} = useUser();
+  const { user, setUser, sid } = useUser();
   const [loading, setLoading] = useState(false);
-  const [currentRegistration, setCurrentRegistration] = useState<Tutorial | undefined>();
+  const [currentRegistration, setCurrentRegistration] = useState<
+    Tutorial | undefined
+  >();
   const [usersTutorials, setUsersTutorials] = useState<Tutorial[]>();
   const [tutorials, setTutorials] = useState<Tutorial[]>();
-  const [authenticationDialogOpen, setAuthenticationDialogOpen] = useState(false);
+  const [authenticationDialogOpen, setAuthenticationDialogOpen] =
+    useState(false);
 
   const fetchTutorials = useCallback(async () => {
     try {
       const tutorialData = await client.request<EventTutorialsQuery>(
         EventTutorialsDocument,
-        {id: event.ID}
+        { id: event.ID }
       );
       setTutorials(
         tutorialData.tutorials.map((t) => ({
           ...defaultTutorial,
           ...t,
-          tutors: t.tutors?.map(
-            (u) => ({...defaultUser, ...u})
-          ),
-          event: {...defaultEvent, ...t.event},
+          tutors: t.tutors?.map((u) => ({ ...defaultUser, ...u })),
+          event: { ...defaultEvent, ...t.event },
         }))
       );
     } catch {
       toast.error("Beim laden der Tutorien ist ein Fehler aufgetreten.");
     }
-  }, [event.ID])
+  }, [event.ID]);
   const setTutorialsforUser = useCallback(() => {
     if (!user) return;
-    setCurrentRegistration(user.registrations?.find((r) => r.event.ID === event.ID));
+    setCurrentRegistration(
+      user.registrations?.find((r) => r.event.ID === event.ID)
+    );
     setUsersTutorials(user.tutorials?.filter((t) => t.event.ID === event.ID));
-  }, [user, event.ID, tutorials])
+  }, [user, event.ID, tutorials]);
 
   useEffect(() => {
     void fetchTutorials();
   }, [user, event.ID]);
 
   useEffect(() => {
-    void setTutorialsforUser()
+    void setTutorialsforUser();
   }, [user, event.ID, tutorials]);
 
   const handleRegistrationChange = async (clickedTutorial: Tutorial) => {
@@ -200,8 +208,7 @@ export function TutorialsTable({event}: TutorialsTableProps) {
     }
   };
 
-
-  if (!tutorials) return <Skeleton/>;
+  if (!tutorials) return <Skeleton />;
 
   return (
     <>
@@ -217,13 +224,29 @@ export function TutorialsTable({event}: TutorialsTableProps) {
           <span>, um dich eintragen zu können.</span>
         </div>
       )}
+
+      {!event.tutorialsOpen && (
+        <Alert variant="warning">
+          <Lock className="size-4" />
+          <AlertTitle>Die Anmeldung ist noch nicht offen</AlertTitle>
+          <AlertDescription>
+            Die Anmeldungen zu den Tutorien ist aktuell geschlossen. Bitte warte
+            auf eine Freigabe durch die Admins.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="rounded-md border overflow-hidden relative">
         <Table>
           <TableBody>
             {loading && (
-              <div className={'w-full h-full absolute flex items-center justify-center z-10'}>
+              <div
+                className={
+                  "w-full h-full absolute flex items-center justify-center z-10"
+                }
+              >
                 <div>
-                  <Loader2 size={16} className={'animate-spin mr-2'}/>
+                  <Loader2 size={16} className={"animate-spin mr-2"} />
                   Aktualisiere
                 </div>
               </div>
@@ -231,14 +254,21 @@ export function TutorialsTable({event}: TutorialsTableProps) {
             {tutorials && tutorials.length ? (
               <>
                 {tutorials.map((rowTutorial) => {
-                  const utilization = (rowTutorial.registrationCount / (rowTutorial.room.capacity ?? 1)) * 100;
-                  const isRegisteredEvent = rowTutorial.ID === currentRegistration?.ID;
+                  const utilization =
+                    (rowTutorial.registrationCount /
+                      (rowTutorial.room.capacity ?? 1)) *
+                    100;
+                  const isRegisteredEvent =
+                    rowTutorial.ID === currentRegistration?.ID;
                   const isTutor = !!usersTutorials?.find(
-                    userTutorial => userTutorial.ID === rowTutorial?.ID
+                    (userTutorial) => userTutorial.ID === rowTutorial?.ID
                   );
 
                   return (
-                    <TableRow key={rowTutorial.room?.number} className="relative">
+                    <TableRow
+                      key={rowTutorial.room?.number}
+                      className="relative"
+                    >
                       <div
                         className="light:hidden absolute inset-0 z-0"
                         style={{
@@ -275,10 +305,11 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                         ))}
                       </TableCell>
                       <TableCell className="relative z-1">
-                        <RoomHoverCard room={rowTutorial.room}/>
+                        <RoomHoverCard room={rowTutorial.room} />
                       </TableCell>
                       <TableCell className="relative z-1">
-                        {rowTutorial.registrationCount}/{rowTutorial.room.capacity}
+                        {rowTutorial.registrationCount}/
+                        {rowTutorial.room.capacity}
                       </TableCell>
                       <TableCell className="relative z-1">
                         <Button
@@ -287,6 +318,7 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                             (usersTutorials && !isTutor) ||
                             (!isRegisteredEvent && utilization == 100) ||
                             !user ||
+                            !event.tutorialsOpen ||
                             loading
                           }
                           variant={
@@ -309,10 +341,10 @@ export function TutorialsTable({event}: TutorialsTableProps) {
                           {isTutor
                             ? "Verwalten"
                             : currentRegistration && user
-                              ? isRegisteredEvent
-                                ? "Austragen"
-                                : "Wechseln"
-                              : "Eintragen"}
+                            ? isRegisteredEvent
+                              ? "Austragen"
+                              : "Wechseln"
+                            : "Eintragen"}
                         </Button>
                       </TableCell>
                     </TableRow>

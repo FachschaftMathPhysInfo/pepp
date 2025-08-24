@@ -806,6 +806,10 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 		return 0, err
 	}
 
+	if !*tutorial.Event.TutorialsOpen {
+		return 0, fmt.Errorf("tutorial is not open for registrations, yet")
+	}
+
 	formExists, err := r.DB.NewSelect().
 		Model((*models.Form)(nil)).
 		Where("event_id = ?", tutorial.Event.UmbrellaID).

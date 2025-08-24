@@ -29,6 +29,7 @@ RUN go mod download
 COPY server/ .
 RUN go generate ./...
 RUN CGO_ENABLED=0 go build -a -o graphql-server server.go
+RUN CGO_ENABLED=0 go build -a -o pepp ./cli
 
 
 ############################################
@@ -45,6 +46,7 @@ COPY --from=frontend-build /app/public ./public
 RUN npm install --production
 
 COPY --from=server-build /go/src/graphql-server /usr/local/bin/graphql-server
+COPY --from=server-build /go/src/pepp /usr/local/bin/pepp
 EXPOSE 8080
 
 CMD ["sh", "-c", "\
