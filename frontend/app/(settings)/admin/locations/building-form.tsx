@@ -4,7 +4,7 @@ import {z} from "zod";
 import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
-import React, {useState, useEffect, use} from "react";
+import React, {useState, useEffect} from "react";
 import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {
@@ -14,10 +14,9 @@ import {
   UpdateBuildingDocument,
   UpdateBuildingMutation
 } from "@/lib/gql/generated/graphql";
-import {Save, ExternalLink} from "lucide-react";
+import {Save} from "lucide-react";
 import {toast} from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import exp from "constants";
 
 
 interface RoomFormProps {
@@ -84,26 +83,66 @@ interface RoomFormProps {
       city: createMode ? "" : currentBuilding.city,
       zip: createMode ? "" : currentBuilding.zip,
     };
+    const coordinates = {
+       latitude: createMode ? undefined : currentBuilding.latitude,
+       longitude: createMode ? undefined : currentBuilding.longitude,
+       zoomLevel: createMode ? undefined : currentBuilding.zoomLevel,
+    };
     if (useOssLink) {
       const ossLink = (!createMode && currentBuilding.latitude && currentBuilding.longitude)
         ? generateOSSLink(currentBuilding.latitude, currentBuilding.longitude, currentBuilding.zoomLevel)
         : "";
-      return {...baseDefaults, ossLink};
+      return {...baseDefaults,...coordinates, ossLink};
     } else {
       return {
         ...baseDefaults,
-        latitude: createMode ? undefined : currentBuilding.latitude,
-        longitude: createMode ? undefined : currentBuilding.longitude,
-        zoomLevel: createMode ? undefined : currentBuilding.zoomLevel,
+        ...coordinates
       };
     }
   }
   const [hasTriedToSubmit, setHasTriedToSubmit] = useState(false);
 
 useEffect(() => {
-    form.reset(getFormDefaults());
-    setHasTriedToSubmit(false);
-  }, [locationType, createMode, currentBuilding]);
+    const currentValues = form.getValues();
+    const formIsDirty = form.formState.isDirty;
+    if (createMode && !formIsDirty && Object.values(currentValues).every(v => !v)) {
+        form.reset(getFormDefaults());
+        setHasTriedToSubmit(false);
+    } else {
+        // current form values are preserved
+        const newDefaults = getFormDefaults();
+
+        // create a link from coordinates or parse coordinates from link when switching tabs
+        if (useOssLink && currentValues.latitude && currentValues.longitude) {
+            // Generate OSS link from coordinates when switching to OSS tab
+            currentValues.ossLink = generateOSSLink(
+                currentValues.latitude,
+                currentValues.longitude,
+                currentValues.zoomLevel || 15
+            );
+        } else if (!useOssLink && currentValues.ossLink) {
+            const coords = getCoordinatesFromOssLink(currentValues.ossLink);
+            if (coords.latitude) currentValues.latitude = coords.latitude;
+            if (coords.longitude) currentValues.longitude = coords.longitude;
+            if (coords.zoomLevel) currentValues.zoomLevel = coords.zoomLevel;
+        }
+
+        const mergedValues = {
+            ...newDefaults,
+            name: currentValues.name || newDefaults.name,
+            street: currentValues.street || newDefaults.street,
+            number: currentValues.number || newDefaults.number,
+            city: currentValues.city || newDefaults.city,
+            zip: currentValues.zip || newDefaults.zip,
+            latitude: currentValues.latitude,
+            longitude: currentValues.longitude,
+            zoomLevel: currentValues.zoomLevel,
+            ossLink: currentValues.ossLink
+        };
+
+        form.reset(mergedValues);
+    }
+  }, [createMode, currentBuilding,locationType]);
 
   function getCoordinatesFromOssLink(link: string): { latitude?: number; longitude?: number; zoomLevel?: number } {
     if (!link) return {};
@@ -122,7 +161,7 @@ useEffect(() => {
 async function onValidSubmit(formData: z.infer<typeof buildingFormSchema>) {
     const client = getClient(String(sid));
     
-    let buildingData: any = {
+    const buildingData = {
       name: formData.name,
       street: formData.street,
       number: formData.number,
