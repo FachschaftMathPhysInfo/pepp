@@ -1,10 +1,5 @@
-
-export const metadata = {
-  title: "Tutorien",
-}
-
-export default function OverviewPage() {
+export default function SettingsProfilePage() {
   return (
-    <p>Tutorien</p>
-  )
+    <></>
+  );
 }

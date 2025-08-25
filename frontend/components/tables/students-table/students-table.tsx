@@ -16,7 +16,7 @@ import {DataTablePagination} from "@/components/tables/data-table-pagination";
 import {DataTableViewOptions} from "@/components/tables/data-table-view-options";
 import {User} from "@/lib/gql/generated/graphql";
 import {StudentTableDialogState} from "@/app/(settings)/profile/tutorials/[tutorial]/tutorial-page";
-import StudentsColumns from "@/app/(settings)/profile/tutorials/[tutorial]/students-columns";
+import StudentsColumns from "@/components/tables/students-table/students-columns";
 
 interface StudentTableProps {
   data: User[];
