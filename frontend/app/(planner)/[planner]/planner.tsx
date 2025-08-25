@@ -10,19 +10,23 @@ import {
   UmbrellaDetailDocument,
   UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
-import {FacetedFilter} from "@/components/faceted-filter";
-import React, {useCallback, useEffect, useState} from "react";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
-import {getClient} from "@/lib/graphql";
-import {CopyTextArea} from "@/components/copy-text-area";
-import {CardSkeleton} from "@/components/card-skeleton";
-import {useRefetch, useUser} from "@/components/providers";
-import {Alert, AlertAction, AlertDescription, AlertTitle,} from "@/components/ui/alert";
-import {CircleAlert, MoveRight} from "lucide-react";
-import {defaultEvent, defaultLabel} from "@/types/defaults";
+import { FacetedFilter } from "@/components/faceted-filter";
+import React, { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { getClient } from "@/lib/graphql";
+import { CopyTextArea } from "@/components/copy-text-area";
+import { useRefetch, useUser } from "@/components/providers";
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { CircleAlert, Loader2, MoveRight } from "lucide-react";
+import { defaultEvent, defaultLabel } from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
-import {TooltipProvider} from "@/components/ui/tooltip";
-import {EventCalendar} from "@/components/event-calendar";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { EventCalendar } from "@/components/event-calendar";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -42,7 +46,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [topicFilter, setTopicFilter] = useState<number[]>([]);
   const [typesFilter, setTypesFilter] = useState<number[]>([]);
   const [icalPath, setIcalPath] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [umbrellaLoading, setUmbrellaLoading] = useState<boolean>(true);
   const [isRestricted, setIsRestricted] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
 
@@ -53,7 +57,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   // }, []);
 
   const fetchUmbrellaData = useCallback(async () => {
-    setLoading(true);
+    setUmbrellaLoading(true);
     const client = getClient();
 
     const umbrellaData = await client.request<UmbrellaDetailQuery>(
@@ -74,13 +78,11 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       });
     }
 
-    setLoading(false);
+    setUmbrellaLoading(false);
   }, [umbrellaID]);
 
   useEffect(() => {
     const fetchEventData = async () => {
-      setLoading(true);
-
       const client = getClient();
 
       const vars: PlannerEventsQueryVariables = {
@@ -106,14 +108,14 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
-
-      if (user?.role === Role.Admin) void fetchUmbrellaData();
-
-      setLoading(false);
     };
 
     void fetchEventData();
   }, [topicFilter, typesFilter, umbrellaID, refetchKey]);
+
+  useEffect(() => {
+    void fetchUmbrellaData();
+  }, [refetchKey]);
 
   //
   // TODO: Reimplementation of the link filter feature
@@ -147,7 +149,13 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     (a) => a.event.ID === umbrellaID
   );
 
-  return (
+  return umbrellaLoading ? (
+    <div className="flex flex-1 justify-center items-center text-center">
+      <span className={"flex flex-col gap-y-2"}>
+        <Loader2 size={50} className="animate-spin text-gray-400" />
+      </span>
+    </div>
+  ) : (
     <TooltipProvider delayDuration={0}>
       {user?.role === Role.Admin && (
         <section className="mb-[20px] space-y-5">
@@ -159,7 +167,9 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
           <div className="flex items-center justify-center gap-x-4">
             <div
-              className={"flex items-center justify-start gap-x-4 flex-wrap gap-y-2"}
+              className={
+                "flex items-center justify-start gap-x-4 flex-wrap gap-y-2"
+              }
             >
               {topics.length >= 2 && (
                 <FacetedFilter
@@ -188,7 +198,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       {isRestricted && !application && (
         <section>
           <Alert
-            className={'cursor-pointer bg-destructive-foreground my-4'}
+            className={"cursor-pointer bg-destructive-foreground my-4"}
             onClick={() => router.push(`${pathname}/register`)}
             variant="warning"
           >
@@ -209,10 +219,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       )}
 
       <section className="mt-5">
-        {loading ?
-          <CardSkeleton /> :
-          <EventCalendar events={events} initialView={"agenda"} />
-        }
+        <EventCalendar events={events} initialView={"agenda"} />
       </section>
     </TooltipProvider>
   );

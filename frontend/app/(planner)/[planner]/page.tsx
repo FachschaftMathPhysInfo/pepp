@@ -15,9 +15,6 @@ export default async function IndexPage({
 }) {
   const { planner } = await params;
   const id = extractId(planner);
-  return (
-    <>
-      <PlannerPage umbrellaID={id ?? 0} />
-    </>
-  );
+
+  return <PlannerPage umbrellaID={id ?? 0} />
 }
