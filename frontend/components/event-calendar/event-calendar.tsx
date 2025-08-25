@@ -153,6 +153,7 @@ export function EventCalendar({
       title: "",
       from: startTime,
       to: addHours(startTime, 1),
+      tutorialsOpen: false,
       needsTutors: false,
       topic: {ID: 0, name: "", kind: LabelKind.Topic, color: ""},
       type: {ID: 0, name: "", kind: LabelKind.EventType, color: ""},

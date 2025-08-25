@@ -19,6 +19,7 @@ export const defaultEvent: Event = {
   type: { ID: 0, name: "", color: "", kind: LabelKind.EventType },
   from: "",
   to: "",
+  tutorialsOpen: false,
 };
 
 export const defaultBuilding: Building = {

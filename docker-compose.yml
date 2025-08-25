@@ -1,18 +1,18 @@
 ---
-# volumes:
-#   data:
+volumes:
+  data:
 
 services:
-  # postgres:
-  #   image: postgres:15.6-alpine
-  #   volumes:
-  #     - data:/var/lib/postgresql/data
-  #     - ./postgresql.conf:/etc/postgresql/config/postgresql.conf:ro
-  #     - ./tls/certs/root.crt:/etc/postgres/security/root.crt:ro
-  #     - ./tls/certs/server.crt:/etc/postgres/security/server.crt:ro
-  #     - ./tls/certs/server.key:/etc/postgres/security/server.key:ro
-  #   command: -c config_file=/etc/postgresql/config/postgresql.conf
-  #   env_file: .env.local
+  postgres:
+    image: postgres:15.6-alpine
+    volumes:
+      - data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/config/postgresql.conf:ro
+      - ./tls/certs/root.crt:/etc/postgres/security/root.crt:ro
+      - ./tls/certs/server.crt:/etc/postgres/security/server.crt:ro
+      - ./tls/certs/server.key:/etc/postgres/security/server.key:ro
+    command: -c config_file=/etc/postgresql/config/postgresql.conf
+    env_file: .env.local
 
   # otel-collector:
   #   image: otel/opentelemetry-collector-contrib
