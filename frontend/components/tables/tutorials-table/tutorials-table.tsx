@@ -268,26 +268,24 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                     <TableRow
                       key={rowTutorial.room?.number}
                       className="relative"
+                      style={{
+                        backgroundImage: `linear-gradient(to right, ${
+                          utilization < 100
+                            ? // theme did not wanna work here...
+                              document.documentElement.classList.contains(
+                                "dark"
+                              )
+                              ? "#024b30"
+                              : "#BBF7D0"
+                            : document.documentElement.classList.contains(
+                                "dark"
+                              )
+                            ? "#8b0000"
+                            : "#FECACA"
+                        } ${utilization}%, transparent ${utilization}%)`,
+                      }}
                     >
-                      <div
-                        className="light:hidden absolute inset-0 z-0"
-                        style={{
-                          width: `${utilization}%`,
-                          backgroundColor: `${
-                            utilization < 100 ? "#024b30" : "#8b0000"
-                          }`,
-                        }}
-                      />
-                      <div
-                        className="dark:hidden absolute inset-0 z-0"
-                        style={{
-                          width: `${utilization}%`,
-                          backgroundColor: `${
-                            utilization < 100 ? "#BBF7D0" : "#FECACA"
-                          }`,
-                        }}
-                      />
-                      <TableCell className="relative z-1">
+                      <TableCell className="relative z-15">
                         {rowTutorial.tutors?.map((t) => (
                           <HoverCard key={t.mail}>
                             <HoverCardTrigger asChild>
@@ -304,14 +302,14 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                           </HoverCard>
                         ))}
                       </TableCell>
-                      <TableCell className="relative z-1">
+                      <TableCell className="relative z-15">
                         <RoomHoverCard room={rowTutorial.room} />
                       </TableCell>
-                      <TableCell className="relative z-1">
+                      <TableCell className="relative z-10">
                         {rowTutorial.registrationCount}/
                         {rowTutorial.room.capacity}
                       </TableCell>
-                      <TableCell className="relative z-1">
+                      <TableCell className="relative z-10">
                         <Button
                           className="w-full"
                           disabled={
