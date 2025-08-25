@@ -104,14 +104,15 @@ export default function CopyUmbrellaForm({
   async function createNewUmbrella(
     umbrellaData: z.infer<typeof umbrellaFormSchema>
   ): Promise<number> {
-    const newUmbrella = {
+    const newUmbrella: NewEvent = {
       title: umbrellaData.title,
       description: umbrellaData.description,
-      topicName: sourceUmbrella.topic.name,
-      typeName: sourceUmbrella.type.name,
+      topicID: sourceUmbrella.topic.ID,
+      typeID: sourceUmbrella.type.ID,
       needsTutors: false,
       from: returnDateWithOffset(sourceUmbrella.from, startingOffset),
       to: returnDateWithOffset(sourceUmbrella.to, startingOffset),
+      tutorialsOpen: false,
     };
 
     const mutation = await client.request<AddEventMutation>(AddEventDocument, {
@@ -129,12 +130,13 @@ export default function CopyUmbrellaForm({
     const eventsToAdd: NewEvent[] = sourceEvents.map((event) => ({
       title: event.title,
       description: event.description,
-      topicName: event.topic.name,
-      typeName: event.type.name,
+      topicID: event.topic.ID,
+      typeID: event.type.ID,
       needsTutors: event.needsTutors,
       from: returnDateWithOffset(event.from, startingOffset),
       to: returnDateWithOffset(event.to, startingOffset),
       umbrellaID: umbrellaID,
+      tutorialsOpen: false,
     }));
 
     await client.request<AddEventMutation>(AddEventDocument, {
