@@ -53,6 +53,7 @@ import {
   defaultUser,
 } from "@/types/defaults";
 import { EditTutorialsTable } from "../tables/tutorials-table/edit-tutorials-table";
+import {Switch} from "../ui/switch";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -65,6 +66,7 @@ const eventFormSchema = z.object({
   }),
   typeID: z.number({ required_error: "Bitte wähle den Typ der Veranstaltung" }),
   needsTutors: z.boolean(),
+  tutorialsOpen: z.boolean(),
 });
 
 interface EventFormProps {
@@ -134,9 +136,10 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       to: formatToHHMM(
         event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
       ),
-      topicID: event?.topic.ID ?? 0,
-      typeID: event?.type.ID ?? 0,
+      topicID: event?.topic.ID,
+      typeID: event?.type.ID,
       needsTutors: event?.needsTutors ?? true,
+      tutorialsOpen: event?.tutorialsOpen ?? false,
     },
   });
 
@@ -149,6 +152,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       needsTutors: data.needsTutors,
       from: mergeDateAndTime(data.date, data.from),
       to: mergeDateAndTime(data.date, data.to),
+      tutorialsOpen: data.tutorialsOpen,
     };
 
     if (event) await handleUpdate(data, newEvent);
@@ -409,11 +413,35 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
           </div>
 
           {event && (
-            <EditTutorialsTable
-              id={event.ID}
-              tutorials={tutorials}
-              setTutorialsAction={setTutorials}
-            />
+            <>
+              <EditTutorialsTable
+                id={event.ID}
+                tutorials={tutorials}
+                setTutorialsAction={setTutorials}
+              />
+
+              <FormField
+                control={form.control}
+                name="tutorialsOpen"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={"hidden"}>
+                        Anmeldung zu Tutorien offen
+                    </FormLabel>
+                    <FormControl>
+                      <span className={"flex items-center gap-2 min-w-fit"}>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        Anmeldung zu Tutorien offen
+                      </span>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
           )}
 
           {/* Footer */}

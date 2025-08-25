@@ -69,6 +69,7 @@ type Event {
   type: Label!
   from: Time!
   to: Time!
+  tutorialsOpen: Boolean!
   registrationForm: Form
   supportingEvents: [Event!]
 }
@@ -186,6 +187,7 @@ input NewEvent {
   from: Time!
   to: Time!
   umbrellaID: Int
+  tutorialsOpen: Boolean!
 }
 
 input NewTutorial {

@@ -47,7 +47,6 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [typesFilter, setTypesFilter] = useState<number[]>([]);
   const [icalPath, setIcalPath] = useState<string>("");
   const [umbrellaLoading, setUmbrellaLoading] = useState<boolean>(true);
-  const [eventsLoading, setEventsLoading] = useState(true);
   const [isRestricted, setIsRestricted] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
 
@@ -84,8 +83,6 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
   useEffect(() => {
     const fetchEventData = async () => {
-      setEventsLoading(true);
-
       const client = getClient();
 
       const vars: PlannerEventsQueryVariables = {
@@ -111,8 +108,6 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
-
-      setEventsLoading(false);
     };
 
     void fetchEventData();
@@ -203,9 +198,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       {isRestricted && !application && (
         <section>
           <Alert
-            className={
-              "cursor-pointer bg-destructive-foreground dark:bg-background my-4"
-            }
+            className={"cursor-pointer bg-destructive-foreground my-4"}
             onClick={() => router.push(`${pathname}/register`)}
             variant="warning"
           >

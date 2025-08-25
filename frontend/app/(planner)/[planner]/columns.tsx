@@ -17,8 +17,7 @@ import {useState} from "react";
 import {useRefetch, useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {toast} from "sonner";
-import EventDialog from "@/components/dialog/events/event-dialog";
-import {Dialog} from "@/components/ui/dialog";
+import {EventDialog} from "@/components/event-calendar/event-dialog";
 
 export const columns: ColumnDef<Event>[] = [
   {
@@ -118,14 +117,11 @@ export const columns: ColumnDef<Event>[] = [
             closeDialog={() => setDialogOpen(null)}
           />
 
-          <Dialog
-            open={dialogOpen === "edit"}
-            onOpenChange={(open) => {
-              if (!open) setDialogOpen(null);
-            }}
-          >
-            <EventDialog open={dialogOpen === "edit"} id={row.original.ID} modify/>
-          </Dialog>
+          <EventDialog
+            event={row.original}
+            isOpen={dialogOpen === "edit"}
+            onCloseAction={() => setDialogOpen(null)}
+          />
         </>
       );
     },

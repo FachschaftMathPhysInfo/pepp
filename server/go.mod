@@ -17,22 +17,23 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/cors v1.11.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/uptrace/bun v1.2.14
-	github.com/uptrace/bun/dialect/pgdialect v1.2.14
-	github.com/uptrace/bun/dialect/sqlitedialect v1.2.14
-	github.com/uptrace/bun/extra/bundebug v1.2.14
+	github.com/uptrace/bun v1.2.15
+	github.com/uptrace/bun/dialect/pgdialect v1.2.15
+	github.com/uptrace/bun/dialect/sqlitedialect v1.2.15
+	github.com/uptrace/bun/extra/bundebug v1.2.15
 	github.com/uptrace/bun/extra/bunotel v1.2.14
+	github.com/urfave/cli/v2 v2.27.7
 	github.com/vektah/gqlparser/v2 v2.5.26
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.60.0
 	go.opentelemetry.io/otel v1.36.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.35.0
 	go.opentelemetry.io/otel/sdk v1.35.0
 	go.opentelemetry.io/otel/trace v1.36.0
-	golang.org/x/crypto v0.38.0
+	golang.org/x/crypto v0.41.0
 	golang.org/x/oauth2 v0.28.0
 	google.golang.org/grpc v1.72.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-	modernc.org/sqlite v1.36.0
+	modernc.org/sqlite v1.38.2
 )
 
 require (
@@ -50,7 +51,7 @@ require (
 	github.com/go-jose/go-jose/v4 v4.0.5 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
@@ -76,30 +77,29 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/tmthrgd/go-hex v0.0.0-20190904060850-447a3041c3bc // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.2 // indirect
-	github.com/urfave/cli/v2 v2.27.6 // indirect
 	github.com/vanng822/css v1.0.1 // indirect
 	github.com/vanng822/go-premailer v1.24.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
+	github.com/xrash/smetrics v0.0.0-20250705151800-55b8f293f342 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib v1.35.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.35.0 // indirect
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.6.0 // indirect
-	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7 // indirect
-	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
-	golang.org/x/sync v0.14.0 // indirect
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
-	golang.org/x/tools v0.32.0 // indirect
+	golang.org/x/exp v0.0.0-20250808145144-a408d31f581a // indirect
+	golang.org/x/mod v0.27.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250428153025-10db94c68c34 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250428153025-10db94c68c34 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	modernc.org/libc v1.61.13 // indirect
+	modernc.org/libc v1.66.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
-	modernc.org/memory v1.8.2 // indirect
+	modernc.org/memory v1.11.0 // indirect
 )

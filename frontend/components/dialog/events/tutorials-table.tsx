@@ -64,6 +64,7 @@ export function TutorialsTable({
   const [newTutorialTutors, setNewTutorialTutors] = useState<User[]>([]);
   const [newTutorialRoom, setNewTutorialRoom] = useState<Room>();
   const [tmpID, setTmpID] = useState(-1);
+  const [refetch, setRefetch] = useState<boolean>(false);
 
   const application = user?.applications?.find(
     (a) => a.event.ID === event?.umbrella?.ID
@@ -118,8 +119,8 @@ export function TutorialsTable({
       );
     };
 
-    fetchData();
-  }, [edit]);
+    void fetchData();
+  }, [edit, refetch]);
 
   const registerForTutorial = async (tutorial: Tutorial) => {
     const client = getClient(sid!);
@@ -136,10 +137,15 @@ export function TutorialsTable({
         AddStudentRegistrationForTutorialDocument,
         vars
       );
-    } catch {
-      toast.error(
-        "Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten."
-      );
+    } catch (error) {
+      console.log(error);
+
+      if(String(error).includes('capacity exceeded')) {
+        toast.error("Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein")
+        setRefetch(prev => !prev);
+      } else {
+        toast.error("Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten...");
+      }
     }
   };
 
@@ -284,25 +290,36 @@ export function TutorialsTable({
                 );
 
                 return (
-                  <TableRow key={e.room?.number} className="relative">
-                    <div
-                      className="light:hidden absolute inset-0 z-0"
-                      style={{
-                        width: `${utilization}%`,
-                        backgroundColor: `${
-                          utilization < 100 ? "#024b30" : "#8b0000"
-                        }`,
-                      }}
-                    />
-                    <div
-                      className="dark:hidden absolute inset-0 z-0"
-                      style={{
-                        width: `${utilization}%`,
-                        backgroundColor: `${
-                          utilization < 100 ? "#BBF7D0" : "#FECACA"
-                        }`,
-                      }}
-                    />
+                  <TableRow
+                    key={e.room?.number}
+                    className="relative"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, ${
+                        utilization < 100
+                          // theme did not wanna work here...
+                          ? (document.documentElement.classList.contains('dark') ? "#024b30" : "#BBF7D0")
+                          : (document.documentElement.classList.contains('dark') ? "#8b0000" : "#FECACA")
+                      } ${utilization}%, transparent ${utilization}%)`,
+                    }}
+                  >
+
+                    <TableCell colSpan={999} className="relative p-0">
+                      <div
+                        className="light:hidden absolute inset-0 z-0"
+                        style={{
+                          width: `${utilization}%`,
+                          backgroundColor: utilization < 100 ? "#024b30" : "#8b0000",
+                        }}
+                      />
+                      <div
+                        className="dark:hidden absolute inset-0 z-0"
+                        style={{
+                          width: `${utilization}%`,
+                          backgroundColor: utilization < 100 ? "#BBF7D0" : "#FECACA",
+                        }}
+                      />
+                    </TableCell>
+
                     <TableCell className="relative z-1">
                       {edit ? (
                         <TutorSelection
@@ -399,7 +416,7 @@ export function TutorialsTable({
                                 }`
                               );
                             } else {
-                              handleRegistrationChange(e);
+                              void handleRegistrationChange(e);
                             }
                           }}
                         >
