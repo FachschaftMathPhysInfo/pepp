@@ -179,10 +179,15 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         AddStudentRegistrationForTutorialDocument,
         vars
       );
-    } catch {
-      toast.error(
-        "Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten."
-      );
+    } catch (error) {
+      console.log(error);
+
+      if(String(error).includes('capacity exceeded')) {
+        toast.error("Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein.")
+        await fetchTutorials();
+      } else {
+        toast.error("Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten.");
+      }
     }
   };
 
