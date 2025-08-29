@@ -2,7 +2,7 @@
 
 import {
   AllBuildingsDocument,
-  AllBuildingsQuery,
+  AllBuildingsQuery, AllTutorialsBuildingsIdDocument, AllTutorialsBuildingsIdQuery,
   Building,
   DeleteBuildingDocument,
   DeleteBuildingMutation,
@@ -47,8 +47,22 @@ export default function LocationSettings() {
     building: defaultBuilding,
     roomNumber: "",
   });
+  const [amountTutorialsOfBuilding, setAmountTutorialsOfBuilding] = useState<number>(0)
 
-  // Data Fetching
+  // Fetch Amount of Tutorials Per Building
+  useEffect(() => {
+    const fetchAmountTutorialsOfBuilding = async (id: number) => {
+      const data = await client.request<AllTutorialsBuildingsIdQuery>(AllTutorialsBuildingsIdDocument)
+      const tutorialsOfBuilding = data.tutorials
+        .filter(tutorial => tutorial.room.building.ID === id)
+
+      setAmountTutorialsOfBuilding(!tutorialsOfBuilding ? 0 : tutorialsOfBuilding.length)
+    }
+
+    void fetchAmountTutorialsOfBuilding(dialogState.building.ID)
+  }, [dialogState.building]);
+
+  // Fetch Client
   useEffect(() => {
     setClient(getClient(String(sid)));
   }, [sid]);
@@ -75,9 +89,7 @@ export default function LocationSettings() {
     void fetchBuildings();
   }, [fetchBuildings]);
 
-  // Dialog Handling
-  const closeDialog = () =>
-    setDialogState({ mode: null, building: defaultBuilding, roomNumber: "" });
+  const closeDialog = () => setDialogState({ mode: null, building: defaultBuilding, roomNumber: "" });
 
   const handleDeleteBuilding = async () => {
     await client.request<DeleteBuildingMutation>(DeleteBuildingDocument, {
@@ -136,7 +148,7 @@ export default function LocationSettings() {
 
       <ConfirmationDialog
         mode={"confirmation"}
-        description={`Dies wird das Gebäude ${dialogState.building.name} und alle Tutorien die diesem Gebäude zugeordnet sind unwiederruflich löschen`}
+        description={`Dies wird das Gebäude ${dialogState.building.name} und alle ${amountTutorialsOfBuilding} Tutorien die diesem Gebäude zugeordnet sind unwiederruflich löschen`}
         onConfirm={async () => {
           await handleDeleteBuilding();
           closeDialog();
