@@ -65,7 +65,7 @@ type Event {
   needsTutors: Boolean!
   title: String!
   description: String
-  topic: Label!
+  topic: [Label!]!
   type: Label!
   from: Time!
   to: Time!
@@ -181,7 +181,6 @@ input UpdateUser {
 input NewEvent {
   title: String!
   description: String
-  topicID: Int
   typeID: Int
   needsTutors: Boolean!
   from: Time!
@@ -284,6 +283,11 @@ input NewUserToEventApplication {
   answers: [NewQuestionResponsePair!]
 }
 
+input TopicToEventAssignment {
+  topicID: Int!
+  eventID: Int!
+}
+
 type Mutation {
   addUser(user: NewUser!): String!
   updateUser(user: UpdateUser!, id: Int!): Int! @auth(rule: IS_USER)
@@ -325,6 +329,8 @@ type Mutation {
   deleteStudentApplicationForEvent(studentID: Int!, eventID: Int!): User!
   linkSupportingEventToEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
   unlinkSupportingEventFromEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
+  addTopicToEvent(eventID: Int!, topicID: [Int!]!): Int!
+  deleteTopicFromEvent(eventID: Int!, topicID: [Int!]!): Int!
 
   acceptTopApplicationsOnEvent(eventID: Int!, count: Int!): Int! @auth(role: ADMIN)
 }

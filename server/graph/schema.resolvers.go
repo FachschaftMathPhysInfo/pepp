@@ -1017,6 +1017,45 @@ func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, e
 	return eventID, nil
 }
 
+// AddTopicToEvent is the resolver for the addTopicToEvent field.
+func (r *mutationResolver) AddTopicToEvent(ctx context.Context, eventID int, topicID []int) (int, error) {
+	var relations []models.TopicToEvent
+
+	for _, tid := range topicID {
+		relations = append(relations, models.TopicToEvent{
+			EventID: int32(eventID),
+			TopicID: int32(tid),
+		})
+	}
+
+	_, err := r.DB.NewInsert().
+		Model(&relations).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
+// DeleteTopicFromEvent is the resolver for the deleteTopicFromEvent field.
+func (r *mutationResolver) DeleteTopicFromEvent(ctx context.Context, eventID int, topicID []int) (int, error) {
+	var ids []int32
+	for _, id := range topicID {
+		ids = append(ids, int32(id))
+	}
+
+	if _, err := r.DB.NewDelete().
+		Model((*models.TopicToEvent)(nil)).
+		Where("event_id = ?", eventID).
+		Where("topic_id IN (?)", bun.In(ids)).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
 // AcceptTopApplicationsOnEvent is the resolver for the acceptTopApplicationsOnEvent field.
 func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eventID int, count int) (int, error) {
 	var applications []models.Application
@@ -1089,7 +1128,9 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 	}
 
 	if topicID != nil {
-		query = query.Where(`"e"."topic_id" IN (?)`, bun.In(topicID))
+		query = query.
+			Join("JOIN topic_to_event tte ON tte.event_id = e.id").
+			Where("tte.topic_id IN (?)", bun.In(topicID))
 	}
 
 	if needsTutors != nil {
@@ -1217,9 +1258,20 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 	}
 
 	if umbrellaID != nil {
-		query = query.
-			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_id = l.id OR e.type_id = l.id))",
-				bun.In(umbrellaID))
+		query = query.Where(`
+        EXISTS (
+            SELECT 1 
+            FROM events e 
+            JOIN topic_to_event tte ON tte.event_id = e.id 
+            WHERE e.umbrella_id IN (?) AND tte.topic_id = l.id
+        )
+        OR
+        EXISTS (
+            SELECT 1 
+            FROM events e 
+            WHERE e.umbrella_id IN (?) AND e.type_id = l.id
+        )
+    `, bun.In(umbrellaID), bun.In(umbrellaID))
 	}
 
 	if err := query.Scan(ctx); err != nil {
