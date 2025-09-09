@@ -96,11 +96,12 @@ export default function EventDialog({
               ...e.umbrella?.registrationForm,
             },
           },
-          tutorials: e.tutorials?.map((t) => ({
+          tutorials: e.tutorials?.map((tutorial) => ({
             ...defaultTutorial,
-            ...t,
+            ...tutorial,
             event: { ...defaultEvent, ID: id! },
-            tutors: t.tutors?.map((tu) => ({ ...defaultUser, ...tu })),
+            tutors: tutorial.tutors?.map((tutor) => ({ ...defaultUser, ...tutor })),
+            students: tutorial.students?.map((student) => ({ ...defaultUser, ...student })),
           })),
         });
       }
