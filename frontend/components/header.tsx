@@ -10,26 +10,27 @@ import {CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, Co
 import {Avatar, AvatarFallback} from "./ui/avatar";
 import {Separator} from "./ui/separator";
 import {
+  AllEventsForEventDialogDocument,
   Event,
   FutureEventsDocument,
   FutureEventsQuery,
-  PlannerEventsDocument,
   Role,
 } from "@/lib/gql/generated/graphql";
 import {useUser} from "./providers";
 import {getClient} from "@/lib/graphql";
-import {useRouter} from "next/navigation";
+import {usePathname, useRouter} from "next/navigation";
 import {EventDialog} from "@/components/dialog/events/event-dialog";
 import {adminItems, userItems} from "@/app/(settings)/sidebar";
 import {defaultEvent} from "@/types/defaults";
 import {toast} from "sonner";
-import {groupEventsByUmbrellaId} from "@/lib/utils";
+import {extractId, groupEventsByUmbrellaId} from "@/lib/utils";
 import {AuthenticationDialog} from "./dialog/authentication/authentication-dialog";
 import {VisuallyHidden} from "@radix-ui/react-visually-hidden";
 import {DialogTitle} from "@/components/ui/dialog";
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [dialogState, setDialogState] = useState<"event" | "authentication" | null>(null);
@@ -76,14 +77,11 @@ export default function Header() {
   }, []);
 
   const fetchEventDetails = async (selectedEventID: number) => {
-    const umbrellaID = events.find(event => !!event.umbrella)?.umbrella?.ID
+    const umbrellaID = extractId(pathname)
     if (!umbrellaID) return
 
     const client = getClient();
-    const data = await client.request(
-      PlannerEventsDocument,
-      {umbrellaID: umbrellaID}
-    )
+    const data = await client.request(AllEventsForEventDialogDocument)
 
     const fetchedEvents = data.events.map(event => ({
       ...defaultEvent,

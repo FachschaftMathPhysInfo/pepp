@@ -195,3 +195,26 @@ query tutorsOfEventOfUmbrella($umbrellaID: [Int!]!) {
     }
   }
 }
+
+query allEventsForEventDialog {
+  events {
+    ID
+    title
+    description
+    from
+    to
+    tutorialsOpen
+    topic {
+      ID
+      name
+      color
+      kind
+    }
+    type {
+      ID
+      name
+      color
+      kind
+    }
+  }
+}
