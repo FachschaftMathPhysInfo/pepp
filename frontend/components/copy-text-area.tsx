@@ -18,7 +18,7 @@ export function CopyTextArea({label, text}: CopyTextAreaProps) {
   };
 
   return (
-    <div className="border rounded-lg p-2 flex w-[300px] justify-between items-end overflow-hidden gap-x-6">
+    <div className="border rounded-lg p-2 flex w-[300px] justify-between items-end gap-x-6">
       <div className={'truncate'}>
         <p className="text-xs font-bold text-muted-foreground">{label}</p>
         <Tooltip>

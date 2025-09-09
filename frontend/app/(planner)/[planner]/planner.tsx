@@ -112,7 +112,6 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     void fetchUmbrellaData();
   }, [refetchKey]);
 
-  //
   // TODO: Reimplementation of the link filter feature
   //
   // useEffect(() => {
@@ -159,41 +158,32 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
       )}
 
       {events.length > 0 && (
-        <section className="flex flex-row items-center justify-between flex-wrap gap-4 mt-4">
-          <div className="flex items-center justify-center gap-x-4">
-            <div
-              className={
-                "flex items-center justify-start gap-x-4 flex-wrap gap-y-2"
-              }
-            >
-              {(topics.length >= 2 || types.length >= 2) && (
-                <div className="flex items-center justify-start gap-x-2 flex-wrap border p-2 rounded-lg">
-                  <FunnelPlus size={20}/>
+        <section className="flex items-stretch justify-between flex-wrap gap-4 mt-4">
+          {(topics.length >= 2 || types.length >= 2) && (
+            <div className="flex items-center gap-x-2 flex-wrap border p-2 rounded-lg">
+              <FunnelPlus size={20}/>
 
-                  {topics.length >= 2 && (
-                    <FacetedFilter
-                      className={"h-full"}
-                      options={topics}
-                      setFilter={setTopicFilter}
-                      title={"Sutdiengänge"}
-                    />
-                  )}
-
-                  {types.length >= 2 && (
-                    <FacetedFilter
-                      className={"h-full"}
-                      options={types}
-                      setFilter={setTypesFilter}
-                      title={"Veranstaltungsart"}
-                    />
-                  )}
-                </div>
+              {topics.length >= 2 && (
+                <FacetedFilter
+                  className={"h-full"}
+                  options={topics}
+                  setFilter={setTopicFilter}
+                  title={"Studiengänge"}
+                />
               )}
 
+              {types.length >= 2 && (
+                <FacetedFilter
+                  className={"h-full"}
+                  options={types}
+                  setFilter={setTypesFilter}
+                  title={"Veranstaltungsart"}
+                />
+              )}
             </div>
-          </div>
+          )}
 
-          <CopyTextArea label="ICS-Kalender" text={icalPath}/>
+          <div className={'h-full'}><CopyTextArea label="ICS-Kalender" text={icalPath}/></div>
         </section>
       )}
 
