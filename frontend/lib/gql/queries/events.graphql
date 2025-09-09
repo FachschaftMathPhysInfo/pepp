@@ -14,7 +14,7 @@ query tableEvents(
     from
     to
     needsTutors
-    topic {
+    topics {
       ID
       name
       color
@@ -49,7 +49,7 @@ query availableEventIdsOfUser($mail: [String!]!) {
   }
 }
 
-query plannerEvents($umbrellaID: Int!, $type: [Int!], $topic: [Int!]) {
+query plannerEvents($umbrellaID: Int!, $type: [Int!], $topics: [Int!]) {
   umbrellas(id: [$umbrellaID]) {
     title
     registrationForm {
@@ -68,14 +68,14 @@ query plannerEvents($umbrellaID: Int!, $type: [Int!], $topic: [Int!]) {
     color
     kind
   }
-  events(umbrellaID: [$umbrellaID], typeID: $type, topicID: $topic, includeSupportingEvents: true) {
+  events(umbrellaID: [$umbrellaID], typeID: $type, topicIDs: $topics, includeSupportingEvents: true) {
     ID
     title
     description
     from
     to
     tutorialsOpen
-    topic {
+    topics {
       ID
       name
       color
@@ -106,7 +106,7 @@ query eventCloseup($id: Int!) {
     from
     to
     needsTutors
-    topic {
+    topics {
       ID
       name
       color

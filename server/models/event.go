@@ -21,7 +21,7 @@ type Event struct {
 	TutorialsOpen *bool `bun:",notnull,default:false"`
 
 	Umbrella         *Event      `bun:"rel:belongs-to,join:umbrella_id=id"`
-	Topic            []*Label    `bun:"m2m:topic_to_event,join:Event=Topic"`
+	Topics           []*Label    `bun:"m2m:topic_to_event,join:Event=Topic"`
 	Type             *Label      `bun:"rel:belongs-to,join:type_id=id"`
 	Tutorials        []*Tutorial `bun:"rel:has-many,join:id=event_id"`
 	TutorsAvailable  []*User     `bun:"m2m:user_to_event_availabilities,join:Event=User"`
