@@ -135,6 +135,13 @@ query eventCloseup($id: Int!) {
         mail
         confirmed
       }
+      students {
+        ID
+        sn
+        fn
+        mail
+        confirmed
+      }
       room {
         capacity
         floor
@@ -192,6 +199,17 @@ query tutorsOfEventOfUmbrella($umbrellaID: [Int!]!) {
         ID
         mail
       }
+    }
+  }
+}
+
+query eventsOfUmbrella($umbrellaIDs: [Int!]!) {
+  events(umbrellaID: $umbrellaIDs) {
+    ID
+    title,
+    from,
+    tutorials {
+      ID
     }
   }
 }

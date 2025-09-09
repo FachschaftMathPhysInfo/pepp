@@ -9,7 +9,7 @@ export default async function TutorialDetailPage({
   const { tutorial } = await params;
   return (
     <>
-      <TutorialPage eventID={extractId(tutorial) ?? 0} onlyCurrentUser/>
+      <TutorialPage eventID={extractId(tutorial) ?? 0} />
     </>
   );
 }
