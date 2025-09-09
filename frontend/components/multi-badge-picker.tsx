@@ -1,4 +1,4 @@
-import {Label, LabelKind, LabelsDocument, LabelsQuery, LabelsQueryVariables,} from "@/lib/gql/generated/graphql";
+import {Label, LabelKind, LabelsDocument, LabelsQuery} from "@/lib/gql/generated/graphql";
 import React, {useEffect, useState} from "react";
 import {Check, ChevronDown, Edit, Save} from "lucide-react";
 import {Badge} from "@/components/ui/badge";
@@ -25,27 +25,26 @@ export function MultiBadgePicker({
                                   }: MultiBadgePickerProps) {
   const [labels, setLabels] = useState<Label[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>(
-    labels.filter((label) => selectedLabelIDs?.includes(label.ID)) ?? []
+    labels.filter((label) => selectedLabelIDs.includes(label.ID)) ?? []
   )
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    if (labels.length) return;
-    const fetchData = async () => {
+    const fetchLabels = async () => {
       const client = getClient();
 
-      const vars: LabelsQueryVariables = {
-        kind: kind,
-      };
-
-      const labelData = await client.request<LabelsQuery>(LabelsDocument, vars);
+      const labelData = await client.request<LabelsQuery>(LabelsDocument, {kind: kind});
 
       setLabels(labelData.labels);
     };
 
-    void fetchData();
-  }, [kind, labels.length, open]);
+    void fetchLabels();
+  }, [kind, open]);
+
+  useEffect(() => {
+    setSelectedLabels((labels || []).filter((label) => selectedLabelIDs.includes(label.ID)) ?? []);
+  }, [labels.length]);
 
   function handleOnSave() {
     onChange(selectedLabels)
@@ -57,27 +56,30 @@ export function MultiBadgePicker({
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
-        {selectedLabels.length ? (
-          selectedLabels.map((label) => (
+        <span className={'flex items-center gap-2 p-2 border rounded-xl bg-muted'}>
+          {selectedLabels.length ? (
+            selectedLabels.map((label) => (
+              <Badge
+                key={label.ID}
+                variant="event"
+                color={label.color}
+                className="space-x-2 hover:cursor-pointer"
+              >
+                {label.name}
+              </Badge>
+            ))
+          ) : (
             <Badge
               variant="event"
-              color={label.color}
+              color={"grey"}
               className="space-x-2 hover:cursor-pointer"
             >
-              {label.name}
-              <ChevronDown className="opacity-50 h-4 w-4"/>
+              {labelKindDescription ?? "Label"} auswählen
             </Badge>
-          ))
-        ) : (
-          <Badge
-            variant="event"
-            color={"grey"}
-            className="space-x-2 hover:cursor-pointer"
-          >
-            {labelKindDescription ?? "Label"} auswählen
-            <ChevronDown className="opacity-50 h-4 w-4"/>
-          </Badge>
-        )}
+          )}
+
+          <ChevronDown className="opacity-50 h-4 w-4"/>
+        </span>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0 overflow-hidden">
         <Command>
@@ -90,10 +92,10 @@ export function MultiBadgePicker({
                   key={label.name}
                   value={label.name}
                   onSelect={() => {
-                    if (selectedLabels.map(l => l.ID).includes(label.ID)) {
+                    if (selectedLabels.length && selectedLabels.map(l => l.ID).includes(label.ID)) {
                       setSelectedLabels(selectedLabels.filter(l => l.ID !== label.ID));
                     } else {
-                      setSelectedLabels(({...selectedLabels, ...label}));
+                      setSelectedLabels([...selectedLabels, label]);
                     }
                   }}
                 >

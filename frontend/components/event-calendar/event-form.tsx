@@ -349,8 +349,8 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                     <FormControl>
                       <MultiBadgePicker
                         kind={LabelKind.Topic}
-                        selectedLabelIDs={field.value}
-                        onChange={(label) => field.onChange(label)}
+                        selectedLabelIDs={field.value as number[]}
+                        onChange={(label) => field.onChange(label.map(l => l.ID))}
                       />
                     </FormControl>
                     <FormMessage/>
