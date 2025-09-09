@@ -106,6 +106,7 @@ query eventCloseup($id: Int!) {
     from
     to
     needsTutors
+    tutorialsOpen
     topic {
       ID
       name
