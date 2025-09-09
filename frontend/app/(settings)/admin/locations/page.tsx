@@ -152,7 +152,7 @@ export default function LocationSettings() {
         mode={"confirmation"}
         description={`Dies wird das Gebäude ${dialogState.building.name} ` +
           ((amountTutorialsOfBuilding > 1) ? `und alle ${amountTutorialsOfBuilding} Tutorien die diesem Gebäude zugeordnet sind`
-          : (amountTutorialsOfBuilding === 1) ? 'und das dem Gebäude zugeordnetem Tutorium' : '')
+          : (amountTutorialsOfBuilding === 1) ? 'und das dem Gebäude zugeordnete Tutorium' : '')
           + ' unwiederruflich löschen'
         }
         onConfirm={async () => {
