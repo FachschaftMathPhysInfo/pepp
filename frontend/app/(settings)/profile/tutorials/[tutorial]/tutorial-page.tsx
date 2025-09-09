@@ -23,7 +23,7 @@ import {
 } from "@/types/defaults";
 import { useEffect, useState } from "react";
 import { StudentsTable } from "./students-table";
-import EventDescription from "@/components/dialog/events/event-description";
+import EventDescription from "@/components/event-description";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { RoomDetail } from "@/components/room-detail";

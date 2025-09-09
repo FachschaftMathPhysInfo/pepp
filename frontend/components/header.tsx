@@ -2,55 +2,46 @@
 
 import {LogIn, LogOut, Moon, Search, SquareCheckBig, Sun} from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import {Button} from "@/components/ui/button";
+import {useTheme} from "next-themes";
+import {CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "./ui/command";
+import {Avatar, AvatarFallback} from "./ui/avatar";
+import {Separator} from "./ui/separator";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "./ui/command";
-import { Dialog } from "./ui/dialog";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Separator } from "./ui/separator";
-import {
+  AllEventsForEventDialogDocument,
   Event,
   FutureEventsDocument,
   FutureEventsQuery,
   Role,
 } from "@/lib/gql/generated/graphql";
-import { useUser } from "./providers";
-import { getClient } from "@/lib/graphql";
-import { useRouter } from "next/navigation";
-import EventDialog from "@/components/dialog/events/event-dialog";
-import { adminItems, userItems } from "@/app/(settings)/sidebar";
-import { defaultEvent } from "@/types/defaults";
-import { toast } from "sonner";
-import { groupEventsByUmbrellaId } from "@/lib/utils";
+import {useUser} from "./providers";
+import {getClient} from "@/lib/graphql";
+import {usePathname, useRouter} from "next/navigation";
+import {EventDialog} from "@/components/dialog/events/event-dialog";
+import {adminItems, userItems} from "@/app/(settings)/sidebar";
+import {defaultEvent} from "@/types/defaults";
+import {toast} from "sonner";
+import {extractId, groupEventsByUmbrellaId} from "@/lib/utils";
 import {AuthenticationDialog} from "./dialog/authentication/authentication-dialog";
+import {VisuallyHidden} from "@radix-ui/react-visually-hidden";
+import {DialogTitle} from "@/components/ui/dialog";
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [dialogState, setDialogState] = useState<"event" | "authentication" | null>(null);
-  const [closeupID, setCloseupID] = useState(0);
   const [events, setEvents] = useState<Event[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
   const {setTheme} = useTheme();
   const {user, logout} = useUser();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFutureEvents = async () => {
       const client = getClient();
 
       try {
@@ -71,7 +62,7 @@ export default function Header() {
       }
     };
 
-    void fetchData();
+    void fetchFutureEvents();
   }, []);
 
   useEffect(() => {
@@ -85,12 +76,30 @@ export default function Header() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
+  const fetchEventDetails = async (selectedEventID: number) => {
+    const umbrellaID = extractId(pathname)
+    if (!umbrellaID) return
+
+    const client = getClient();
+    const data = await client.request(AllEventsForEventDialogDocument)
+
+    const fetchedEvents = data.events.map(event => ({
+      ...defaultEvent,
+      ...event,
+    }))
+
+    const newSelectedEvent = fetchedEvents.find(e => e.ID === selectedEventID)
+    setSelectedEvent(newSelectedEvent || null)
+  }
+
   const groupedEvents = groupEventsByUmbrellaId(events);
 
   const closeDialog = () => setDialogState(null)
 
   return (
-    <header className="justify-between z-20 fixed w-screen h-fit flex items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
+    <header
+      className="justify-between z-20 fixed w-screen h-fit flex items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]"
+    >
 
       <div
         className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400 gap-2 items-center"
@@ -138,15 +147,17 @@ export default function Header() {
             </kbd>
           </div>
         </Button>
-        <Dialog
-          open={dialogState === "event"}
-          onOpenChange={(open) => {
-            if (open) setDialogState("event");
-            else setDialogState(null);
-          }}>
-          <EventDialog id={closeupID} open={dialogState === "event"}/>
-        </Dialog>
+        <EventDialog
+          event={selectedEvent}
+          isOpen={dialogState === "event"}
+          onCloseAction={() => {
+            setDialogState(null)
+          }}
+        />
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+          <VisuallyHidden>
+            <DialogTitle>Suche Events aus diesem Programm</DialogTitle>
+          </VisuallyHidden>
           <CommandInput placeholder="Suche nach Veranstaltungen..."/>
           <CommandList>
             <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
@@ -163,9 +174,9 @@ export default function Header() {
                       <CommandItem
                         className="justify-between"
                         key={e.ID}
-                        onSelect={() => {
+                        onSelect={async () => {
                           setSearchOpen(false);
-                          setCloseupID(e.ID);
+                          await fetchEventDetails(e.ID)
                           setDialogState("event")
                         }}
                       >

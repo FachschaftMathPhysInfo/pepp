@@ -1,6 +1,6 @@
 import { Event } from "@/lib/gql/generated/graphql";
-import { Badge } from "../../ui/badge";
-import { FullDateDescription } from "../../full-date-description";
+import { Badge } from "./ui/badge";
+import { FullDateDescription } from "./full-date-description";
 
 interface EventDescriptionProps {
   event: Event | undefined;

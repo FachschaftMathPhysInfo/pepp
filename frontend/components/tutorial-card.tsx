@@ -1,5 +1,5 @@
 import {Card, CardContent} from "@/components/ui/card";
-import TutorialElement from "@/components/dialog/events/tutorial-element";
+import TutorialElement from "@/components/tutorial-element";
 import {Button} from "@/components/ui/button";
 import {CirclePlus} from "lucide-react";
 import {toast} from "sonner";
