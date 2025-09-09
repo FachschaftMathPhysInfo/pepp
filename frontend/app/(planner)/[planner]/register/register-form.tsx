@@ -72,10 +72,6 @@ export default function RegisterForm({modal}: RegisterFormProps) {
   const [authenticationDialogOpen, setAuthenticationDialogOpen] = useState(false);
 
   useEffect(() => {
-    setAuthenticationDialogOpen(!user)
-  }, [user]);
-
-  useEffect(() => {
     if (responses.length > 0) {
       void onSubmit();
     }
