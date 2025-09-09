@@ -58,7 +58,7 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
   }, [basePath]);
 
   return (
-    <div className={'flex flex-col min-h-[calc(100vh-80px)] mt-[80px] w-full'}>
+    <div className="flex flex-col min-h-[calc(100vh-80px)] mt-[80px] w-full">
       {user?.role === Role.Admin ? (
         <SidebarProvider>
           <AdminSidebar umbrellas={umbrellas} />
@@ -67,12 +67,10 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
               <SidebarTrigger className="mb-2 block" />
               {children}
             </div>
-            <Footer />
           </main>
         </SidebarProvider>
       ) : (
-        <main>
-          <div className="space-y-5 p-5">
+        <main className="flex-1 flex flex-col gap-y-5 p-5">
             {umbrellas.length > 0 && (
               <UmbrellaPopoverSelection
                 umbrellas={umbrellas}
@@ -80,10 +78,10 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
               />
             )}
             {children}
-          </div>
-          <Footer />
         </main>
       )}
+
+      <Footer />
     </div>
   );
 }

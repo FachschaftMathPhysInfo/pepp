@@ -62,18 +62,18 @@ export function BadgePicker({
     void fetchData();
   }, [kind, labels.length, open]);
 
-  const sel = labels.find((label) => label.ID === selected);
+  const selectedLabel = labels.find((label) => label.ID === selected);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
       <PopoverTrigger asChild>
         <Badge
           variant="event"
-          color={sel?.color ?? "grey"}
+          color={selectedLabel?.color ?? "grey"}
           className="space-x-2 hover:cursor-pointer"
         >
-          {sel ? (
-            <p>{sel.name}</p>
+          {selectedLabel ? (
+            <p>{selectedLabel.name}</p>
           ) : (
             <p>{labelKindDescription ?? "Label"} auswählen</p>
           )}
@@ -103,7 +103,7 @@ export function BadgePicker({
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      label === sel ? "opacity-100" : "opacity-0"
+                      label === selectedLabel ? "opacity-100" : "opacity-0"
                     )}
                   />
                 </CommandItem>
