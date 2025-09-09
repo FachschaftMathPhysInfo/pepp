@@ -5,6 +5,8 @@ import {
   AddStudentApplicationForEventDocument,
   AddStudentApplicationForEventMutation,
   AddStudentApplicationForEventMutationVariables,
+  CheckExistingApplicationDocument,
+  CheckExistingApplicationQuery,
   NewQuestionResponsePair,
   NewUserToEventApplication,
   QuestionType,
@@ -26,12 +28,12 @@ import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormMessage,} from "@/components/ui/form";
 import {toast} from "sonner";
-import {CardSkeleton} from "@/components/card-skeleton";
 import {useUser} from "@/components/providers";
 import {extractId} from "@/lib/utils";
 import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
 import {DialogClose, DialogDescription, DialogTitle} from "@/components/ui/dialog";
 import {LogIn} from "lucide-react";
+import {CardSkeleton} from "@/components/card-skeleton";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
@@ -70,6 +72,8 @@ export default function RegisterForm({modal}: RegisterFormProps) {
   const [loading, setLoading] = useState(true);
   const [responses, setResponses] = useState<NewQuestionResponsePair[]>([]);
   const [authenticationDialogOpen, setAuthenticationDialogOpen] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasCheckedSubmission, setHasCheckedSubmission] = useState(false);
 
   useEffect(() => {
     if (responses.length > 0) {
@@ -108,6 +112,28 @@ export default function RegisterForm({modal}: RegisterFormProps) {
       setProgressValue((100 / (regForm.questions.length - 1)) * index);
     }
   }, [index, regForm]);
+
+  useEffect(() => {
+    const checkSubmission = async () => {
+      if (!user) return;
+
+      try {
+        const client = getClient();
+
+        const data = await client.request<CheckExistingApplicationQuery>(CheckExistingApplicationDocument, {id: user.ID});
+        const submitted = data.users[0]?.applications?.some((app: {
+          event: { ID: number }
+        }) => app.event.ID === eventID);
+
+        if (submitted) setHasSubmitted(true);
+      } catch (err) {
+        console.error("Error checking submissions", err);
+      } finally {
+        setHasCheckedSubmission(true);
+      }
+    }
+    void checkSubmission();
+  }, [user, eventID]);
 
   const mcForm = useForm<z.infer<ReturnType<typeof MultipleChoiceFormSchema>>>({
     resolver: zodResolver(
@@ -232,10 +258,15 @@ export default function RegisterForm({modal}: RegisterFormProps) {
               Anmelden
             </Button>
           </div>
-
         </div>
-      ) : loading || (!user && !authenticationDialogOpen) ? (
+      ) : loading || (!user && !authenticationDialogOpen) || !hasCheckedSubmission ? (
         <CardSkeleton/>
+      ) : hasSubmitted ? (
+        <div className="flex flex-col justify-center items-center">
+          <div className="text-center my-8">
+            Du hast das Quiz bereits ausgefüllt!
+          </div>
+        </div>
       ) : (
         <>
           {modal && (
@@ -398,5 +429,6 @@ export default function RegisterForm({modal}: RegisterFormProps) {
         </>
       )}
     </>
-  );
+  )
+    ;
 }
