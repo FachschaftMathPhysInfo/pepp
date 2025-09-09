@@ -14,6 +14,7 @@ import { EventForm } from "@/components/event-calendar/event-form";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { TutorialsTable } from "../tables/tutorials-table/tutorials-table";
+import {VisuallyHidden} from "@radix-ui/react-visually-hidden";
 
 interface EventDialogProps {
   event: Event | null;
@@ -30,6 +31,9 @@ export function EventDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCloseAction()}>
+      <VisuallyHidden>
+        <DialogTitle>Event Dialog für ${event?.title}</DialogTitle>
+      </VisuallyHidden>
       <DialogContent
         className={"sm:!min-w-[800px] [&>button:last-child]:hidden"}
       >

@@ -25,6 +25,8 @@ import {defaultEvent} from "@/types/defaults";
 import {toast} from "sonner";
 import {groupEventsByUmbrellaId} from "@/lib/utils";
 import {AuthenticationDialog} from "./dialog/authentication/authentication-dialog";
+import {VisuallyHidden} from "@radix-ui/react-visually-hidden";
+import {DialogTitle} from "@/components/ui/dialog";
 
 export default function Header() {
   const router = useRouter();
@@ -166,6 +168,9 @@ export default function Header() {
           }}
         />
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+          <VisuallyHidden>
+            <DialogTitle>Suche Events aus diesem Programm</DialogTitle>
+          </VisuallyHidden>
           <CommandInput placeholder="Suche nach Veranstaltungen..."/>
           <CommandList>
             <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
