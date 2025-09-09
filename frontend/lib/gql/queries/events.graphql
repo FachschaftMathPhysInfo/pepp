@@ -134,6 +134,13 @@ query eventCloseup($id: Int!) {
         mail
         confirmed
       }
+      students {
+        ID
+        sn
+        fn
+        mail
+        confirmed
+      }
       room {
         capacity
         floor

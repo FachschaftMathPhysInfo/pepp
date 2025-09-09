@@ -82,6 +82,10 @@ export function TutorialPage({eventID, onlyCurrentUser = false}: TutorialPagePro
         tutors: tutorial.tutors?.map(tutor => ({
           ...defaultUser,
           ...tutor
+        })),
+        students: tutorial.students?.map(student => ({
+          ...defaultUser,
+          ...student,
         }))
       })) ?? []
 
