@@ -25,7 +25,7 @@ export function MultiBadgePicker({
                                  }: MultiBadgePickerProps) {
   const [labels, setLabels] = useState<Label[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>(
-    labels.filter((label) => selectedLabelIDs.includes(label.ID)) ?? []
+    labels.filter((label) => (selectedLabelIDs || []).includes(label.ID)) ?? []
   )
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -43,6 +43,7 @@ export function MultiBadgePicker({
   }, [kind, open]);
 
   useEffect(() => {
+    if (!selectedLabelIDs) return
     setSelectedLabels((labels || []).filter((label) => selectedLabelIDs.includes(label.ID)) ?? []);
   }, [labels.length]);
 
