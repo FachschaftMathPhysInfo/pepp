@@ -160,26 +160,28 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
       {events.length > 0 && (
         <section className="flex items-stretch justify-between flex-wrap gap-4 mt-4">
           {(topics.length >= 2 || types.length >= 2) && (
-            <div className="flex items-center gap-x-2 flex-wrap border p-2 rounded-lg">
-              <FunnelPlus size={20}/>
+            <div className="flex items-center gap-x-2 border p-2 rounded-lg">
+              <FunnelPlus size={20} className={'flex-shrink-0'}/>
 
-              {topics.length >= 2 && (
-                <FacetedFilter
-                  className={"h-full"}
-                  options={topics}
-                  setFilter={setTopicFilter}
-                  title={"Studiengänge"}
-                />
-              )}
+              <span className={'flex flex-wrap items-center gap-2'}>
+               {topics.length >= 2 && (
+                 <FacetedFilter
+                   className={"h-full"}
+                   options={topics}
+                   setFilter={setTopicFilter}
+                   title={"Studiengänge"}
+                 />
+               )}
 
-              {types.length >= 2 && (
-                <FacetedFilter
-                  className={"h-full"}
-                  options={types}
-                  setFilter={setTypesFilter}
-                  title={"Veranstaltungsart"}
-                />
-              )}
+                {types.length >= 2 && (
+                  <FacetedFilter
+                    className={"h-full"}
+                    options={types}
+                    setFilter={setTypesFilter}
+                    title={"Veranstaltungsart"}
+                  />
+                )}
+              </span>
             </div>
           )}
 
