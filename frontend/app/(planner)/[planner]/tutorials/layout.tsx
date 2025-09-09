@@ -32,15 +32,25 @@ export default function UmbrellaTutorialsLayout({
     const client = getClient(sid!);
     const eventData = await client.request(EventsOfUmbrellaDocument, {umbrellaIDs: [umbrellaID]})
 
+    // INFO: this was absolutely vibe coded
+    const normalizedPath = pathname.replace(/\/$/, "");
+    const tutorialsBase = normalizedPath.includes("/tutorials")
+      ? normalizedPath.replace(/\/tutorials(\/.*)?$/, "/tutorials")
+      : `${normalizedPath}/tutorials`;
+    // INFO: vibe code ends here.
+
     const eventInfos = eventData.events
       .filter(event => !!event.tutorials?.length)
-      .map((event) => ({
-        title: event.title,
-        description: <>{new Date(event.from).toLocaleDateString()}</>,
-        href: `${slugify(event.title)}-${event.ID}`,
-      }));
+      .map((event) => {
+        const slug = `${slugify(event.title)}-${event.ID}`;
+        return {
+          title: event.title,
+          description: <>{new Date(event.from).toLocaleDateString()}</>,
+          href: `${tutorialsBase}/${slug}`
+        };
+      });
 
-    setEvents(eventInfos);
+    setEvents(eventInfos)
   }, [umbrellaID]);
 
   useEffect(() => {
