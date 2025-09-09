@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import {usePathname, useRouter} from "next/navigation";
 import {
   AddStudentApplicationForEventDocument,
   AddStudentApplicationForEventMutation,
@@ -12,44 +12,33 @@ import {
   RegistrationFormQuery,
   RegistrationFormQueryVariables,
 } from "@/lib/gql/generated/graphql";
-import { getClient } from "@/lib/graphql";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useEffect, useState } from "react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { toast } from "sonner";
-import { CardSkeleton } from "@/components/card-skeleton";
-import { useUser } from "@/components/providers";
-import { extractId } from "@/lib/utils";
-import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
-import { DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import {getClient} from "@/lib/graphql";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
+import {useEffect, useState} from "react";
+import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
+import {Slider} from "@/components/ui/slider";
+import {Label} from "@/components/ui/label";
+import {Checkbox} from "@/components/ui/checkbox";
+import {Progress} from "@/components/ui/progress";
+import {z} from "zod";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Form, FormControl, FormField, FormItem, FormMessage,} from "@/components/ui/form";
+import {toast} from "sonner";
+import {CardSkeleton} from "@/components/card-skeleton";
+import {useUser} from "@/components/providers";
+import {extractId} from "@/lib/utils";
+import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
+import {DialogClose, DialogDescription, DialogTitle} from "@/components/ui/dialog";
+import {LogIn} from "lucide-react";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
     singleChoice: required
       ? z.number({
-          required_error: "Bitte wähle eine Option",
-        })
+        required_error: "Bitte wähle eine Option",
+      })
       : z.number().optional(),
   });
 
@@ -57,8 +46,8 @@ const MultipleChoiceFormSchema = (required: boolean) =>
   z.object({
     multipleChoice: required
       ? z.array(z.number()).refine((value) => value.some((item) => item), {
-          message: "Bitte triff eine Auswahl",
-        })
+        message: "Bitte triff eine Auswahl",
+      })
       : z.array(z.number()).optional(),
   });
 
@@ -66,11 +55,11 @@ interface RegisterFormProps {
   modal?: boolean;
 }
 
-export default function RegisterForm({ modal }: RegisterFormProps) {
+export default function RegisterForm({modal}: RegisterFormProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { user, sid } = useUser();
+  const {user, sid} = useUser();
 
   const [regForm, setForm] = useState<RegistrationFormQuery["forms"][0] | null>(
     null
@@ -80,6 +69,7 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [responses, setResponses] = useState<NewQuestionResponsePair[]>([]);
+  const [authenticationDialogOpen, setAuthenticationDialogOpen] = useState(false);
 
   useEffect(() => {
     if (responses.length > 0) {
@@ -142,13 +132,18 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
   }
 
   const onSubmit = async () => {
+    if (!user) {
+      toast.error('Ein Fehler beim Speichern des Formulars ist aufgetreten. Bitte melde dich erneut an.')
+      return;
+    }
+
     if (regForm?.questions.length !== index + 1) {
       setIndex((prevIndex) => prevIndex + 1);
       return;
     }
 
     const application: NewUserToEventApplication = {
-      userID: user?.ID!,
+      userID: user.ID,
       eventID: +eventID!,
       answers: responses,
     };
@@ -213,9 +208,34 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
 
   return (
     <>
-      <AuthenticationDialog open={!user} />
-      {loading ? (
-        <CardSkeleton />
+      <AuthenticationDialog
+        open={authenticationDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) setAuthenticationDialogOpen(false)
+        }}
+      />
+      {!user && !authenticationDialogOpen ? (
+        <div className={'flex flex-col justify-center items-center'}>
+          <p className={'text-center my-8'}>Das Quiz kann nur ausgefüllt werden, wenn Du angemeldet bist</p>
+          <div className={'w-full flex items-center justify-evenly'}>
+            <DialogClose asChild>
+              <Button variant={'secondary'}>
+                Abbrechen
+              </Button>
+            </DialogClose>
+
+            <Button
+              onClick={() => setAuthenticationDialogOpen(true)}
+              className={'flex items-center gap-2'}
+            >
+              <LogIn/>
+              Anmelden
+            </Button>
+          </div>
+
+        </div>
+      ) : loading || (!user && !authenticationDialogOpen) ? (
+        <CardSkeleton/>
       ) : (
         <>
           {modal && (
@@ -233,73 +253,73 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
                 </p>
               </div>
             )}
-            <Progress value={progressValue} />
+            <Progress value={progressValue}/>
             <Card className={modal ? "w-full" : "w-[500px]"}>
               <CardHeader>
                 <CardTitle>{regForm?.questions[index].title}</CardTitle>
               </CardHeader>
               {regForm?.questions[index].type ===
                 QuestionType.MultipleChoice && (
-                <Form {...mcForm}>
-                  <form onSubmit={mcForm.handleSubmit(onMCSubmit)}>
-                    <CardContent>
-                      <div className="mt-8 mb-8">
-                        <FormField
-                          control={mcForm.control}
-                          name="multipleChoice"
-                          render={() => (
-                            <FormItem>
-                              {regForm?.questions[index].answers.map(
-                                (answer) => (
-                                  <FormField
-                                    key={answer.ID}
-                                    control={mcForm.control}
-                                    name="multipleChoice"
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <div
-                                          key={answer.ID}
-                                          className="flex items-center space-x-2"
-                                        >
-                                          <FormControl>
-                                            <Checkbox
-                                              checked={field.value?.includes(
-                                                answer.ID
-                                              )}
-                                              onCheckedChange={(checked) => {
-                                                return checked
-                                                  ? field.onChange([
+                  <Form {...mcForm}>
+                    <form onSubmit={mcForm.handleSubmit(onMCSubmit)}>
+                      <CardContent>
+                        <div className="mt-8 mb-8">
+                          <FormField
+                            control={mcForm.control}
+                            name="multipleChoice"
+                            render={() => (
+                              <FormItem>
+                                {regForm?.questions[index].answers.map(
+                                  (answer) => (
+                                    <FormField
+                                      key={answer.ID}
+                                      control={mcForm.control}
+                                      name="multipleChoice"
+                                      render={({field}) => (
+                                        <FormItem>
+                                          <div
+                                            key={answer.ID}
+                                            className="flex items-center space-x-2"
+                                          >
+                                            <FormControl>
+                                              <Checkbox
+                                                checked={field.value?.includes(
+                                                  answer.ID
+                                                )}
+                                                onCheckedChange={(checked) => {
+                                                  return checked
+                                                    ? field.onChange([
                                                       ...(field.value || []),
                                                       answer.ID,
                                                     ])
-                                                  : field.onChange(
+                                                    : field.onChange(
                                                       field.value?.filter(
                                                         (value) =>
                                                           value !== answer.ID
                                                       )
                                                     );
-                                              }}
-                                            />
-                                          </FormControl>
-                                          <Label>{answer.title}</Label>
-                                        </div>
-                                      </FormItem>
-                                    )}
-                                  />
-                                )
-                              )}
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <FooterButtons />
-                    </CardFooter>
-                  </form>
-                </Form>
-              )}
+                                                }}
+                                              />
+                                            </FormControl>
+                                            <Label>{answer.title}</Label>
+                                          </div>
+                                        </FormItem>
+                                      )}
+                                    />
+                                  )
+                                )}
+                                <FormMessage/>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <FooterButtons/>
+                      </CardFooter>
+                    </form>
+                  </Form>
+                )}
 
               {regForm?.questions[index].type === QuestionType.SingleChoice && (
                 <Form {...scForm}>
@@ -309,7 +329,7 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
                         <FormField
                           control={scForm.control}
                           name="singleChoice"
-                          render={({ field }) => (
+                          render={({field}) => (
                             <FormItem>
                               <RadioGroup
                                 value={field.value?.toString()}
@@ -326,21 +346,22 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
                                       <RadioGroupItem
                                         value={answer.ID.toString()}
                                       />
-                                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                      <label
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                         {answer.title}
                                       </label>
                                     </div>
                                   )
                                 )}
                               </RadioGroup>
-                              <FormMessage />
+                              <FormMessage/>
                             </FormItem>
                           )}
                         />
                       </div>
                     </CardContent>
                     <CardFooter>
-                      <FooterButtons />
+                      <FooterButtons/>
                     </CardFooter>
                   </form>
                 </Form>
@@ -368,7 +389,7 @@ export default function RegisterForm({ modal }: RegisterFormProps) {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <FooterButtons />
+                    <FooterButtons/>
                   </CardFooter>
                 </form>
               )}
