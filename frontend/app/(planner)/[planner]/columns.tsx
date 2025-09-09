@@ -17,7 +17,7 @@ import {useState} from "react";
 import {useRefetch, useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {toast} from "sonner";
-import {EventDialog} from "@/components/event-calendar/event-dialog";
+import {EventDialog} from "@/components/dialog/events/event-dialog";
 
 export const columns: ColumnDef<Event>[] = [
   {
