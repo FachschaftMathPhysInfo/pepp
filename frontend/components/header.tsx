@@ -34,7 +34,6 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [dialogState, setDialogState] = useState<"event" | "authentication" | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
-  const [selectedEventID, setSelectedEventID] = useState<number | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
   const {setTheme} = useTheme();
@@ -76,29 +75,24 @@ export default function Header() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  useEffect(() => {
-    const fetchEventDetails = async () => {
-      if (!selectedEventID) return
+  const fetchEventDetails = async (selectedEventID: number) => {
+    const umbrellaID = events.find(event => !!event.umbrella)?.umbrella?.ID
+    if (!umbrellaID) return
 
-      const umbrellaID = events.find(event => !!event.umbrella)?.umbrella?.ID
-      if (!umbrellaID) return
+    const client = getClient();
+    const data = await client.request(
+      PlannerEventsDocument,
+      {umbrellaID: umbrellaID}
+    )
 
-      const client = getClient();
-      const data = await client.request(
-        PlannerEventsDocument,
-        {umbrellaID: umbrellaID}
-      )
+    const fetchedEvents = data.events.map(event => ({
+      ...defaultEvent,
+      ...event,
+    }))
 
-      const fetchedEvents = data.events.map(event => ({
-        ...defaultEvent,
-        ...event,
-      }))
-
-      setSelectedEvent(fetchedEvents[0] ?? null)
-    }
-
-    void fetchEventDetails();
-  }, [selectedEventID]);
+    const newSelectedEvent = fetchedEvents.find(e => e.ID === selectedEventID)
+    setSelectedEvent(newSelectedEvent || null)
+  }
 
   const groupedEvents = groupEventsByUmbrellaId(events);
 
@@ -160,7 +154,6 @@ export default function Header() {
           isOpen={dialogState === "event"}
           onCloseAction={() => {
             setDialogState(null)
-            setSelectedEventID(null)
           }}
         />
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
@@ -183,9 +176,9 @@ export default function Header() {
                       <CommandItem
                         className="justify-between"
                         key={e.ID}
-                        onSelect={() => {
+                        onSelect={async () => {
                           setSearchOpen(false);
-                          setSelectedEventID(e.ID)
+                          await fetchEventDetails(e.ID)
                           setDialogState("event")
                         }}
                       >
