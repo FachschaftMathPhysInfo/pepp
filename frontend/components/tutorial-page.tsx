@@ -1,7 +1,7 @@
 "use client";
 
-import { useRefetch, useUser } from "@/components/providers";
-import { TableSkeleton } from "@/components/table-skeleton";
+import {useRefetch, useUser} from "@/components/providers";
+import {TableSkeleton} from "@/components/table-skeleton";
 import {
   DeleteStudentRegistrationForTutorialDocument,
   DeleteStudentRegistrationForTutorialMutation,
@@ -10,27 +10,21 @@ import {
   Tutorial,
   TutorialDetailDocument,
   TutorialDetailQuery,
-  TutorialDetailQueryVariables,
   User,
 } from "@/lib/gql/generated/graphql";
-import { getClient } from "@/lib/graphql";
-import {
-  defaultBuilding,
-  defaultEvent,
-  defaultRoom,
-  defaultTutorial,
-  defaultUser,
-} from "@/types/defaults";
-import { useEffect, useState } from "react";
-import { StudentsTable } from "@/components/tables/students-table/students-table";
+import {getClient} from "@/lib/graphql";
+import {defaultBuilding, defaultEvent, defaultRoom, defaultTutorial, defaultUser,} from "@/types/defaults";
+import {useEffect, useState} from "react";
+import {StudentsTable} from "@/components/tables/students-table/students-table";
 import EventDescription from "@/components/dialog/events/event-description";
-import { toast } from "sonner";
-import { Separator } from "@/components/ui/separator";
-import { RoomDetail } from "@/components/room-detail";
+import {toast} from "sonner";
+import {Separator} from "@/components/ui/separator";
+import {RoomDetail} from "@/components/room-detail";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 
 interface TutorialPageProps {
-  id: number;
+  onlyCurrentUser?: boolean
+  eventID: number;
 }
 
 export interface StudentTableDialogState {
@@ -38,9 +32,9 @@ export interface StudentTableDialogState {
   isOpen: boolean;
 }
 
-export function TutorialPage({ id }: TutorialPageProps) {
-  const { sid, user } = useUser();
-  const { refetchKey, triggerRefetch } = useRefetch();
+export function TutorialPage({eventID, onlyCurrentUser = false}: TutorialPageProps) {
+  const {sid, user} = useUser();
+  const {refetchKey, triggerRefetch} = useRefetch();
 
   const [loading, setLoading] = useState(true);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
@@ -53,23 +47,26 @@ export function TutorialPage({ id }: TutorialPageProps) {
 
   useEffect(() => {
     if (!user) return;
-    const fetchTutorial = async () => {
+    const fetchTutorials = async () => {
       setLoading(true);
 
       const client = getClient(sid!);
 
-      if(!user) return;
-
-      const vars: TutorialDetailQueryVariables = {
-        tutorID: user.ID,
-        eventID: id,
-      };
+      if (!user && onlyCurrentUser) return;
 
       try {
-        const tutorialsData = await client.request<TutorialDetailQuery>(
-          TutorialDetailDocument,
-          vars
-        );
+        let tutorialsData: TutorialDetailQuery
+        if (onlyCurrentUser) {
+          tutorialsData = await client.request<TutorialDetailQuery>(
+            TutorialDetailDocument,
+            {eventID: eventID}
+          )
+        } else {
+          tutorialsData = await client.request<TutorialDetailQuery>(
+            TutorialDetailDocument,
+            {eventID: eventID, tutorID: [user.ID]}
+          )
+        }
 
         setTutorials(
           tutorialsData.tutorials.map((t) => ({
@@ -78,12 +75,12 @@ export function TutorialPage({ id }: TutorialPageProps) {
             room: {
               ...defaultRoom,
               ...t.room,
-              building: { ...defaultBuilding, ...t.room.building },
+              building: {...defaultBuilding, ...t.room.building},
             },
-            students: t.students?.map((s) => ({ ...defaultUser, ...s })),
+            students: t.students?.map((s) => ({...defaultUser, ...s})),
           }))
         );
-        setEvent({ ...defaultEvent, ...tutorialsData.events[0] });
+        setEvent({...defaultEvent, ...tutorialsData.events[0]});
       } catch (err) {
         toast.error("Beim Laden der Tutoriendaten ist ein Fehler aufgetreten.");
         console.log(err);
@@ -92,8 +89,9 @@ export function TutorialPage({ id }: TutorialPageProps) {
       setLoading(false);
     };
 
-    void fetchTutorial();
-  }, [id, sid, user, refetchKey]);
+    void fetchTutorials();
+    console.log(tutorials)
+  }, [eventID, sid, user, refetchKey]);
 
   async function handleRemoveUser() {
     const client = getClient(sid!);
@@ -121,12 +119,12 @@ export function TutorialPage({ id }: TutorialPageProps) {
   return (
     <>
       <section className="space-y-2">
-        <EventDescription event={event} />
+        <EventDescription event={event}/>
       </section>
-      <Separator className="mt-4 mb-4" />
+      <Separator className="mt-4 mb-4"/>
       <section className="space-y-4">
         {loading ? (
-          <TableSkeleton />
+          <TableSkeleton/>
         ) : (
           tutorials.map((t, i) => (
             <div
@@ -134,12 +132,12 @@ export function TutorialPage({ id }: TutorialPageProps) {
               className="space-y-4"
               onClick={() => setCurrentTutorialID(t.ID)}
             >
-              <RoomDetail room={t.room} className="flex flex-row space-x-4" />
+              <RoomDetail room={t.room} className="flex flex-row space-x-4"/>
               <StudentsTable
                 data={t.students ?? []}
                 setDialogState={setDialogState}
               />
-              {i + 1 !== tutorials.length && <Separator />}
+              {i + 1 !== tutorials.length && <Separator/>}
             </div>
           ))
         )}

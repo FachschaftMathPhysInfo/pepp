@@ -1,4 +1,4 @@
-query tutorialDetail($eventID: Int!, $tutorID: Int!) {
+query tutorialDetail($eventID: Int!, $tutorID: [Int!]) {
   events(id: [$eventID]) {
     title
     from
@@ -17,7 +17,7 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
       kind
     }
   }
-  tutorials(eventID: [$eventID], tutorID: [$tutorID]) {
+  tutorials(eventID: [$eventID], tutorID: $tutorID) {
     ID
     room {
       name
