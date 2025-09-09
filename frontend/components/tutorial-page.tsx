@@ -7,6 +7,8 @@ import {
   DeleteStudentRegistrationForTutorialMutation,
   DeleteStudentRegistrationForTutorialMutationVariables,
   Event,
+  EventCloseupDocument,
+  EventCloseupQuery,
   Tutorial,
   TutorialDetailDocument,
   TutorialDetailQuery,
@@ -46,52 +48,81 @@ export function TutorialPage({eventID, onlyCurrentUser = false}: TutorialPagePro
   });
 
   useEffect(() => {
-    if (!user) return;
-    const fetchTutorials = async () => {
-      setLoading(true);
+      if (!user) return;
 
-      const client = getClient(sid!);
+      const fetchTutorials = async () => {
+        setLoading(true);
 
-      if (!user && onlyCurrentUser) return;
+        if (!user && onlyCurrentUser) return;
 
-      try {
-        let tutorialsData: TutorialDetailQuery
-        if (onlyCurrentUser) {
-          tutorialsData = await client.request<TutorialDetailQuery>(
-            TutorialDetailDocument,
-            {eventID: eventID}
-          )
-        } else {
-          tutorialsData = await client.request<TutorialDetailQuery>(
-            TutorialDetailDocument,
-            {eventID: eventID, tutorID: [user.ID]}
-          )
-        }
+        if (onlyCurrentUser) await fetchTutorialsOfUser()
+        else await fetchAllTutorialsOfEvent()
 
-        setTutorials(
-          tutorialsData.tutorials.map((t) => ({
-            ...defaultTutorial,
-            ...t,
-            room: {
-              ...defaultRoom,
-              ...t.room,
-              building: {...defaultBuilding, ...t.room.building},
-            },
-            students: t.students?.map((s) => ({...defaultUser, ...s})),
-          }))
-        );
-        setEvent({...defaultEvent, ...tutorialsData.events[0]});
-      } catch (err) {
-        toast.error("Beim Laden der Tutoriendaten ist ein Fehler aufgetreten.");
-        console.log(err);
-      }
+        setLoading(false);
+      };
 
-      setLoading(false);
-    };
+      void fetchTutorials();
+    }, [eventID, sid, user, refetchKey]);
 
-    void fetchTutorials();
-    console.log(tutorials)
-  }, [eventID, sid, user, refetchKey]);
+  async function fetchAllTutorialsOfEvent() {
+    const client = getClient(sid!)
+
+    try {
+      const tutorialsData = await client.request<EventCloseupQuery>(
+        EventCloseupDocument,
+        {id: eventID}
+      )
+
+      const currentEvent = tutorialsData.events[0]
+      if (!currentEvent) return
+
+      const tutorials: Tutorial[] = currentEvent.tutorials?.map(tutorial => ({
+        ...defaultTutorial,
+        ...tutorial,
+        tutors: tutorial.tutors?.map(tutor => ({
+          ...defaultUser,
+          ...tutor
+        }))
+      })) ?? []
+
+      setTutorials(tutorials);
+      setEvent({
+        ...defaultEvent,
+        ...currentEvent,
+        tutorials: tutorials,
+        umbrella: {...defaultEvent, ...currentEvent.umbrella, registrationForm: null}
+      })
+    } catch {
+      toast.error("Beim Laden der Tutoriendaten ist ein Fehler aufgetreten.");
+    }
+  }
+
+  async function fetchTutorialsOfUser() {
+    const client = getClient(sid!)
+
+    try {
+      const tutorialsData = await client.request<TutorialDetailQuery>(
+        TutorialDetailDocument,
+        {eventID: eventID, tutorID: [user?.ID]}
+      )
+
+      setTutorials(
+        tutorialsData.tutorials.map((t) => ({
+          ...defaultTutorial,
+          ...t,
+          room: {
+            ...defaultRoom,
+            ...t.room,
+            building: {...defaultBuilding, ...t.room.building},
+          },
+          students: t.students?.map((s) => ({...defaultUser, ...s})),
+        }))
+      );
+      setEvent({...defaultEvent, ...tutorialsData.events[0]});
+    } catch {
+      toast.error("Beim Laden der Tutoriendaten ist ein Fehler aufgetreten.");
+    }
+  }
 
   async function handleRemoveUser() {
     const client = getClient(sid!);
