@@ -27,19 +27,19 @@ import { Separator } from "./ui/separator";
 import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
 
-interface BadgePickerProps {
+interface SingleBadgePickerProps {
   kind: LabelKind;
   labelKindDescription?: string;
   selected: number | null;
   onChange: (label: number | null) => void;
 }
 
-export function BadgePicker({
+export function SingleBadgePicker({
   kind,
   labelKindDescription,
   selected,
   onChange,
-}: BadgePickerProps) {
+}: SingleBadgePickerProps) {
   const [labels, setLabels] = useState<Label[]>([]);
   const [open, setOpen] = useState(false);
 

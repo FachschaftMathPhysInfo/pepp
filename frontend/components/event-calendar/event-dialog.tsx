@@ -31,7 +31,7 @@ export function EventDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCloseAction()}>
       <DialogContent
-        className={"sm:!min-w-[800px] [&>button:last-child]:hidden"}
+        className={"sm:!min-w-[800px] [&>button:last-child]:hidden overflow-y-scroll max-h-[calc(100vh-10rem)]"}
       >
         {user?.role === Role.Admin ? (
           <>
@@ -81,7 +81,9 @@ export function EventDialog({
                 </DialogDescription>
               </DialogHeader>
               <div className={"flex items-center gap-2 flex-wrap"}>
-                <Badge color={event.topic.color}>{event.topic.name}</Badge>
+                {event.topics.map(topic => (
+                  <Badge color={topic.color}>{topic.name}</Badge>
+                ))}
 
                 <Badge color={event.type.color}>{event.type.name}</Badge>
               </div>
