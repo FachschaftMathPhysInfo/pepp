@@ -89,14 +89,10 @@ export default function Header() {
         {umbrellaID: umbrellaID}
       )
 
-      console.log(data)
-
       const fetchedEvents = data.events.map(event => ({
         ...defaultEvent,
         ...event,
       }))
-
-      console.log(fetchedEvents)
 
       setSelectedEvent(fetchedEvents[0] ?? null)
     }
