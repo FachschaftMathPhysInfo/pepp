@@ -254,7 +254,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
-          className={"w-full flex flex-col gap-y-4"}
+          className={"w-full flex flex-col gap-y-4 overflow-y-scroll"}
         >
           <FormField
             control={form.control}
@@ -337,55 +337,55 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
             </div>
           </div>
 
-          {/* Labels */}
-          <div className={"flex items-center justify-between flex-wrap gap-2"}>
-            <div className={"flex items-center gap-2"}>
-              <FormField
-                control={form.control}
-                name="topicIDs"
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel className={"hidden"}>Thema</FormLabel>
-                    <FormControl>
-                      <MultiBadgePicker
-                        kind={LabelKind.Topic}
-                        selectedLabelIDs={field.value as number[]}
-                        onChange={(label) => field.onChange(label.map(l => l.ID))}
-                      />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
+          <FormField
+            control={form.control}
+            name="topicIDs"
+            render={({field}) => (
+              // 200px is the width of the popover
+              <FormItem className={'w-fit min-w-[200px]'}>
+                <FormLabel>Studiengänge</FormLabel>
+                <FormControl>
+                  <MultiBadgePicker
+                    kind={LabelKind.Topic}
+                    selectedLabelIDs={field.value as number[]}
+                    onChange={(label) => field.onChange(label.map(l => l.ID))}
+                  />
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="typeID"
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel className={"hidden"}>Art des Events</FormLabel>
-                    <FormControl>
-                      <SingleBadgePicker
-                        kind={LabelKind.EventType}
-                        selected={field.value}
-                        onChange={(label) => field.onChange(label)}
-                      />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
+          <FormField
+            control={form.control}
+            name="typeID"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel>Art des Events</FormLabel>
+                <FormControl>
+                  <div>
+                    <SingleBadgePicker
+                      kind={LabelKind.EventType}
+                      selected={field.value}
+                      onChange={(label) => field.onChange(label)}
+                    />
+                  </div>
 
-            <FormField
-              control={form.control}
-              name="needsTutors"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel className={"hidden"}>
-                    Benötigt Tutor:innen
-                  </FormLabel>
-                  <FormControl>
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="needsTutors"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel className={"hidden"}>
+                  Benötigt Tutor:innen
+                </FormLabel>
+                <FormControl>
                     <span className={"flex items-center gap-2 min-w-fit"}>
                       <Checkbox
                         checked={field.value}
@@ -393,12 +393,11 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                       />
                       Benötigt Tutor:innen
                     </span>
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
 
           {event && (
             <>

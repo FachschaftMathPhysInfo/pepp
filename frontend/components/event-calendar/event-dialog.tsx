@@ -31,7 +31,7 @@ export function EventDialog({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCloseAction()}>
       <DialogContent
-        className={"sm:!min-w-[800px] [&>button:last-child]:hidden"}
+        className={"sm:!min-w-[800px] [&>button:last-child]:hidden overflow-y-scroll max-h-[calc(100vh-10rem)]"}
       >
         {user?.role === Role.Admin ? (
           <>

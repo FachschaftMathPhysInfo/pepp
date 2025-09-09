@@ -1,6 +1,6 @@
 import {Label, LabelKind, LabelsDocument, LabelsQuery} from "@/lib/gql/generated/graphql";
 import React, {useEffect, useState} from "react";
-import {Check, ChevronDown, Edit, Save} from "lucide-react";
+import {Check, ChevronDown, Edit} from "lucide-react";
 import {Badge} from "@/components/ui/badge";
 import {getClient} from "@/lib/graphql";
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
@@ -18,11 +18,11 @@ interface MultiBadgePickerProps {
 }
 
 export function MultiBadgePicker({
-                                    kind,
-                                    labelKindDescription,
-                                    selectedLabelIDs,
-                                    onChange,
-                                  }: MultiBadgePickerProps) {
+                                   kind,
+                                   labelKindDescription,
+                                   selectedLabelIDs,
+                                   onChange,
+                                 }: MultiBadgePickerProps) {
   const [labels, setLabels] = useState<Label[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>(
     labels.filter((label) => selectedLabelIDs.includes(label.ID)) ?? []
@@ -46,18 +46,22 @@ export function MultiBadgePicker({
     setSelectedLabels((labels || []).filter((label) => selectedLabelIDs.includes(label.ID)) ?? []);
   }, [labels.length]);
 
-  function handleOnSave() {
+  function handleClose() {
     onChange(selectedLabels)
     setOpen(false);
   }
 
-  console.log(selectedLabels)
-
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={true}>
+    <Popover
+      open={open}
+      onOpenChange={(open) => {
+        if (!open) handleClose()
+        else setOpen(true);
+      }}
+      modal={true}>
       <PopoverTrigger asChild>
-        <span className={'flex items-center gap-2 p-2 border rounded-xl bg-muted'}>
-          {selectedLabels.length ? (
+        <span className={'flex items-center justify-between gap-2 p-2 border rounded-xl bg-muted'}>
+          <span className={'flex items-center gap-2'}>{selectedLabels.length ? (
             selectedLabels.map((label) => (
               <Badge
                 key={label.ID}
@@ -69,14 +73,8 @@ export function MultiBadgePicker({
               </Badge>
             ))
           ) : (
-            <Badge
-              variant="event"
-              color={"grey"}
-              className="space-x-2 hover:cursor-pointer"
-            >
-              {labelKindDescription ?? "Label"} auswählen
-            </Badge>
-          )}
+            <p className={'text-muted-foreground text-sm'}>{labelKindDescription ?? "Label auswählen..."}</p>
+          )}</span>
 
           <ChevronDown className="opacity-50 h-4 w-4"/>
         </span>
@@ -124,9 +122,6 @@ export function MultiBadgePicker({
           variant={"ghost"}
         >
           <Edit/> Labels bearbeiten
-        </Button>
-        <Button className={'w-full'} onClick={handleOnSave}>
-          <Save/> Speichern
         </Button>
       </PopoverContent>
     </Popover>
