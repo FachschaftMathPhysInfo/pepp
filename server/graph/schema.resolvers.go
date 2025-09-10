@@ -267,7 +267,7 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) 
 	for _, e := range event {
 		if *e.NeedsTutors {
 			if e.RoomNumber != "" || e.BuildingID != 0 {
-				return nil, fmt.Errorf("event %s: cannot have roomNumber or buildingID when NeedsTutors is true", e.Title)
+				return nil, fmt.Errorf("event %s: cannot have location when NeedsTutors is true", e.Title)
 			}
 		} else {
 			if len(e.Tutorials) > 0 {
@@ -327,14 +327,14 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 			return 0, err
 		}
 		if !dbNeeds.Valid {
-			return 0, fmt.Errorf("event %d: existing NeedsTutors is NULL; provide NeedsTutors in update", id)
+			return 0, fmt.Errorf("event %d: existing NeedsTutors is NULL, provide NeedsTutors in update", id)
 		}
 		needs = dbNeeds.Bool
 	}
 
 	if needs {
 		if event.RoomNumber != "" || event.BuildingID != 0 {
-			return 0, fmt.Errorf("event %d: cannot set roomNumber or buildingID when NeedsTutors is true", id)
+			return 0, fmt.Errorf("event %d: cannot set location when NeedsTutors is true", id)
 		}
 		var dbRoomNumber sql.NullString
 		var dbBuildingID sql.NullInt64
@@ -346,7 +346,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 			return 0, err
 		}
 		if (dbRoomNumber.Valid && dbRoomNumber.String != "") || (dbBuildingID.Valid && dbBuildingID.Int64 != 0) {
-			return 0, fmt.Errorf("event %d: existing location present; remove location before setting NeedsTutors=true", id)
+			return 0, fmt.Errorf("event %d: existing location present, remove it before setting NeedsTutors=true", id)
 		}
 	} else {
 		if len(event.Tutorials) > 0 {
@@ -361,7 +361,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 			return 0, err
 		}
 		if len(existingTutorials) > 0 {
-			return 0, fmt.Errorf("event %d: existing tutorials present; remove them before setting NeedsTutors=false", id)
+			return 0, fmt.Errorf("event %d: existing tutorials present, remove them before setting NeedsTutors=false", id)
 		}
 	}
 
