@@ -103,6 +103,33 @@ func (r *eventResolver) RoomsAvailable(ctx context.Context, obj *models.Event) (
 	return rooms, nil
 }
 
+// Content is the resolver for the content field.
+func (r *eventResolver) Content(ctx context.Context, obj *models.Event) (model.EventContent, error) {
+	if len(obj.Tutorials) > 0 {
+		needsTutors := false
+		if obj.NeedsTutors != nil {
+			needsTutors = *obj.NeedsTutors
+		}
+
+		tutorialsOpen := false
+		if obj.TutorialsOpen != nil {
+			tutorialsOpen = *obj.TutorialsOpen
+		}
+
+		return &model.TutorialBased{
+			Tutorials:     obj.Tutorials,
+			NeedsTutors:   needsTutors,
+			TutorialsOpen: tutorialsOpen,
+		}, nil
+	}
+	if obj.Location != nil {
+		return &model.LectureBased{
+			Location: obj.Location,
+		}, nil
+	}
+	return nil, nil
+}
+
 // Kind is the resolver for the kind field.
 func (r *labelResolver) Kind(ctx context.Context, obj *models.Label) (model.LabelKind, error) {
 	return model.LabelKind(obj.Kind), nil
@@ -227,6 +254,18 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) 
 		return nil, nil
 	}
 
+	for _, e := range event {
+		hasTutorials := len(e.Tutorials) > 0
+		hasRoom := e.RoomNumber != "" && e.BuildingID != 0
+
+		if hasTutorials && hasRoom {
+			return nil, fmt.Errorf("event %s cannot have both tutorials and a room", e.Title)
+		}
+		if !hasTutorials && !hasRoom {
+			return nil, fmt.Errorf("event %s must have either tutorials or a room", e.Title)
+		}
+	}
+
 	if _, err := r.DB.NewInsert().
 		Model(&event).
 		Exec(ctx); err != nil {
@@ -264,6 +303,17 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) 
 // UpdateEvent is the resolver for the updateEvent field.
 func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models.Event) (int, error) {
 	event.ID = int32(id)
+
+	hasTutorials := len(event.Tutorials) > 0
+	hasRoom := event.RoomNumber != "" && event.BuildingID != 0
+
+	if hasTutorials && hasRoom {
+		return 0, fmt.Errorf("event %d cannot have both tutorials and a room", id)
+	}
+	if !hasTutorials && !hasRoom {
+		return 0, fmt.Errorf("event %d must have either tutorials or a room", id)
+	}
+
 	if _, err := r.DB.NewUpdate().
 		Model(&event).
 		OmitZero().
@@ -1177,6 +1227,8 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		Relation("Tutorials.Room").
 		Relation("Tutorials.Room.Building").
 		Relation("Tutorials.Tutors").
+		Relation("Location").
+		Relation("Location.Building").
 		Where(`"e"."umbrella_id" IS NOT NULL`).
 		Order("e.from ASC")
 

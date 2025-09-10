@@ -56,22 +56,32 @@ type Label {
   kind: LabelKind!
 }
 
+union EventContent = LectureBased | TutorialBased
+
 type Event {
   ID: Int!
-  tutorials: [Tutorial!]
   tutorsAvailable: [User!] @auth(role: ADMIN)
   roomsAvailable: [Room!] @auth(role: ADMIN)
   umbrella: Event
-  needsTutors: Boolean!
   title: String!
   description: String
   topics: [Label!]!
   type: Label!
   from: Time!
   to: Time!
-  tutorialsOpen: Boolean!
   registrationForm: Form
   supportingEvents: [Event!]
+  content: EventContent
+}
+
+type TutorialBased {
+  tutorials: [Tutorial!]
+  tutorialsOpen: Boolean!
+  needsTutors: Boolean!
+}
+
+type LectureBased {
+  location: Room
 }
 
 type Room {
@@ -188,6 +198,8 @@ input NewEvent {
   to: Time!
   umbrellaID: Int
   tutorialsOpen: Boolean!
+  roomNumber: String
+  buildingID: Int
 }
 
 input NewTutorial {

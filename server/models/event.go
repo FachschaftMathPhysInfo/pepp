@@ -18,7 +18,9 @@ type Event struct {
 	To            time.Time `bun:",notnull"`
 	NeedsTutors   *bool
 	UmbrellaID    *int32
-	TutorialsOpen *bool `bun:",notnull,default:false"`
+	TutorialsOpen *bool  `bun:",notnull,default:false"`
+	RoomNumber    string `bun:",nullzero"`
+	BuildingID    int32  `bun:",nullzero"`
 
 	Umbrella         *Event      `bun:"rel:belongs-to,join:umbrella_id=id"`
 	Topics           []*Label    `bun:"m2m:topic_to_event,join:Event=Topic"`
@@ -27,6 +29,7 @@ type Event struct {
 	TutorsAvailable  []*User     `bun:"m2m:user_to_event_availabilities,join:Event=User"`
 	RegistrationForm *Form       `bun:"rel:has-one,join:id=event_id"`
 	SupportingEvents []Event     `bun:"m2m:event_to_supporting_events,join:Event=SupportingEvent"`
+	Location         *Room       `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`
 }
 
 var _ bun.BeforeCreateTableHook = (*Event)(nil)
