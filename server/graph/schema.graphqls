@@ -71,13 +71,13 @@ type Event {
   to: Time!
   registrationForm: Form
   supportingEvents: [Event!]
+  needsTutors: Boolean!
   content: EventContent
 }
 
 type TutorialBased {
   tutorials: [Tutorial!]
   tutorialsOpen: Boolean!
-  needsTutors: Boolean!
 }
 
 type LectureBased {

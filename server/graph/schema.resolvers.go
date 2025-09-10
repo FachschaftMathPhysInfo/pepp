@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"regexp"
@@ -105,20 +106,28 @@ func (r *eventResolver) RoomsAvailable(ctx context.Context, obj *models.Event) (
 
 // Content is the resolver for the content field.
 func (r *eventResolver) Content(ctx context.Context, obj *models.Event) (model.EventContent, error) {
-	if len(obj.Tutorials) > 0 {
-		needsTutors := false
-		if obj.NeedsTutors != nil {
-			needsTutors = *obj.NeedsTutors
+	if obj.NeedsTutors != nil {
+		if *obj.NeedsTutors {
+			tutorialsOpen := false
+			if obj.TutorialsOpen != nil {
+				tutorialsOpen = *obj.TutorialsOpen
+			}
+			return &model.TutorialBased{
+				Tutorials:     obj.Tutorials,
+				TutorialsOpen: tutorialsOpen,
+			}, nil
 		}
-
+		return &model.LectureBased{
+			Location: obj.Location,
+		}, nil
+	}
+	if len(obj.Tutorials) > 0 {
 		tutorialsOpen := false
 		if obj.TutorialsOpen != nil {
 			tutorialsOpen = *obj.TutorialsOpen
 		}
-
 		return &model.TutorialBased{
 			Tutorials:     obj.Tutorials,
-			NeedsTutors:   needsTutors,
 			TutorialsOpen: tutorialsOpen,
 		}, nil
 	}
@@ -127,6 +136,7 @@ func (r *eventResolver) Content(ctx context.Context, obj *models.Event) (model.E
 			Location: obj.Location,
 		}, nil
 	}
+
 	return nil, nil
 }
 
@@ -255,14 +265,14 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) 
 	}
 
 	for _, e := range event {
-		hasTutorials := len(e.Tutorials) > 0
-		hasRoom := e.RoomNumber != "" && e.BuildingID != 0
-
-		if hasTutorials && hasRoom {
-			return nil, fmt.Errorf("event %s cannot have both tutorials and a room", e.Title)
-		}
-		if !hasTutorials && !hasRoom {
-			return nil, fmt.Errorf("event %s must have either tutorials or a room", e.Title)
+		if *e.NeedsTutors {
+			if e.RoomNumber != "" || e.BuildingID != 0 {
+				return nil, fmt.Errorf("event %s: cannot have roomNumber or buildingID when NeedsTutors is true", e.Title)
+			}
+		} else {
+			if len(e.Tutorials) > 0 {
+				return nil, fmt.Errorf("event %s: cannot have tutorials when NeedsTutors is false", e.Title)
+			}
 		}
 	}
 
@@ -304,14 +314,55 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) 
 func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models.Event) (int, error) {
 	event.ID = int32(id)
 
-	hasTutorials := len(event.Tutorials) > 0
-	hasRoom := event.RoomNumber != "" && event.BuildingID != 0
-
-	if hasTutorials && hasRoom {
-		return 0, fmt.Errorf("event %d cannot have both tutorials and a room", id)
+	var needs bool
+	if event.NeedsTutors != nil {
+		needs = *event.NeedsTutors
+	} else {
+		var dbNeeds sql.NullBool
+		if err := r.DB.NewSelect().
+			Model((*models.Event)(nil)).
+			Column("needs_tutors").
+			Where("id = ?", id).
+			Scan(ctx, &dbNeeds); err != nil {
+			return 0, err
+		}
+		if !dbNeeds.Valid {
+			return 0, fmt.Errorf("event %d: existing NeedsTutors is NULL; provide NeedsTutors in update", id)
+		}
+		needs = dbNeeds.Bool
 	}
-	if !hasTutorials && !hasRoom {
-		return 0, fmt.Errorf("event %d must have either tutorials or a room", id)
+
+	if needs {
+		if event.RoomNumber != "" || event.BuildingID != 0 {
+			return 0, fmt.Errorf("event %d: cannot set roomNumber or buildingID when NeedsTutors is true", id)
+		}
+		var dbRoomNumber sql.NullString
+		var dbBuildingID sql.NullInt64
+		if err := r.DB.NewSelect().
+			Model((*models.Event)(nil)).
+			Column("room_number", "building_id").
+			Where("id = ?", id).
+			Scan(ctx, &dbRoomNumber, &dbBuildingID); err != nil {
+			return 0, err
+		}
+		if (dbRoomNumber.Valid && dbRoomNumber.String != "") || (dbBuildingID.Valid && dbBuildingID.Int64 != 0) {
+			return 0, fmt.Errorf("event %d: existing location present; remove location before setting NeedsTutors=true", id)
+		}
+	} else {
+		if len(event.Tutorials) > 0 {
+			return 0, fmt.Errorf("event %d: cannot set tutorials when NeedsTutors is false", id)
+		}
+		var existingTutorials []models.Tutorial
+		if err := r.DB.NewSelect().
+			Model(&existingTutorials).
+			Where("event_id = ?", id).
+			Limit(1).
+			Scan(ctx); err != nil {
+			return 0, err
+		}
+		if len(existingTutorials) > 0 {
+			return 0, fmt.Errorf("event %d: existing tutorials present; remove them before setting NeedsTutors=false", id)
+		}
 	}
 
 	if _, err := r.DB.NewUpdate().
