@@ -188,6 +188,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
       handleQuit();
     } catch {
       toast.error("Ein Fehler ist aufgetreten");
+      handleQuit();
     }
   };
 
