@@ -87,16 +87,16 @@ export function EventCalendar({
       // TODO: change here
       switch (e.key.toLowerCase()) {
         case "m":
-          handleViewModeChange("month");
+          setView("month");
           break;
         case "w":
-          handleViewModeChange("week");
+          setView("week");
           break;
         case "d":
-          handleViewModeChange("day");
+          setView("day");
           break;
         case "a":
-          handleViewModeChange("agenda");
+          setView("agenda");
           break;
       }
     };
@@ -118,6 +118,14 @@ export function EventCalendar({
 
     setHasInitializedFromQuery(true)
   }, []);
+
+  // Propagate changes in handle to URL
+  useEffect(() => {
+    if (!hasInitializedFromQuery) return; // only after init
+
+    const newSearchParams = mergeQueryString(searchParams, 'vm', [view]);
+    router.replace(pathname + '?' + newSearchParams); // replace avoids adding history entries
+  }, [view, hasInitializedFromQuery, pathname, searchParams]);
 
   const handlePrevious = () => {
     if (view === "month") {
@@ -183,12 +191,6 @@ export function EventCalendar({
     setSelectedEvent(newEvent);
     setIsEventDialogOpen(true);
   };
-
-  const handleViewModeChange = (viewmode: CalendarView) => {
-    setView(viewmode);
-    const newSearchParams = mergeQueryString(searchParams, 'vm', [viewmode]);
-    router.push(pathname + '?' + newSearchParams)
-  }
 
   const viewTitle = useMemo(() => {
     if (view === "month") {
@@ -302,16 +304,16 @@ export function EventCalendar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-32">
-              <DropdownMenuItem onClick={() => handleViewModeChange("month")}>
+              <DropdownMenuItem onClick={() => setView("month")}>
                 Month <DropdownMenuShortcut>M</DropdownMenuShortcut>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleViewModeChange("week")}>
+              <DropdownMenuItem onClick={() => setView("week")}>
                 Week <DropdownMenuShortcut>W</DropdownMenuShortcut>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleViewModeChange("day")}>
+              <DropdownMenuItem onClick={() => setView("day")}>
                 Day <DropdownMenuShortcut>D</DropdownMenuShortcut>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleViewModeChange("agenda")}>
+              <DropdownMenuItem onClick={() => setView("agenda")}>
                 Agenda <DropdownMenuShortcut>A</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
