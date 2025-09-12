@@ -154,7 +154,8 @@ export default function RegisterForm({modal}: RegisterFormProps) {
   });
 
   function handleQuit() {
-    router.back();
+    const pathname = usePathname()
+    router.replace(pathname.replace(/\/register$/,""))
   }
 
   const onSubmit = async () => {
