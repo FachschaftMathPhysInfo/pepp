@@ -6,6 +6,8 @@ package graph
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"regexp"
@@ -151,8 +153,11 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 
 	m := r.MailConfig.Confirmation
 
+	hashedMailBytes := sha256.Sum256([]byte(user.Mail))
+	hashedMail := hex.EncodeToString(hashedMailBytes[:])
+
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
-		os.Getenv("PUBLIC_URL"), user.SessionID)
+		os.Getenv("PUBLIC_URL"), hashedMail)
 
 	if err := email.Send(user, m, r.MailConfig); err != nil {
 		log.Error("failed to send email: ", err)
