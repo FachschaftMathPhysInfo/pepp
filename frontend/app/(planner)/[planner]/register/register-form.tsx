@@ -154,7 +154,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
   });
 
   function handleQuit() {
-    router.push("/");
+    router.back();
   }
 
   const onSubmit = async () => {
