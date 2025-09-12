@@ -241,7 +241,9 @@ export default function RegisterForm({modal}: RegisterFormProps) {
           if (!open) setAuthenticationDialogOpen(false)
         }}
       />
-      {!user && !authenticationDialogOpen ? (
+      {loading || (!user && !authenticationDialogOpen) || !hasCheckedSubmission ? (
+        <CardSkeleton/>
+      ) : !user && !authenticationDialogOpen ? (
         <div className={'flex flex-col justify-center items-center'}>
           <p className={'text-center my-8'}>Das Quiz kann nur ausgefüllt werden, wenn Du angemeldet bist</p>
           <div className={'w-full flex items-center justify-evenly'}>
@@ -260,9 +262,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
             </Button>
           </div>
         </div>
-      ) : loading || (!user && !authenticationDialogOpen) || !hasCheckedSubmission ? (
-        <CardSkeleton/>
-      ) : hasSubmitted ? (
+      ) : hasSubmitted && !authenticationDialogOpen ? (
         <div className="flex flex-col justify-center items-center">
           <div className="text-center my-8">
             Deine Registrierung zu diesem Event ist bereits eingegangen.

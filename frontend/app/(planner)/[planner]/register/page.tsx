@@ -1,5 +1,6 @@
 import {Metadata} from "next";
 import RegisterForm from "./register-form";
+import Modal from "@/components/modal";
 
 export const metadata: Metadata = {
   title: 'Pepp - Stundenplan',
@@ -9,6 +10,8 @@ export const metadata: Metadata = {
 
 export default function IndexPage() {
   return (
-    <RegisterForm/>
+    <Modal>
+      <RegisterForm modal={true}/>
+    </Modal>
   );
 }
