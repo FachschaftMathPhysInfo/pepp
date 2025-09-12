@@ -18,10 +18,11 @@ import {CopyTextArea} from "@/components/copy-text-area";
 import {useRefetch, useUser} from "@/components/providers";
 import {Alert, AlertAction, AlertDescription, AlertTitle,} from "@/components/ui/alert";
 import {CircleAlert, FunnelPlus, Loader2, MoveRight} from "lucide-react";
-import {defaultEvent, defaultLabel} from "@/types/defaults";
+import {defaultEvent} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {EventCalendar} from "@/components/event-calendar";
+import {createQueryString, getFiltersFromQuery} from "@/lib/query-urls";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -44,12 +45,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const [umbrellaLoading, setUmbrellaLoading] = useState<boolean>(true);
   const [isRestricted, setIsRestricted] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
-
-  // TODO: reimplement this later
-  // const createQueryString = useCallback((name: string, values: string[]) => {
-  //   const params = new URLSearchParams(values.map((v) => [name, v]));
-  //   return params.toString();
-  // }, []);
+  const [hasInitializedFromParams, setHasInitializedFromParams] = useState<boolean>(false);
 
   const fetchUmbrellaData = useCallback(async () => {
     setUmbrellaLoading(true);
@@ -98,7 +94,6 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            topic: {...defaultLabel, ...e.topic},
           }))
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
@@ -112,23 +107,48 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     void fetchUmbrellaData();
   }, [refetchKey]);
 
-  // TODO: Reimplementation of the link filter feature
-  //
-  // useEffect(() => {
-  //   router.push(
-  //     pathname +
-  //       "?" +
-  //       createQueryString("to", topicFilter) +
-  //       (typesFilter.length && topicFilter.length ? "&" : "") +
-  //       createQueryString("ty", typesFilter)
-  //   );
-  // }, [topicFilter, typesFilter]);
+  // Builds Query URL for sharing filters
+  useEffect(() => {
+    const topicFilterNames = topics
+      .filter(t => topicFilter.includes(t.ID))
+      .map(t => t.name)
+    const typesFilterNames = types
+      .filter(t => typesFilter.includes(t.ID))
+      .map(t => t.name)
+
+    router.push(
+      pathname +
+      "?" +
+      createQueryString("to", topicFilterNames) +
+      (typesFilter.length && topicFilter.length ? "&" : "") +
+      createQueryString("ty", typesFilterNames)
+    );
+  }, [topicFilter, typesFilter]);
+
+  // Initializes filters from search params
+  useEffect(() => {
+    // Locks this after URL init
+    if(hasInitializedFromParams) return;
+    // Awaits labels to load
+    if(!topics.length && !types.length) return;
+
+    const filterNames = getFiltersFromQuery(searchParams)
+    const typeFilters = types
+      .filter(t => filterNames.types.includes(t.name))
+      .map(t => t.ID)
+    const topicFilters = topics
+      .filter(t => filterNames.topics.includes(t.name))
+      .map(t => t.ID)
+
+    setTypesFilter(typeFilters);
+    setTopicFilter(topicFilters);
+    setHasInitializedFromParams(true);
+  }, [searchParams, topics, types]);
 
   useEffect(() => {
-    setTypesFilter([]);
-    setTopicFilter([]);
     void fetchUmbrellaData();
   }, [umbrellaID]);
+
 
   useEffect(() => {
     setIcalPath(
@@ -168,6 +188,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
                  <FacetedFilter
                    className={"h-full"}
                    options={topics}
+                   filters={topicFilter}
                    setFilter={setTopicFilter}
                    title={"Studiengänge"}
                  />
@@ -177,6 +198,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
                   <FacetedFilter
                     className={"h-full"}
                     options={types}
+                    filters={typesFilter}
                     setFilter={setTypesFilter}
                     title={"Veranstaltungsart"}
                   />
