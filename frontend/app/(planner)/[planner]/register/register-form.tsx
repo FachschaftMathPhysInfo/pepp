@@ -265,7 +265,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
       ) : hasSubmitted ? (
         <div className="flex flex-col justify-center items-center">
           <div className="text-center my-8">
-            Deine Registirerung zu diesem Event ist bereits eingegangen.
+            Deine Registrierung zu diesem Event ist bereits eingegangen.
           </div>
         </div>
       ) : (
