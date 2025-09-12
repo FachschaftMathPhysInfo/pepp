@@ -2,6 +2,8 @@ package email
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
@@ -11,16 +13,39 @@ import (
 )
 
 func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bun.DB) {
-	sessionID := chi.URLParam(r, "sessionID")
+	mailHash := chi.URLParam(r, "mailHash")
 
-	res, err := db.NewUpdate().
-		Model(&models.User{}).
-		Set("confirmed = true").
-		Where("session_id = ?", sessionID).
-		Exec(ctx)
+	var allUsers []*models.User
+	var requestingUser *models.User
 
-	rowsAffected, _ := res.RowsAffected()
-	if err != nil || rowsAffected == 0 {
+	err := db.NewSelect().
+		Model(&allUsers).
+		Scan(ctx)
+
+	if err != nil || allUsers == nil {
+		http.Redirect(w, r, utils.MustGetEnv("PUBLIC_URL")+"/confirm-failed", http.StatusFound)
+		return
+	}
+
+	for _, user := range allUsers {
+		hashBytes := sha256.Sum256([]byte(user.Mail))
+		hashHex := hex.EncodeToString(hashBytes[:])
+
+		if hashHex == mailHash {
+			requestingUser = user
+			break
+		}
+	}
+
+	if requestingUser == nil {
+		http.Redirect(w, r, utils.MustGetEnv("PUBLIC_URL")+"/confirm-failed", http.StatusFound)
+		return
+	}
+
+	confirm := true
+	requestingUser.Confirmed = &confirm
+
+	if _, err = db.NewUpdate().Model(requestingUser).WherePK().Exec(ctx); err != nil {
 		http.Redirect(w, r, utils.MustGetEnv("PUBLIC_URL")+"/confirm-failed", http.StatusFound)
 		return
 	}
