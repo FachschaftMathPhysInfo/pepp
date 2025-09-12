@@ -22,7 +22,7 @@ import {defaultEvent} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {EventCalendar} from "@/components/event-calendar";
-import {createNewQueryString, getFiltersFromQuery} from "@/lib/query-urls";
+import {createNewQueryString, getFiltersFromQuery, TOPICFILTER_QUERY_KEY, TYPEFILTER_QUERY_KEY} from "@/lib/query-urls";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -119,9 +119,9 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     router.push(
       pathname +
       "?" +
-      createNewQueryString("to", topicFilterNames) +
+      createNewQueryString(TOPICFILTER_QUERY_KEY, topicFilterNames) +
       (typesFilter.length && topicFilter.length ? "&" : "") +
-      createNewQueryString("ty", typesFilterNames)
+      createNewQueryString(TYPEFILTER_QUERY_KEY, typesFilterNames)
     );
   }, [topicFilter, typesFilter]);
 

@@ -41,7 +41,7 @@ import {useUser} from "@/components/providers";
 import type {Event} from "@/lib/gql/generated/graphql";
 import {LabelKind, Role} from "@/lib/gql/generated/graphql";
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
-import {getViewModeFromQuery, mergeQueryString} from "@/lib/query-urls";
+import {getViewModeFromQuery, mergeQueryString, VIEWMODE_QUERY_KEY} from "@/lib/query-urls";
 
 export interface EventCalendarProps {
   events?: Event[];
@@ -123,7 +123,7 @@ export function EventCalendar({
   useEffect(() => {
     if (!hasInitializedFromQuery) return; // only after init
 
-    const newSearchParams = mergeQueryString(searchParams, 'vm', [view]);
+    const newSearchParams = mergeQueryString(searchParams, VIEWMODE_QUERY_KEY, [view]);
     router.replace(pathname + '?' + newSearchParams); // replace avoids adding history entries
   }, [view, hasInitializedFromQuery, pathname, searchParams]);
 
