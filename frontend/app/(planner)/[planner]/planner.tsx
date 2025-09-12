@@ -143,6 +143,8 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     (a) => a.event.ID === umbrellaID
   );
 
+  const accepted: boolean = !!user?.applications?.find((a) => a.event.ID === umbrellaID)?.accepted;
+
   return umbrellaLoading ? (
     <div className="flex flex-1 justify-center items-center text-center">
       <span className={"flex flex-col gap-y-2"}>
@@ -208,6 +210,24 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
             <AlertAction>
               <MoveRight className="size-4"/>
             </AlertAction>
+          </Alert>
+        </section>
+      )}
+
+      {isRestricted && application && !accepted && (
+        <section>
+          <Alert
+            className={"bg-destructive-foreground my-4"}
+            variant="warning"
+          >
+            <CircleAlert className="size-4"/>
+            <AlertTitle className="font-bold">
+              Registrierung eingegangen!
+            </AlertTitle>
+            <AlertDescription className="pr-8">
+              Du hast dich bereits für dieses Event registriert. Deine Registrierung ist eingegangen, jedoch haben wir
+              diese noch nicht bearbeitet.
+            </AlertDescription>
           </Alert>
         </section>
       )}

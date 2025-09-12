@@ -8,5 +8,7 @@ export const metadata: Metadata = {
 }
 
 export default function IndexPage() {
-  return <RegisterForm/>
+  return (
+    <RegisterForm/>
+  );
 }
