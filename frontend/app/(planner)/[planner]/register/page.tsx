@@ -1,16 +1,16 @@
-import {Metadata} from "next";
+"use client"
+
 import RegisterForm from "./register-form";
 import Modal from "@/components/modal";
+import {usePathname, useRouter} from "next/navigation";
 
-export const metadata: Metadata = {
-  title: 'Pepp - Stundenplan',
-  description: 'Stundenplan des Vorkurses der Fachschaft MathPhysInfo',
-  keywords: ['pepp', 'stundenplan', 'vorkurs', 'heidelberg', 'uni'],
-}
 
 export default function IndexPage() {
+  const router = useRouter();
+  const pathname = usePathname()
+
   return (
-    <Modal>
+    <Modal onOpenChangeAction={() => router.replace(pathname.replace(/\/register$/,""))}>
       <RegisterForm modal={true}/>
     </Modal>
   );
