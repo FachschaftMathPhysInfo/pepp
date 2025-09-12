@@ -2,8 +2,9 @@ import {ManagementPageHeader} from "@/components/management-page-header";
 import {BookCheck} from "lucide-react";
 import {extractId} from "@/lib/utils";
 import ApplicationsWrapper from "@/app/(planner)/[planner]/applications/applications-wrapper";
+import {Metadata} from "next";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Anmeldungen",
 }
 
