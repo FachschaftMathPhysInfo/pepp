@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import {Button} from "@/components/ui/button";
 import {
   AddStudentApplicationForEventMutation,
   AddStudentRegistrationForTutorialDocument,
@@ -11,27 +11,24 @@ import {
   Event,
   EventTutorialsDocument,
   EventTutorialsQuery,
+  Role,
   Tutorial,
 } from "@/lib/gql/generated/graphql";
-import { Loader2, Lock } from "lucide-react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "../../ui/hover-card";
-import { MailLinkWithLabel } from "@/components/email-link";
-import { useUser } from "../../providers";
-import { getClient } from "@/lib/graphql";
-import React, { useCallback, useEffect, useState } from "react";
-import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
-import { RoomHoverCard } from "../../room-hover-card";
-import { useRouter } from "next/navigation";
-import { slugify } from "@/lib/utils";
-import { toast } from "sonner";
-import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {Loader2, Lock} from "lucide-react";
+import {HoverCard, HoverCardContent, HoverCardTrigger,} from "../../ui/hover-card";
+import {MailLinkWithLabel} from "@/components/email-link";
+import {useUser} from "../../providers";
+import {getClient} from "@/lib/graphql";
+import React, {useCallback, useEffect, useState} from "react";
+import {Table, TableBody, TableCell, TableRow} from "../../ui/table";
+import {RoomHoverCard} from "../../room-hover-card";
+import {useRouter} from "next/navigation";
+import {slugify} from "@/lib/utils";
+import {toast} from "sonner";
+import {defaultEvent, defaultTutorial, defaultUser} from "@/types/defaults";
+import {Skeleton} from "@/components/ui/skeleton";
+import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 
 interface TutorialsTableProps {
   event: Event;
@@ -215,6 +212,8 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
 
   if (!tutorials) return <Skeleton />;
 
+  if(!(tutorials.length > 0) && user?.role !== Role.Admin) return null;
+
   return (
     <>
       {!user && (
@@ -230,7 +229,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         </div>
       )}
 
-      {!event.tutorialsOpen && (
+      {!event.tutorialsOpen && tutorials.length > 0 && (
         <Alert variant="warning">
           <Lock className="size-4" />
           <AlertTitle>Die Anmeldung ist noch nicht offen</AlertTitle>
