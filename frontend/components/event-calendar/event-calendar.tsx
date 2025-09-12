@@ -40,6 +40,8 @@ import {
 import {useUser} from "@/components/providers";
 import type {Event} from "@/lib/gql/generated/graphql";
 import {LabelKind, Role} from "@/lib/gql/generated/graphql";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {getViewModeFromQuery, mergeQueryString} from "@/lib/query-urls";
 
 export interface EventCalendarProps {
   events?: Event[];
@@ -55,6 +57,10 @@ export function EventCalendar({
                                 initialView = "month",
                               }: EventCalendarProps) {
   const [initialDate, setInitialDate] = useState(getInitialCalendarDate(events));
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const router = useRouter()
+  const [hasInitializedFromQuery, setHasInitializedFromQuery] = React.useState(false);
   const [view, setView] = useState<CalendarView>(initialView);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -78,18 +84,19 @@ export function EventCalendar({
         return;
       }
 
+      // TODO: change here
       switch (e.key.toLowerCase()) {
         case "m":
-          setView("month");
+          handleViewModeChange("month");
           break;
         case "w":
-          setView("week");
+          handleViewModeChange("week");
           break;
         case "d":
-          setView("day");
+          handleViewModeChange("day");
           break;
         case "a":
-          setView("agenda");
+          handleViewModeChange("agenda");
           break;
       }
     };
@@ -100,6 +107,17 @@ export function EventCalendar({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isEventDialogOpen]);
+
+  // Load view from query parameters
+  useEffect(() => {
+    if(hasInitializedFromQuery) return
+
+    const viewmode = getViewModeFromQuery(searchParams);
+    if (viewmode) setView(viewmode as CalendarView);
+    else setView('agenda');
+
+    setHasInitializedFromQuery(true)
+  }, []);
 
   const handlePrevious = () => {
     if (view === "month") {
@@ -165,6 +183,12 @@ export function EventCalendar({
     setSelectedEvent(newEvent);
     setIsEventDialogOpen(true);
   };
+
+  const handleViewModeChange = (viewmode: CalendarView) => {
+    setView(viewmode);
+    const newSearchParams = mergeQueryString(searchParams, 'vm', [viewmode]);
+    router.push(pathname + '?' + newSearchParams)
+  }
 
   const viewTitle = useMemo(() => {
     if (view === "month") {
@@ -278,16 +302,16 @@ export function EventCalendar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-32">
-              <DropdownMenuItem onClick={() => setView("month")}>
+              <DropdownMenuItem onClick={() => handleViewModeChange("month")}>
                 Month <DropdownMenuShortcut>M</DropdownMenuShortcut>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("week")}>
+              <DropdownMenuItem onClick={() => handleViewModeChange("week")}>
                 Week <DropdownMenuShortcut>W</DropdownMenuShortcut>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("day")}>
+              <DropdownMenuItem onClick={() => handleViewModeChange("day")}>
                 Day <DropdownMenuShortcut>D</DropdownMenuShortcut>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("agenda")}>
+              <DropdownMenuItem onClick={() => handleViewModeChange("agenda")}>
                 Agenda <DropdownMenuShortcut>A</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
