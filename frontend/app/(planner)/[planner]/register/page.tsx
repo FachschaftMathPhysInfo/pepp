@@ -7,10 +7,14 @@ import {usePathname, useRouter} from "next/navigation";
 
 export default function IndexPage() {
   const router = useRouter();
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
-    <Modal onOpenChangeAction={() => router.replace(pathname.replace(/\/register$/,""))}>
+    <Modal onOpenChangeAction={() => {
+      router.replace(pathname.replace(/\/register$/, ""));
+      router.back();
+    }}
+    >
       <RegisterForm modal={true}/>
     </Modal>
   );

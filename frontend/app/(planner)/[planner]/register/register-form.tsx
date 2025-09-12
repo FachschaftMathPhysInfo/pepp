@@ -155,7 +155,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
 
   function handleQuit() {
     const pathname = usePathname()
-    router.replace(pathname.replace(/\/register$/,""))
+    router.replace(pathname.replace(/\/register$/, ""))
   }
 
   const onSubmit = async () => {
@@ -242,14 +242,13 @@ export default function RegisterForm({modal}: RegisterFormProps) {
           if (!open) setAuthenticationDialogOpen(false)
         }}
       />
-      {loading || (!user && !authenticationDialogOpen) || !hasCheckedSubmission ? (
-        <CardSkeleton/>
-      ) : !user && !authenticationDialogOpen ? (
+
+      {!user && !authenticationDialogOpen ? (
         <div className={'flex flex-col justify-center items-center'}>
           <p className={'text-center my-8'}>Das Quiz kann nur ausgefüllt werden, wenn Du angemeldet bist</p>
           <div className={'w-full flex items-center justify-evenly'}>
             <DialogClose asChild>
-              <Button variant={'secondary'}>
+              <Button variant={'secondary'} onClick={() => router.back()}>
                 Abbrechen
               </Button>
             </DialogClose>
@@ -269,6 +268,8 @@ export default function RegisterForm({modal}: RegisterFormProps) {
             Deine Registrierung zu diesem Event ist bereits eingegangen.
           </div>
         </div>
+      ) : loading || (!user && !authenticationDialogOpen) || !hasCheckedSubmission ? (
+        <CardSkeleton/>
       ) : (
         <>
           {modal && (

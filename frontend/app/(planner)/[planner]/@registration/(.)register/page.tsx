@@ -9,7 +9,10 @@ export default function Page() {
   const pathname = usePathname()
 
   return (
-    <Modal onOpenChangeAction={() => router.replace(pathname.replace(/\/register$/,""))}>
+    <Modal onOpenChangeAction={() => {
+      router.replace(pathname.replace(/\/register$/,""));
+      router.back();
+    }}>
       <RegisterForm modal={true} />
     </Modal>
   );
