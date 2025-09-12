@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"net/http"
+	"time"
 
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
@@ -37,7 +38,10 @@ func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bu
 		}
 	}
 
-	if requestingUser == nil {
+	now := time.Now()
+	twelveHoursAgo := now.Add(-12 * time.Hour)
+
+	if requestingUser == nil || requestingUser.CreatedAt.Before(twelveHoursAgo) {
 		http.Redirect(w, r, utils.MustGetEnv("PUBLIC_URL")+"/confirm-failed", http.StatusFound)
 		return
 	}
