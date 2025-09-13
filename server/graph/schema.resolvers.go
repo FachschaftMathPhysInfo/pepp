@@ -6,8 +6,6 @@ package graph
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"regexp"
@@ -153,15 +151,23 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 
 	m := r.MailConfig.Confirmation
 
-	hashedMailBytes := sha256.Sum256([]byte(user.Mail))
-	hashedMail := hex.EncodeToString(hashedMailBytes[:])
+	hashedMail, err := auth.Hash(user.Mail)
+
+	if err != nil {
+		log.Errorf("failed to generate confirmation link on user with mail: %s. ", user.Mail)
+		log.Error("to activate the user, manually hash the mail with your configured parameters")
+		log.Error(err)
+		return "", fmt.Errorf("error while generating confirmation link on user creation")
+	}
+
+	log.Printf("hash: %s", hashedMail)
 
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
 		os.Getenv("PUBLIC_URL"), hashedMail)
 
-	if err := email.Send(user, m, r.MailConfig); err != nil {
-		log.Error("failed to send email: ", err)
-	}
+	//if err := email.Send(user, m, r.MailConfig); err != nil {
+	//	log.Error("failed to send email: ", err)
+	//}
 
 	return sessionID, nil
 }

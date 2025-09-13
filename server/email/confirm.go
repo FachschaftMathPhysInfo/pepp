@@ -2,8 +2,8 @@ package email
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
+	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 
@@ -15,12 +15,15 @@ import (
 
 func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bun.DB) {
 	mailHash := chi.URLParam(r, "mailHash")
+	log.Printf("given mailHash: %s", mailHash)
 
 	var allUsers []*models.User
 	var requestingUser *models.User
 
 	err := db.NewSelect().
 		Model(&allUsers).
+		// Puts the newest users first, reducing hashing attempts
+		OrderExpr("created_at DESC").
 		Scan(ctx)
 
 	if err != nil || allUsers == nil {
@@ -29,13 +32,13 @@ func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bu
 	}
 
 	for _, user := range allUsers {
-		hashBytes := sha256.Sum256([]byte(user.Mail))
-		hashHex := hex.EncodeToString(hashBytes[:])
-
-		if hashHex == mailHash {
+		log.Print("hashsing: ", user.Mail)
+		if auth.VerifyHash(mailHash, user.Mail) == nil {
+			log.Print("found user: ", user.Mail)
 			requestingUser = user
 			break
 		}
+		log.Print("miss")
 	}
 
 	now := time.Now()
