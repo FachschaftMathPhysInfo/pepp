@@ -21,6 +21,13 @@ func VerifyPassword(hashedPassword, password string) error {
 	return nil
 }
 
+func VerifyHash(hash, plain string) error {
+	spicedPlain := plain + os.Getenv("PEPPER_KEY")
+
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(spicedPlain))
+	return err
+}
+
 func verifySsoUser(ctx context.Context, db *bun.DB, user models.User) (string, error) {
 	sid, err := GenerateSessionID()
 	if err != nil {
