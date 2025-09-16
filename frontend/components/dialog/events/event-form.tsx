@@ -52,8 +52,8 @@ import {
   defaultTutorial,
   defaultUser,
 } from "@/types/defaults";
-import { EditTutorialsTable } from "../tables/tutorials-table/edit-tutorials-table";
-import { Switch } from "../ui/switch";
+import { EditTutorialsTable } from "../../tables/tutorials-table/edit-tutorials-table";
+import {Switch} from "../../ui/switch";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),

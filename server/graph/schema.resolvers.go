@@ -885,6 +885,17 @@ func (r *mutationResolver) DeleteStudentRegistrationForTutorial(ctx context.Cont
 
 // AddStudentApplicationForEvent is the resolver for the addStudentApplicationForEvent field.
 func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, application model.NewUserToEventApplication) (*models.User, error) {
+	exists, err := r.DB.NewSelect().
+		Model((*models.Application)(nil)).
+		Where("event_id = ? AND student_id = ?", application.EventID, application.UserID).
+		Exists(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check for existing application")
+	}
+	if exists {
+		return nil, fmt.Errorf("application already exists for event and student pairing")
+	}
+
 	score := 0
 
 	aqs := []models.ApplicationToQuestion{}

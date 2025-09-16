@@ -1,6 +1,6 @@
 import {getClient} from "@/lib/graphql";
 import {useUser} from "@/components/providers";
-import {useState} from "react";
+import React, {useRef, useState} from "react";
 import {z} from "zod";
 import {
   LoginDocument,
@@ -57,6 +57,7 @@ interface AuthenticationFormProps {
 
 export default function AuthenticationForm({isRegistering, closeDialog}: AuthenticationFormProps) {
   const client = getClient();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const { login } = useUser();
   const [correct, setCorrect] = useState(true);
@@ -73,6 +74,30 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
     },
   });
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Tab' && formRef.current) {
+      const focusableElements = Array.from(
+        formRef.current.querySelectorAll(
+          'input:not([disabled]), button:not([disabled]), [role="button"]:not([disabled])'
+        )
+      ) as HTMLElement[];
+
+      const currentIndex = focusableElements.indexOf(e.target as HTMLElement);
+
+      if (currentIndex !== -1) {
+        e.preventDefault();
+
+        let nextIndex;
+        if (e.shiftKey) {
+          nextIndex = currentIndex > 0 ? currentIndex - 1 : focusableElements.length - 1;
+        } else {
+          nextIndex = currentIndex < focusableElements.length - 1 ? currentIndex + 1 : 0;
+        }
+
+        focusableElements[nextIndex]?.focus();
+      }
+    }
+  };
 
   const onSubmit = async (data: z.infer<typeof activeSchema>) => {
     setLoading(true);
@@ -111,7 +136,12 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        ref={formRef}
+        onSubmit={form.handleSubmit(onSubmit)}
+        onKeyDown={handleKeyDown}
+        className="space-y-4"
+      >
         {isRegistering && (
           <div className="flex flex-row space-x-4">
             <FormField
@@ -120,7 +150,12 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl>
-                    <Input autoFocus={isRegistering} placeholder="Vorname" {...field} />
+                    <Input
+                      autoFocus={isRegistering}
+                      placeholder="Vorname"
+                      tabIndex={1}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -132,7 +167,11 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl>
-                    <Input placeholder="Nachname" {...field} />
+                    <Input
+                      placeholder="Nachname"
+                      tabIndex={2}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -146,7 +185,13 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input autoFocus={!isRegistering} type="email" placeholder="Email" {...field} />
+                <Input
+                  autoFocus={!isRegistering}
+                  type="email"
+                  placeholder="Email"
+                  tabIndex={isRegistering ? 3 : 1}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -161,6 +206,7 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
                 <Input
                   type="password"
                   placeholder="Passwort"
+                  tabIndex={isRegistering ? 4 : 2}
                   {...field}
                 />
               </FormControl>
@@ -178,6 +224,7 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
                   <Input
                     type="password"
                     placeholder="Passwort wiederholen"
+                    tabIndex={5}
                     {...field}
                   />
                 </FormControl>
@@ -187,7 +234,12 @@ export default function AuthenticationForm({isRegistering, closeDialog}: Authent
           />
         )}
         <div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loading}
+            tabIndex={isRegistering ? 6 : 3}
+          >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isRegistering ? "Registrieren" : "Anmelden"}
           </Button>

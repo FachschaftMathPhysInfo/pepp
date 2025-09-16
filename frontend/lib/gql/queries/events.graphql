@@ -76,6 +76,7 @@ query plannerEvents($umbrellaID: Int!, $type: [Int!], $topic: [Int!]) {
     to
     tutorialsOpen
     registrationNeeded
+    needsTutors
     topic {
       ID
       name
@@ -108,6 +109,7 @@ query eventCloseup($id: Int!) {
     to
     needsTutors
     registrationNeeded
+    tutorialsOpen
     topic {
       ID
       name
@@ -193,6 +195,29 @@ query tutorsOfEventOfUmbrella($umbrellaID: [Int!]!) {
         ID
         mail
       }
+    }
+  }
+}
+
+query allEventsForEventDialog {
+  events {
+    ID
+    title
+    description
+    from
+    to
+    tutorialsOpen
+    topic {
+      ID
+      name
+      color
+      kind
+    }
+    type {
+      ID
+      name
+      color
+      kind
     }
   }
 }

@@ -8,7 +8,7 @@ import {Skeleton} from "@/components/ui/skeleton";
 import {FerrisWheel, PlusCircle} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {ManagementPageHeader} from "@/components/management-page-header";
-import {EventDialog} from "@/components/event-calendar/event-dialog";
+import {EventDialog} from "@/components/dialog/events/event-dialog";
 import {Dialog} from "@/components/ui/dialog";
 import {columns} from "@/app/(planner)/[planner]/columns";
 import {DataTable} from "@/app/(planner)/[planner]/data-table";

@@ -11,6 +11,7 @@ import {
   Event,
   EventTutorialsDocument,
   EventTutorialsQuery,
+  Role,
   Tutorial,
 } from "@/lib/gql/generated/graphql";
 import { Loader2, Lock } from "lucide-react";
@@ -219,6 +220,8 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
 
   if (!tutorials) return <Skeleton />;
 
+  if (!(tutorials.length > 0) && user?.role !== Role.Admin) return null;
+
   return (
     <>
       {!event.registrationNeeded &&
@@ -237,16 +240,18 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         </div>
       )}
 
-      {!event.tutorialsOpen && event.registrationNeeded && (
-        <Alert variant="warning">
-          <Lock className="size-4" />
-          <AlertTitle>Die Anmeldung ist noch nicht offen</AlertTitle>
-          <AlertDescription>
-            Die Anmeldungen zu den Tutorien ist aktuell geschlossen. Bitte warte
-            auf eine Freigabe durch die Admins.
-          </AlertDescription>
-        </Alert>
-      )}
+      {!event.tutorialsOpen &&
+        event.registrationNeeded &&
+        tutorials?.length > 1 && (
+          <Alert variant="warning">
+            <Lock className="size-4" />
+            <AlertTitle>Die Anmeldung ist noch nicht offen</AlertTitle>
+            <AlertDescription>
+              Die Anmeldungen zu den Tutorien ist aktuell geschlossen. Bitte
+              warte auf eine Freigabe durch die Admins.
+            </AlertDescription>
+          </Alert>
+        )}
 
       <div className="rounded-md border overflow-hidden relative">
         <Table>

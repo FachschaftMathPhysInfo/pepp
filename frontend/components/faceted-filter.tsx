@@ -1,11 +1,11 @@
 // See https://github.com/shadcn-ui/ui/blob/main/apps/www/app/(app)/examples/tasks/components/data-table-faceted-filter.tsx
 import * as React from "react";
-import { useEffect } from "react";
-import { Check, PlusCircle } from "lucide-react";
+import {useEffect} from "react";
+import {Check, PlusCircle} from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {cn} from "@/lib/utils";
+import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -15,25 +15,23 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/lib/gql/generated/graphql";
+import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
+import {Separator} from "@/components/ui/separator";
+import {Label} from "@/lib/gql/generated/graphql";
 
 interface FacetedFilterProps {
   title?: string;
   options: Label[];
   setFilter: React.Dispatch<React.SetStateAction<number[]>>;
   className?: string;
+  hideIcon?: boolean
 }
 
 export function FacetedFilter({
   title,
   options,
   setFilter,
+  hideIcon = false,
   className,
 }: FacetedFilterProps) {
   const [selectedFilter, setSelectedFilter] = React.useState<number[]>([]);
@@ -46,7 +44,7 @@ export function FacetedFilter({
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 border-dashed">
-          <PlusCircle />
+          {!hideIcon && <PlusCircle />}
           {title}
           {selectedFilter?.length > 0 && (
             <>
