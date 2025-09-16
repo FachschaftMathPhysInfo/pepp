@@ -75,6 +75,7 @@ query plannerEvents($umbrellaID: Int!, $type: [Int!], $topic: [Int!]) {
     from
     to
     tutorialsOpen
+    registrationNeeded
     topic {
       ID
       name
@@ -106,6 +107,7 @@ query eventCloseup($id: Int!) {
     from
     to
     needsTutors
+    registrationNeeded
     topic {
       ID
       name

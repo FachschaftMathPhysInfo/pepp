@@ -53,7 +53,7 @@ import {
   defaultUser,
 } from "@/types/defaults";
 import { EditTutorialsTable } from "../tables/tutorials-table/edit-tutorials-table";
-import {Switch} from "../ui/switch";
+import { Switch } from "../ui/switch";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -67,6 +67,7 @@ const eventFormSchema = z.object({
   typeID: z.number({ required_error: "Bitte wähle den Typ der Veranstaltung" }),
   needsTutors: z.boolean(),
   tutorialsOpen: z.boolean(),
+  registrationNeeded: z.boolean(),
 });
 
 interface EventFormProps {
@@ -140,6 +141,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       typeID: event?.type.ID,
       needsTutors: event?.needsTutors ?? true,
       tutorialsOpen: event?.tutorialsOpen ?? false,
+      registrationNeeded: event?.registrationNeeded ?? true,
     },
   });
 
@@ -153,6 +155,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       from: mergeDateAndTime(data.date, data.from),
       to: mergeDateAndTime(data.date, data.to),
       tutorialsOpen: data.tutorialsOpen,
+      registrationNeeded: data.registrationNeeded,
     };
 
     if (event) await handleUpdate(data, newEvent);
@@ -426,13 +429,14 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className={"hidden"}>
-                        Anmeldung zu Tutorien offen
+                      Anmeldung zu Tutorien offen
                     </FormLabel>
                     <FormControl>
                       <span className={"flex items-center gap-2 min-w-fit"}>
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={!form.getValues("registrationNeeded")}
                         />
                         Anmeldung zu Tutorien offen
                       </span>
@@ -443,6 +447,28 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
               />
             </>
           )}
+
+          <FormField
+            control={form.control}
+            name="registrationNeeded"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className={"hidden"}>
+                  Veranstaltung benötigt Anmeldung
+                </FormLabel>
+                <FormControl>
+                  <span className={"flex items-center gap-2 min-w-fit"}>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    Veranstaltung benötigt Anmeldung
+                  </span>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Footer */}
           <div className="w-full flex justify-between items-center mt-8">

@@ -182,11 +182,15 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
     } catch (error) {
       console.log(error);
 
-      if(String(error).includes('capacity exceeded')) {
-        toast.error("Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein.")
+      if (String(error).includes("capacity exceeded")) {
+        toast.error(
+          "Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein."
+        );
         await fetchTutorials();
       } else {
-        toast.error("Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten.");
+        toast.error(
+          "Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten."
+        );
       }
     }
   };
@@ -217,7 +221,10 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
 
   return (
     <>
-      {!user && (
+      {!event.registrationNeeded &&
+        "Für diese Veranstaltung ist keine Anmeldung notwendig."}
+
+      {!user && event.registrationNeeded && (
         <div>
           <span>Bitte </span>
           <span
@@ -230,7 +237,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         </div>
       )}
 
-      {!event.tutorialsOpen && (
+      {!event.tutorialsOpen && event.registrationNeeded && (
         <Alert variant="warning">
           <Lock className="size-4" />
           <AlertTitle>Die Anmeldung ist noch nicht offen</AlertTitle>
@@ -274,20 +281,22 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                       key={rowTutorial.room?.number}
                       className="relative"
                       style={{
-                        backgroundImage: `linear-gradient(to right, ${
-                          utilization < 100
-                            ? // theme did not wanna work here...
-                              document.documentElement.classList.contains(
-                                "dark"
-                              )
-                              ? "#024b30"
-                              : "#BBF7D0"
-                            : document.documentElement.classList.contains(
-                                "dark"
-                              )
-                            ? "#8b0000"
-                            : "#FECACA"
-                        } ${utilization}%, transparent ${utilization}%)`,
+                        backgroundImage: event.registrationNeeded
+                          ? `linear-gradient(to right, ${
+                              utilization < 100
+                                ? // theme did not wanna work here...
+                                  document.documentElement.classList.contains(
+                                    "dark"
+                                  )
+                                  ? "#024b30"
+                                  : "#BBF7D0"
+                                : document.documentElement.classList.contains(
+                                    "dark"
+                                  )
+                                ? "#8b0000"
+                                : "#FECACA"
+                            } ${utilization}%, transparent ${utilization}%)`
+                          : "transparent",
                       }}
                     >
                       <TableCell className="relative z-15">
@@ -310,46 +319,50 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                       <TableCell className="relative z-15">
                         <RoomHoverCard room={rowTutorial.room} />
                       </TableCell>
-                      <TableCell className="relative z-10">
-                        {rowTutorial.registrationCount}/
-                        {rowTutorial.room.capacity}
-                      </TableCell>
-                      <TableCell className="relative z-10">
-                        <Button
-                          className="w-full"
-                          disabled={
-                            (usersTutorials && !isTutor) ||
-                            (!isRegisteredEvent && utilization == 100) ||
-                            !user ||
-                            !event.tutorialsOpen ||
-                            loading
-                          }
-                          variant={
-                            isRegisteredEvent && user
-                              ? "destructive"
-                              : "outline"
-                          }
-                          onClick={() => {
-                            if (isTutor) {
-                              router.push(
-                                `/profile/tutorials/${slugify(event.title)}-${
-                                  event.ID
-                                }`
-                              );
-                            } else {
-                              void handleRegistrationChange(rowTutorial);
-                            }
-                          }}
-                        >
-                          {isTutor
-                            ? "Verwalten"
-                            : currentRegistration && user
-                            ? isRegisteredEvent
-                              ? "Austragen"
-                              : "Wechseln"
-                            : "Eintragen"}
-                        </Button>
-                      </TableCell>
+                      {event.registrationNeeded && (
+                        <>
+                          <TableCell className="relative z-10">
+                            {rowTutorial.registrationCount}/
+                            {rowTutorial.room.capacity}
+                          </TableCell>
+                          <TableCell className="relative z-10">
+                            <Button
+                              className="w-full"
+                              disabled={
+                                (usersTutorials && !isTutor) ||
+                                (!isRegisteredEvent && utilization == 100) ||
+                                !user ||
+                                !event.tutorialsOpen ||
+                                loading
+                              }
+                              variant={
+                                isRegisteredEvent && user
+                                  ? "destructive"
+                                  : "outline"
+                              }
+                              onClick={() => {
+                                if (isTutor) {
+                                  router.push(
+                                    `/profile/tutorials/${slugify(
+                                      event.title
+                                    )}-${event.ID}`
+                                  );
+                                } else {
+                                  void handleRegistrationChange(rowTutorial);
+                                }
+                              }}
+                            >
+                              {isTutor
+                                ? "Verwalten"
+                                : currentRegistration && user
+                                ? isRegisteredEvent
+                                  ? "Austragen"
+                                  : "Wechseln"
+                                : "Eintragen"}
+                            </Button>
+                          </TableCell>
+                        </>
+                      )}
                     </TableRow>
                   );
                 })}
