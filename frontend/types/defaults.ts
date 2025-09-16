@@ -20,6 +20,7 @@ export const defaultEvent: Event = {
   from: "",
   to: "",
   tutorialsOpen: false,
+  registrationNeeded: true,
 };
 
 export const defaultBuilding: Building = {
