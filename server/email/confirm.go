@@ -15,7 +15,6 @@ import (
 
 func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bun.DB) {
 	mailHash := chi.URLParam(r, "mailHash")
-	log.Printf("given mailHash: %s", mailHash)
 
 	var allUsers []*models.User
 	var requestingUser *models.User
@@ -33,7 +32,7 @@ func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bu
 
 	for _, user := range allUsers {
 		log.Print("hashsing: ", user.Mail)
-		if auth.VerifyHash(mailHash, user.Mail) == nil {
+		if auth.VerifyPepperedHash(mailHash, user.Mail) == nil {
 			log.Print("found user: ", user.Mail)
 			requestingUser = user
 			break

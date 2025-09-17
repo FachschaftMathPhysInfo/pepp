@@ -165,9 +165,9 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
 		os.Getenv("PUBLIC_URL"), hashedMail)
 
-	//if err := email.Send(user, m, r.MailConfig); err != nil {
-	//	log.Error("failed to send email: ", err)
-	//}
+	if err := email.Send(user, m, r.MailConfig); err != nil {
+		log.Error("failed to send email: ", err)
+	}
 
 	return sessionID, nil
 }
@@ -1407,7 +1407,8 @@ func (r *queryResolver) Login(ctx context.Context, mail string, password string)
 		return "", err
 	}
 
-	if err := auth.VerifyPassword(user.Password, password); err != nil {
+	if err := auth.VerifyPepperedHash(user.Password, password); err != nil {
+		log.Printf("failed login attempt for: %v", mail)
 		return "", err
 	}
 
