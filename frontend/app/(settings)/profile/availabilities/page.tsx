@@ -22,7 +22,7 @@ import { defaultEvent } from "@/types/defaults";
 import { BadgeX, CalendarCheck2, RotateCcw, Save } from "lucide-react";
 import { GraphQLClient } from "graphql-request";
 import { toast } from "sonner";
-import { createRowSelectionFromEventIds, getEventIdsFromRowSelection } from "@/lib/utils/tableUtils";
+import { createRowSelectionFromEventIds, getEventIdsFromRowSelection } from "@/lib/tables";
 import { ManagementPageHeader } from "@/components/management-page-header";
 
 export default function Settings() {

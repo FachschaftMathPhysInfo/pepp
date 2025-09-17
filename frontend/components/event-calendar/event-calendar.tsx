@@ -45,6 +45,12 @@ import {
 import { useUser } from "@/components/providers";
 import type { Event } from "@/lib/gql/generated/graphql";
 import { LabelKind, Role } from "@/lib/gql/generated/graphql";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  getViewModeFromQuery,
+  mergeQueryString,
+  VIEWMODE_QUERY_KEY,
+} from "@/lib/query-urls";
 
 export interface EventCalendarProps {
   events?: Event[];
@@ -62,6 +68,11 @@ export function EventCalendar({
   const [initialDate, setInitialDate] = useState(
     getInitialCalendarDate(events)
   );
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [hasInitializedFromQuery, setHasInitializedFromQuery] =
+    React.useState(false);
   const [view, setView] = useState<CalendarView>(initialView);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -85,6 +96,7 @@ export function EventCalendar({
         return;
       }
 
+      // TODO: change here
       switch (e.key.toLowerCase()) {
         case "m":
           setView("month");
@@ -107,6 +119,27 @@ export function EventCalendar({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isEventDialogOpen]);
+
+  // Load view from query parameters
+  useEffect(() => {
+    if (hasInitializedFromQuery) return;
+
+    const viewmode = getViewModeFromQuery(searchParams);
+    if (viewmode) setView(viewmode as CalendarView);
+    else setView("agenda");
+
+    setHasInitializedFromQuery(true);
+  }, []);
+
+  // Propagate changes in handle to URL
+  useEffect(() => {
+    if (!hasInitializedFromQuery) return; // only after init
+
+    const newSearchParams = mergeQueryString(searchParams, VIEWMODE_QUERY_KEY, [
+      view,
+    ]);
+    router.replace(pathname + "?" + newSearchParams); // replace avoids adding history entries
+  }, [view, hasInitializedFromQuery, pathname, searchParams]);
 
   const handlePrevious = () => {
     if (view === "month") {

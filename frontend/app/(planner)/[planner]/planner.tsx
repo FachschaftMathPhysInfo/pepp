@@ -18,10 +18,11 @@ import {CopyTextArea} from "@/components/copy-text-area";
 import {useRefetch, useUser} from "@/components/providers";
 import {Alert, AlertAction, AlertDescription, AlertTitle,} from "@/components/ui/alert";
 import {CircleAlert, FunnelPlus, Loader2, MoveRight} from "lucide-react";
-import {defaultEvent, defaultLabel} from "@/types/defaults";
+import {defaultEvent} from "@/types/defaults";
 import EditPlannerSection from "./edit-planner-section";
 import {TooltipProvider} from "@/components/ui/tooltip";
 import {EventCalendar} from "@/components/event-calendar";
+import {createNewQueryString, getFiltersFromQuery, TOPICFILTER_QUERY_KEY, TYPEFILTER_QUERY_KEY} from "@/lib/query-urls";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -44,12 +45,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const [umbrellaLoading, setUmbrellaLoading] = useState<boolean>(true);
   const [isRestricted, setIsRestricted] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
-
-  // TODO: reimplement this later
-  // const createQueryString = useCallback((name: string, values: string[]) => {
-  //   const params = new URLSearchParams(values.map((v) => [name, v]));
-  //   return params.toString();
-  // }, []);
+  const [hasInitializedFromParams, setHasInitializedFromParams] = useState<boolean>(false);
 
   const fetchUmbrellaData = useCallback(async () => {
     setUmbrellaLoading(true);
@@ -98,7 +94,6 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            topic: {...defaultLabel, ...e.topic},
           }))
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
@@ -112,23 +107,48 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
     void fetchUmbrellaData();
   }, [refetchKey]);
 
-  // TODO: Reimplementation of the link filter feature
-  //
-  // useEffect(() => {
-  //   router.push(
-  //     pathname +
-  //       "?" +
-  //       createQueryString("to", topicFilter) +
-  //       (typesFilter.length && topicFilter.length ? "&" : "") +
-  //       createQueryString("ty", typesFilter)
-  //   );
-  // }, [topicFilter, typesFilter]);
+  // Builds Query URL for sharing filters
+  useEffect(() => {
+    const topicFilterNames = topics
+      .filter(t => topicFilter.includes(t.ID))
+      .map(t => t.name)
+    const typesFilterNames = types
+      .filter(t => typesFilter.includes(t.ID))
+      .map(t => t.name)
+
+    router.push(
+      pathname +
+      "?" +
+      createNewQueryString(TOPICFILTER_QUERY_KEY, topicFilterNames) +
+      (typesFilter.length && topicFilter.length ? "&" : "") +
+      createNewQueryString(TYPEFILTER_QUERY_KEY, typesFilterNames)
+    );
+  }, [topicFilter, typesFilter]);
+
+  // Initializes filters from search params
+  useEffect(() => {
+    // Locks this after URL init
+    if(hasInitializedFromParams) return;
+    // Awaits labels to load
+    if(!topics.length && !types.length) return;
+
+    const filterNames = getFiltersFromQuery(searchParams)
+    const typeFilters = types
+      .filter(t => filterNames.types.includes(t.name))
+      .map(t => t.ID)
+    const topicFilters = topics
+      .filter(t => filterNames.topics.includes(t.name))
+      .map(t => t.ID)
+
+    setTypesFilter(typeFilters);
+    setTopicFilter(topicFilters);
+    setHasInitializedFromParams(true);
+  }, [searchParams, topics, types]);
 
   useEffect(() => {
-    setTypesFilter([]);
-    setTopicFilter([]);
     void fetchUmbrellaData();
   }, [umbrellaID]);
+
 
   useEffect(() => {
     setIcalPath(
@@ -142,6 +162,8 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
   const application = user?.applications?.find(
     (a) => a.event.ID === umbrellaID
   );
+
+  const accepted: boolean = !!user?.applications?.find((a) => a.event.ID === umbrellaID)?.accepted;
 
   return umbrellaLoading ? (
     <div className="flex flex-1 justify-center items-center text-center">
@@ -168,6 +190,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
                  <FacetedFilter
                    className={"h-full"}
                    options={topics}
+                   filters={topicFilter}
                    setFilter={setTopicFilter}
                    title={"Studiengänge"}
                  />
@@ -177,6 +200,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
                   <FacetedFilter
                     className={"h-full"}
                     options={types}
+                    filters={typesFilter}
                     setFilter={setTypesFilter}
                     title={"Veranstaltungsart"}
                   />
@@ -208,6 +232,24 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
             <AlertAction>
               <MoveRight className="size-4"/>
             </AlertAction>
+          </Alert>
+        </section>
+      )}
+
+      {isRestricted && application && !accepted && (
+        <section>
+          <Alert
+            className={"bg-destructive-foreground my-4"}
+            variant="warning"
+          >
+            <CircleAlert className="size-4"/>
+            <AlertTitle className="font-bold">
+              Registrierung eingegangen!
+            </AlertTitle>
+            <AlertDescription className="pr-8">
+              Du hast dich bereits für dieses Event registriert. Deine Registrierung ist eingegangen, jedoch haben wir
+              diese noch nicht bearbeitet.
+            </AlertDescription>
           </Alert>
         </section>
       )}
