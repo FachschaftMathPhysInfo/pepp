@@ -154,7 +154,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
   });
 
   function handleQuit() {
-    router.push("/");
+    router.push(pathname.replace(/\/register$/, ""))
   }
 
   const onSubmit = async () => {
@@ -224,12 +224,22 @@ export default function RegisterForm({modal}: RegisterFormProps) {
 
   const FooterButtons = () => (
     <div className="flex justify-between w-full">
-      <Button onClick={handleQuit} variant="outline" className="w-auto">
-        Abbrechen
-      </Button>
-      <Button type="submit" className="w-auto">
-        {regForm?.questions.length !== index + 1 ? "Nächste Frage" : "Anmelden"}
-      </Button>
+      <DialogClose asChild>
+        <Button type="button" variant="outline" className="w-auto">
+          Abbrechen
+        </Button>
+      </DialogClose>
+      {regForm?.questions.length !== index + 1 ? (
+        <Button type="submit" className="w-auto">
+          Nächste Frage
+        </Button>
+      ) : (
+        <DialogClose asChild>
+          <Button type="submit" className="w-auto">
+            Anmelden
+          </Button>
+        </DialogClose>
+      )}
     </div>
   );
 
@@ -241,6 +251,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
           if (!open) setAuthenticationDialogOpen(false)
         }}
       />
+
       {!user && !authenticationDialogOpen ? (
         <div className={'flex flex-col justify-center items-center'}>
           <p className={'text-center my-8'}>Das Quiz kann nur ausgefüllt werden, wenn Du angemeldet bist</p>
@@ -250,7 +261,6 @@ export default function RegisterForm({modal}: RegisterFormProps) {
                 Abbrechen
               </Button>
             </DialogClose>
-
             <Button
               onClick={() => setAuthenticationDialogOpen(true)}
               className={'flex items-center gap-2'}
@@ -260,14 +270,14 @@ export default function RegisterForm({modal}: RegisterFormProps) {
             </Button>
           </div>
         </div>
-      ) : loading || (!user && !authenticationDialogOpen) || !hasCheckedSubmission ? (
-        <CardSkeleton/>
-      ) : hasSubmitted ? (
+      ) : hasSubmitted && !authenticationDialogOpen ? (
         <div className="flex flex-col justify-center items-center">
           <div className="text-center my-8">
-            Deine Registirerung zu diesem Event ist bereits eingegangen.
+            Deine Registrierung zu diesem Event ist bereits eingegangen.
           </div>
         </div>
+      ) : loading || (!user && !authenticationDialogOpen) || !hasCheckedSubmission ? (
+        <CardSkeleton/>
       ) : (
         <>
           {modal && (

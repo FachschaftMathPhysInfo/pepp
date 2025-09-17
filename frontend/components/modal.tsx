@@ -1,21 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Dialog, DialogContent } from "./ui/dialog";
-import { cn } from "@/lib/utils";
+import {Dialog, DialogContent} from "./ui/dialog";
+import {cn} from "@/lib/utils";
+import React from "react";
 
-export default function Modal({
-  children,
-  className,
-}: {
+interface ModalProps {
   children: React.ReactNode;
   className?: string;
-}) {
-  const router = useRouter();
+  onOpenChangeAction: (open?: boolean) => void;
+}
 
+export default function Modal({children, className, onOpenChangeAction}: ModalProps) {
   return (
     <>
-      <Dialog defaultOpen={true} open={true} onOpenChange={() => router.back()}>
+      <Dialog
+        open
+        onOpenChange={onOpenChangeAction}
+      >
         <DialogContent className={cn("sm:min-w-[600px]", className)}>
           {children}
         </DialogContent>
