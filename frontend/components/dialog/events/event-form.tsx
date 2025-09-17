@@ -53,7 +53,7 @@ import {
   defaultUser,
 } from "@/types/defaults";
 import { EditTutorialsTable } from "../../tables/tutorials-table/edit-tutorials-table";
-import {Switch} from "../../ui/switch";
+import { Switch } from "../../ui/switch";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -460,7 +460,10 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
                   <span className={"flex items-center gap-2 min-w-fit"}>
                     <Switch
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => {
+                        if (!checked) form.setValue("tutorialsOpen", false);
+                        field.onChange(checked)
+                      }}
                     />
                     Veranstaltung benötigt Anmeldung
                   </span>
