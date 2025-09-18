@@ -160,8 +160,6 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 		return "", fmt.Errorf("error while generating confirmation link on user creation")
 	}
 
-	log.Printf("hash: %s", hashedMail)
-
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
 		os.Getenv("PUBLIC_URL"), hashedMail)
 
@@ -1408,7 +1406,7 @@ func (r *queryResolver) Login(ctx context.Context, mail string, password string)
 	}
 
 	if err := auth.VerifyPepperedHash(user.Password, password); err != nil {
-		log.Printf("failed login attempt for: %v", mail)
+		log.Info("failed login attempt for: %v", mail)
 		return "", err
 	}
 

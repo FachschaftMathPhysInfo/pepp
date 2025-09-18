@@ -3,7 +3,6 @@ package email
 import (
 	"context"
 	"github.com/FachschaftMathPhysInfo/pepp/server/auth"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 
@@ -31,13 +30,10 @@ func Confirm(ctx context.Context, w http.ResponseWriter, r *http.Request, db *bu
 	}
 
 	for _, user := range allUsers {
-		log.Print("hashsing: ", user.Mail)
 		if auth.VerifyPepperedHash(mailHash, user.Mail) == nil {
-			log.Print("found user: ", user.Mail)
 			requestingUser = user
 			break
 		}
-		log.Print("miss")
 	}
 
 	now := time.Now()
