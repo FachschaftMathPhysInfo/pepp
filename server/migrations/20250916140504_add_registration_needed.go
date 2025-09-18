@@ -19,17 +19,17 @@ func init() {
 			// SQLite: INTEGER used for booleans (0 = false)
 			q = db.NewAddColumn().
 				Model((*models.Event)(nil)).
-				ColumnExpr("tutorials_open INTEGER NOT NULL DEFAULT 0").
+				ColumnExpr("registration_needed INTEGER NOT NULL DEFAULT 1").
 				IfNotExists()
 		} else {
 			q = db.NewAddColumn().
 				Model((*models.Event)(nil)).
-				ColumnExpr("tutorials_open boolean NOT NULL DEFAULT false").
+				ColumnExpr("registration_needed boolean NOT NULL DEFAULT true").
 				IfNotExists()
 		}
 
 		if _, err := q.Exec(ctx); err != nil {
-			return fmt.Errorf("add tutorials_open column: %w", err)
+			return fmt.Errorf("add registration_needed column: %w", err)
 		}
 
 		return nil
@@ -38,9 +38,9 @@ func init() {
 
 		if _, err := db.NewDropColumn().
 			Model((*models.Event)(nil)).
-			Column("tutorials_open").
+			Column("registration_needed").
 			Exec(ctx); err != nil {
-			return fmt.Errorf("drop tutorials_open column: %w", err)
+			return fmt.Errorf("drop registration_needed column: %w", err)
 		}
 
 		return nil

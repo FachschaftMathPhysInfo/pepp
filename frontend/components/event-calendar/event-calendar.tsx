@@ -1,7 +1,7 @@
 "use client";
 
-import React, {useEffect, useMemo, useState} from "react";
-import {RiCalendarCheckLine} from "@remixicon/react";
+import React, { useEffect, useMemo, useState } from "react";
+import { RiCalendarCheckLine } from "@remixicon/react";
 import {
   addDays,
   addHours,
@@ -14,10 +14,15 @@ import {
   subMonths,
   subWeeks,
 } from "date-fns";
-import {ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon,} from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PlusIcon,
+} from "lucide-react";
 
-import {cn, getInitialCalendarDate} from "@/lib/utils";
-import {Button} from "@/components/ui/button";
+import { cn, getInitialCalendarDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,11 +42,15 @@ import {
   WeekCellsHeight,
   WeekView,
 } from "@/components/event-calendar";
-import {useUser} from "@/components/providers";
-import type {Event} from "@/lib/gql/generated/graphql";
-import {LabelKind, Role} from "@/lib/gql/generated/graphql";
-import {usePathname, useRouter, useSearchParams} from "next/navigation";
-import {getViewModeFromQuery, mergeQueryString, VIEWMODE_QUERY_KEY} from "@/lib/query-urls";
+import { useUser } from "@/components/providers";
+import type { Event } from "@/lib/gql/generated/graphql";
+import { LabelKind, Role } from "@/lib/gql/generated/graphql";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  getViewModeFromQuery,
+  mergeQueryString,
+  VIEWMODE_QUERY_KEY,
+} from "@/lib/query-urls";
 
 export interface EventCalendarProps {
   events?: Event[];
@@ -52,22 +61,25 @@ export interface EventCalendarProps {
 }
 
 export function EventCalendar({
-                                events = [],
-                                className,
-                                initialView = "month",
-                              }: EventCalendarProps) {
-  const [initialDate, setInitialDate] = useState(getInitialCalendarDate(events));
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
-  const router = useRouter()
-  const [hasInitializedFromQuery, setHasInitializedFromQuery] = React.useState(false);
+  events = [],
+  className,
+  initialView = "month",
+}: EventCalendarProps) {
+  const [initialDate, setInitialDate] = useState(
+    getInitialCalendarDate(events)
+  );
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [hasInitializedFromQuery, setHasInitializedFromQuery] =
+    React.useState(false);
   const [view, setView] = useState<CalendarView>(initialView);
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const {user} = useUser();
+  const { user } = useUser();
 
   useEffect(() => {
-    setInitialDate(getInitialCalendarDate(events))
+    setInitialDate(getInitialCalendarDate(events));
   }, [events]);
 
   // Add keyboard shortcuts for view switching
@@ -110,21 +122,23 @@ export function EventCalendar({
 
   // Load view from query parameters
   useEffect(() => {
-    if(hasInitializedFromQuery) return
+    if (hasInitializedFromQuery) return;
 
     const viewmode = getViewModeFromQuery(searchParams);
     if (viewmode) setView(viewmode as CalendarView);
-    else setView('agenda');
+    else setView("agenda");
 
-    setHasInitializedFromQuery(true)
+    setHasInitializedFromQuery(true);
   }, []);
 
   // Propagate changes in handle to URL
   useEffect(() => {
     if (!hasInitializedFromQuery) return; // only after init
 
-    const newSearchParams = mergeQueryString(searchParams, VIEWMODE_QUERY_KEY, [view]);
-    router.replace(pathname + '?' + newSearchParams); // replace avoids adding history entries
+    const newSearchParams = mergeQueryString(searchParams, VIEWMODE_QUERY_KEY, [
+      view,
+    ]);
+    router.replace(pathname + "?" + newSearchParams); // replace avoids adding history entries
   }, [view, hasInitializedFromQuery, pathname, searchParams]);
 
   const handlePrevious = () => {
@@ -184,9 +198,10 @@ export function EventCalendar({
       from: startTime,
       to: addHours(startTime, 1),
       tutorialsOpen: false,
+      registrationNeeded: true,
       needsTutors: false,
-      topic: {ID: 0, name: "", kind: LabelKind.Topic, color: ""},
-      type: {ID: 0, name: "", kind: LabelKind.EventType, color: ""},
+      topic: { ID: 0, name: "", kind: LabelKind.Topic, color: "" },
+      type: { ID: 0, name: "", kind: LabelKind.EventType, color: "" },
     };
     setSelectedEvent(newEvent);
     setIsEventDialogOpen(true);
@@ -196,8 +211,8 @@ export function EventCalendar({
     if (view === "month") {
       return format(initialDate, "MMMM yyyy");
     } else if (view === "week") {
-      const start = startOfWeek(initialDate, {weekStartsOn: 0});
-      const end = endOfWeek(initialDate, {weekStartsOn: 0});
+      const start = startOfWeek(initialDate, { weekStartsOn: 0 });
+      const end = endOfWeek(initialDate, { weekStartsOn: 0 });
       if (isSameMonth(start, end)) {
         return format(start, "MMMM yyyy");
       } else {
@@ -269,7 +284,7 @@ export function EventCalendar({
               onClick={handlePrevious}
               aria-label="Previous"
             >
-              <ChevronLeftIcon size={16} aria-hidden="true"/>
+              <ChevronLeftIcon size={16} aria-hidden="true" />
             </Button>
             <Button
               variant="ghost"
@@ -277,7 +292,7 @@ export function EventCalendar({
               onClick={handleNext}
               aria-label="Next"
             >
-              <ChevronRightIcon size={16} aria-hidden="true"/>
+              <ChevronRightIcon size={16} aria-hidden="true" />
             </Button>
           </div>
           <h2 className="text-sm font-semibold sm:text-lg md:text-xl">
@@ -288,14 +303,14 @@ export function EventCalendar({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="gap-1.5 max-[479px]:h-8">
-                  <span>
-                    <span className="min-[480px]:hidden" aria-hidden="true">
-                      {view.charAt(0).toUpperCase()}
-                    </span>
-                    <span className="max-[479px]:sr-only">
-                      {view.charAt(0).toUpperCase() + view.slice(1)}
-                    </span>
+                <span>
+                  <span className="min-[480px]:hidden" aria-hidden="true">
+                    {view.charAt(0).toUpperCase()}
                   </span>
+                  <span className="max-[479px]:sr-only">
+                    {view.charAt(0).toUpperCase() + view.slice(1)}
+                  </span>
+                </span>
                 <ChevronDownIcon
                   className="-me-1 opacity-60"
                   size={16}
