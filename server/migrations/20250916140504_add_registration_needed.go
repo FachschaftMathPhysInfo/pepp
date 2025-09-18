@@ -19,8 +19,8 @@ func init() {
 			// SQLite: INTEGER used for booleans (0 = false)
 			q = db.NewAddColumn().
 				Model((*models.Event)(nil)).
-				ColumnExpr("registration_needed INTEGER NOT NULL DEFAULT 1")
-			// SQLite does not support "IF NOT EXISTS" with ADD COLUMN
+				ColumnExpr("registration_needed INTEGER NOT NULL DEFAULT 1").
+				IfNotExists()
 		} else {
 			q = db.NewAddColumn().
 				Model((*models.Event)(nil)).
