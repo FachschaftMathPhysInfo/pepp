@@ -152,7 +152,7 @@ func main() {
 		})
 	}
 
-	router.Get("/confirm/{sessionID}", func(w http.ResponseWriter, r *http.Request) {
+	router.Get("/confirm/{mailHash}", func(w http.ResponseWriter, r *http.Request) {
 		email.Confirm(ctx, w, r, db)
 	})
 

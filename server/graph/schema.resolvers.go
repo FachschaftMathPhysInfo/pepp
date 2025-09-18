@@ -151,8 +151,17 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 
 	m := r.MailConfig.Confirmation
 
+	hashedMail, err := auth.Hash(user.Mail)
+
+	if err != nil {
+		log.Errorf("failed to generate confirmation link on user with mail: %s. ", user.Mail)
+		log.Error("to activate the user, manually hash the mail with your configured parameters")
+		log.Error(err)
+		return "", fmt.Errorf("error while generating confirmation link on user creation")
+	}
+
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
-		os.Getenv("PUBLIC_URL"), user.SessionID)
+		os.Getenv("PUBLIC_URL"), hashedMail)
 
 	if err := email.Send(user, m, r.MailConfig); err != nil {
 		log.Error("failed to send email: ", err)
@@ -1396,7 +1405,8 @@ func (r *queryResolver) Login(ctx context.Context, mail string, password string)
 		return "", err
 	}
 
-	if err := auth.VerifyPassword(user.Password, password); err != nil {
+	if err := auth.VerifyPepperedHash(user.Password, password); err != nil {
+		log.Info("failed login attempt for: %v", mail)
 		return "", err
 	}
 
