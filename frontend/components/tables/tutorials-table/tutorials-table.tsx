@@ -224,9 +224,6 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
 
   return (
     <>
-      {!event.registrationNeeded &&
-        "Für diese Veranstaltung ist keine Anmeldung notwendig."}
-
       {!user && event.registrationNeeded && (
         <div>
           <span>Bitte </span>
@@ -324,7 +321,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                       <TableCell className="relative z-15">
                         <RoomHoverCard room={rowTutorial.room} />
                       </TableCell>
-                      {event.registrationNeeded && (
+                      {event.registrationNeeded ? (
                         <>
                           <TableCell className="relative z-10">
                             {rowTutorial.registrationCount}/
@@ -367,6 +364,13 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                             </Button>
                           </TableCell>
                         </>
+                      ) : (
+                        <TableCell
+                          className="text-muted-foreground w-[150px]"
+                          align="right"
+                        >
+                          Keine Anmeldung erforderlich
+                        </TableCell>
                       )}
                     </TableRow>
                   );
