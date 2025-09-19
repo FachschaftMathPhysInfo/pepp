@@ -28,7 +28,7 @@ import {
   WeekCellsHeight,
 } from "@/components/event-calendar"
 import type { Event } from "@/lib/gql/generated/graphql"
-import {EndHour, StartHour} from "@/components/event-calendar/constants"
+import {EndHour, StartHour, MaxParallelWeeklyEvents} from "@/components/event-calendar/constants"
 
 interface WeekViewProps {
   currentDate: Date
@@ -185,8 +185,8 @@ export function WeekView({
         currentColumn.push({event, end: adjustedEnd})
 
         // Calculate width and left position based on number of columns
-        const width = columnIndex === 0 ? 1 : 1 - (columnIndex * 0.1)
-        const left = columnIndex === 0 ? 0 : columnIndex * 0.1
+        const left = columnIndex === 0 ? 0 : (columnIndex) / (MaxParallelWeeklyEvents)
+        const width = columnIndex === 0 ? 1 : 1-left
 
         positionedEvents.push({
           event,
