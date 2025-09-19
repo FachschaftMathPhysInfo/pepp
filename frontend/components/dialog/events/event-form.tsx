@@ -84,6 +84,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [initialTIDs, setInitialTIDs] = useState<number[]>([]);
 
   const fetchTutorials = useCallback(async () => {
     if (!event) return;
@@ -111,6 +112,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       );
 
       setTutorials(newTutorials);
+      setInitialTIDs(newTutorials.map((t) => t.ID));
     } catch {
       toast.error(`Fehler beim Laden der Tutorien des Events ${event.title}`);
     }
@@ -210,12 +212,9 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
 
     const updateTutorials: Tutorial[] = tutorials.filter((t) => t.ID > 0);
 
-    const deleteTutorialIDs: number[] =
-      tutorials
-        ?.filter((t) => {
-          if (!tutorials.find((tut) => t.ID === tut.ID)) return t;
-        })
-        .map((t) => t.ID) ?? [];
+    const deleteTutorialIDs: number[] = initialTIDs?.filter((id) => {
+      if (!tutorials.find((t) => id === t.ID)) return id;
+    });
 
     try {
       await client.request<UpdateEventMutation>(UpdateEventDocument, {
@@ -462,7 +461,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
                       checked={field.value}
                       onCheckedChange={(checked) => {
                         if (!checked) form.setValue("tutorialsOpen", false);
-                        field.onChange(checked)
+                        field.onChange(checked);
                       }}
                     />
                     Veranstaltung benötigt Anmeldung
