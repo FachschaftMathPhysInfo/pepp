@@ -255,7 +255,7 @@ export function PlannerPage({umbrellaID}: PlannerPageProps) {
       )}
 
       <section className="mt-5">
-        <EventCalendar events={events} initialView={"agenda"}/>
+        <EventCalendar events={events} initialView={"week"}/>
       </section>
     </TooltipProvider>
   );
