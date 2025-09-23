@@ -16,7 +16,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <SidebarProvider>
       <ProfileSidebar />
-      <div className="flex flex-col min-h-[calc(100vw-80px]] mt-[80px] w-full">
+      <div className="flex flex-col min-h-[calc(100vw-80px]] mt-[110px] w-full">
         <main className="flex-1">
           <div className="p-5">
             <SidebarTrigger className="mb-2" />
