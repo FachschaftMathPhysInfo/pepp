@@ -8,6 +8,7 @@ import {
   PlannerEventsQuery,
   PlannerEventsQueryVariables,
   Role,
+  Setting,
   SettingsDocument,
   SettingsQuery,
   UmbrellaDetailDocument,
