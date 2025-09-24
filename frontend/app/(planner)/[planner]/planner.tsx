@@ -369,8 +369,11 @@ function ShareArea({ label, link, icon }: ShareAreaProps) {
     <div className="items-center gap-y-2 w-[130px] flex flex-col">
       {icon}
       <p className="text-xs font-bold">{label}</p>
-      <Link href={"test"} className="text-blue-600 hover:underline">
-        <p className="truncate">{link}</p>
+      <Link
+        href={link}
+        className="text-blue-600 hover:underline truncate w-[130px]"
+      >
+        {link}
       </Link>
       <QRCodeSVG value={link} />
     </div>
