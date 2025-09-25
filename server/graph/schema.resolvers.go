@@ -149,19 +149,32 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 		}
 	}
 
-	m := r.MailConfig.Confirmation
+	token, err := utils.RandomURLSafeString(32)
+	if err != nil {
+		return "", err
+	}
 
-	hashedMail, err := auth.Hash(user.Mail)
+	confirmToken := &models.ConfirmationToken{
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(12 * time.Hour)}
+
+	if _, err := r.DB.NewInsert().
+		Model(confirmToken).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
+	m := r.MailConfig.Confirmation
 
 	if err != nil {
 		log.Errorf("failed to generate confirmation link on user with mail: %s. ", user.Mail)
-		log.Error("to activate the user, manually hash the mail with your configured parameters")
 		log.Error(err)
 		return "", fmt.Errorf("error while generating confirmation link on user creation")
 	}
 
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
-		os.Getenv("PUBLIC_URL"), hashedMail)
+		os.Getenv("PUBLIC_URL"), token)
 
 	if err := email.Send(user, m, r.MailConfig); err != nil {
 		log.Error("failed to send email: ", err)

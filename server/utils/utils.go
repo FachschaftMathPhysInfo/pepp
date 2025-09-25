@@ -11,6 +11,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func RandomURLSafeString(nBytes int) (string, error) {
+	if nBytes <= 0 {
+		return "", fmt.Errorf("nBytes must be > 0")
+	}
+	b := make([]byte, nBytes)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
 func RandString(entropy int) (string, error) {
 	b := make([]byte, entropy)
 	_, err := rand.Read(b)
