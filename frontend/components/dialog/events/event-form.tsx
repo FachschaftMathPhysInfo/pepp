@@ -54,6 +54,8 @@ import {
 } from "@/types/defaults";
 import { EditTutorialsTable } from "../../tables/tutorials-table/edit-tutorials-table";
 import { Switch } from "../../ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Markdown from "react-markdown";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -290,9 +292,23 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Beschreibung</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Beschreibung des Events" {...field} />
-                </FormControl>
+                <Tabs defaultValue="plain">
+                  <TabsList>
+                    <TabsTrigger value="plain">Markdown</TabsTrigger>
+                    <TabsTrigger value="preview">Vorschau</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="plain">
+                    <FormControl>
+                      <Textarea
+                        placeholder="Beschreibung des Events"
+                        {...field}
+                      />
+                    </FormControl>
+                  </TabsContent>
+                  <TabsContent value="preview">
+                    <Markdown>{field.value}</Markdown>
+                  </TabsContent>
+                </Tabs>
                 <FormMessage />
               </FormItem>
             )}
