@@ -223,7 +223,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
   if (!(tutorials.length > 0) && user?.role !== Role.Admin) return null;
 
   return (
-    <>
+    <div className="space-y-4">
       {!user && event.registrationNeeded && (
         <div>
           <span>Bitte </span>
@@ -250,7 +250,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
           </Alert>
         )}
 
-      <div className="rounded-md border overflow-hidden relative">
+      <div className="rounded-md border overflow-hidden relative overflow-y-auto max-h-[30vh]">
         <Table>
           <TableBody>
             {loading && (
@@ -390,6 +390,6 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         open={authenticationDialogOpen}
         closeDialog={() => setAuthenticationDialogOpen(false)}
       />
-    </>
+    </div>
   );
 }
