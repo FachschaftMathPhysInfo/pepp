@@ -157,3 +157,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+a {
+  color: blue;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a {
+  @apply text-blue-500;
+}

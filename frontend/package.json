@@ -1,6 +1,6 @@
 {
   "name": "pepp",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -52,6 +52,7 @@
     "react-dom": "^18",
     "react-hook-form": "^7.55.0",
     "react-leaflet": "^4.2.1",
+    "react-markdown": "^10.1.0",
     "react-textarea-autosize": "^8.5.4",
     "recharts": "^3.0.2",
     "shadcn-ui": "^0.9.2",

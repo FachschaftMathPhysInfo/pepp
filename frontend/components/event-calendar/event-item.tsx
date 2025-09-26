@@ -6,6 +6,7 @@ import { differenceInMinutes, format, getMinutes, isPast } from "date-fns";
 import { cn, hexToRGBA } from "@/lib/utils";
 import { getBorderRadiusClasses } from "@/components/event-calendar";
 import type { Event } from "@/lib/gql/generated/graphql";
+import Markdown from "react-markdown";
 
 // Using date-fns format with custom formatting:
 // 'h' - hours (1-12)
@@ -187,7 +188,9 @@ export function EventItem({
       <div className="text-sm font-medium">{event.title}</div>
       <div className="text-xs opacity-70"></div>
       {event.description && (
-        <div className="my-1 text-xs opacity-90">{event.description}</div>
+        <div className="my-1 text-xs opacity-90">
+          <Markdown>{event.description}</Markdown>
+        </div>
       )}
     </button>
   );
