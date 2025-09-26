@@ -105,7 +105,7 @@ export function EditTutorialsTable({
   const groupedRooms = groupRoomsByBuildingID();
 
   return (
-    <div className="rounded-md border overflow-hidden">
+    <div className="rounded-md border overflow-hidden overflow-y-auto max-h-[25vh]">
       <Table>
         <TableBody>
           {tutorials && tutorials.length ? (
