@@ -1,7 +1,7 @@
-import { isSameDay } from "date-fns"
+import {areIntervalsOverlapping, isSameDay} from "date-fns"
 
-import type { EventColor } from "@/components/event-calendar"
-import type { Event } from "@/lib/gql/generated/graphql"
+import type {EventColor} from "@/components/event-calendar"
+import type {Event} from "@/lib/gql/generated/graphql"
 
 
 /**
@@ -142,4 +142,38 @@ export function getAgendaEventsForDay(
       )
     })
     .sort((a, b) => new Date(a.from).getTime() - new Date(b.from).getTime())
+}
+
+export function calculateMaxParallelWeeklyEvents(events: Event[]): number {
+  if (!events.length) return 1
+
+  let maxParallel = 1
+
+  for (let i = 0; i < events.length; i++) {
+    const e1Start = new Date(events[i].from)
+    const e1End = new Date(events[i].to)
+
+    let parallelCount = 1
+
+    for (let j = 0; j < events.length; j++) {
+      if (i === j) continue
+      const e2Start = new Date(events[j].from)
+      const e2End = new Date(events[j].to)
+
+      if (
+        areIntervalsOverlapping(
+          { start: e1Start, end: e1End },
+          { start: e2Start, end: e2End }
+        )
+      ) {
+        parallelCount++
+      }
+    }
+
+    if (parallelCount > maxParallel) {
+      maxParallel = parallelCount
+    }
+  }
+
+  return maxParallel
 }

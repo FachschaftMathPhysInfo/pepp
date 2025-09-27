@@ -25,10 +25,10 @@ import {
   EventItem,
   isMultiDayEvent,
   useCurrentTimeIndicator,
-  WeekCellsHeight,
+  WeekCellsHeight, calculateMaxParallelWeeklyEvents,
 } from "@/components/event-calendar"
 import type { Event } from "@/lib/gql/generated/graphql"
-import {EndHour, StartHour, MaxParallelWeeklyEvents} from "@/components/event-calendar/constants"
+import {EndHour, MaxParallelWeeklyEvents} from "@/components/event-calendar/constants"
 
 interface WeekViewProps {
   currentDate: Date
@@ -47,16 +47,28 @@ interface PositionedEvent {
 }
 
 export function WeekView({
-  currentDate,
-  events,
-  onEventSelectAction,
-  onEventCreateAction,
-}: WeekViewProps) {
+                           currentDate,
+                           events,
+                           onEventSelectAction,
+                           onEventCreateAction,
+                         }: WeekViewProps) {
   const days = useMemo(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
     const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 })
     return eachDayOfInterval({ start: weekStart, end: weekEnd })
   }, [currentDate])
+
+  const dynamicStartHour = useMemo(() => {
+    if (!events.length) return 0
+
+    const earliestEvent = events.reduce((earliest, e) => {
+      const start = new Date(e.from)
+      return start < new Date(earliest.from) ? e : earliest
+    }, events[0])
+
+    const earliestHour = new Date(earliestEvent.from).getHours()
+    return earliestHour < 8 ? earliestHour : 8
+  }, [events])
 
   const weekStart = useMemo(
     () => startOfWeek(currentDate, { weekStartsOn: 0 }),
@@ -66,7 +78,7 @@ export function WeekView({
   const hours = useMemo(() => {
     const dayStart = startOfDay(currentDate)
     return eachHourOfInterval({
-      start: addHours(dayStart, StartHour),
+      start: addHours(dayStart, dynamicStartHour),
       end: addHours(dayStart, EndHour - 1),
     })
   }, [currentDate])
@@ -89,6 +101,11 @@ export function WeekView({
         )
       })
   }, [events, days])
+
+  const maxParallelWeeklyEvents = useMemo(
+    () => calculateMaxParallelWeeklyEvents(events),
+    [events]
+  )
 
   // Process events for each day to calculate positions
   const processedDayEvents = useMemo(() => {
@@ -149,7 +166,7 @@ export function WeekView({
         const endHour = getHours(adjustedEnd) + getMinutes(adjustedEnd) / 60
 
         // Adjust the top calculation to account for the new start time
-        const top = (startHour - StartHour) * WeekCellsHeight
+        const top = (startHour - dynamicStartHour) * WeekCellsHeight
         const height = (endHour - startHour) * WeekCellsHeight
 
         // Find a column for this event
@@ -185,8 +202,8 @@ export function WeekView({
         currentColumn.push({event, end: adjustedEnd})
 
         // Calculate width and left position based on number of columns
-        const left = columnIndex === 0 ? 0 : (columnIndex) / (MaxParallelWeeklyEvents)
-        const width = columnIndex === 0 ? 1 : 1-left
+        const left = columnIndex === 0 ? 0 : (columnIndex) / (maxParallelWeeklyEvents)
+        const width = columnIndex === 0 ? 1 : 1 / (maxParallelWeeklyEvents)
 
         positionedEvents.push({
           event,
@@ -378,11 +395,11 @@ export function WeekView({
                           "absolute h-[calc(var(--week-cells-height)/4)] w-full",
                           quarter === 0 && "top-0",
                           quarter === 1 &&
-                            "top-[calc(var(--week-cells-height)/4)]",
+                          "top-[calc(var(--week-cells-height)/4)]",
                           quarter === 2 &&
-                            "top-[calc(var(--week-cells-height)/4*2)]",
+                          "top-[calc(var(--week-cells-height)/4*2)]",
                           quarter === 3 &&
-                            "top-[calc(var(--week-cells-height)/4*3)]"
+                          "top-[calc(var(--week-cells-height)/4*3)]"
                         )}
                         onClick={() => {
                           const startTime = new Date(day)
