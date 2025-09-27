@@ -25,7 +25,7 @@ export function UmbrellaPopoverSelection({
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild className={'p-6 w-fit'}>
+      <PopoverTrigger asChild className={'p-6 w-fit max-w-full'}>
         <Button
           variant="outline"
           role="combobox"
