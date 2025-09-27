@@ -11,7 +11,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import React, { useState } from "react";
-import { useUser } from "@/components/providers";
 import { getClient } from "@/lib/graphql";
 import {
   Setting,
@@ -22,6 +21,7 @@ import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { ResetIcon } from "@radix-ui/react-icons";
 import { Textarea } from "@/components/ui/textarea";
+import {useUser} from "@/components/provider/user-provider";
 
 interface SettingFormProps {
   settings: Setting[];

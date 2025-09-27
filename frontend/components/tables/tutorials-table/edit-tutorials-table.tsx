@@ -11,12 +11,12 @@ import {
   User,
 } from "@/lib/gql/generated/graphql";
 import { Plus, SquareMinus } from "lucide-react";
-import { useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
 import { TutorSelection } from "./tutor-selection";
 import { RoomSelection } from "./room-selection";
+import {useUser} from "@/components/provider/user-provider";
 
 interface EditTutorialsTableProps {
   id: number;

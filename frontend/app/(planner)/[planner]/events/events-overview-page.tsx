@@ -9,10 +9,9 @@ import {FerrisWheel, PlusCircle} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {ManagementPageHeader} from "@/components/management-page-header";
 import {EventDialog} from "@/components/dialog/events/event-dialog";
-import {Dialog} from "@/components/ui/dialog";
 import {columns} from "@/app/(planner)/[planner]/columns";
 import {DataTable} from "@/app/(planner)/[planner]/data-table";
-import {useRefetch} from "@/components/providers";
+import {useRefetch} from "@/components/provider/refetch-provider";
 
 interface EventsOverviewPageProps {
   umbrellaID: number

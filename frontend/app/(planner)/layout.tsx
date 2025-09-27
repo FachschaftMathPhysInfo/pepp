@@ -1,6 +1,5 @@
 "use client";
 
-import { useUser } from "@/components/providers";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
 import {
@@ -17,6 +16,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { AdminSidebar } from "./sidebar";
 import { Footer } from "@/components/footer";
+import {useUser} from "@/components/provider/user-provider";
 
 interface PlannerLayoutProps {
   children: React.ReactNode;

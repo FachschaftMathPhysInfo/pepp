@@ -19,7 +19,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getClient } from "@/lib/graphql";
 import { CopyTextArea } from "@/components/copy-text-area";
-import { useRefetch, useUser } from "@/components/providers";
+import { useRefetch } from "@/components/provider/refetch-provider";
 import {
   Alert,
   AlertAction,
@@ -49,6 +49,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
+import {useUser} from "@/components/provider/user-provider";
 
 interface PlannerPageProps {
   umbrellaID: number;

@@ -7,7 +7,6 @@ import AccountForm from "@/app/(settings)/profile/account-form";
 import PasswordForm from "@/app/(settings)/profile/password-form";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import React, { useState } from "react";
-import { useUser } from "@/components/providers";
 import { getClient } from "@/lib/graphql";
 import {
   DeleteUserDocument,
@@ -17,6 +16,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import {useUser} from "@/components/provider/user-provider";
 
 export default function SettingsProfilePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

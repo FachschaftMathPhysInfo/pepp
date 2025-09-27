@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import React, { useEffect, useState } from "react";
-import { useRefetch, useUser } from "@/components/providers";
+import { useRefetch } from "@/components/provider/refetch-provider";
 import { getClient } from "@/lib/graphql";
 import {
   AddEventDocument,
@@ -47,6 +47,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {useUser} from "@/components/provider/user-provider";
 
 interface EditUmbrellaFormProps {
   umbrella: Event;

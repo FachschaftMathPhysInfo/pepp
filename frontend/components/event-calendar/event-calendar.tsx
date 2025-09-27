@@ -42,7 +42,6 @@ import {
   WeekCellsHeight,
   WeekView,
 } from "@/components/event-calendar";
-import { useUser } from "@/components/providers";
 import type { Event } from "@/lib/gql/generated/graphql";
 import { LabelKind, Role } from "@/lib/gql/generated/graphql";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -51,6 +50,7 @@ import {
   mergeQueryString,
   VIEWMODE_QUERY_KEY,
 } from "@/lib/query-urls";
+import {useUser} from "@/components/provider/user-provider";
 
 export interface EventCalendarProps {
   events?: Event[];

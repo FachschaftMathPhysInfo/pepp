@@ -1,31 +1,18 @@
 "use client";
 
-import {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import {
-  LoginUserDocument,
-  LoginUserQuery,
-  LoginUserQueryVariables,
-  User,
-} from "@/lib/gql/generated/graphql";
+import {createContext, ReactNode, useContext, useEffect, useState} from "react";
+import {LoginUserDocument, LoginUserQuery, LoginUserQueryVariables, User} from "@/lib/gql/generated/graphql";
+import {useRouter, useSearchParams} from "next/navigation";
+import {deleteCookie, getCookie, setCookie} from "@/lib/cookie";
+import {getClient} from "@/lib/graphql";
 import {
   defaultApplication,
   defaultBuilding,
   defaultEvent,
   defaultRoom,
   defaultTutorial,
-  defaultUser,
+  defaultUser
 } from "@/types/defaults";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { type ThemeProviderProps } from "next-themes/dist/types";
-import { getClient } from "@/lib/graphql";
-import { setCookie, deleteCookie, getCookie } from "@/lib/cookie";
-import { useRouter, useSearchParams } from "next/navigation";
 
 type UserContextType = {
   user: User | null;
@@ -34,9 +21,7 @@ type UserContextType = {
   logout: () => void;
   login: (sid: string) => void;
 };
-
 const UserContext = createContext<UserContextType | undefined>(undefined);
-
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
@@ -44,8 +29,7 @@ export const useUser = () => {
   }
   return context;
 };
-
-export const UserProvider = ({ children }: { children: ReactNode }) => {
+export const UserProvider = ({children}: { children: ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [sid, setSid] = useState<string | null>(null);
@@ -86,28 +70,28 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         registrations: user.registrations?.map((r) => ({
           ...defaultTutorial,
           ...r,
-          event: { ...defaultEvent, ...r.event },
+          event: {...defaultEvent, ...r.event},
         })),
         tutorials: user.tutorials?.map((t) => ({
           ...defaultTutorial,
           ...t,
-          event: { ...defaultEvent, ...t.event },
+          event: {...defaultEvent, ...t.event},
           room: {
             ...defaultRoom,
             ...t.room,
-            building: { ...defaultBuilding, ...t.room.building },
+            building: {...defaultBuilding, ...t.room.building},
           },
         })),
         applications:
           user.applications?.map((a) => ({
             ...defaultApplication,
             ...a,
-            event: { ...defaultEvent, ...a.event },
+            event: {...defaultEvent, ...a.event},
           })) || [],
       });
     };
 
-    fetchData();
+    void fetchData();
     setCookie("sid", sid, 10);
   }, [sid]);
 
@@ -123,41 +107,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, sid, logout, login }}>
+    <UserContext.Provider value={{user, setUser, sid, logout, login}}>
       {children}
     </UserContext.Provider>
   );
-};
-
-export const ThemeProvider = ({ children, ...props }: ThemeProviderProps) => {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>;
-};
-
-type RefetchContextType = {
-  refetchKey: number;
-  triggerRefetch: () => void;
-};
-
-const RefetchContext = createContext<RefetchContextType | undefined>(undefined);
-
-export const RefetchProvider = ({ children }: { children: ReactNode }) => {
-  const [refetchKey, setRefetchKey] = useState(0);
-
-  const triggerRefetch = () => {
-    setRefetchKey((prev) => prev + 1);
-  };
-
-  return (
-    <RefetchContext.Provider value={{ refetchKey, triggerRefetch }}>
-      {children}
-    </RefetchContext.Provider>
-  );
-};
-
-export const useRefetch = (): RefetchContextType => {
-  const context = useContext(RefetchContext);
-  if (context === undefined) {
-    throw new Error("useRefetch must be used within a RefetchProvider");
-  }
-  return context;
 };

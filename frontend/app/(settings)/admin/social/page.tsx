@@ -17,7 +17,6 @@ import {
   UpsertSettingMutation,
 } from "@/lib/gql/generated/graphql";
 import { getClient } from "@/lib/graphql";
-import { useUser } from "@/components/providers";
 import React, { useEffect, useState } from "react";
 import { ManagementPageHeader } from "@/components/management-page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +28,7 @@ import {
   MatrixIcon,
   WhatsappIcon,
 } from "@/components/social-icons";
+import {useUser} from "@/components/provider/user-provider";
 
 const FormSchema = z.object({
   input: z.string(),
