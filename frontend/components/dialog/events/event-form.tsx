@@ -113,7 +113,12 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
         })
       );
 
-      setTutorials(newTutorials);
+      setTutorials(
+        newTutorials.map((t) => ({
+          ...t,
+          capacity: t.capacity === 0 ? t.room.capacity ?? 0 : t.capacity,
+        }))
+      );
       setInitialTIDs(newTutorials.map((t) => t.ID));
     } catch {
       toast.error(`Fehler beim Laden der Tutorien des Events ${event.title}`);
@@ -205,6 +210,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
         roomNumber: t.room.number,
         buildingID: t.room.building.ID,
         tutors: t.tutors?.map((u) => u.ID),
+        capacity: t.capacity,
       };
     }
 

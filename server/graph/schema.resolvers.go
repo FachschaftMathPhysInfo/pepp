@@ -315,7 +315,13 @@ func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.Ne
 
 // UpdateTutorial is the resolver for the updateTutorial field.
 func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial model.NewTutorial) (int, error) {
-	t := models.Tutorial{EventID: int32(tutorial.EventID), RoomNumber: tutorial.RoomNumber, BuildingID: int32(tutorial.BuildingID), ID: int32(id)}
+	t := models.Tutorial{
+		EventID:    int32(tutorial.EventID),
+		RoomNumber: tutorial.RoomNumber,
+		BuildingID: int32(tutorial.BuildingID),
+		Capacity:   int16(tutorial.Capacity),
+		ID:         int32(id)}
+
 	if _, err := r.DB.NewUpdate().
 		Model(&t).
 		WherePK().
@@ -823,7 +829,6 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 	if err := r.DB.NewSelect().
 		Model(tutorial).
 		Relation("Event").
-		Relation("Room").
 		Where("t.id = ?", registration.TutorialID).
 		Scan(ctx); err != nil {
 		return 0, err
@@ -833,7 +838,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 		return 0, fmt.Errorf("tutorial is not open for registrations, yet")
 	}
 
-	tutorialCapacity := tutorial.Room.Capacity
+	tutorialCapacity := tutorial.Capacity
 	registrationCount, err := r.DB.NewSelect().
 		Model((*models.UserToTutorialRegistration)(nil)).
 		Relation("Tutorial").

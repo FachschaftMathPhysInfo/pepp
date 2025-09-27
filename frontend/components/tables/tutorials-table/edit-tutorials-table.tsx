@@ -123,7 +123,7 @@ export function EditTutorialsTable({
             <>
               {tutorials.map((e, i) => {
                 const utilization =
-                  (e.registrationCount / (e.capacity && e.capacity !== 0 ? e.capacity : e.room.capacity ?? 0)) * 100;
+                  (e.registrationCount / e.capacity) * 100;
 
                 return (
                   <TableRow key={e.room?.number} className="relative">
@@ -179,8 +179,8 @@ export function EditTutorialsTable({
                         <div>
                           {e.registrationCount}/
                           <NumericInput
-                            className="w-9 focus-visible:outline-none"
-                            value={e.capacity && e.capacity !== 0 ? e.capacity : e.room.capacity}
+                            className="w-7 focus-visible:outline-none"
+                            value={e.capacity}
                             onChange={(val) =>
                               setTutorialsAction((prev) =>
                                 prev.map((t) =>
@@ -274,6 +274,7 @@ export function EditTutorialsTable({
                         ID: tmpID,
                         tutors: newTutorialTutors,
                         room: newTutorialRoom,
+                        capacity: newTutorialRoom.capacity ?? 0,
                       },
                     ]);
                   }
