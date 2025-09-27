@@ -288,6 +288,59 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
           className={"w-full flex flex-col gap-y-4"}
         >
+          <div className="w-[300px]">
+            <FormField
+              control={form.control}
+              name="umbrellaID"
+              render={({field}) => {
+                const [open, setOpen] = useState(false);
+                return (
+                  <FormItem>
+                    <FormLabel>Programm</FormLabel>
+                    <Popover open={open} onOpenChange={setOpen} modal>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between"
+                        >
+                          {field.value
+                            ? umbrellas.find(u => u.id === field.value)?.title
+                            : "Programm wählen"}
+                          <ChevronsUpDown className="h-4 w-4 opacity-50"/>
+                        </Button>
+                      </PopoverTrigger>
+
+                      <PopoverContent className="p-0">
+                        <Command>
+                          <CommandInput placeholder="Suche Programm..."/>
+                          <CommandList>
+                            <CommandEmpty>Kein Programm gefunden</CommandEmpty>
+                            <CommandGroup>
+                              {umbrellas.map(u => (
+                                <CommandItem
+                                  key={u.id}
+                                  value={u.title}
+                                  onSelect={() => {
+                                    field.onChange(u.id);
+                                    setOpen(false);
+                                  }}
+                                >
+                                  {u.title}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage/>
+                  </FormItem>
+                )
+              }}
+            />
+          </div>
+
           <FormField
             control={form.control}
             name="title"
@@ -503,53 +556,6 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               </FormItem>
             )}
           />
-
-          <div className="w-[300px]">
-            <FormField
-              control={form.control}
-              name="umbrellaID"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel>Programm</FormLabel>
-                  <Popover modal>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        className="w-full justify-between"
-                      >
-                        {field.value
-                          ? umbrellas.find(u => u.id === field.value)?.title
-                          : "Programm wählen"}
-                        <ChevronsUpDown className="h-4 w-4 opacity-50"/>
-                      </Button>
-                    </PopoverTrigger>
-
-                    <PopoverContent className="p-0">
-                      <Command>
-                        <CommandInput placeholder="Suche Programm..."/>
-                        <CommandList>
-                          <CommandEmpty>Kein Programm gefunden</CommandEmpty>
-                          <CommandGroup>
-                            {umbrellas.map(u => (
-                              <CommandItem
-                                key={u.id}
-                                value={u.title}
-                                onSelect={() => field.onChange(u.id)}
-                              >
-                                {u.title}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
 
           {/* Footer */}
           <div className="w-full flex justify-between items-center mt-8">
