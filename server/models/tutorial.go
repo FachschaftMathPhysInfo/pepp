@@ -13,6 +13,7 @@ type Tutorial struct {
 	EventID    int32  `bun:",notnull"`
 	RoomNumber string `bun:",notnull"`
 	BuildingID int32  `bun:",notnull"`
+	Capacity   int16  `bun:",default:0"`
 
 	Event  *Event `bun:"rel:belongs-to,join:event_id=id"`
 	Room   *Room  `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`

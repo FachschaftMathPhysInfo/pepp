@@ -7,28 +7,17 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect"
 )
 
 func init() {
 	Migrations.MustRegister(func(ctx context.Context, db *bun.DB) error {
 		log.Info(" [up migration] ")
 
-		var q *bun.AddColumnQuery
-		if db.Dialect().Name() == dialect.SQLite {
-			// SQLite: INTEGER used for booleans (0 = false)
-			q = db.NewAddColumn().
-				Model((*models.Event)(nil)).
-				ColumnExpr("tutorials_open INTEGER NOT NULL DEFAULT 0").
-				IfNotExists()
-		} else {
-			q = db.NewAddColumn().
-				Model((*models.Event)(nil)).
-				ColumnExpr("tutorials_open boolean NOT NULL DEFAULT false").
-				IfNotExists()
-		}
-
-		if _, err := q.Exec(ctx); err != nil {
+		if _, err := db.NewAddColumn().
+			Model((*models.Event)(nil)).
+			ColumnExpr("tutorials_open boolean NOT NULL DEFAULT false").
+			IfNotExists().
+			Exec(ctx); err != nil {
 			return fmt.Errorf("add tutorials_open column: %w", err)
 		}
 
