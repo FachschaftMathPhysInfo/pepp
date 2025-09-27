@@ -71,6 +71,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   const [icalPath, setIcalPath] = useState<string>("");
   const [umbrellaLoading, setUmbrellaLoading] = useState<boolean>(true);
   const [isRestricted, setIsRestricted] = useState(false);
+  const [hasFetchedEvents, setHasFetchedEvents] = useState(false);
   const [umbrella, setUmbrella] = useState<Event>(defaultEvent);
   const [hasInitializedFromParams, setHasInitializedFromParams] =
     useState<boolean>(false);
@@ -101,6 +102,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
   }, [umbrellaID]);
 
   useEffect(() => {
+    if (hasFetchedEvents) return;
     const client = getClient();
 
     const fetchEventData = async () => {
@@ -126,6 +128,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
       }
+      setHasFetchedEvents(true);
     };
 
     void fetchEventData();

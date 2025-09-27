@@ -28,7 +28,7 @@ import {
   WeekCellsHeight, calculateMaxParallelWeeklyEvents,
 } from "@/components/event-calendar"
 import type { Event } from "@/lib/gql/generated/graphql"
-import {EndHour, MaxParallelWeeklyEvents} from "@/components/event-calendar/constants"
+import {EndHour} from "@/components/event-calendar/constants"
 
 interface WeekViewProps {
   currentDate: Date

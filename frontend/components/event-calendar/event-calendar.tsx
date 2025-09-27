@@ -126,7 +126,7 @@ export function EventCalendar({
 
     const viewmode = getViewModeFromQuery(searchParams);
     if (viewmode) setView(viewmode as CalendarView);
-    else setView("agenda");
+    else setView("week");
 
     setHasInitializedFromQuery(true);
   }, []);
