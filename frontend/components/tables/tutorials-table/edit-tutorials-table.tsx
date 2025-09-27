@@ -10,13 +10,24 @@ import {
   TutorialAvailabilitysQueryVariables,
   User,
 } from "@/lib/gql/generated/graphql";
-import { Plus, SquareMinus } from "lucide-react";
+import {
+  Info,
+  MessageCircleQuestionMark,
+  Plus,
+  SquareMinus,
+} from "lucide-react";
 import { useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
 import { TutorSelection } from "./tutor-selection";
 import { RoomSelection } from "./room-selection";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import NumericInput from "@/components/numeric-input";
 
 interface EditTutorialsTableProps {
   id: number;
@@ -112,7 +123,7 @@ export function EditTutorialsTable({
             <>
               {tutorials.map((e, i) => {
                 const utilization =
-                  (e.registrationCount / (e.room.capacity ?? 1)) * 100;
+                  (e.registrationCount / (e.capacity && e.capacity !== 0 ? e.capacity : e.room.capacity ?? 0)) * 100;
 
                 return (
                   <TableRow key={e.room?.number} className="relative">
@@ -164,8 +175,37 @@ export function EditTutorialsTable({
                       />
                     </TableCell>
                     <TableCell className="relative z-1">
-                      {e.registrationCount}/
-                      {e.room.capacity ? e.room.capacity : "?"}
+                      <div className="flex flex-row gap-x-2 items-center">
+                        <div>
+                          {e.registrationCount}/
+                          <NumericInput
+                            className="w-9 focus-visible:outline-none"
+                            value={e.capacity && e.capacity !== 0 ? e.capacity : e.room.capacity}
+                            onChange={(val) =>
+                              setTutorialsAction((prev) =>
+                                prev.map((t) =>
+                                  t.ID === e.ID
+                                    ? { ...t, capacity: val ?? 0 }
+                                    : t
+                                )
+                              )
+                            }
+                          />
+                        </div>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <MessageCircleQuestionMark className="size-4" />
+                          </TooltipTrigger>
+                          <TooltipContent className="w-[250px] flex flex-row gap-x-2 items-center">
+                            <Info className="size-4" />
+                            <p className="flex-1">
+                              Passe die Raumkapazität an. Diese Änderung
+                              betrifft nur dieses Tutorium und geht nicht
+                              darüber hinaus.
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                     </TableCell>
                     <TableCell className="relative z-1">
                       <Button

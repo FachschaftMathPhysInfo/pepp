@@ -46,6 +46,7 @@ export const defaultTutorial: Tutorial = {
   tutors: [],
   registrationCount: 0,
   room: defaultRoom,
+  capacity: 0,
 };
 
 export const defaultUser: User = {

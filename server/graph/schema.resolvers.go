@@ -1509,6 +1509,11 @@ func (r *tutorialResolver) Students(ctx context.Context, obj *models.Tutorial) (
 	return users, nil
 }
 
+// Capacity is the resolver for the capacity field.
+func (r *tutorialResolver) Capacity(ctx context.Context, obj *models.Tutorial) (int, error) {
+	return int(obj.Capacity), nil
+}
+
 // Role is the resolver for the role field.
 func (r *userResolver) Role(ctx context.Context, obj *models.User) (model.Role, error) {
 	return model.Role(obj.Role), nil
