@@ -16,6 +16,17 @@ func init() {
 			ADD COLUMN capacity SMALLINT NOT NULL DEFAULT 0
 		`)
 
+		if err != nil {
+			return err
+		}
+
+		_, err = db.ExecContext(ctx, `
+			UPDATE tutorials t
+			SET capacity = r.capacity
+			FROM rooms r
+			WHERE t.room_number = r.number
+		`)
+
 		return err
 	}, func(ctx context.Context, db *bun.DB) error {
 		fmt.Print(" [down migration] drop capacity column ")

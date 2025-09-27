@@ -122,8 +122,7 @@ export function EditTutorialsTable({
           {tutorials && tutorials.length ? (
             <>
               {tutorials.map((e, i) => {
-                const utilization =
-                  (e.registrationCount / e.capacity) * 100;
+                const utilization = (e.registrationCount / e.capacity) * 100;
 
                 return (
                   <TableRow key={e.room?.number} className="relative">
@@ -171,6 +170,14 @@ export function EditTutorialsTable({
                               return prev;
                             });
                           }
+
+                          setTutorialsAction((prev) =>
+                            prev.map((t) =>
+                              t.ID === e.ID
+                                ? { ...t, capacity: room?.capacity ?? 0 }
+                                : t
+                            )
+                          );
                         }}
                       />
                     </TableCell>
