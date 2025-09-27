@@ -5,6 +5,8 @@ import {
   AddStudentApplicationForEventDocument,
   AddStudentApplicationForEventMutation,
   AddStudentApplicationForEventMutationVariables,
+  CheckExistingApplicationDocument,
+  CheckExistingApplicationQuery,
   NewQuestionResponsePair,
   NewUserToEventApplication,
   QuestionType,
@@ -26,12 +28,12 @@ import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormMessage,} from "@/components/ui/form";
 import {toast} from "sonner";
-import {CardSkeleton} from "@/components/card-skeleton";
 import {useUser} from "@/components/providers";
 import {extractId} from "@/lib/utils";
 import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
 import {DialogClose, DialogDescription, DialogTitle} from "@/components/ui/dialog";
 import {LogIn} from "lucide-react";
+import {CardSkeleton} from "@/components/card-skeleton";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({
@@ -70,6 +72,8 @@ export default function RegisterForm({modal}: RegisterFormProps) {
   const [loading, setLoading] = useState(true);
   const [responses, setResponses] = useState<NewQuestionResponsePair[]>([]);
   const [authenticationDialogOpen, setAuthenticationDialogOpen] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasCheckedSubmission, setHasCheckedSubmission] = useState(false);
 
   useEffect(() => {
     if (responses.length > 0) {
@@ -109,6 +113,28 @@ export default function RegisterForm({modal}: RegisterFormProps) {
     }
   }, [index, regForm]);
 
+  useEffect(() => {
+    const checkSubmission = async () => {
+      if (!user) return;
+
+      try {
+        const client = getClient();
+
+        const data = await client.request<CheckExistingApplicationQuery>(CheckExistingApplicationDocument, {id: user.ID});
+        const submitted = data.users[0]?.applications?.some((app: {
+          event: { ID: number }
+        }) => app.event.ID === eventID);
+
+        if (submitted) setHasSubmitted(true);
+      } catch (err) {
+        console.error("Error checking submissions", err);
+      } finally {
+        setHasCheckedSubmission(true);
+      }
+    }
+    void checkSubmission();
+  }, [user, eventID]);
+
   const mcForm = useForm<z.infer<ReturnType<typeof MultipleChoiceFormSchema>>>({
     resolver: zodResolver(
       MultipleChoiceFormSchema(regForm?.questions[index].required ?? false)
@@ -128,7 +154,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
   });
 
   function handleQuit() {
-    router.push("/");
+    router.push(pathname.replace(/\/register$/, ""))
   }
 
   const onSubmit = async () => {
@@ -159,9 +185,10 @@ export default function RegisterForm({modal}: RegisterFormProps) {
         vars
       );
       toast.success("Anmeldung abgeschickt!");
-      handleQuit();
     } catch {
       toast.error("Ein Fehler ist aufgetreten");
+    } finally {
+      handleQuit();
     }
   };
 
@@ -197,12 +224,22 @@ export default function RegisterForm({modal}: RegisterFormProps) {
 
   const FooterButtons = () => (
     <div className="flex justify-between w-full">
-      <Button onClick={handleQuit} variant="outline" className="w-auto">
-        Abbrechen
-      </Button>
-      <Button type="submit" className="w-auto">
-        {regForm?.questions.length !== index + 1 ? "Nächste Frage" : "Anmelden"}
-      </Button>
+      <DialogClose asChild>
+        <Button type="button" variant="outline" className="w-auto">
+          Abbrechen
+        </Button>
+      </DialogClose>
+      {regForm?.questions.length !== index + 1 ? (
+        <Button type="submit" className="w-auto">
+          Nächste Frage
+        </Button>
+      ) : (
+        <DialogClose asChild>
+          <Button type="submit" className="w-auto">
+            Anmelden
+          </Button>
+        </DialogClose>
+      )}
     </div>
   );
 
@@ -214,6 +251,7 @@ export default function RegisterForm({modal}: RegisterFormProps) {
           if (!open) setAuthenticationDialogOpen(false)
         }}
       />
+
       {!user && !authenticationDialogOpen ? (
         <div className={'flex flex-col justify-center items-center'}>
           <p className={'text-center my-8'}>Das Quiz kann nur ausgefüllt werden, wenn Du angemeldet bist</p>
@@ -223,7 +261,6 @@ export default function RegisterForm({modal}: RegisterFormProps) {
                 Abbrechen
               </Button>
             </DialogClose>
-
             <Button
               onClick={() => setAuthenticationDialogOpen(true)}
               className={'flex items-center gap-2'}
@@ -232,9 +269,14 @@ export default function RegisterForm({modal}: RegisterFormProps) {
               Anmelden
             </Button>
           </div>
-
         </div>
-      ) : loading || (!user && !authenticationDialogOpen) ? (
+      ) : hasSubmitted && !authenticationDialogOpen ? (
+        <div className="flex flex-col justify-center items-center">
+          <div className="text-center my-8">
+            Deine Registrierung zu diesem Event ist bereits eingegangen.
+          </div>
+        </div>
+      ) : loading || (!user && !authenticationDialogOpen) || !hasCheckedSubmission ? (
         <CardSkeleton/>
       ) : (
         <>

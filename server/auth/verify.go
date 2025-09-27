@@ -11,14 +11,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func VerifyPassword(hashedPassword, password string) error {
-	passwordWithPepper := password + os.Getenv("PEPPER_KEY")
+func VerifyPepperedHash(hash, plain string) error {
+	spicedPlain := plain + os.Getenv("PEPPER_KEY")
 
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(passwordWithPepper))
-	if err != nil {
-		return fmt.Errorf("invalid password: %s", err)
-	}
-	return nil
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(spicedPlain))
+	return err
 }
 
 func verifySsoUser(ctx context.Context, db *bun.DB, user models.User) (string, error) {

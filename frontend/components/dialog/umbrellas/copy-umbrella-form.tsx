@@ -113,6 +113,7 @@ export default function CopyUmbrellaForm({
       from: returnDateWithOffset(sourceUmbrella.from, startingOffset),
       to: returnDateWithOffset(sourceUmbrella.to, startingOffset),
       tutorialsOpen: false,
+      registrationNeeded: true,
     };
 
     const mutation = await client.request<AddEventMutation>(AddEventDocument, {
@@ -137,6 +138,7 @@ export default function CopyUmbrellaForm({
       to: returnDateWithOffset(event.to, startingOffset),
       umbrellaID: umbrellaID,
       tutorialsOpen: false,
+      registrationNeeded: event.registrationNeeded,
     }));
 
     await client.request<AddEventMutation>(AddEventDocument, {

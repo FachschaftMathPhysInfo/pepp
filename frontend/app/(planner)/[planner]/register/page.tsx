@@ -1,12 +1,21 @@
-import {Metadata} from "next";
-import RegisterForm from "./register-form";
+"use client"
 
-export const metadata: Metadata = {
-  title: 'Pepp - Stundenplan',
-  description: 'Stundenplan des Vorkurses der Fachschaft MathPhysInfo',
-  keywords: ['pepp', 'stundenplan', 'vorkurs', 'heidelberg', 'uni'],
-}
+import RegisterForm from "./register-form";
+import Modal from "@/components/modal";
+import {usePathname, useRouter} from "next/navigation";
+
 
 export default function IndexPage() {
-        return <RegisterForm />
+  const router = useRouter();
+  const pathname = usePathname();
+
+  return (
+    <Modal onOpenChangeAction={() => {
+      router.replace(pathname.replace(/\/register$/, ""));
+      router.back();
+    }}
+    >
+      <RegisterForm modal={true}/>
+    </Modal>
+  );
 }

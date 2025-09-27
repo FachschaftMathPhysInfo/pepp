@@ -149,10 +149,32 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 		}
 	}
 
+	token, err := utils.RandomURLSafeString(32)
+	if err != nil {
+		return "", err
+	}
+
+	confirmToken := &models.ConfirmationToken{
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(12 * time.Hour)}
+
+	if _, err := r.DB.NewInsert().
+		Model(confirmToken).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
 	m := r.MailConfig.Confirmation
 
+	if err != nil {
+		log.Errorf("failed to generate confirmation link on user with mail: %s. ", user.Mail)
+		log.Error(err)
+		return "", fmt.Errorf("error while generating confirmation link on user creation")
+	}
+
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
-		os.Getenv("PUBLIC_URL"), user.SessionID)
+		os.Getenv("PUBLIC_URL"), token)
 
 	if err := email.Send(user, m, r.MailConfig); err != nil {
 		log.Error("failed to send email: ", err)
@@ -885,6 +907,17 @@ func (r *mutationResolver) DeleteStudentRegistrationForTutorial(ctx context.Cont
 
 // AddStudentApplicationForEvent is the resolver for the addStudentApplicationForEvent field.
 func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, application model.NewUserToEventApplication) (*models.User, error) {
+	exists, err := r.DB.NewSelect().
+		Model((*models.Application)(nil)).
+		Where("event_id = ? AND student_id = ?", application.EventID, application.UserID).
+		Exists(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check for existing application")
+	}
+	if exists {
+		return nil, fmt.Errorf("application already exists for event and student pairing")
+	}
+
 	score := 0
 
 	aqs := []models.ApplicationToQuestion{}
@@ -1385,7 +1418,8 @@ func (r *queryResolver) Login(ctx context.Context, mail string, password string)
 		return "", err
 	}
 
-	if err := auth.VerifyPassword(user.Password, password); err != nil {
+	if err := auth.VerifyPepperedHash(user.Password, password); err != nil {
+		log.Info("failed login attempt for: %v", mail)
 		return "", err
 	}
 

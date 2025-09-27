@@ -4,6 +4,7 @@ import {
   BookCheck,
   CalendarCheck2,
   Fingerprint,
+  Globe,
   GraduationCap,
   Mail,
   School,
@@ -61,6 +62,11 @@ export const adminItems = [
     title: "Labels",
     url: "/admin/labels",
     icon: Tags,
+  },
+  {
+    title: "Kontakt",
+    url: "/admin/social",
+    icon: Globe,
   },
   {
     title: "Authentifizierung",

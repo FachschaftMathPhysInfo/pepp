@@ -53,7 +53,9 @@ import {
   defaultUser,
 } from "@/types/defaults";
 import { EditTutorialsTable } from "../../tables/tutorials-table/edit-tutorials-table";
-import {Switch} from "../../ui/switch";
+import { Switch } from "../../ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Markdown from "react-markdown";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -67,6 +69,7 @@ const eventFormSchema = z.object({
   typeID: z.number({ required_error: "Bitte wähle den Typ der Veranstaltung" }),
   needsTutors: z.boolean(),
   tutorialsOpen: z.boolean(),
+  registrationNeeded: z.boolean(),
 });
 
 interface EventFormProps {
@@ -83,6 +86,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [initialTIDs, setInitialTIDs] = useState<number[]>([]);
 
   const fetchTutorials = useCallback(async () => {
     if (!event) return;
@@ -110,6 +114,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       );
 
       setTutorials(newTutorials);
+      setInitialTIDs(newTutorials.map((t) => t.ID));
     } catch {
       toast.error(`Fehler beim Laden der Tutorien des Events ${event.title}`);
     }
@@ -140,6 +145,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       typeID: event?.type.ID,
       needsTutors: event?.needsTutors ?? true,
       tutorialsOpen: event?.tutorialsOpen ?? false,
+      registrationNeeded: event?.registrationNeeded ?? true,
     },
   });
 
@@ -153,6 +159,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       from: mergeDateAndTime(data.date, data.from),
       to: mergeDateAndTime(data.date, data.to),
       tutorialsOpen: data.tutorialsOpen,
+      registrationNeeded: data.registrationNeeded,
     };
 
     if (event) await handleUpdate(data, newEvent);
@@ -207,12 +214,9 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
 
     const updateTutorials: Tutorial[] = tutorials.filter((t) => t.ID > 0);
 
-    const deleteTutorialIDs: number[] =
-      tutorials
-        ?.filter((t) => {
-          if (!tutorials.find((tut) => t.ID === tut.ID)) return t;
-        })
-        .map((t) => t.ID) ?? [];
+    const deleteTutorialIDs: number[] = initialTIDs?.filter((id) => {
+      if (!tutorials.find((t) => id === t.ID)) return id;
+    });
 
     try {
       await client.request<UpdateEventMutation>(UpdateEventDocument, {
@@ -288,9 +292,23 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Beschreibung</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Beschreibung des Events" {...field} />
-                </FormControl>
+                <Tabs defaultValue="plain">
+                  <TabsList>
+                    <TabsTrigger value="plain">Markdown</TabsTrigger>
+                    <TabsTrigger value="preview">Vorschau</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="plain">
+                    <FormControl>
+                      <Textarea
+                        placeholder="Beschreibung des Events"
+                        {...field}
+                      />
+                    </FormControl>
+                  </TabsContent>
+                  <TabsContent value="preview">
+                    <Markdown>{field.value}</Markdown>
+                  </TabsContent>
+                </Tabs>
                 <FormMessage />
               </FormItem>
             )}
@@ -426,13 +444,14 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className={"hidden"}>
-                        Anmeldung zu Tutorien offen
+                      Anmeldung zu Tutorien offen
                     </FormLabel>
                     <FormControl>
                       <span className={"flex items-center gap-2 min-w-fit"}>
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          disabled={!form.getValues("registrationNeeded")}
                         />
                         Anmeldung zu Tutorien offen
                       </span>
@@ -443,6 +462,31 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
               />
             </>
           )}
+
+          <FormField
+            control={form.control}
+            name="registrationNeeded"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className={"hidden"}>
+                  Veranstaltung benötigt Anmeldung
+                </FormLabel>
+                <FormControl>
+                  <span className={"flex items-center gap-2 min-w-fit"}>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        if (!checked) form.setValue("tutorialsOpen", false);
+                        field.onChange(checked);
+                      }}
+                    />
+                    Veranstaltung benötigt Anmeldung
+                  </span>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Footer */}
           <div className="w-full flex justify-between items-center mt-8">

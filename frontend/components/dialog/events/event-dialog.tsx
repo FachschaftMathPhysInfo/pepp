@@ -1,5 +1,6 @@
 "use client";
 
+import Markdown from "react-markdown";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import { EventForm } from "@/components/dialog/events/event-form";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { TutorialsTable } from "../../tables/tutorials-table/tutorials-table";
-import {VisuallyHidden} from "@radix-ui/react-visually-hidden";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface EventDialogProps {
   event: Event | null;
@@ -72,7 +73,7 @@ export function EventDialog({
               <DialogHeader>
                 <DialogTitle>{event.title}</DialogTitle>
                 <DialogDescription className={"flex flex-col gap-y-2"}>
-                  <span>{event.description}</span>
+                  <Markdown>{event.description}</Markdown>
                   <span className={"flex items-center gap-2"}>
                     <Calendar size={18} />{" "}
                     {formatDateToDDMM(new Date(event.from))}

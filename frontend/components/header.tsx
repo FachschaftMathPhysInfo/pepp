@@ -1,14 +1,26 @@
 "use client";
 
-import {LogIn, LogOut, Moon, Search, SquareCheckBig, Sun} from "lucide-react";
+import { LogIn, LogOut, Moon, Search, SquareCheckBig, Sun } from "lucide-react";
 import Image from "next/image";
-import {useEffect, useState} from "react";
-import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {Button} from "@/components/ui/button";
-import {useTheme} from "next-themes";
-import {CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "./ui/command";
-import {Avatar, AvatarFallback} from "./ui/avatar";
-import {Separator} from "./ui/separator";
+import { useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./ui/command";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Separator } from "./ui/separator";
 import {
   AllEventsForEventDialogDocument,
   Event,
@@ -16,29 +28,31 @@ import {
   FutureEventsQuery,
   Role,
 } from "@/lib/gql/generated/graphql";
-import {useUser} from "./providers";
-import {getClient} from "@/lib/graphql";
-import {usePathname, useRouter} from "next/navigation";
-import {EventDialog} from "@/components/dialog/events/event-dialog";
-import {adminItems, userItems} from "@/app/(settings)/sidebar";
-import {defaultEvent} from "@/types/defaults";
-import {toast} from "sonner";
-import {extractId, groupEventsByUmbrellaId} from "@/lib/utils";
-import {AuthenticationDialog} from "./dialog/authentication/authentication-dialog";
-import {VisuallyHidden} from "@radix-ui/react-visually-hidden";
-import {DialogTitle} from "@/components/ui/dialog";
+import { useUser } from "./providers";
+import { getClient } from "@/lib/graphql";
+import { usePathname, useRouter } from "next/navigation";
+import { EventDialog } from "@/components/dialog/events/event-dialog";
+import { adminItems, userItems } from "@/app/(settings)/sidebar";
+import { defaultEvent } from "@/types/defaults";
+import { toast } from "sonner";
+import { extractId, groupEventsByUmbrellaId } from "@/lib/utils";
+import { AuthenticationDialog } from "./dialog/authentication/authentication-dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { DialogTitle } from "@/components/ui/dialog";
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
 
   const [searchOpen, setSearchOpen] = useState(false);
-  const [dialogState, setDialogState] = useState<"event" | "authentication" | null>(null);
+  const [dialogState, setDialogState] = useState<
+    "event" | "authentication" | null
+  >(null);
   const [events, setEvents] = useState<Event[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
-  const {setTheme} = useTheme();
-  const {user, logout} = useUser();
+  const { setTheme } = useTheme();
+  const { user, logout } = useUser();
 
   useEffect(() => {
     const fetchFutureEvents = async () => {
@@ -52,7 +66,7 @@ export default function Header() {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
-            umbrella: {...defaultEvent, ...e.umbrella},
+            umbrella: { ...defaultEvent, ...e.umbrella },
           }))
         );
       } catch {
@@ -77,30 +91,29 @@ export default function Header() {
   }, []);
 
   const fetchEventDetails = async (selectedEventID: number) => {
-    const umbrellaID = extractId(pathname)
-    if (!umbrellaID) return
+    const umbrellaID = extractId(pathname);
+    if (!umbrellaID) return;
 
     const client = getClient();
-    const data = await client.request(AllEventsForEventDialogDocument)
+    const data = await client.request(AllEventsForEventDialogDocument);
 
-    const fetchedEvents = data.events.map(event => ({
+    const fetchedEvents = data.events.map((event) => ({
       ...defaultEvent,
       ...event,
-    }))
+    }));
 
-    const newSelectedEvent = fetchedEvents.find(e => e.ID === selectedEventID)
-    setSelectedEvent(newSelectedEvent || null)
-  }
+    const newSelectedEvent = fetchedEvents.find(
+      (e) => e.ID === selectedEventID
+    );
+    setSelectedEvent(newSelectedEvent || null);
+  };
 
   const groupedEvents = groupEventsByUmbrellaId(events);
 
-  const closeDialog = () => setDialogState(null)
+  const closeDialog = () => setDialogState(null);
 
   return (
-    <header
-      className="justify-between z-20 fixed w-screen h-fit flex items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]"
-    >
-
+    <header className="justify-between z-20 fixed w-screen h-fit flex items-center p-5 dark:bg-black/30 light:bg-white/30 backdrop-blur-md border-b-[1px]">
       <div
         className="cursor-pointer flex flex-row divide-x divide-solid divide-gray-400 gap-2 items-center"
         onClick={() => router.push("/")}
@@ -138,11 +151,10 @@ export default function Header() {
           onClick={() => setSearchOpen(true)}
           className=""
         >
-          <Search className="h-[1.2rem] w-[1.2rem] md:hidden"/>
+          <Search className="h-[1.2rem] w-[1.2rem] md:hidden" />
           <div className="hidden md:flex items-center text-sm font-medium leading-none text-muted-foreground space-x-4">
             <p>Suche nach Veranstaltungen...</p>
-            <kbd
-              className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
               <span className="text-xs">⌘</span>K
             </kbd>
           </div>
@@ -151,65 +163,64 @@ export default function Header() {
           event={selectedEvent}
           isOpen={dialogState === "event"}
           onCloseAction={() => {
-            setDialogState(null)
+            setDialogState(null);
           }}
         />
         <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
           <VisuallyHidden>
             <DialogTitle>Suche Events aus diesem Programm</DialogTitle>
           </VisuallyHidden>
-          <CommandInput placeholder="Suche nach Veranstaltungen..."/>
+          <CommandInput placeholder="Suche nach Veranstaltungen..." />
           <CommandList>
             <CommandEmpty>Keine Ergebnisse gefunden.</CommandEmpty>
             {groupedEvents
               ? Object.keys(groupedEvents).map((uID) => (
-                <CommandGroup
-                  key={uID}
-                  heading={
-                    groupedEvents ? groupedEvents[uID][0].umbrella?.title : ""
-                  }
-                >
-                  {groupedEvents
-                    ? groupedEvents[uID].map((e) => (
-                      <CommandItem
-                        className="justify-between"
-                        key={e.ID}
-                        onSelect={async () => {
-                          setSearchOpen(false);
-                          await fetchEventDetails(e.ID)
-                          setDialogState("event")
-                        }}
-                      >
-                        {e.title}
-                        {user?.registrations?.some(
-                          (r) => r.event.ID === e.ID
-                        ) && (
-                          <SquareCheckBig className="w-2 h-2 text-green-700"/>
-                        )}
-                      </CommandItem>
-                    ))
-                    : ""}
-                </CommandGroup>
-              ))
+                  <CommandGroup
+                    key={uID}
+                    heading={
+                      groupedEvents ? groupedEvents[uID][0].umbrella?.title : ""
+                    }
+                  >
+                    {groupedEvents
+                      ? groupedEvents[uID].map((e) => (
+                          <CommandItem
+                            className="justify-between"
+                            key={e.ID}
+                            onSelect={async () => {
+                              setSearchOpen(false);
+                              await fetchEventDetails(e.ID);
+                              setDialogState("event");
+                            }}
+                          >
+                            {e.title}
+                            {user?.registrations?.some(
+                              (r) => r.event.ID === e.ID
+                            ) && (
+                              <SquareCheckBig className="w-2 h-2 text-green-700" />
+                            )}
+                          </CommandItem>
+                        ))
+                      : ""}
+                  </CommandGroup>
+                ))
               : ""}
           </CommandList>
         </CommandDialog>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="ml-2">
-              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"/>
-              <Moon
-                className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"/>
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Thema wechseln</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setTheme("light")}>
-              <Sun className="h-[1rem] w-auto mr-2"/>
+              <Sun className="h-[1rem] w-auto mr-2" />
               Hell
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme("dark")}>
-              <Moon className="h-[1rem] w-auto mr-2"/>
+              <Moon className="h-[1rem] w-auto mr-2" />
               Dunkel
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -231,33 +242,33 @@ export default function Header() {
                 </p>
                 <p className="text-muted-foreground text-xs">{user.mail}</p>
               </div>
-              <Separator/>
+              <Separator />
               {userItems.map((i) => (
                 <DropdownMenuItem
                   key={i.title}
                   onClick={() => router.push(i.url)}
                 >
-                  <i.icon/>
+                  <i.icon />
                   {i.title}
                 </DropdownMenuItem>
               ))}
               {user.role === Role.Admin && (
                 <>
-                  <Separator/>
+                  <Separator />
                   {adminItems.map((i) => (
                     <DropdownMenuItem
                       key={i.title}
                       onClick={() => router.push(i.url)}
                     >
-                      <i.icon/>
+                      <i.icon />
                       {i.title}
                     </DropdownMenuItem>
                   ))}
                 </>
               )}
-              <Separator/>
+              <Separator />
               <DropdownMenuItem onClick={logout}>
-                <LogOut/>
+                <LogOut />
                 Abmelden
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -268,7 +279,7 @@ export default function Header() {
             size="icon"
             onClick={() => setDialogState("authentication")}
           >
-            <LogIn className="h-[1.2rem] w-[1.2rem]"/>
+            <LogIn className="h-[1.2rem] w-[1.2rem]" />
           </Button>
         )}
       </div>
@@ -277,7 +288,6 @@ export default function Header() {
         open={dialogState === "authentication"}
         closeDialog={closeDialog}
       />
-
     </header>
   );
 }
