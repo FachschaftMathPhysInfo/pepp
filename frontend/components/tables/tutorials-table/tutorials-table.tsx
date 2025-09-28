@@ -15,11 +15,6 @@ import {
   Tutorial,
 } from "@/lib/gql/generated/graphql";
 import { Loader2, Lock } from "lucide-react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "../../ui/hover-card";
 import { MailLinkWithLabel } from "@/components/email-link";
 import { useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
@@ -33,6 +28,7 @@ import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import AdaptiveHoverCardPopover from "@/components/adaptive-hovercard-popover";
 
 interface TutorialsTableProps {
   event: Event;
@@ -303,19 +299,19 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                     >
                       <TableCell className="relative z-15">
                         {rowTutorial.tutors?.map((t) => (
-                          <HoverCard key={t.mail}>
-                            <HoverCardTrigger asChild>
-                              <p className="hover:underline">
-                                {t.fn + " " + t.sn[0] + "."}
+                          <AdaptiveHoverCardPopover
+                            trigger={
+                              <p className="hover:underline truncate sm:w-full xs:max-w-20">
+                                {`${t.fn} ${t.sn}`}
                               </p>
-                            </HoverCardTrigger>
-                            <HoverCardContent>
+                            }
+                            content={
                               <MailLinkWithLabel
                                 mail={t.mail}
                                 label={t.fn + " " + t.sn}
                               />
-                            </HoverCardContent>
-                          </HoverCard>
+                            }
+                          />
                         ))}
                       </TableCell>
                       <TableCell className="relative z-15">
