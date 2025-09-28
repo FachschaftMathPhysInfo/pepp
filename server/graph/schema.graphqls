@@ -29,6 +29,7 @@ type Tutorial {
   room: Room!
   registrationCount: Int!
   students: [User!]
+  capacity: Int!
 }
 
 type User {
@@ -197,6 +198,7 @@ input NewTutorial {
   roomNumber: String!
   buildingID: Int!
   tutors: [Int!]
+  capacity: Int!
 }
 
 input NewBuilding {

@@ -270,7 +270,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                 {tutorials.map((rowTutorial) => {
                   const utilization =
                     (rowTutorial.registrationCount /
-                      (rowTutorial.room.capacity ?? 1)) *
+                      (rowTutorial.capacity ?? 1)) *
                     100;
                   const isRegisteredEvent =
                     rowTutorial.ID === currentRegistration?.ID;
@@ -325,7 +325,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                         <>
                           <TableCell className="relative z-10">
                             {rowTutorial.registrationCount}/
-                            {rowTutorial.room.capacity}
+                            {rowTutorial.capacity}
                           </TableCell>
                           <TableCell className="relative z-10">
                             <Button
