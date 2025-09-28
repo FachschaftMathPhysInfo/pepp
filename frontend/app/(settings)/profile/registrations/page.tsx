@@ -4,30 +4,26 @@ import {
   Event,
   GetTutorialIdsOfEventDocument,
   GetTutorialIdsOfEventQuery,
+  PlannerEventsDocument,
 } from "@/lib/gql/generated/graphql";
 
-import { Card, CardContent } from "@/components/ui/card";
+import {Card, CardContent} from "@/components/ui/card";
 
-import { useEffect, useState, useCallback } from "react";
-import { getClient } from "@/lib/graphql";
-import { useUser } from "@/components/providers";
-import { Dialog } from "@/components/ui/dialog";
+import {useCallback, useEffect, useState} from "react";
+import {getClient} from "@/lib/graphql";
+import {useUser} from "@/components/providers";
 import PlannerItem from "@/components/planner-item";
-import EventDialog from "@/components/dialog/events/event-dialog";
-import { defaultEvent } from "@/types/defaults";
+import {EventDialog} from "@/components/dialog/events/event-dialog";
+import {defaultEvent} from "@/types/defaults";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
 
 export default function RegistrationsPage() {
-  const { user, sid } = useUser();
+  const {user, sid} = useUser();
   const [events, setEvents] = useState<Event[]>([]);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
-  const [closeupID, setCloseupID] = useState(0);
+  const [selectedEventID, setSelectedEventID] = useState(0);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const fetchRegisteredEvents = useCallback(async () => {
     if (!user) return;
@@ -41,9 +37,9 @@ export default function RegistrationsPage() {
 
     const registeredTutorialIds = user.registrations?.map((r) => r.ID);
 
-    const { events } = await client.request<GetTutorialIdsOfEventQuery>(
+    const {events} = await client.request<GetTutorialIdsOfEventQuery>(
       GetTutorialIdsOfEventDocument,
-      { ids: registeredEventIds }
+      {ids: registeredEventIds}
     );
 
     const filteredEvents = events
@@ -66,6 +62,34 @@ export default function RegistrationsPage() {
     void fetchRegisteredEvents();
   }, [fetchRegisteredEvents]);
 
+  // FIXME: Yes this is a duplicate from the header. Will be fixed later on maybe...
+  //  also looking at this file, this is not the worst problem here
+  useEffect(() => {
+    const fetchEventDetails = async () => {
+      if (!selectedEventID) return
+
+      const umbrellaID = events.find(event => !!event.umbrella)?.umbrella?.ID
+      if (!umbrellaID) return
+
+      const client = getClient();
+      const data = await client.request(
+        PlannerEventsDocument,
+        {umbrellaID: umbrellaID}
+      )
+
+      const fetchedEvents = data.events.map(event => ({
+        ...defaultEvent,
+        ...event,
+      }))
+
+      const newSelectedEvent = fetchedEvents.find(e => e.ID === selectedEventID)
+
+      setSelectedEvent(newSelectedEvent ?? null)
+    }
+
+    void fetchEventDetails();
+  }, [selectedEventID]);
+
   if (events.length === 0) {
     return (
       <div className={"w-full p-10 justify-center text-center"}>
@@ -75,42 +99,47 @@ export default function RegistrationsPage() {
   }
 
   return (
-    <Card className="mt-4">
-      <CardContent>
-        <Dialog open={eventDialogOpen} onOpenChange={setEventDialogOpen}>
-          <EventDialog id={closeupID} open={eventDialogOpen} />
-        </Dialog>
-        <Accordion type="multiple">
-          {Object.entries(
-            events.reduce((pickedEventsByUmbrella, event) => {
-              const key = event.umbrella?.ID || "Sonstige";
-              const label = event.umbrella?.title || "Sonstige";
-              if (!pickedEventsByUmbrella[key]) {
-                pickedEventsByUmbrella[key] = { label, events: [] };
-              }
-              pickedEventsByUmbrella[key].events.push(event);
-              return pickedEventsByUmbrella;
-            }, {} as Record<string, { label: string; events: Event[] }>)
-          ).map(([umbrellaID, groupedEvents]) => (
-            <AccordionItem key={umbrellaID} value={umbrellaID}>
-              <AccordionTrigger className={"hover:no-underline"}>
-                {groupedEvents.label}
-              </AccordionTrigger>
-              <AccordionContent>
-                {groupedEvents.events.map((event) => (
-                  <PlannerItem
-                    key={event.ID}
-                    event={event}
-                    setCloseupID={setCloseupID}
-                    setEventDialogOpen={setEventDialogOpen}
-                    height={70}
-                  />
-                ))}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </CardContent>
-    </Card>
+    <>
+      <Card className="mt-4">
+        <CardContent>
+          <Accordion type="multiple">
+            {Object.entries(
+              events.reduce((pickedEventsByUmbrella, event) => {
+                const key = event.umbrella?.ID || "Sonstige";
+                const label = event.umbrella?.title || "Sonstige";
+                if (!pickedEventsByUmbrella[key]) {
+                  pickedEventsByUmbrella[key] = {label, events: []};
+                }
+                pickedEventsByUmbrella[key].events.push(event);
+                return pickedEventsByUmbrella;
+              }, {} as Record<string, { label: string; events: Event[] }>)
+            ).map(([umbrellaID, groupedEvents]) => (
+              <AccordionItem key={umbrellaID} value={umbrellaID}>
+                <AccordionTrigger className={"hover:no-underline"}>
+                  {groupedEvents.label}
+                </AccordionTrigger>
+                <AccordionContent>
+                  {groupedEvents.events.map((event) => (
+                    <PlannerItem
+                      key={event.ID}
+                      event={event}
+                      setCloseupID={setSelectedEventID}
+                      setEventDialogOpen={setEventDialogOpen}
+                      height={70}
+                    />
+                  ))}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      <EventDialog
+        event={selectedEvent}
+        isOpen={eventDialogOpen}
+        onCloseAction={() => setEventDialogOpen(false)}
+      />
+    </>
   );
 }

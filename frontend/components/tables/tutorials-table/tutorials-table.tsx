@@ -11,14 +11,10 @@ import {
   Event,
   EventTutorialsDocument,
   EventTutorialsQuery,
+  Role,
   Tutorial,
 } from "@/lib/gql/generated/graphql";
 import { Loader2, Lock } from "lucide-react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "../../ui/hover-card";
 import { MailLinkWithLabel } from "@/components/email-link";
 import { useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
@@ -32,6 +28,7 @@ import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import AdaptiveHoverCardPopover from "@/components/adaptive-hovercard-popover";
 
 interface TutorialsTableProps {
   event: Event;
@@ -182,11 +179,15 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
     } catch (error) {
       console.log(error);
 
-      if(String(error).includes('capacity exceeded')) {
-        toast.error("Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein.")
+      if (String(error).includes("capacity exceeded")) {
+        toast.error(
+          "Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein."
+        );
         await fetchTutorials();
       } else {
-        toast.error("Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten.");
+        toast.error(
+          "Beim Eintragen in eine Veranstaltung ist ein Fehler aufgetreten."
+        );
       }
     }
   };
@@ -215,9 +216,11 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
 
   if (!tutorials) return <Skeleton />;
 
+  if (!(tutorials.length > 0) && user?.role !== Role.Admin) return null;
+
   return (
-    <>
-      {!user && (
+    <div className="space-y-4">
+      {!user && event.registrationNeeded && (
         <div>
           <span>Bitte </span>
           <span
@@ -230,18 +233,20 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         </div>
       )}
 
-      {!event.tutorialsOpen && (
-        <Alert variant="warning">
-          <Lock className="size-4" />
-          <AlertTitle>Die Anmeldung ist noch nicht offen</AlertTitle>
-          <AlertDescription>
-            Die Anmeldungen zu den Tutorien ist aktuell geschlossen. Bitte warte
-            auf eine Freigabe durch die Admins.
-          </AlertDescription>
-        </Alert>
-      )}
+      {!event.tutorialsOpen &&
+        event.registrationNeeded &&
+        tutorials?.length > 1 && (
+          <Alert variant="warning">
+            <Lock className="size-4" />
+            <AlertTitle>Die Anmeldung ist noch nicht offen</AlertTitle>
+            <AlertDescription>
+              Die Anmeldungen zu den Tutorien ist aktuell geschlossen. Bitte
+              warte auf eine Freigabe durch die Admins.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <div className="rounded-md border overflow-hidden relative">
+      <div className="rounded-md border overflow-hidden relative overflow-y-auto max-h-[30vh]">
         <Table>
           <TableBody>
             {loading && (
@@ -261,7 +266,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                 {tutorials.map((rowTutorial) => {
                   const utilization =
                     (rowTutorial.registrationCount /
-                      (rowTutorial.room.capacity ?? 1)) *
+                      (rowTutorial.capacity ?? 1)) *
                     100;
                   const isRegisteredEvent =
                     rowTutorial.ID === currentRegistration?.ID;
@@ -274,82 +279,95 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                       key={rowTutorial.room?.number}
                       className="relative"
                       style={{
-                        backgroundImage: `linear-gradient(to right, ${
-                          utilization < 100
-                            ? // theme did not wanna work here...
-                              document.documentElement.classList.contains(
-                                "dark"
-                              )
-                              ? "#024b30"
-                              : "#BBF7D0"
-                            : document.documentElement.classList.contains(
-                                "dark"
-                              )
-                            ? "#8b0000"
-                            : "#FECACA"
-                        } ${utilization}%, transparent ${utilization}%)`,
+                        backgroundImage: event.registrationNeeded
+                          ? `linear-gradient(to right, ${
+                              utilization < 100
+                                ? // theme did not wanna work here...
+                                  document.documentElement.classList.contains(
+                                    "dark"
+                                  )
+                                  ? "#024b30"
+                                  : "#BBF7D0"
+                                : document.documentElement.classList.contains(
+                                    "dark"
+                                  )
+                                ? "#8b0000"
+                                : "#FECACA"
+                            } ${utilization}%, transparent ${utilization}%)`
+                          : "transparent",
                       }}
                     >
                       <TableCell className="relative z-15">
                         {rowTutorial.tutors?.map((t) => (
-                          <HoverCard key={t.mail}>
-                            <HoverCardTrigger asChild>
-                              <p className="hover:underline">
-                                {t.fn + " " + t.sn[0] + "."}
+                          <AdaptiveHoverCardPopover
+                            trigger={
+                              <p className="hover:underline truncate sm:w-full xs:max-w-20">
+                                {`${t.fn} ${t.sn}`}
                               </p>
-                            </HoverCardTrigger>
-                            <HoverCardContent>
+                            }
+                            content={
                               <MailLinkWithLabel
                                 mail={t.mail}
                                 label={t.fn + " " + t.sn}
                               />
-                            </HoverCardContent>
-                          </HoverCard>
+                            }
+                          />
                         ))}
                       </TableCell>
                       <TableCell className="relative z-15">
                         <RoomHoverCard room={rowTutorial.room} />
                       </TableCell>
-                      <TableCell className="relative z-10">
-                        {rowTutorial.registrationCount}/
-                        {rowTutorial.room.capacity}
-                      </TableCell>
-                      <TableCell className="relative z-10">
-                        <Button
-                          className="w-full"
-                          disabled={
-                            (usersTutorials && !isTutor) ||
-                            (!isRegisteredEvent && utilization == 100) ||
-                            !user ||
-                            !event.tutorialsOpen ||
-                            loading
-                          }
-                          variant={
-                            isRegisteredEvent && user
-                              ? "destructive"
-                              : "outline"
-                          }
-                          onClick={() => {
-                            if (isTutor) {
-                              router.push(
-                                `/profile/tutorials/${slugify(event.title)}-${
-                                  event.ID
-                                }`
-                              );
-                            } else {
-                              void handleRegistrationChange(rowTutorial);
-                            }
-                          }}
+                      {event.registrationNeeded ? (
+                        <>
+                          <TableCell className="relative z-10">
+                            {rowTutorial.registrationCount}/
+                            {rowTutorial.capacity}
+                          </TableCell>
+                          <TableCell className="relative z-10">
+                            <Button
+                              className="w-full"
+                              disabled={
+                                (usersTutorials && !isTutor) ||
+                                (!isRegisteredEvent && utilization == 100) ||
+                                !user ||
+                                !event.tutorialsOpen ||
+                                loading
+                              }
+                              variant={
+                                isRegisteredEvent && user
+                                  ? "destructive"
+                                  : "outline"
+                              }
+                              onClick={() => {
+                                if (isTutor) {
+                                  router.push(
+                                    `/profile/tutorials/${slugify(
+                                      event.title
+                                    )}-${event.ID}`
+                                  );
+                                } else {
+                                  void handleRegistrationChange(rowTutorial);
+                                }
+                              }}
+                            >
+                              {isTutor
+                                ? "Verwalten"
+                                : currentRegistration && user
+                                ? isRegisteredEvent
+                                  ? "Austragen"
+                                  : "Wechseln"
+                                : "Eintragen"}
+                            </Button>
+                          </TableCell>
+                        </>
+                      ) : (
+                        <TableCell
+                          className="text-muted-foreground w-[150px]"
+                          align="right"
                         >
-                          {isTutor
-                            ? "Verwalten"
-                            : currentRegistration && user
-                            ? isRegisteredEvent
-                              ? "Austragen"
-                              : "Wechseln"
-                            : "Eintragen"}
-                        </Button>
-                      </TableCell>
+                          Keine Anmeldung erforderlich
+                        </TableCell>
+                      )}
                     </TableRow>
                   );
                 })}
@@ -368,6 +386,6 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         open={authenticationDialogOpen}
         closeDialog={() => setAuthenticationDialogOpen(false)}
       />
-    </>
+    </div>
   );
 }

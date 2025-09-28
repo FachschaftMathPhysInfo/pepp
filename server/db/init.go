@@ -49,7 +49,8 @@ var (
 		(*models.Answer)(nil),
 		(*models.Application)(nil),
 		(*models.Tutorial)(nil),
-		(*models.Setting)(nil)}
+		(*models.Setting)(nil),
+		(*models.ConfirmationToken)(nil)}
 )
 
 func Init(ctx context.Context, tracer *trace.TracerProvider) (*bun.DB, *sql.DB, error) {

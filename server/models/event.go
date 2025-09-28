@@ -10,15 +10,16 @@ import (
 type Event struct {
 	bun.BaseModel `bun:",alias:e"`
 
-	ID            int32  `bun:",pk,autoincrement"`
-	Title         string `bun:",notnull,type:varchar(255)"`
-	Description   string
-	TypeID        int32
-	From          time.Time `bun:",notnull"`
-	To            time.Time `bun:",notnull"`
-	NeedsTutors   *bool
-	UmbrellaID    *int32
-	TutorialsOpen *bool `bun:",notnull,default:false"`
+	ID                 int32  `bun:",pk,autoincrement"`
+	Title              string `bun:",notnull,type:varchar(255)"`
+	Description        string
+	TypeID             int32
+	From               time.Time `bun:",notnull"`
+	To                 time.Time `bun:",notnull"`
+	NeedsTutors        *bool
+	UmbrellaID         *int32
+	TutorialsOpen      *bool `bun:",notnull,default:false"`
+	RegistrationNeeded *bool `bun:",notnull,default:true"`
 
 	Umbrella         *Event      `bun:"rel:belongs-to,join:umbrella_id=id"`
 	Topics           []*Label    `bun:"m2m:topic_to_event,join:Event=Topic"`

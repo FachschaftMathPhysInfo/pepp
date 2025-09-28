@@ -1,207 +1,101 @@
 "use client";
 
+import Markdown from "react-markdown";
 import {
-  Event,
-  EventCloseupDocument,
-  EventCloseupQuery,
-  EventCloseupQueryVariables,
-  Role,
-} from "@/lib/gql/generated/graphql";
-import React, { useEffect, useState } from "react";
-import { Edit3, Info } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
+  Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useRefetch, useUser } from "../../providers";
-import { getClient } from "@/lib/graphql";
-import { TutorialsTable } from "./tutorials-table";
-import {
-  defaultEvent,
-  defaultTutorial,
-  defaultUser,
-  defaultForm,
-} from "@/types/defaults";
-import { Button } from "../../ui/button";
-import { EditEventView } from "./edit-event-view";
-import EventDescription from "./event-description";
-import { AuthenticationDialog } from "../authentication/authentication-dialog";
-import Link from "next/link";
-import { extractId, slugify } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import { Event, Role } from "@/lib/gql/generated/graphql";
+import { useUser } from "@/components/providers";
+import { Calendar, Clock, Edit2, Sprout } from "lucide-react";
+import { EventForm } from "@/components/dialog/events/event-form";
+import { Badge } from "@/components/ui/badge";
+import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
+import { TutorialsTable } from "../../tables/tutorials-table/tutorials-table";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface EventDialogProps {
-  id?: number;
-  modify?: boolean;
-  open: boolean;
-  closeDialogAction?: () => void;
+  event: Event | null;
+  isOpen: boolean;
+  onCloseAction: () => void;
 }
 
-export default function EventDialog({
-  id,
-  modify = false,
-  open,
-  closeDialogAction,
+export function EventDialog({
+  event,
+  isOpen,
+  onCloseAction,
 }: EventDialogProps) {
   const { user } = useUser();
-  const { refetchKey } = useRefetch();
 
-  const pathname = usePathname();
-
-  const [event, setEvent] = useState<Event>();
-  const [edit, setEdit] = useState(modify);
-  const [authenticationDialogOpen, setAuthenticationDialogOpen] =
-    useState(false);
-
-  const application = user?.applications?.find(
-    (a) => a.event.ID === event?.umbrella?.ID
-  );
-  const isRestricted = !!event?.umbrella?.registrationForm?.eventID
-
-  useEffect(() => {
-    if (!open && id) setEdit(false);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    if (id === event?.ID) return;
-
-    setEvent(undefined);
-
-    const fetchEventData = async () => {
-      const client = getClient();
-      const vars: EventCloseupQueryVariables = {
-        id: id!,
-      };
-
-      const eventData = await client.request<EventCloseupQuery>(
-        EventCloseupDocument,
-        vars
-      );
-
-      if (eventData.events.length) {
-        const e = eventData.events[0];
-        setEvent({
-          ...defaultEvent,
-          ...e,
-          umbrella: {
-            ...defaultEvent,
-            ...e.umbrella,
-            registrationForm: {
-              ...defaultForm,
-              ...e.umbrella?.registrationForm,
-            },
-          },
-          tutorials: e.tutorials?.map((t) => ({
-            ...defaultTutorial,
-            ...t,
-            event: { ...defaultEvent, ID: id! },
-            tutors: t.tutors?.map((tu) => ({ ...defaultUser, ...tu })),
-          })),
-        });
-      }
-    };
-
-    if (id) void fetchEventData();
-  }, [id, open, refetchKey]);
-
-  return edit ? (
-    <EditEventView event={event} closeDialogAction={closeDialogAction} />
-  ) : (
-    <>
-      <DialogContent className="sm:min-w-[600px]">
-        {!event && id ? (
-          <div className="flex flex-col space-y-3">
-            {/*For Screen-Readers, won't be shown*/}
-            <VisuallyHidden>
-              <DialogTitle>Ladende Eventansicht</DialogTitle>
-            </VisuallyHidden>
-            <Skeleton className="h-5 w-[80px]" />
-            <Skeleton className="h-3 w-[200px]" />
-            <Skeleton className="h-[125px] w-full rounded-xl" />
-          </div>
-        ) : (
-          <div className="space-y-4">
+  return (
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onCloseAction()}>
+      <VisuallyHidden>
+        <DialogTitle>Event Dialog für ${event?.title}</DialogTitle>
+      </VisuallyHidden>
+      <DialogContent
+        className={"sm:!min-w-[800px] [&>button:last-child]:hidden"}
+      >
+        {user?.role === Role.Admin ? (
+          <>
             <DialogHeader>
-              <DialogTitle>{event?.title}</DialogTitle>
-              <div className="text-sm text-muted-foreground space-y-2">
-                <EventDescription event={event} />
-              </div>
-            </DialogHeader>
-
-            {!user && event?.tutorials?.length && (
-              <div>
-                <span>Bitte </span>
-                <span
-                  className="cursor-pointer text-blue-500 hover:underline"
-                  onClick={() => setAuthenticationDialogOpen(true)}
-                >
-                  anmelden
+              <DialogTitle className={"flex justify-between items-center"}>
+                <span className={"flex items-center"}>
+                  {event ? (
+                    <>
+                      <Edit2 size={18} className={"inline mr-2"} /> Event
+                      bearbeiten
+                    </>
+                  ) : (
+                    <>
+                      <Sprout className={"inline mr-1"} /> Event erstellen
+                    </>
+                  )}
                 </span>
-                <span>, um dich eintragen zu können.</span>
-              </div>
-            )}
-
-            {isRestricted && user && (
-              <>
-                {!application?.accepted && (
-                  <div className="flex flex-row space-x-2">
-                    <Info className="size-5 text-yellow-500" />
-                    <p className="text-muted-foreground text-sm">
-                      Bitte warte bis wir deine Bewerbung überprüft haben. Du
-                      erhälst zeitnah eine E-Mail wie es weiter geht.
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
-
-            <TutorialsTable
-              id={id!}
-              event={event!}
-              capacities={
-                event?.tutorials?.map((t) => t.room.capacity ?? 1) || []
-              }
-              edit={false}
-              tutorials={event?.tutorials ?? []}
-              setTutorialsAction={() => {}}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                {event
+                  ? "Bearbeite das Event hier"
+                  : "Erstelle ein neues Event für dieses Programm"}
+              </DialogDescription>
+            </DialogHeader>
+            <EventForm
+              event={event}
+              edit={!!event}
+              onCloseAction={onCloseAction}
             />
-            {user?.role === Role.Admin && (
-              <Button variant="secondary" onClick={() => setEdit(true)}>
-                <Edit3 className="h-4 w-4" />
-                Bearbeiten
-              </Button>
-            )}
-          </div>
-        )}
+          </>
+        ) : (
+          event && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{event.title}</DialogTitle>
+                <DialogDescription className={"flex flex-col gap-y-2"}>
+                  <Markdown>{event.description}</Markdown>
+                  <span className={"flex items-center gap-2"}>
+                    <Calendar size={18} />{" "}
+                    {formatDateToDDMM(new Date(event.from))}
+                  </span>
+                  <span className={"flex items-center gap-2"}>
+                    <Clock size={18} />
+                    {formatDateToHHMM(new Date(event.from))} Uhr -{" "}
+                    {formatDateToHHMM(new Date(event.to))} Uhr
+                  </span>
+                </DialogDescription>
+              </DialogHeader>
+              <div className={"flex items-center gap-2 flex-wrap"}>
+                <Badge color={event.topic.color}>{event.topic.name}</Badge>
 
-        {id && event?.umbrella?.ID !== extractId(pathname) && (
-          <div className="flex flex-row items-center">
-            <Info className="size-4 mr-2" />
-            <span className="text-xs">
-              Diese Veranstaltung ist Teil von{" "}
-              <Link
-                className="underline"
-                href={`/${slugify(event?.umbrella?.title ?? "")}-${
-                  event?.umbrella?.ID
-                }`}
-              >
-                {event?.umbrella?.title}
-              </Link>
-              .
-            </span>
-          </div>
+                <Badge color={event.type.color}>{event.type.name}</Badge>
+              </div>
+
+              <TutorialsTable event={event} />
+            </>
+          )
         )}
       </DialogContent>
-
-      <AuthenticationDialog
-        open={authenticationDialogOpen}
-        closeDialog={() => setAuthenticationDialogOpen(false)}
-      />
-    </>
+    </Dialog>
   );
 }

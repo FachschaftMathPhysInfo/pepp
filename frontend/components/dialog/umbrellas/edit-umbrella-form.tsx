@@ -129,6 +129,7 @@ export default function EditUmbrellaForm({
       to: duration.to,
       needsTutors: false,
       tutorialsOpen: false,
+      registrationNeeded: true,
     };
 
     if (createMode) {

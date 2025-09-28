@@ -165,3 +165,14 @@ query GetTutorialIdsOfEvent($eventId: [Int!]) {
     }
   }
 }
+
+query checkExistingApplication($id: Int!){
+  users(id: [$id]){
+    ID
+    applications {
+      event {
+        ID
+      }
+    }
+  }
+}

@@ -19,6 +19,7 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
   }
   tutorials(eventID: [$eventID], tutorID: [$tutorID]) {
     ID
+    capacity
     room {
       name
       number
@@ -44,6 +45,7 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
 query eventTutorials($id: Int!) {
   tutorials(eventID: [$id]) {
     ID
+    capacity
     tutors {
       ID
       fn

@@ -58,7 +58,7 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
   }, [basePath]);
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-80px)] mt-[80px] w-full">
+    <div className="flex flex-col min-h-[calc(100vh-80px)] mt-[81px] w-full">
       {user?.role === Role.Admin ? (
         <SidebarProvider>
           <AdminSidebar umbrellas={umbrellas} />

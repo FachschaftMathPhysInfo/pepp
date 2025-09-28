@@ -149,10 +149,32 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 		}
 	}
 
+	token, err := utils.RandomURLSafeString(32)
+	if err != nil {
+		return "", err
+	}
+
+	confirmToken := &models.ConfirmationToken{
+		UserID:    user.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(12 * time.Hour)}
+
+	if _, err := r.DB.NewInsert().
+		Model(confirmToken).
+		Exec(ctx); err != nil {
+		return "", err
+	}
+
 	m := r.MailConfig.Confirmation
 
+	if err != nil {
+		log.Errorf("failed to generate confirmation link on user with mail: %s. ", user.Mail)
+		log.Error(err)
+		return "", fmt.Errorf("error while generating confirmation link on user creation")
+	}
+
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
-		os.Getenv("PUBLIC_URL"), user.SessionID)
+		os.Getenv("PUBLIC_URL"), token)
 
 	if err := email.Send(user, m, r.MailConfig); err != nil {
 		log.Error("failed to send email: ", err)
@@ -354,7 +376,13 @@ func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.Ne
 
 // UpdateTutorial is the resolver for the updateTutorial field.
 func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial model.NewTutorial) (int, error) {
-	t := models.Tutorial{EventID: int32(tutorial.EventID), RoomNumber: tutorial.RoomNumber, BuildingID: int32(tutorial.BuildingID), ID: int32(id)}
+	t := models.Tutorial{
+		EventID:    int32(tutorial.EventID),
+		RoomNumber: tutorial.RoomNumber,
+		BuildingID: int32(tutorial.BuildingID),
+		Capacity:   int16(tutorial.Capacity),
+		ID:         int32(id)}
+
 	if _, err := r.DB.NewUpdate().
 		Model(&t).
 		WherePK().
@@ -862,7 +890,6 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 	if err := r.DB.NewSelect().
 		Model(tutorial).
 		Relation("Event").
-		Relation("Room").
 		Where("t.id = ?", registration.TutorialID).
 		Scan(ctx); err != nil {
 		return 0, err
@@ -872,7 +899,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 		return 0, fmt.Errorf("tutorial is not open for registrations, yet")
 	}
 
-	tutorialCapacity := tutorial.Room.Capacity
+	tutorialCapacity := tutorial.Capacity
 	registrationCount, err := r.DB.NewSelect().
 		Model((*models.UserToTutorialRegistration)(nil)).
 		Relation("Tutorial").
@@ -946,6 +973,17 @@ func (r *mutationResolver) DeleteStudentRegistrationForTutorial(ctx context.Cont
 
 // AddStudentApplicationForEvent is the resolver for the addStudentApplicationForEvent field.
 func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, application model.NewUserToEventApplication) (*models.User, error) {
+	exists, err := r.DB.NewSelect().
+		Model((*models.Application)(nil)).
+		Where("event_id = ? AND student_id = ?", application.EventID, application.UserID).
+		Exists(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check for existing application")
+	}
+	if exists {
+		return nil, fmt.Errorf("application already exists for event and student pairing")
+	}
+
 	score := 0
 
 	aqs := []models.ApplicationToQuestion{}
@@ -1498,7 +1536,8 @@ func (r *queryResolver) Login(ctx context.Context, mail string, password string)
 		return "", err
 	}
 
-	if err := auth.VerifyPassword(user.Password, password); err != nil {
+	if err := auth.VerifyPepperedHash(user.Password, password); err != nil {
+		log.Info("failed login attempt for: %v", mail)
 		return "", err
 	}
 
@@ -1586,6 +1625,11 @@ func (r *tutorialResolver) Students(ctx context.Context, obj *models.Tutorial) (
 	}
 
 	return users, nil
+}
+
+// Capacity is the resolver for the capacity field.
+func (r *tutorialResolver) Capacity(ctx context.Context, obj *models.Tutorial) (int, error) {
+	return int(obj.Capacity), nil
 }
 
 // Role is the resolver for the role field.

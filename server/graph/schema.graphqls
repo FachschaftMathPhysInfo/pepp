@@ -29,6 +29,7 @@ type Tutorial {
   room: Room!
   registrationCount: Int!
   students: [User!]
+  capacity: Int!
 }
 
 type User {
@@ -70,6 +71,7 @@ type Event {
   from: Time!
   to: Time!
   tutorialsOpen: Boolean!
+  registrationNeeded: Boolean!
   registrationForm: Form
   supportingEvents: [Event!]
 }
@@ -188,6 +190,7 @@ input NewEvent {
   to: Time!
   umbrellaID: Int
   tutorialsOpen: Boolean!
+  registrationNeeded: Boolean!
 }
 
 input NewTutorial {
@@ -195,6 +198,7 @@ input NewTutorial {
   roomNumber: String!
   buildingID: Int!
   tutors: [Int!]
+  capacity: Int!
 }
 
 input NewBuilding {
