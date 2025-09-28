@@ -1224,6 +1224,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 
 	if topicIDs != nil {
 		query = query.
+			Distinct().
 			Join("JOIN topic_to_events AS tte ON tte.event_id = e.id").
 			Where("tte.topic_id IN (?)", bun.In(topicIDs))
 	}
