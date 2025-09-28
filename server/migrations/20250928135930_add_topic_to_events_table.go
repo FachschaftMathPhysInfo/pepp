@@ -11,20 +11,11 @@ func init() {
 	Migrations.MustRegister(func(ctx context.Context, db *bun.DB) error {
 		fmt.Print(" [up migration] ")
 		_, err := db.ExecContext(ctx, `
-			CREATE TABLE IF NOT EXISTS topic_to_events (
-				event_id INTEGER NOT NULL,
-				topic_id INTEGER NOT NULL,
-				PRIMARY KEY (event_id, topic_id)
-			)
-		`)
-		if err != nil {
-			return err
-		}
-
-		_, err = db.ExecContext(ctx, `
 			INSERT INTO topic_to_events (event_id, topic_id)
-			SELECT id, topic_id FROM events WHERE topic_id IS NOT NULL
-			ON CONFLICT DO NOTHING
+    			SELECT e.id, e.topic_id
+    			FROM events e
+    			JOIN labels l ON e.topic_id = l.id
+    			ON CONFLICT DO NOTHING
 		`)
 		if err != nil {
 			return err

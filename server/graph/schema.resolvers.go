@@ -1224,7 +1224,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 
 	if topicIDs != nil {
 		query = query.
-			Join("JOIN topic_to_event AS tte ON tte.event_id = e.id").
+			Join("JOIN topic_to_events AS tte ON tte.event_id = e.id").
 			Where("tte.topic_id IN (?)", bun.In(topicIDs))
 	}
 
@@ -1361,7 +1361,7 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
         EXISTS (
             SELECT 1 
             FROM events e 
-            JOIN topic_to_event tte ON tte.event_id = e.id 
+            JOIN topic_to_events tte ON tte.event_id = e.id 
             WHERE e.umbrella_id IN (?) AND tte.topic_id = l.id
         )
         OR
