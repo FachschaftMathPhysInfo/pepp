@@ -209,7 +209,7 @@ query allEventsForEventDialog {
     from
     to
     tutorialsOpen
-    topic {
+    topics {
       ID
       name
       color
