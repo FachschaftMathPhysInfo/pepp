@@ -11,9 +11,11 @@ export default function EventDescription({ event }: EventDescriptionProps) {
     <>
       <p>{event?.description}</p>
       <div className="space-x-2 flex flex-row">
-        <Badge variant="event" color={event?.topic.color || ""}>
-          {event?.topic.name}
-        </Badge>
+        {event?.topics.map((t) => (
+          <Badge variant="event" color={t.color || ""}>
+            {t.name}
+          </Badge>
+        ))}
         <Badge variant="event" color={event?.type.color || ""}>
           {event?.type.name}
         </Badge>

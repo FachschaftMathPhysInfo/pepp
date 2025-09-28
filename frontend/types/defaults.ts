@@ -15,7 +15,7 @@ export const defaultEvent: Event = {
   ID: 0,
   needsTutors: false,
   title: "",
-  topic: { ID: 0, name: "", color: "", kind: LabelKind.Topic },
+  topics: [{ ID: 0, name: "", color: "", kind: LabelKind.Topic }],
   type: { ID: 0, name: "", color: "", kind: LabelKind.EventType },
   from: "",
   to: "",
