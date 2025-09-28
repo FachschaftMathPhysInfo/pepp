@@ -40,7 +40,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Save, Trash } from "lucide-react";
-import { BadgePicker } from "@/components/badge-picker";
+import { SingleBadgePicker } from "@/components/single-badge-picker";
 import { DatePicker } from "@/components/date-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -56,6 +56,7 @@ import { EditTutorialsTable } from "../../tables/tutorials-table/edit-tutorials-
 import { Switch } from "../../ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Markdown from "react-markdown";
+import { MultiBadgePicker } from "@/components/multi-badge-picker";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -63,9 +64,9 @@ const eventFormSchema = z.object({
   date: z.date(),
   from: z.string().nonempty("Bitte gib eine Startzeit an."),
   to: z.string().nonempty("Bitte gib eine Endzeit an."),
-  topicID: z.number({
-    required_error: "Bitte wähle das Thema der Veranstaltung",
-  }),
+  topicIDs: z
+    .array(z.number())
+    .nonempty("Bitte gib mindestens einen Studiengang an."),
   typeID: z.number({ required_error: "Bitte wähle den Typ der Veranstaltung" }),
   needsTutors: z.boolean(),
   tutorialsOpen: z.boolean(),
@@ -146,7 +147,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       to: formatToHHMM(
         event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
       ),
-      topicID: event?.topic.ID,
+      topicIDs: event?.topics.map((t) => t.ID),
       typeID: event?.type.ID,
       needsTutors: event?.needsTutors ?? true,
       tutorialsOpen: event?.tutorialsOpen ?? false,
@@ -158,7 +159,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
     const newEvent: NewEvent = {
       title: data.title,
       description: data.description,
-      topicID: data.topicID,
+      topicIDs: data.topicIDs,
       typeID: data.typeID,
       needsTutors: data.needsTutors,
       from: mergeDateAndTime(data.date, data.from),
@@ -276,7 +277,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
-          className={"w-full flex flex-col gap-y-4"}
+          className={"w-full flex flex-col gap-y-4 overflow-y-scroll"}
         >
           <FormField
             control={form.control}
@@ -373,68 +374,67 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
             </div>
           </div>
 
-          {/* Labels */}
-          <div className={"flex items-center justify-between flex-wrap gap-2"}>
-            <div className={"flex items-center gap-2"}>
-              <FormField
-                control={form.control}
-                name="topicID"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={"hidden"}>Thema</FormLabel>
-                    <FormControl>
-                      <BadgePicker
-                        kind={LabelKind.Topic}
-                        selected={field.value}
-                        onChange={(label) => field.onChange(label)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="typeID"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={"hidden"}>Art des Events</FormLabel>
-                    <FormControl>
-                      <BadgePicker
+          <div className="flex flex-row gap-x-4">
+            <FormField
+              control={form.control}
+              name="typeID"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Art des Events</FormLabel>
+                  <FormControl>
+                    <div className="pt-[6px]">
+                      <SingleBadgePicker
                         kind={LabelKind.EventType}
                         selected={field.value}
                         onChange={(label) => field.onChange(label)}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
-              name="needsTutors"
+              name="topicIDs"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={"hidden"}>
-                    Benötigt Tutor:innen
-                  </FormLabel>
+                // 200px is the width of the popover
+                <FormItem className={"w-fit min-w-[200px]"}>
+                  <FormLabel>Studiengänge</FormLabel>
                   <FormControl>
-                    <span className={"flex items-center gap-2 min-w-fit"}>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                      Benötigt Tutor:innen
-                    </span>
+                    <MultiBadgePicker
+                      kind={LabelKind.Topic}
+                      selectedLabelIDs={field.value as number[]}
+                      onChange={(label) =>
+                        field.onChange(label.map((l) => l.ID))
+                      }
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="needsTutors"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className={"hidden"}>Benötigt Tutor:innen</FormLabel>
+                <FormControl>
+                  <span className={"flex items-center gap-2 min-w-fit"}>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    Benötigt Tutor:innen
+                  </span>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {event && (
             <>

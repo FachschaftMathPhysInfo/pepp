@@ -4,7 +4,7 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
     from
     to
     description
-    topic {
+    topics {
       ID
       name
       color

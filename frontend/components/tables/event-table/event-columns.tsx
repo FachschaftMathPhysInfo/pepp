@@ -22,7 +22,7 @@ export const eventColumns: ColumnDef<Event>[] = [
       <Checkbox
         checked={row.getIsSelected()}
         onCheckedChange={(value) => {
-          row.toggleSelected(!!value)
+          row.toggleSelected(!!value);
         }}
         aria-label="Reihe auswählen"
       />
@@ -74,10 +74,11 @@ export const eventColumns: ColumnDef<Event>[] = [
   {
     accessorKey: "topic",
     header: "Thema",
-    cell: ({ row }) => (
-      <Badge variant="event" color={row.original.topic.color ?? ""}>
-        {row.original.topic.name}
-      </Badge>
-    ),
+    cell: ({ row }) =>
+      row.original.topics.map((t) => (
+        <Badge variant="event" color={t.color ?? ""}>
+          {t.name}
+        </Badge>
+      )),
   },
 ];
