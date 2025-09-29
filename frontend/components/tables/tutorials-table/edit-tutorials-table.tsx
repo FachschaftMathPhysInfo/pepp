@@ -292,7 +292,7 @@ export function EditTutorialsTable({
             </TableCell>
             <TableCell>
               <Button
-                disabled={!newTutorialRoom || !newTutorialTutors.length}
+                disabled={!newTutorialRoom}
                 onClick={() => {
                   if (newTutorialRoom) {
                     setTutorialsAction((prev) => [
