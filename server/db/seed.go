@@ -111,7 +111,6 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Algorithmen und Datenstrukturen",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicID:     1,
 			TypeID:      4,
 			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(-time.Hour),
@@ -121,7 +120,6 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Analysis",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicID:     2,
 			TypeID:      5,
 			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add((24 * time.Hour) * 7),
@@ -131,7 +129,6 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Einführungsveranstaltung",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicID:     3,
 			TypeID:      5,
 			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(-time.Hour),
@@ -141,7 +138,6 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{
 			Title:       "Lineare Algebra",
 			Description: "Lorem Ipsum dolor sit amed",
-			TopicID:     2,
 			TypeID:      4,
 			NeedsTutors: utils.BoolPtr(true),
 			From:        time.Now().Add(2 * time.Hour),
@@ -158,6 +154,18 @@ func SeedData(ctx context.Context, db *bun.DB) error {
 		{EventID: 5, RoomNumber: "503", BuildingID: 2},
 	}
 	if err := insertData(ctx, db, (*models.Tutorial)(nil), tutorials, "Tutorials"); err != nil {
+		return err
+	}
+
+	topics := []*models.TopicToEvent{
+		{EventID: 3, TopicID: 1},
+		{EventID: 3, TopicID: 2},
+		{EventID: 4, TopicID: 1},
+		{EventID: 4, TopicID: 2},
+		{EventID: 5, TopicID: 3},
+		{EventID: 6, TopicID: 2},
+	}
+	if err := insertData(ctx, db, (*models.TopicToEvent)(nil), topics, "Topic to Event assignments"); err != nil {
 		return err
 	}
 

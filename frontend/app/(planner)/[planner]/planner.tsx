@@ -107,7 +107,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     const fetchEventData = async () => {
       const vars: PlannerEventsQueryVariables = {
         umbrellaID: umbrellaID ?? 0,
-        topic: topicFilter.length ? topicFilter : undefined,
+        topics: topicFilter.length ? topicFilter : undefined,
         type: typesFilter.length ? typesFilter : undefined,
       };
 

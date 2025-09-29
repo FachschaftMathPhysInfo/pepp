@@ -200,7 +200,7 @@ export function EventCalendar({
       tutorialsOpen: false,
       registrationNeeded: true,
       needsTutors: false,
-      topic: { ID: 0, name: "", kind: LabelKind.Topic, color: "" },
+      topics: [{ ID: 0, name: "", kind: LabelKind.Topic, color: "" }],
       type: { ID: 0, name: "", kind: LabelKind.EventType, color: "" },
     };
     setSelectedEvent(newEvent);

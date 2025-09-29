@@ -10,19 +10,19 @@ import {Button} from "./ui/button";
 import {useRouter} from "next/navigation";
 import {useLabels} from "@/components/provider/labels-provider";
 
-interface BadgePickerProps {
+interface SingleBadgePickerProps {
   kind: LabelKind;
   labelKindDescription?: string;
   selected: number | null;
   onChange: (label: number | null) => void;
 }
 
-export function BadgePicker({
+export function SingleBadgePicker({
                               kind,
                               labelKindDescription,
                               selected,
                               onChange,
-                            }: BadgePickerProps) {
+                            }: SingleBadgePickerProps) {
   const {topicLabels, typeLabels} = useLabels()
   const [labels, setLabels] = useState<Label[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<Label>();

@@ -86,7 +86,9 @@ export function EventDialog({
                 </DialogDescription>
               </DialogHeader>
               <div className={"flex items-center gap-2 flex-wrap"}>
-                <Badge color={event.topic.color}>{event.topic.name}</Badge>
+                {event.topics.map((t) => (
+                  <Badge color={t.color}>{t.name}</Badge>
+                ))}
 
                 <Badge color={event.type.color}>{event.type.name}</Badge>
               </div>
