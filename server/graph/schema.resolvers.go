@@ -377,11 +377,12 @@ func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.Ne
 // UpdateTutorial is the resolver for the updateTutorial field.
 func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial model.NewTutorial) (int, error) {
 	t := models.Tutorial{
-		EventID:    int32(tutorial.EventID),
-		RoomNumber: tutorial.RoomNumber,
-		BuildingID: int32(tutorial.BuildingID),
-		Capacity:   int16(tutorial.Capacity),
-		ID:         int32(id)}
+		EventID:     int32(tutorial.EventID),
+		RoomNumber:  tutorial.RoomNumber,
+		BuildingID:  int32(tutorial.BuildingID),
+		Capacity:    int16(tutorial.Capacity),
+		Description: *tutorial.Description,
+		ID:          int32(id)}
 
 	if _, err := r.DB.NewUpdate().
 		Model(&t).

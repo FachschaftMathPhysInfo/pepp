@@ -30,6 +30,7 @@ type Tutorial {
   registrationCount: Int!
   students: [User!]
   capacity: Int!
+  description: String
 }
 
 type User {
@@ -199,6 +200,7 @@ input NewTutorial {
   buildingID: Int!
   tutors: [Int!]
   capacity: Int!
+  description: String
 }
 
 input NewBuilding {

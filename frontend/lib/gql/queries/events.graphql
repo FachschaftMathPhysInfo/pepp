@@ -132,6 +132,7 @@ query eventCloseup($id: Int!) {
     }
     tutorials {
       ID
+      description
       capacity
       tutors {
         ID

@@ -14,7 +14,7 @@ import {
   Role,
   Tutorial,
 } from "@/lib/gql/generated/graphql";
-import { Loader2, Lock } from "lucide-react";
+import { Info, Loader2, Lock } from "lucide-react";
 import { MailLinkWithLabel } from "@/components/email-link";
 import { useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
@@ -29,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import AdaptiveHoverCardPopover from "@/components/adaptive-hovercard-popover";
+import Markdown from "react-markdown";
 
 interface TutorialsTableProps {
   event: Event;
@@ -316,6 +317,25 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                       </TableCell>
                       <TableCell className="relative z-15">
                         <RoomHoverCard room={rowTutorial.room} />
+                      </TableCell>
+                      <TableCell className="relative z-15">
+                        {rowTutorial.description && (
+                          <AdaptiveHoverCardPopover
+                            trigger={
+                              <p className="line-clamp-2 w-[150px]">
+                                <Markdown>{rowTutorial.description}</Markdown>
+                              </p>
+                            }
+                            content={
+                              <div className="flex flex-row gap-x-2 items-center">
+                                <Info className="size-4" />
+                                <div className="flex-1">
+                                  <Markdown>{rowTutorial.description}</Markdown>
+                                </div>
+                              </div>
+                            }
+                          />
+                        )}
                       </TableCell>
                       {event.registrationNeeded ? (
                         <>
