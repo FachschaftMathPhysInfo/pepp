@@ -212,6 +212,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
         buildingID: t.room.building.ID,
         tutors: t.tutors?.map((u) => u.ID),
         capacity: t.capacity,
+        description: t.description,
       };
     }
 
