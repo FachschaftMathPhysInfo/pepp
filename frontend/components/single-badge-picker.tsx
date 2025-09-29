@@ -30,14 +30,13 @@ export function SingleBadgePicker({
   const router = useRouter();
 
   useEffect(() => {
-    if (kind === LabelKind.Topic) {
-      setLabels(topicLabels)
-      setSelectedLabel(topicLabels.find((label) => label.ID === selected))
-    } else {
-      setLabels(typeLabels)
-      setSelectedLabel(typeLabels.find((label) => label.ID === selected))
-    }
-  }, [kind]);
+    if (kind === LabelKind.Topic) setLabels(topicLabels)
+    else setLabels(typeLabels)
+  }, [kind, open]);
+
+  useEffect(() => {
+    setSelectedLabel(labels.find(label => label.ID === selected))
+  }, [labels.length, open]);
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal={true}>
