@@ -33,7 +33,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { EventCalendar } from "@/components/event-calendar";
 import {
   createNewQueryString,
-  getFiltersFromQuery,
+  getEventFiltersFromQuery,
   TOPICFILTER_QUERY_KEY,
   TYPEFILTER_QUERY_KEY,
 } from "@/lib/query-urls";
@@ -180,7 +180,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     // Awaits labels to load
     if (!topics.length && !types.length) return;
 
-    const filterNames = getFiltersFromQuery(searchParams);
+    const filterNames = getEventFiltersFromQuery(searchParams);
     const typeFilters = types
       .filter((t) => filterNames.types.includes(t.name))
       .map((t) => t.ID);

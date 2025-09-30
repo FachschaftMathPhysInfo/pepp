@@ -71,12 +71,15 @@ export const columns: ColumnDef<Event>[] = [
   {
     accessorKey: "topic",
     header: "Themen",
-    cell: ({ row }) =>
-      row.original.topics.map((t) => (
-        <Badge variant="event" color={t.color}>
-          {t.name}
-        </Badge>
-      )),
+    cell: ({ row }) => (
+      <div className="space-y-1">
+        {row.original.topics.map((t) => (
+          <Badge key={t.ID} className="mr-1" variant="event" color={t.color}>
+            {t.name}
+          </Badge>
+        ))}
+      </div>
+    ),
   },
   {
     id: "actions",
