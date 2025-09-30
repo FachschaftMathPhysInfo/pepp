@@ -36,7 +36,9 @@ export function EventDialog({
         <DialogTitle>Event Dialog für ${event?.title}</DialogTitle>
       </VisuallyHidden>
       <DialogContent
-        className={"sm:!min-w-[800px] !max-h-[90vh] [&>button:last-child]:hidden"}
+        className={
+          "sm:!min-w-[800px] !max-h-[90vh] [&>button:last-child]:hidden"
+        }
       >
         {user?.role === Role.Admin ? (
           <>
