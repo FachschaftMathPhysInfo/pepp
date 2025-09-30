@@ -1,24 +1,8 @@
-"use client"
+"use client";
 
-import React, {useMemo} from "react"
-import {
-  addHours,
-  areIntervalsOverlapping,
-  differenceInMinutes,
-  eachDayOfInterval,
-  eachHourOfInterval,
-  endOfWeek,
-  format,
-  getHours,
-  getMinutes,
-  isBefore,
-  isSameDay,
-  isToday,
-  startOfDay,
-  startOfWeek,
-} from "date-fns"
+import React, { useMemo } from "react";
 
-import {cn} from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import {
   CalendarEventItem,
   CalendarCell,
@@ -26,24 +10,31 @@ import {
   isMultiDayEvent,
   useCurrentTimeIndicator,
   WeekCellsHeight,
-} from "@/components/event-calendar"
-import type { Event } from "@/lib/gql/generated/graphql"
-import {EndHour, StartHour} from "@/components/event-calendar/constants"
+  eachDayOfInterval,
+  eachHourOfInterval,
+} from "@/components/event-calendar";
+import type { Event } from "@/lib/gql/generated/graphql";
+import {
+  EndHour,
+  StartHour,
+  TimeZone,
+} from "@/components/event-calendar/constants";
+import { DateTime, Interval } from "luxon";
 
 interface WeekViewProps {
-  currentDate: Date
-  events: Event[]
-  onEventSelectAction: (event: Event) => void
-  onEventCreateAction: (startTime: Date) => void
+  currentDate: DateTime;
+  events: Event[];
+  onEventSelectAction: (event: Event) => void;
+  onEventCreateAction: (startTime: DateTime) => void;
 }
 
 interface PositionedEvent {
-  event: Event
-  top: number
-  height: number
-  left: number
-  width: number
-  zIndex: number
+  event: Event;
+  top: number;
+  height: number;
+  left: number;
+  width: number;
+  zIndex: number;
 }
 
 export function WeekView({
@@ -53,42 +44,39 @@ export function WeekView({
   onEventCreateAction,
 }: WeekViewProps) {
   const days = useMemo(() => {
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
-    const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 })
-    return eachDayOfInterval({ start: weekStart, end: weekEnd })
-  }, [currentDate])
+    const weekStart = currentDate.startOf("week");
+    const weekEnd = currentDate.endOf("week");
+    return eachDayOfInterval(weekStart, weekEnd);
+  }, [currentDate]);
 
-  const weekStart = useMemo(
-    () => startOfWeek(currentDate, { weekStartsOn: 0 }),
-    [currentDate]
-  )
+  const weekStart = useMemo(() => currentDate.startOf("week"), [currentDate]);
 
   const hours = useMemo(() => {
-    const dayStart = startOfDay(currentDate)
-    return eachHourOfInterval({
-      start: addHours(dayStart, StartHour),
-      end: addHours(dayStart, EndHour - 1),
-    })
-  }, [currentDate])
+    const dayStart = currentDate.startOf("day");
+    return eachHourOfInterval(
+      dayStart.plus({ hours: StartHour }),
+      dayStart.plus({ hours: EndHour - 1 })
+    );
+  }, [currentDate]);
 
   // Get all-day events and multi-day events for the week
   const allDayEvents = useMemo(() => {
     return events
       .filter((event) => {
         // Include explicitly marked all-day events or multi-day events
-        return isMultiDayEvent(event)
+        return isMultiDayEvent(event);
       })
       .filter((event) => {
-        const eventStart = new Date(event.from)
-        const eventEnd = new Date(event.to)
+        const eventStart = DateTime.fromISO(event.from).setZone(TimeZone);
+        const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone);
         return days.some(
           (day) =>
-            isSameDay(day, eventStart) ||
-            isSameDay(day, eventEnd) ||
+            day.hasSame(eventStart, "day") ||
+            day.hasSame(eventEnd, "day") ||
             (day > eventStart && day < eventEnd)
-        )
-      })
-  }, [events, days])
+        );
+      });
+  }, [events, days]);
 
   // Process events for each day to calculate positions
   const processedDayEvents = useMemo(() => {
@@ -96,97 +84,96 @@ export function WeekView({
       // Get events for this day that are not all-day events or multi-day events
       const dayEvents = events.filter((event) => {
         // Skip all-day events and multi-day events
-        if (isMultiDayEvent(event)) return false
+        if (isMultiDayEvent(event)) return false;
 
-        const eventStart = new Date(event.from)
-        const eventEnd = new Date(event.to)
+        const eventStart = DateTime.fromISO(event.from).setZone(TimeZone);
+        const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone);
 
         // Check if event is on this day
         return (
-          isSameDay(day, eventStart) ||
-          isSameDay(day, eventEnd) ||
+          day.hasSame(eventStart, "day") ||
+          day.hasSame(eventEnd, "day") ||
           (eventStart < day && eventEnd > day)
-        )
-      })
+        );
+      });
 
       // Sort events by start time and duration
       const sortedEvents = [...dayEvents].sort((a, b) => {
-        const aStart = new Date(a.from)
-        const bStart = new Date(b.from)
-        const aEnd = new Date(a.to)
-        const bEnd = new Date(b.to)
+        const aStart = DateTime.fromISO(a.from).setZone(TimeZone);
+        const bStart = DateTime.fromISO(b.from).setZone(TimeZone);
+        const aEnd = DateTime.fromISO(a.to).setZone(TimeZone);
+        const bEnd = DateTime.fromISO(b.to).setZone(TimeZone);
 
         // First sort by start time
-        if (aStart < bStart) return -1
-        if (aStart > bStart) return 1
+        if (aStart < bStart) return -1;
+        if (aStart > bStart) return 1;
 
         // If start times are equal, sort by duration (longer events first)
-        const aDuration = differenceInMinutes(aEnd, aStart)
-        const bDuration = differenceInMinutes(bEnd, bStart)
-        return bDuration - aDuration
-      })
+        const aDuration = aEnd.diff(aStart, "minutes").minutes;
+        const bDuration = bEnd.diff(bStart, "minutes").minutes;
+        return bDuration - aDuration;
+      });
 
       // Calculate positions for each event
-      const positionedEvents: PositionedEvent[] = []
-      const dayStart = startOfDay(day)
+      const positionedEvents: PositionedEvent[] = [];
+      const dayStart = day.startOf("day");
 
       // Track columns for overlapping events
-      const columns: { event: Event; end: Date }[][] = []
+      const columns: { event: Event; end: DateTime }[][] = [];
 
       sortedEvents.forEach((event) => {
-        const eventStart = new Date(event.from)
-        const eventEnd = new Date(event.to)
+        const eventStart = DateTime.fromISO(event.from).setZone(TimeZone);
+        const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone);
 
         // Adjust start and end times if they're outside this day
-        const adjustedStart = isSameDay(day, eventStart) ? eventStart : dayStart
-        const adjustedEnd = isSameDay(day, eventEnd)
+        const adjustedStart = day.hasSame(eventStart, "day")
+          ? eventStart
+          : dayStart;
+        const adjustedEnd = day.hasSame(eventEnd, "day")
           ? eventEnd
-          : addHours(dayStart, 24)
+          : dayStart.plus({ hours: 24 });
 
         // Calculate top position and height
-        const startHour =
-          getHours(adjustedStart) + getMinutes(adjustedStart) / 60
-        const endHour = getHours(adjustedEnd) + getMinutes(adjustedEnd) / 60
+        const startHour = adjustedStart.hour + adjustedStart.minute / 60;
+        const endHour = adjustedEnd.hour + adjustedEnd.minute / 60;
 
         // Adjust the top calculation to account for the new start time
-        const top = (startHour - StartHour) * WeekCellsHeight
-        const height = (endHour - startHour) * WeekCellsHeight
+        const top = (startHour - StartHour) * WeekCellsHeight;
+        const height = (endHour - startHour) * WeekCellsHeight;
 
         // Find a column for this event
-        let columnIndex = 0
-        let placed = false
+        let columnIndex = 0;
+        let placed = false;
 
         while (!placed) {
-          const col = columns[columnIndex] || []
+          const col = columns[columnIndex] || [];
           if (col.length === 0) {
-            columns[columnIndex] = col
-            placed = true
+            columns[columnIndex] = col;
+            placed = true;
           } else {
-            const overlaps = col.some((c) =>
-              areIntervalsOverlapping(
-                {start: adjustedStart, end: adjustedEnd},
-                {
-                  start: new Date(c.event.from),
-                  end: new Date(c.event.to),
-                }
-              )
-            )
+            const overlaps = col.some((c) => {
+              const start = DateTime.fromISO(c.event.from).setZone(TimeZone);
+              const end = DateTime.fromISO(c.event.to).setZone(TimeZone);
+              const left = Interval.fromDateTimes(adjustedStart, adjustedEnd);
+              const right = Interval.fromDateTimes(start, end);
+              return left.overlaps(right);
+            });
             if (!overlaps) {
-              placed = true
+              placed = true;
             } else {
-              columnIndex++
+              columnIndex++;
             }
           }
         }
 
         // Ensure column is initialized before pushing
-        const currentColumn = columns[columnIndex] || []
-        columns[columnIndex] = currentColumn
-        currentColumn.push({event, end: adjustedEnd})
+        const currentColumn = columns[columnIndex] || [];
+        columns[columnIndex] = currentColumn;
+        currentColumn.push({ event, end: adjustedEnd });
 
         // Calculate width and left position based on number of columns
-        const width = columnIndex === 0 ? 1 : 1 - (columnIndex * 0.1)
-        const left = columnIndex === 0 ? 0 : columnIndex * 0.1
+        const width = columnIndex === 0 ? 1 : 1 - columnIndex * 0.1;
+        const left = columnIndex === 0 ? 0 : columnIndex * 0.1;
 
         positionedEvents.push({
           event,
@@ -195,40 +182,40 @@ export function WeekView({
           left,
           width,
           zIndex: 10 + columnIndex, // Higher columns get higher z-index
-        })
-      })
+        });
+      });
 
-      return positionedEvents
-    })
-  }, [days, events])
+      return positionedEvents;
+    });
+  }, [days, events]);
 
   const handleEventClick = (event: Event, e: React.MouseEvent) => {
-    e.stopPropagation()
-    onEventSelectAction(event)
-  }
+    e.stopPropagation();
+    onEventSelectAction(event);
+  };
 
-  const showAllDaySection = allDayEvents.length > 0
+  const showAllDaySection = allDayEvents.length > 0;
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
     currentDate,
     "week"
-  )
+  );
 
   return (
     <div data-slot="week-view" className="flex h-full flex-col">
       <div className="bg-background/80 border-border/70 sticky top-[80px] z-30 grid grid-cols-8 border-b backdrop-blur-md">
         <div className="text-muted-foreground/70 py-2 text-center text-sm">
-          <span className="max-[479px]:sr-only">{format(new Date(), "O")}</span>
+          <span className="max-[479px]:sr-only">{DateTime.now().setZone(TimeZone).toFormat("O")}</span>
         </div>
         {days.map((day) => (
           <div
             key={day.toString()}
             className="data-today:text-foreground text-muted-foreground/70 py-2 text-center text-sm data-today:font-medium"
-            data-today={isToday(day) || undefined}
+            data-today={day.hasSame(DateTime.local(), "day") || undefined}
           >
             <span className="sm:hidden" aria-hidden="true">
-              {format(day, "E")[0]} {format(day, "d")}
+              {day.toFormat("E")[0]} {day.toFormat("d")}
             </span>
-            <span className="max-sm:hidden">{format(day, "EEE dd")}</span>
+            <span className="max-sm:hidden">{day.toFormat("EEE dd")}</span>
           </div>
         ))}
       </div>
@@ -243,31 +230,31 @@ export function WeekView({
             </div>
             {days.map((day, dayIndex) => {
               const dayAllDayEvents = allDayEvents.filter((event) => {
-                const eventStart = new Date(event.from)
-                const eventEnd = new Date(event.to)
+                const eventStart = DateTime.fromISO(event.from).setZone(TimeZone)
+                const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone)
                 return (
-                  isSameDay(day, eventStart) ||
+                  day.hasSame(eventStart, "day") ||
                   (day > eventStart && day < eventEnd) ||
-                  isSameDay(day, eventEnd)
-                )
-              })
+                  day.hasSame(eventEnd, "day")
+                );
+              });
 
               return (
                 <div
                   key={day.toString()}
                   className="border-border/70 relative border-r p-1 last:border-r-0"
-                  data-today={isToday(day) || undefined}
+                  data-today={day.hasSame(DateTime.local(), "day") || undefined}
                 >
                   {dayAllDayEvents.map((event) => {
-                    const eventStart = new Date(event.from)
-                    const eventEnd = new Date(event.to)
-                    const isFirstDay = isSameDay(day, eventStart)
-                    const isLastDay = isSameDay(day, eventEnd)
+                const eventStart = DateTime.fromISO(event.from).setZone(TimeZone)
+                const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone)
+                    const isFirstDay = day.hasSame(eventStart, "day")
+                    const isLastDay = day.hasSame(eventEnd, "day")
 
                     // Check if this is the first day in the current week view
                     const isFirstVisibleDay =
-                      dayIndex === 0 && isBefore(eventStart, weekStart)
-                    const shouldShowTitle = isFirstDay || isFirstVisibleDay
+                      dayIndex === 0 && eventStart.toMillis() < weekStart.toMillis();
+                    const shouldShowTitle = isFirstDay || isFirstVisibleDay;
 
                     return (
                       <EventItem
@@ -289,10 +276,10 @@ export function WeekView({
                           {event.title}
                         </div>
                       </EventItem>
-                    )
+                    );
                   })}
                 </div>
-              )
+              );
             })}
           </div>
         </div>
@@ -307,7 +294,7 @@ export function WeekView({
             >
               {index > 0 && (
                 <span className="bg-background text-muted-foreground/70 absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end pe-2 text-[10px] sm:pe-4 sm:text-xs">
-                  {format(hour, "h a")}
+                  {hour.toFormat("h a")}
                 </span>
               )}
             </div>
@@ -318,7 +305,7 @@ export function WeekView({
           <div
             key={day.toString()}
             className="border-border/70 relative grid auto-cols-fr border-r last:border-r-0"
-            data-today={isToday(day) || undefined}
+            data-today={day.hasSame(DateTime.local(), "day") || undefined}
           >
             {/* Positioned events */}
             {(processedDayEvents[dayIndex] ?? []).map((positionedEvent) => (
@@ -347,7 +334,7 @@ export function WeekView({
             ))}
 
             {/* Current time indicator - only show for today's column */}
-            {currentTimeVisible && isToday(day) && (
+            {currentTimeVisible && day.hasSame(DateTime.local(), "day") && (
               <div
                 className="pointer-events-none absolute right-0 left-0 z-20"
                 style={{ top: `${currentTimePosition}%` }}
@@ -359,7 +346,7 @@ export function WeekView({
               </div>
             )}
             {hours.map((hour) => {
-              const hourValue = getHours(hour)
+              const hourValue = hour.hour;
               return (
                 <div
                   key={hour.toString()}
@@ -367,11 +354,11 @@ export function WeekView({
                 >
                   {/* Quarter-hour intervals */}
                   {[0, 1, 2, 3].map((quarter) => {
-                    const quarterHourTime = hourValue + quarter * 0.25
+                    const quarterHourTime = hourValue + quarter * 0.25;
                     return (
                       <CalendarCell
                         key={`${hour.toString()}-${quarter}`}
-                        id={`week-cell-${day.toISOString()}-${quarterHourTime}`}
+                        id={`week-cell-${day.toISODate()}-${quarterHourTime}`}
                         date={day}
                         time={quarterHourTime}
                         className={cn(
@@ -385,20 +372,20 @@ export function WeekView({
                             "top-[calc(var(--week-cells-height)/4*3)]"
                         )}
                         onClick={() => {
-                          const startTime = new Date(day)
-                          startTime.setHours(hourValue)
-                          startTime.setMinutes(quarter * 15)
-                          onEventCreateAction(startTime)
+                          const startTime = day.setZone(TimeZone);
+                          startTime.set({hour: hourValue})
+                          startTime.set({minute: quarter * 15})
+                          onEventCreateAction(startTime);
                         }}
                       />
-                    )
+                    );
                   })}
                 </div>
-              )
+              );
             })}
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 }
