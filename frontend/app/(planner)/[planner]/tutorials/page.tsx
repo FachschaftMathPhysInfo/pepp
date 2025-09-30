@@ -1,11 +1,5 @@
-import {Metadata} from "next";
-
-export const metadata: Metadata = {
-  title: "Tutorien",
-}
-
-export default function OverviewPage() {
+export default function SettingsProfilePage() {
   return (
-    <p>Tutorien</p>
-  )
+    <></>
+  );
 }

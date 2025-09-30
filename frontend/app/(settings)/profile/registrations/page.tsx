@@ -84,7 +84,7 @@ export default function RegistrationsPage() {
 
       const newSelectedEvent = fetchedEvents.find(e => e.ID === selectedEventID)
 
-      setSelectedEvent(newSelectedEvent ?? null)
+      setSelectedEvent(!newSelectedEvent ? null : {...defaultEvent, ...newSelectedEvent, tutorials: []})
     }
 
     void fetchEventDetails();

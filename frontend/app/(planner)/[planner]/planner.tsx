@@ -122,6 +122,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
           eventData.events.map((e) => ({
             ...defaultEvent,
             ...e,
+            tutorials: []
           }))
         );
         setIsRestricted(!!eventData.umbrellas[0].registrationForm);
