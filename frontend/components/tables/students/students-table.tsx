@@ -2,7 +2,7 @@ import {
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
+  getFilteredRowModel, getPaginationRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
@@ -24,9 +24,9 @@ interface StudentTableProps {
 }
 
 export function StudentsTable({
-  data,
-  setDialogState
-}: StudentTableProps) {
+                                data,
+                                setDialogState
+                              }: StudentTableProps) {
 
   const columns = StudentsColumns(setDialogState);
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -47,6 +47,7 @@ export function StudentsTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,
@@ -79,9 +80,9 @@ export function StudentsTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

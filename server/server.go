@@ -161,12 +161,8 @@ func main() {
 	})
 
 	gc := graph.Config{Resolvers: &resolver}
-	if env == "Production" {
-		gc.Directives.Auth = directives.Auth
-	} else {
-		gc.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver, rule *model.Rule, role *model.Role) (res interface{}, err error) {
-			return next(ctx)
-		}
+	gc.Directives.Auth = func(ctx context.Context, obj interface{}, next graphql.Resolver, rule *model.Rule, role *model.Role) (res interface{}, err error) {
+		return directives.Auth(ctx, obj, next, rule, role, db, env)
 	}
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(gc))

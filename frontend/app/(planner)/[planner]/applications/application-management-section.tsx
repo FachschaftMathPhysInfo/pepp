@@ -10,10 +10,10 @@ import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormMessage} from "@/components/ui/form";
 import {LoaderCircle, Mail} from "lucide-react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {AcceptNewApplicationsDocument, AcceptNewApplicationsMutation} from "@/lib/gql/generated/graphql";
 import {toast} from "sonner";
+import {useUser} from "@/components/provider/user-provider";
 
 interface ApplicationManagementSectionProps {
   umbrellaID: number

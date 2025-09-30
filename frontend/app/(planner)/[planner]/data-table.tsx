@@ -3,27 +3,22 @@
 import {
   ColumnDef,
   ColumnFiltersState,
-  SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  SortingState,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import React from "react";
-import { Input } from "@/components/ui/input";
-import { DataTablePagination } from "@/components/tables/data-table-pagination";
-import { DataTableViewOptions } from "@/components/tables/data-table-view-options";
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
+import React, {useEffect} from "react";
+import {Input} from "@/components/ui/input";
+import {DataTablePagination} from "@/components/tables/data-table-pagination";
+import {DataTableViewOptions} from "@/components/tables/data-table-view-options";
+import {usePathname, useRouter, useSearchParams} from "next/navigation";
+import {createNewQueryString, STRING_QUERY_KEY} from "@/lib/query-urls";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -31,9 +26,9 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+                                           columns,
+                                           data,
+                                         }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -59,6 +54,27 @@ export function DataTable<TData, TValue>({
       rowSelection,
     },
   });
+  const [query, setQuery] = React.useState(table.getColumn("title")?.getFilterValue() as string ?? "");
+  const pathname = usePathname()
+  const router = useRouter()
+  const searchparams = useSearchParams()
+  const [hasInitializedFromParams, setHasInitializedFromParams] = React.useState(false)
+
+  useEffect(() => {
+    if(!hasInitializedFromParams) return;
+
+    if (query === "") router.push(pathname);
+    else router.push(pathname + '?' + createNewQueryString(STRING_QUERY_KEY, [query]))
+  }, [query]);
+
+  useEffect(() => {
+    const newQuery = searchparams.get(STRING_QUERY_KEY)
+    if(hasInitializedFromParams) return
+
+    if(newQuery !== "" && newQuery) table.getColumn('title')?.setFilterValue(newQuery)
+    setQuery(newQuery ?? "")
+    setHasInitializedFromParams(true)
+  }, [searchparams, hasInitializedFromParams, table]);
 
   return (
     <div className="space-y-4">
@@ -66,12 +82,13 @@ export function DataTable<TData, TValue>({
         <Input
           placeholder="Veranstaltungstitel filtern..."
           value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
+          onChange={(event) => {
+            setQuery(event.target.value)
             table.getColumn("title")?.setFilterValue(event.target.value)
-          }
+          }}
           className="max-w-sm"
         />
-        <DataTableViewOptions table={table} />
+        <DataTableViewOptions table={table}/>
       </div>
       <div className="rounded-md border overflow-hidden">
         <Table>
@@ -84,9 +101,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   );
                 })}

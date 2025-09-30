@@ -11,12 +11,12 @@ import {Card, CardContent} from "@/components/ui/card";
 
 import {useCallback, useEffect, useState} from "react";
 import {getClient} from "@/lib/graphql";
-import {useUser} from "@/components/providers";
 import PlannerItem from "@/components/planner-item";
 import {EventDialog} from "@/components/dialog/events/event-dialog";
 import {defaultEvent} from "@/types/defaults";
 
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger,} from "@/components/ui/accordion";
+import {useUser} from "@/components/provider/user-provider";
 
 export default function RegistrationsPage() {
   const {user, sid} = useUser();

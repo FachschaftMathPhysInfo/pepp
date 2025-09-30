@@ -1,10 +1,10 @@
 "use client"
-import {useUser} from "@/components/providers";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import React, {useEffect, useState} from "react";
 import {getClient} from "@/lib/graphql";
 import {AllApplicantsDocument, AllApplicantsQuery} from "@/lib/gql/generated/graphql";
 import ApplicationScoreChart from "@/app/(planner)/[planner]/applications/application-score-chart";
+import {useUser} from "@/components/provider/user-provider";
 
 interface ApplicationInfoSectionProps {
   umbrellaID: number

@@ -4,6 +4,7 @@ import {CalendarView} from "@/components/event-calendar";
 export const VIEWMODE_QUERY_KEY = 'vm'
 export const TYPEFILTER_QUERY_KEY = 'ty'
 export const TOPICFILTER_QUERY_KEY = 'to'
+export const STRING_QUERY_KEY = 's'
 
 export function createNewQueryString (name: string, values: string[]) {
   const params = new URLSearchParams(values.map((v) => [name, v]));
@@ -18,7 +19,7 @@ export function mergeQueryString (params: ReadonlyURLSearchParams, name: string,
   return newParams.toString();
 }
 
-export function getFiltersFromQuery (params: ReadonlyURLSearchParams) {
+export function getEventFiltersFromQuery (params: ReadonlyURLSearchParams) {
   const topicFilters = params.getAll(TOPICFILTER_QUERY_KEY);
   const typeFilters = params.getAll(TYPEFILTER_QUERY_KEY);
 

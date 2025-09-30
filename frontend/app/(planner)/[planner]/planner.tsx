@@ -19,7 +19,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getClient } from "@/lib/graphql";
 import { CopyTextArea } from "@/components/copy-text-area";
-import { useRefetch, useUser } from "@/components/providers";
+import { useRefetch } from "@/components/provider/refetch-provider";
 import {
   Alert,
   AlertAction,
@@ -33,7 +33,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { EventCalendar } from "@/components/event-calendar";
 import {
   createNewQueryString,
-  getFiltersFromQuery,
+  getEventFiltersFromQuery,
   TOPICFILTER_QUERY_KEY,
   TYPEFILTER_QUERY_KEY,
 } from "@/lib/query-urls";
@@ -49,6 +49,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
+import {useUser} from "@/components/provider/user-provider";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -180,7 +181,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     // Awaits labels to load
     if (!topics.length && !types.length) return;
 
-    const filterNames = getFiltersFromQuery(searchParams);
+    const filterNames = getEventFiltersFromQuery(searchParams);
     const typeFilters = types
       .filter((t) => filterNames.types.includes(t.name))
       .map((t) => t.ID);

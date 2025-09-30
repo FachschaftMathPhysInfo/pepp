@@ -13,10 +13,10 @@ import {
 } from "@/components/ui/accordion";
 import { useCallback, useEffect, useState } from "react";
 import { getClient } from "@/lib/graphql";
-import { useUser } from "@/components/providers";
 import MailForm from "@/app/(settings)/admin/mails/mail-form";
 import { ManagementPageHeader } from "@/components/management-page-header";
 import { Mail } from "lucide-react";
+import {useUser} from "@/components/provider/user-provider";
 
 export default function Settings() {
   const { sid } = useUser();

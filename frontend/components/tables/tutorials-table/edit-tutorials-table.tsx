@@ -10,19 +10,13 @@ import {
   TutorialAvailabilitysQueryVariables,
   User,
 } from "@/lib/gql/generated/graphql";
-import {
-  Info,
-  MessageCircleQuestionMark,
-  Plus,
-  Save,
-  SquareMinus,
-} from "lucide-react";
-import { useUser } from "../../providers";
+import {Info, MessageCircleQuestionMark, Plus, Save, SquareMinus} from "lucide-react";
 import { getClient } from "@/lib/graphql";
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
 import { TutorSelection } from "./tutor-selection";
 import { RoomSelection } from "./room-selection";
+import {useUser} from "@/components/provider/user-provider";
 import {
   Tooltip,
   TooltipContent,
@@ -96,7 +90,7 @@ export function EditTutorialsTable({
       );
     };
 
-    fetchData();
+    void fetchData();
   }, []);
 
   const handleAvailableRoomsChange = (
@@ -125,7 +119,7 @@ export function EditTutorialsTable({
   const groupedRooms = groupRoomsByBuildingID();
 
   return (
-    <div className="rounded-md border overflow-hidden overflow-y-auto max-h-[25vh]">
+    <div className="rounded-md border my-3">
       <Table>
         <TableBody>
           {tutorials && tutorials.length ? (

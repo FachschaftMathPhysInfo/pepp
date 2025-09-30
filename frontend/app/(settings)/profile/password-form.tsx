@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import React, { useState } from "react";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
-import { useUser } from "@/components/providers";
 import { getClient } from "@/lib/graphql";
 import {
   LoginDocument,
@@ -24,6 +23,7 @@ import {
   UpdateUserDocument,
   UpdateUserMutation,
 } from "@/lib/gql/generated/graphql";
+import {useUser} from "@/components/provider/user-provider";
 
 export default function PasswordForm() {
   const passwordFormSchema = z

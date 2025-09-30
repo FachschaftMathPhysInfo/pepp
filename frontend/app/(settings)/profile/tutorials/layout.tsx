@@ -1,12 +1,13 @@
 "use client";
 
 import { ManagementPageHeader } from "@/components/management-page-header";
-import { RefetchProvider, useUser } from "@/components/providers";
+import { RefetchProvider } from "@/components/provider/refetch-provider";
 import { SidebarNav } from "@/components/sidebar-nav";
 import { Tutorial } from "@/lib/gql/generated/graphql";
 import { slugify } from "@/lib/utils";
 import { GraduationCap } from "lucide-react";
 import React from "react";
+import {useUser} from "@/components/provider/user-provider";
 
 interface ProfileTutorialsLayoutProps {
   children: React.ReactNode;
