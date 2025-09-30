@@ -44,7 +44,7 @@ import { SingleBadgePicker } from "@/components/single-badge-picker";
 import { DatePicker } from "@/components/date-picker";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
-import { extractId } from "@/lib/utils";
+import { extractId, formatDateToHHMM } from "@/lib/utils";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import { usePathname } from "next/navigation";
 import {
@@ -132,10 +132,9 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
     void fetchTutorials();
   }, [event]);
 
-  function formatToHHMM(date: Date): string {
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
+  function addLocalTimezoneOffset(date: Date): Date {
+    const offsetMinutes = date.getTimezoneOffset();
+    return new Date(date.getTime() - offsetMinutes * 60 * 1000);
   }
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
@@ -144,9 +143,13 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       title: event?.title ?? "",
       description: event?.description ?? "",
       date: event ? new Date(event.from) : new Date(),
-      from: formatToHHMM(event ? new Date(event.from) : new Date()),
-      to: formatToHHMM(
-        event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
+      from: formatDateToHHMM(
+        event ? new Date(event.from) : new Date()
+      ),
+      to: formatDateToHHMM(
+        event
+          ? new Date(event.to)
+          : new Date(Date.now() + 30 * 60 * 1000)
       ),
       topicIDs: event?.topics.map((t) => t.ID),
       typeID: event?.type.ID,
@@ -163,8 +166,8 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       topicIDs: data.topicIDs,
       typeID: data.typeID,
       needsTutors: data.needsTutors,
-      from: mergeDateAndTime(data.date, data.from),
-      to: mergeDateAndTime(data.date, data.to),
+      from: addLocalTimezoneOffset(mergeDateAndTime(data.date, data.from)),
+      to: addLocalTimezoneOffset(mergeDateAndTime(data.date, data.to)),
       tutorialsOpen: data.tutorialsOpen,
       registrationNeeded: data.registrationNeeded,
     };
