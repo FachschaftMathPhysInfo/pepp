@@ -4,12 +4,12 @@ import { TutorialPage } from "./tutorial-page";
 export default async function TutorialDetailPage({
   params,
 }: {
-  params: Promise<{ tutorial: string }>;
+  params: Promise<{ event: string }>;
 }) {
-  const { tutorial } = await params;
+  const { event } = await params;
   return (
     <>
-      <TutorialPage eventID={extractId(tutorial) ?? 0} />
+      <TutorialPage eventID={extractId(event) ?? 0} />
     </>
   );
 }
