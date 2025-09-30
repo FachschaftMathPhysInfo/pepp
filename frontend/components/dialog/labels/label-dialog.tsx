@@ -9,7 +9,6 @@ interface LabelDialogProps {
   isOpen: boolean;
   closeDialog: () => void;
   mode: "add" | "edit" | null;
-  triggerRefetch: () => Promise<void>;
 }
 
 export function LabelDialog(props: LabelDialogProps) {
@@ -29,7 +28,6 @@ export function LabelDialog(props: LabelDialogProps) {
           mode={props.mode}
           label={props.label}
           closeDialog={props.closeDialog}
-          triggerRefetch={props.triggerRefetch}
         />
       </  DialogContent>
     </Dialog>

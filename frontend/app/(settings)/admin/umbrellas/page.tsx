@@ -13,13 +13,13 @@ import { defaultEvent } from "@/types/defaults";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import { toast } from "sonner";
 import { GraphQLClient } from "graphql-request";
-import { useUser } from "@/components/providers";
 import { CirclePlus, Umbrella } from "lucide-react";
 import UmbrellaSection from "@/app/(settings)/admin/umbrellas/umbrella-section";
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/search-input";
 import { ManagementPageHeader } from "@/components/management-page-header";
 import {UmbrellaDialog} from "@/components/dialog/umbrellas/umbrella-dialog";
+import {useUser} from "@/components/provider/user-provider";
 
 export type UmbrellaDialogState = {
   mode: "editUmbrella" | "addUmbrella" | "deleteUmbrella" | null;

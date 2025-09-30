@@ -28,12 +28,12 @@ import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {Form, FormControl, FormField, FormItem, FormMessage,} from "@/components/ui/form";
 import {toast} from "sonner";
-import {useUser} from "@/components/providers";
 import {extractId} from "@/lib/utils";
 import {AuthenticationDialog} from "@/components/dialog/authentication/authentication-dialog";
 import {DialogClose, DialogDescription, DialogTitle} from "@/components/ui/dialog";
 import {LogIn} from "lucide-react";
 import {CardSkeleton} from "@/components/card-skeleton";
+import {useUser} from "@/components/provider/user-provider";
 
 const SingleChoiceFormSchema = (required: boolean) =>
   z.object({

@@ -12,7 +12,6 @@ import {
   TableEventsDocument,
   TableEventsQuery,
 } from "@/lib/gql/generated/graphql";
-import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {Button} from "@/components/ui/button";
 import {EventTable} from "@/components/tables/event-table/event-table";
@@ -23,6 +22,7 @@ import {BadgeX, CalendarCheck2, RotateCcw, Save} from "lucide-react";
 import {toast} from "sonner";
 import {createRowSelectionFromEventIds, getEventIdsFromRowSelection} from "@/lib/tables";
 import {ManagementPageHeader} from "@/components/management-page-header";
+import {useUser} from "@/components/provider/user-provider";
 
 export default function Settings() {
   const {user, sid} = useUser();

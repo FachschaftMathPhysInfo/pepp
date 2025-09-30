@@ -7,11 +7,11 @@ import {
   AllUsersQuery,
   User,
 } from "@/lib/gql/generated/graphql";
-import { useUser } from "@/components/providers";
 import { UserTable } from "@/components/tables/user-table/user-table";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { ManagementPageHeader } from "@/components/management-page-header";
 import { Users } from "lucide-react";
+import {useUser} from "@/components/provider/user-provider";
 
 export default function UserSettingsPage() {
   const { sid } = useUser();

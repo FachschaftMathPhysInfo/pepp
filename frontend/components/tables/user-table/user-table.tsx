@@ -29,9 +29,9 @@ import { DataTablePagination } from "@/components/tables/data-table-pagination";
 import { UserColumns } from "@/components/tables/user-table/user-columns";
 import { GraphQLClient } from "graphql-request";
 import { getClient } from "@/lib/graphql";
-import { useUser } from "@/components/providers";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import { toast } from "sonner";
+import {useUser} from "@/components/provider/user-provider";
 
 interface DataTableProps {
   data: User[];

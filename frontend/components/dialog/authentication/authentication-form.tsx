@@ -1,5 +1,4 @@
 import {getClient} from "@/lib/graphql";
-import {useUser} from "@/components/providers";
 import React, {useRef, useState} from "react";
 import {z} from "zod";
 import {
@@ -16,6 +15,7 @@ import {Form, FormControl, FormField, FormItem, FormMessage} from "@/components/
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Loader2} from "lucide-react";
+import {useUser} from "@/components/provider/user-provider";
 
 
 const SignInFormSchema = z.object({

@@ -26,9 +26,9 @@ import {
   UpsertSettingMutation,
 } from "@/lib/gql/generated/graphql";
 import { getClient } from "@/lib/graphql";
-import { useUser } from "@/components/providers";
 import { useEffect, useState } from "react";
 import { ManagementPageHeader } from "@/components/management-page-header";
+import {useUser} from "@/components/provider/user-provider";
 
 const FormSchema = z.object({
   oidc_name: z.string().nonempty("Feld darf nicht leer sein."),

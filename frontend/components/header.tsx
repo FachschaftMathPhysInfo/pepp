@@ -28,7 +28,6 @@ import {
   FutureEventsQuery,
   Role,
 } from "@/lib/gql/generated/graphql";
-import { useUser } from "./providers";
 import { getClient } from "@/lib/graphql";
 import { usePathname, useRouter } from "next/navigation";
 import { EventDialog } from "@/components/dialog/events/event-dialog";
@@ -39,6 +38,7 @@ import { extractId, groupEventsByUmbrellaId } from "@/lib/utils";
 import { AuthenticationDialog } from "./dialog/authentication/authentication-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DialogTitle } from "@/components/ui/dialog";
+import {useUser} from "@/components/provider/user-provider";
 
 export default function Header() {
   const router = useRouter();

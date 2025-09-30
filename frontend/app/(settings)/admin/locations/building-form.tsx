@@ -5,7 +5,6 @@ import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import React, {useState} from "react";
-import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {
   AddBuildingDocument,
@@ -16,6 +15,7 @@ import {
 } from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
+import {useUser} from "@/components/provider/user-provider";
 
 
 interface RoomFormProps {

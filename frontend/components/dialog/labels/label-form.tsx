@@ -5,7 +5,6 @@ import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import React, {useEffect, useState} from "react";
-import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {
   AddLabelDocument,
@@ -19,16 +18,18 @@ import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
 import {Label} from "@/components/ui/label";
+import {useUser} from "@/components/provider/user-provider";
+import {useLabels} from "@/components/provider/labels-provider";
 
 interface LabelFormProps {
   label?: Labeltype;
   closeDialog: () => void;
   mode: "add" | "edit" | null;
-  triggerRefetch: () => Promise<void>;
 }
 
 export default function LabelForm(props: LabelFormProps) {
   const {sid} = useUser();
+  const {triggerLabelRefetch} = useLabels()
 
   const createMode = props.mode === "add"
   const [color, setColor] = useState<string>(props.label?.color === undefined || props.label?.color === "" ?
@@ -90,7 +91,7 @@ export default function LabelForm(props: LabelFormProps) {
       }
     }
 
-    void props.triggerRefetch();
+    void triggerLabelRefetch();
     props.closeDialog();
   }
 
