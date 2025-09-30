@@ -16,7 +16,6 @@ import {
 } from "@/lib/gql/generated/graphql";
 import { Info, Loader2, Lock } from "lucide-react";
 import { MailLinkWithLabel } from "@/components/email-link";
-import { useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import React, { useCallback, useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
@@ -28,6 +27,7 @@ import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {useUser} from "@/components/provider/user-provider";
 import AdaptiveHoverCardPopover from "@/components/adaptive-hovercard-popover";
 import Markdown from "react-markdown";
 

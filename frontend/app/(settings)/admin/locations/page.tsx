@@ -18,12 +18,12 @@ import BuildingSection from "@/app/(settings)/admin/locations/building-section";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import {toast} from "sonner";
 import {GraphQLClient} from "graphql-request";
-import {useUser} from "@/components/providers";
 import {RoomDialog} from "@/app/(settings)/admin/locations/room-dialog";
 import {CirclePlus, School} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {BuildingDialog} from "@/app/(settings)/admin/locations/building-dialog";
 import {ManagementPageHeader} from "@/components/management-page-header";
+import {useUser} from "@/components/provider/user-provider";
 
 export type LocationDialogState = {
   mode:

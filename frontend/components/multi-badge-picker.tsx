@@ -1,14 +1,14 @@
-import {Label, LabelKind, LabelsDocument, LabelsQuery} from "@/lib/gql/generated/graphql";
+import {Label, LabelKind} from "@/lib/gql/generated/graphql";
 import React, {useEffect, useState} from "react";
 import {Check, ChevronDown, Edit} from "lucide-react";
 import {Badge} from "@/components/ui/badge";
-import {getClient} from "@/lib/graphql";
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
 import {cn} from "@/lib/utils";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command";
 import {Separator} from "./ui/separator";
 import {Button} from "./ui/button";
 import {useRouter} from "next/navigation";
+import {useLabels} from "@/components/provider/labels-provider";
 
 interface MultiBadgePickerProps {
   kind: LabelKind;
@@ -23,6 +23,7 @@ export function MultiBadgePicker({
                                    selectedLabelIDs,
                                    onChange,
                                  }: MultiBadgePickerProps) {
+  const {topicLabels, typeLabels} = useLabels()
   const [labels, setLabels] = useState<Label[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>(
     labels.filter((label) => (selectedLabelIDs || []).includes(label.ID)) ?? []
@@ -31,15 +32,8 @@ export function MultiBadgePicker({
   const router = useRouter();
 
   useEffect(() => {
-    const fetchLabels = async () => {
-      const client = getClient();
-
-      const labelData = await client.request<LabelsQuery>(LabelsDocument, {kind: kind});
-
-      setLabels(labelData.labels);
-    };
-
-    void fetchLabels();
+    if (kind === LabelKind.Topic) setLabels(topicLabels)
+    else setLabels(typeLabels)
   }, [kind, open]);
 
   useEffect(() => {

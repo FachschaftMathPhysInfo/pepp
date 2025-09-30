@@ -85,9 +85,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useUser } from "@/components/providers";
 import { Role } from "@/lib/gql/generated/graphql";
 import { useRouter } from "next/navigation";
+import {useUser} from "@/components/provider/user-provider";
 
 export function ProfileSidebar() {
   const { user } = useUser();

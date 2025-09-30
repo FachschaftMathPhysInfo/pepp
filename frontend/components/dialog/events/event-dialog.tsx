@@ -9,13 +9,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Event, Role } from "@/lib/gql/generated/graphql";
-import { useUser } from "@/components/providers";
 import { Calendar, Clock, Edit2, Sprout } from "lucide-react";
 import { EventForm } from "@/components/dialog/events/event-form";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { TutorialsTable } from "../../tables/tutorials-table/tutorials-table";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import {useUser} from "@/components/provider/user-provider";
 
 interface EventDialogProps {
   event: Event | null;

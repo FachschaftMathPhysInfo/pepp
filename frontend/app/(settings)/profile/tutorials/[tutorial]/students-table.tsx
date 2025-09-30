@@ -2,7 +2,7 @@ import {
   ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
+  getFilteredRowModel, getPaginationRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
@@ -47,6 +47,7 @@ export function StudentsTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,

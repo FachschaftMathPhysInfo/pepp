@@ -28,7 +28,7 @@ type Tutorial {
   tutors: [User!]
   room: Room!
   registrationCount: Int!
-  students: [User!]
+  students: [User!] @auth(rule: IS_TUTOR)
   capacity: Int!
   description: String
 }

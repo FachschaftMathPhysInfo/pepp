@@ -17,11 +17,12 @@ import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
 import ConfirmationDialog from "@/components/confirmation-dialog";
-import { useState } from "react";
-import { useRefetch, useUser } from "@/components/providers";
-import { getClient } from "@/lib/graphql";
-import { toast } from "sonner";
-import { EventDialog } from "@/components/dialog/events/event-dialog";
+import {useState} from "react";
+import {useRefetch} from "@/components/provider/refetch-provider";
+import {getClient} from "@/lib/graphql";
+import {toast} from "sonner";
+import {EventDialog} from "@/components/dialog/events/event-dialog";
+import {useUser} from "@/components/provider/user-provider";
 
 export const columns: ColumnDef<Event>[] = [
   {

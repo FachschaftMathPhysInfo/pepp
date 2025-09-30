@@ -6,8 +6,8 @@ import {ColumnDef} from "@tanstack/react-table";
 import {MoreHorizontal, Shield,} from "lucide-react";
 import React, {SetStateAction} from "react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
-import {useUser} from "@/components/providers";
 import {Badge} from "@/components/ui/badge";
+import {useUser} from "@/components/provider/user-provider";
 
 interface UserColumnProps {
   setDialogState: React.Dispatch<

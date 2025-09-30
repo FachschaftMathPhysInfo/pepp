@@ -1,6 +1,6 @@
 "use client";
 
-import { useRefetch, useUser } from "@/components/providers";
+import { useRefetch } from "@/components/provider/refetch-provider";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,6 +56,7 @@ import { EditTutorialsTable } from "../../tables/tutorials-table/edit-tutorials-
 import { Switch } from "../../ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Markdown from "react-markdown";
+import { useUser } from "@/components/provider/user-provider";
 import { MultiBadgePicker } from "@/components/multi-badge-picker";
 
 const eventFormSchema = z.object({
@@ -400,8 +401,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
                 control={form.control}
                 name="topicIDs"
                 render={({ field }) => (
-                  // 200px is the width of the popover
-                  <FormItem className={"w-fit min-w-[200px]"}>
+                  <FormItem>
                     <FormLabel>Studiengänge</FormLabel>
                     <FormControl>
                       <MultiBadgePicker
@@ -424,7 +424,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className={"hidden"}>
-                    Benötigt Tutor:innen
+                    Benötigt Tutor/innen
                   </FormLabel>
                   <FormControl>
                     <span className={"flex items-center gap-2 min-w-fit"}>
@@ -432,7 +432,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
-                      Benötigt Tutor:innen
+                      Benötigt Tutor/innen
                     </span>
                   </FormControl>
                   <FormMessage />
