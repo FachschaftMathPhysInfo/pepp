@@ -137,18 +137,3 @@ export const formatDate = (date: Date, locale: string = "de-DE"): string => {
     timeZone: "UTC",
   });
 };
-
-export function getInitialCalendarDate(events: Event[]): Date {
-  const now = new Date();
-
-  if (events.length === 0) return now;
-
-  const sortedEvents = events
-    .map(event => new Date(event.from))
-    .sort((a, b) => a.getTime() - b.getTime());
-
-  const firstEventDate = sortedEvents[0];
-
-  if (firstEventDate > now) return firstEventDate;
-  return now;
-}

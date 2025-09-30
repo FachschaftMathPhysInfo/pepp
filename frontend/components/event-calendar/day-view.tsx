@@ -1,19 +1,8 @@
-"use client"
+"use client";
 
-import React, { useMemo } from "react"
-import {
-  addHours,
-  areIntervalsOverlapping,
-  differenceInMinutes,
-  eachHourOfInterval,
-  format,
-  getHours,
-  getMinutes,
-  isSameDay,
-  startOfDay,
-} from "date-fns"
+import React, { useMemo } from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 import {
   CalendarEventItem,
   CalendarCell,
@@ -21,24 +10,30 @@ import {
   isMultiDayEvent,
   useCurrentTimeIndicator,
   WeekCellsHeight,
-} from "@/components/event-calendar"
-import type { Event } from "@/lib/gql/generated/graphql"
-import { EndHour, StartHour } from "@/components/event-calendar/constants"
+  eachHourOfInterval,
+} from "@/components/event-calendar";
+import type { Event } from "@/lib/gql/generated/graphql";
+import {
+  EndHour,
+  StartHour,
+  TimeZone,
+} from "@/components/event-calendar/constants";
+import { DateTime, Interval } from "luxon";
 
 interface DayViewProps {
-  currentDate: Date
-  events: Event[]
-  onEventSelectAction: (event: Event) => void
-  onEventCreateAction: (startTime: Date) => void
+  currentDate: DateTime;
+  events: Event[];
+  onEventSelectAction: (event: Event) => void;
+  onEventCreateAction: (startTime: DateTime) => void;
 }
 
 interface PositionedEvent {
-  event: Event
-  top: number
-  height: number
-  left: number
-  width: number
-  zIndex: number
+  event: Event;
+  top: number;
+  height: number;
+  left: number;
+  width: number;
+  zIndex: number;
 }
 
 export function DayView({
@@ -48,118 +43,119 @@ export function DayView({
   onEventCreateAction,
 }: DayViewProps) {
   const hours = useMemo(() => {
-    const dayStart = startOfDay(currentDate)
-    return eachHourOfInterval({
-      start: addHours(dayStart, StartHour),
-      end: addHours(dayStart, EndHour - 1),
-    })
-  }, [currentDate])
+    const dayStart = currentDate.startOf("day");
+    return eachHourOfInterval(
+      dayStart.plus({ hours: StartHour }),
+      dayStart.plus({ hours: EndHour - 1 })
+    );
+  }, [currentDate]);
 
   const dayEvents = useMemo(() => {
     return events
       .filter((event) => {
-        const eventStart = new Date(event.from)
-        const eventEnd = new Date(event.to)
+        const eventStart = DateTime.fromISO(event.from).setZone(TimeZone);
+        const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone);
         return (
-          isSameDay(currentDate, eventStart) ||
-          isSameDay(currentDate, eventEnd) ||
+          currentDate.hasSame(eventStart, "day") ||
+          currentDate.hasSame(eventEnd, "day") ||
           (currentDate > eventStart && currentDate < eventEnd)
-        )
+        );
       })
-      .sort((a, b) => new Date(a.from).getTime() - new Date(b.from).getTime())
-  }, [currentDate, events])
+      .sort((a, b) => new Date(a.from).getTime() - new Date(b.from).getTime());
+  }, [currentDate, events]);
 
   // Filter all-day events
   const allDayEvents = useMemo(() => {
     return dayEvents.filter((event) => {
       // Include explicitly marked all-day events or multi-day events
-      return isMultiDayEvent(event)
-    })
-  }, [dayEvents])
+      return isMultiDayEvent(event);
+    });
+  }, [dayEvents]);
 
   // Get only single-day time-based events
   const timeEvents = useMemo(() => {
     return dayEvents.filter((event) => {
       // Exclude all-day events and multi-day events
-      return !isMultiDayEvent(event)
-    })
-  }, [dayEvents])
+      return !isMultiDayEvent(event);
+    });
+  }, [dayEvents]);
 
   // Process events to calculate positions
   const positionedEvents = useMemo(() => {
-    const result: PositionedEvent[] = []
-    const dayStart = startOfDay(currentDate)
+    const result: PositionedEvent[] = [];
+    const dayStart = currentDate.startOf("day");
 
     // Sort events by start time and duration
     const sortedEvents = [...timeEvents].sort((a, b) => {
-      const aStart = new Date(a.from)
-      const bStart = new Date(b.from)
-      const aEnd = new Date(a.to)
-      const bEnd = new Date(b.to)
+      const aStart = DateTime.fromISO(a.from).setZone(TimeZone);
+      const bStart = DateTime.fromISO(b.from).setZone(TimeZone);
+      const aEnd = DateTime.fromISO(a.to).setZone(TimeZone);
+      const bEnd = DateTime.fromISO(b.to).setZone(TimeZone);
 
       // First sort by start time
-      if (aStart < bStart) return -1
-      if (aStart > bStart) return 1
+      if (aStart < bStart) return -1;
+      if (aStart > bStart) return 1;
 
       // If start times are equal, sort by duration (longer events first)
-      const aDuration = differenceInMinutes(aEnd, aStart)
-      const bDuration = differenceInMinutes(bEnd, bStart)
-      return bDuration - aDuration
-    })
+      const aDuration = aEnd.diff(aStart, "minute").minutes;
+      const bDuration = bEnd.diff(bStart, "minute").minutes;
+      return bDuration - aDuration;
+    });
 
     // Track columns for overlapping events
-    const columns: { event: Event; end: Date }[][] = []
+    const columns: { event: Event; end: DateTime }[][] = [];
 
     sortedEvents.forEach((event) => {
-      const eventStart = new Date(event.from)
-      const eventEnd = new Date(event.to)
+      const eventStart = DateTime.fromISO(event.from).setZone(TimeZone);
+      const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone);
 
       // Adjust start and end times if they're outside this day
-      const adjustedStart = isSameDay(currentDate, eventStart)
+      const adjustedStart = currentDate.hasSame(eventStart, "day")
         ? eventStart
-        : dayStart
-      const adjustedEnd = isSameDay(currentDate, eventEnd)
+        : dayStart;
+      const adjustedEnd = currentDate.hasSame(eventEnd, "day")
         ? eventEnd
-        : addHours(dayStart, 24)
+        : dayStart.plus({ hours: 24 });
 
       // Calculate top position and height
-      const startHour = getHours(adjustedStart) + getMinutes(adjustedStart) / 60
-      const endHour = getHours(adjustedEnd) + getMinutes(adjustedEnd) / 60
-      const top = (startHour - StartHour) * WeekCellsHeight
-      const height = (endHour - startHour) * WeekCellsHeight
+      const startHour = adjustedStart.hour + adjustedStart.minute / 60;
+      const endHour = adjustedEnd.hour + adjustedEnd.minute / 60;
+      const top = (startHour - StartHour) * WeekCellsHeight;
+      const height = (endHour - startHour) * WeekCellsHeight;
 
       // Find a column for this event
-      let columnIndex = 0
-      let placed = false
+      let columnIndex = 0;
+      let placed = false;
 
       while (!placed) {
-        const col = columns[columnIndex] || []
+        const col = columns[columnIndex] || [];
         if (col.length === 0) {
-          columns[columnIndex] = col
-          placed = true
+          columns[columnIndex] = col;
+          placed = true;
         } else {
-          const overlaps = col.some((c) =>
-            areIntervalsOverlapping(
-              { start: adjustedStart, end: adjustedEnd },
-              { start: new Date(c.event.from), end: new Date(c.event.to) }
-            )
-          )
+          const overlaps = col.some((c) => {
+            const start = DateTime.fromISO(c.event.from).setZone(TimeZone);
+            const end = DateTime.fromISO(c.event.to).setZone(TimeZone);
+            const left = Interval.fromDateTimes(adjustedStart, adjustedEnd);
+            const right = Interval.fromDateTimes(start, end);
+            return left.overlaps(right);
+          });
           if (!overlaps) {
-            placed = true
+            placed = true;
           } else {
-            columnIndex++
+            columnIndex++;
           }
         }
       }
 
       // Ensure column is initialized before pushing
-      const currentColumn = columns[columnIndex] || []
-      columns[columnIndex] = currentColumn
-      currentColumn.push({ event, end: adjustedEnd })
+      const currentColumn = columns[columnIndex] || [];
+      columns[columnIndex] = currentColumn;
+      currentColumn.push({ event, end: adjustedEnd });
 
       // First column takes full width, others are indented by 10% and take 90% width
-      const width = columnIndex === 0 ? 1 : 1 - (columnIndex * 0.1)
-      const left = columnIndex === 0 ? 0 : columnIndex * 0.1
+      const width = columnIndex === 0 ? 1 : 1 - columnIndex * 0.1;
+      const left = columnIndex === 0 ? 0 : columnIndex * 0.1;
 
       result.push({
         event,
@@ -168,22 +164,22 @@ export function DayView({
         left,
         width,
         zIndex: 10 + columnIndex, // Higher columns get higher z-index
-      })
-    })
+      });
+    });
 
-    return result
-  }, [currentDate, timeEvents])
+    return result;
+  }, [currentDate, timeEvents]);
 
   const handleEventClick = (event: Event, e: React.MouseEvent) => {
-    e.stopPropagation()
-    onEventSelectAction(event)
-  }
+    e.stopPropagation();
+    onEventSelectAction(event);
+  };
 
-  const showAllDaySection = allDayEvents.length > 0
+  const showAllDaySection = allDayEvents.length > 0;
   const { currentTimePosition, currentTimeVisible } = useCurrentTimeIndicator(
     currentDate,
     "day"
-  )
+  );
 
   return (
     <div data-slot="day-view" className="contents">
@@ -197,10 +193,12 @@ export function DayView({
             </div>
             <div className="border-border/70 relative border-r p-1 last:border-r-0">
               {allDayEvents.map((event) => {
-                const eventStart = new Date(event.from)
-                const eventEnd = new Date(event.to)
-                const isFirstDay = isSameDay(currentDate, eventStart)
-                const isLastDay = isSameDay(currentDate, eventEnd)
+                const eventStart = DateTime.fromISO(event.from).setZone(
+                  TimeZone
+                );
+                const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone);
+                const isFirstDay = currentDate.hasSame(eventStart, "day");
+                const isLastDay = currentDate.hasSame(eventEnd, "day");
 
                 return (
                   <EventItem
@@ -214,7 +212,7 @@ export function DayView({
                     {/* Always show the title in day view for better usability */}
                     <div>{event.title}</div>
                   </EventItem>
-                )
+                );
               })}
             </div>
           </div>
@@ -230,7 +228,7 @@ export function DayView({
             >
               {index > 0 && (
                 <span className="bg-background text-muted-foreground/70 absolute -top-3 left-0 flex h-6 w-16 max-w-full items-center justify-end pe-2 text-[10px] sm:pe-4 sm:text-xs">
-                  {format(hour, "h a")}
+                  {hour.toFormat("h a")}
                 </span>
               )}
             </div>
@@ -278,7 +276,7 @@ export function DayView({
 
           {/* Time grid */}
           {hours.map((hour) => {
-            const hourValue = getHours(hour)
+            const hourValue = hour.hour;
             return (
               <div
                 key={hour.toString()}
@@ -286,11 +284,11 @@ export function DayView({
               >
                 {/* Quarter-hour intervals */}
                 {[0, 1, 2, 3].map((quarter) => {
-                  const quarterHourTime = hourValue + quarter * 0.25
+                  const quarterHourTime = hourValue + quarter * 0.25;
                   return (
                     <CalendarCell
                       key={`${hour.toString()}-${quarter}`}
-                      id={`day-cell-${currentDate.toISOString()}-${quarterHourTime}`}
+                      id={`day-cell-${currentDate.toISO()}-${quarterHourTime}`}
                       date={currentDate}
                       time={quarterHourTime}
                       className={cn(
@@ -304,19 +302,19 @@ export function DayView({
                           "top-[calc(var(--week-cells-height)/4*3)]"
                       )}
                       onClick={() => {
-                        const startTime = new Date(currentDate)
-                        startTime.setHours(hourValue)
-                        startTime.setMinutes(quarter * 15)
-                        onEventCreateAction(startTime)
+                        const startTime = currentDate;
+                        startTime.set({ hour: hourValue });
+                        startTime.set({ minute: quarter * 15 });
+                        onEventCreateAction(startTime);
                       }}
                     />
-                  )
+                  );
                 })}
               </div>
-            )
+            );
           })}
         </div>
       </div>
     </div>
-  )
+  );
 }
