@@ -278,9 +278,9 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
-          className={"w-full flex flex-col gap-y-4 overflow-y-scroll"}
+          className={"w-full flex flex-col overflow-y-scroll"}
         >
-          <div className={"w-full overflow-y-auto"}>
+          <div className={"w-full overflow-y-auto space-y-4"}>
             <FormField
               control={form.control}
               name="title"
