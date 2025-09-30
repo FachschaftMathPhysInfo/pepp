@@ -119,7 +119,7 @@ export function EditTutorialsTable({
   const groupedRooms = groupRoomsByBuildingID();
 
   return (
-    <div className="rounded-md border overflow-hidden overflow-y-auto max-h-[25vh]">
+    <div className="rounded-md border my-3">
       <Table>
         <TableBody>
           {tutorials && tutorials.length ? (
