@@ -18,7 +18,7 @@
 </div>
 
 ## Getting started
-> [!NOTE]
+> [!CAUTION]
 > For development and testing purposes, SQLite is supported as DB-System. However, in production please use Postgres as we only support this for DB-migrations. You will get no updates otherwise, or break your system. To use SQLite just don't provide Posgres connection environment variables.
 ### Deployment via docker-compose
 ```bash
@@ -70,6 +70,8 @@ services:
     command: -c config_file=/etc/postgresql/config/postgresql.conf
     env_file: .env
 ``` 
+> [!IMPORTANT]
+> After initial startup run `docker compose exec pepp pepp db init` and `docker compose exec pepp pepp db mark_applied`
 
 ## Environment Variables
 

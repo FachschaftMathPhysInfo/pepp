@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 
-import { cn, formatDate, getDateAdjustedForTimezone } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -31,10 +31,8 @@ export function DatePickerWithRange({
   modal = false,
 }: DatePickerWithRangeProps) {
   const [range, setRange] = React.useState<DateRange>({
-    from: getDateAdjustedForTimezone(initialDateFrom),
-    to: initialDateTo
-      ? getDateAdjustedForTimezone(initialDateTo)
-      : getDateAdjustedForTimezone(initialDateFrom),
+    from: new Date(initialDateFrom),
+    to: initialDateTo ? new Date(initialDateTo) : new Date(initialDateFrom),
   });
 
   return (
