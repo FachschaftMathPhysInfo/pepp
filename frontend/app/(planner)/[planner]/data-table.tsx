@@ -69,10 +69,10 @@ export function DataTable<TData, TValue>({
 
   useEffect(() => {
     const newQuery = searchparams.get(STRING_QUERY_KEY)
-    if(hasInitializedFromParams || !newQuery) return
+    if(hasInitializedFromParams) return
 
-    table.getColumn('title')?.setFilterValue(newQuery)
-    setQuery(newQuery)
+    if(newQuery !== "" && newQuery) table.getColumn('title')?.setFilterValue(newQuery)
+    setQuery(newQuery ?? "")
     setHasInitializedFromParams(true)
   }, [searchparams, hasInitializedFromParams, table]);
 
