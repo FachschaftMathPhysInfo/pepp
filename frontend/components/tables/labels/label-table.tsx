@@ -14,7 +14,7 @@ import React from "react";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/lib/gql/generated/graphql";
 import {DataTablePagination} from "@/components/tables/data-table-pagination";
-import {LabelColumn} from "@/components/tables/label-table/label-columns";
+import {LabelColumn} from "@/components/tables/labels/label-columns";
 import {LabelDialogState} from "@/app/(settings)/admin/labels/page";
 
 interface DataTableProps {

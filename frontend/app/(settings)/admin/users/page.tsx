@@ -7,7 +7,7 @@ import {
   AllUsersQuery,
   User,
 } from "@/lib/gql/generated/graphql";
-import { UserTable } from "@/components/tables/user-table/user-table";
+import { UserTable } from "@/components/tables/users/user-table";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { ManagementPageHeader } from "@/components/management-page-header";
 import { Users } from "lucide-react";

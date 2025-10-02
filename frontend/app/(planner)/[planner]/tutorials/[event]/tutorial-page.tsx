@@ -1,6 +1,7 @@
 "use client";
 
-import { useRefetch, useUser } from "@/components/providers";
+import { useUser } from "@/components/provider/user-provider";
+
 import { TableSkeleton } from "@/components/table-skeleton";
 import {
   DeleteStudentRegistrationForTutorialDocument,
@@ -25,6 +26,7 @@ import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { RoomDetail } from "@/components/room-detail";
 import ConfirmationDialog from "@/components/confirmation-dialog";
+import {useRefetch} from "@/components/provider/refetch-provider";
 
 interface TutorialPageProps {
   eventID: number;

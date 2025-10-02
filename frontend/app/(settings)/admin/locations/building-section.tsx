@@ -1,7 +1,7 @@
 import {Building} from "@/lib/gql/generated/graphql";
 import {CirclePlus, Map as MapIcon, Pencil, Trash} from "lucide-react";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
-import {RoomTable} from "@/components/tables/rooms-table/room-table";
+import {RoomTable} from "@/components/tables/rooms/room-table";
 import {LocationDialogState} from "@/app/(settings)/admin/locations/page";
 import React from "react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";

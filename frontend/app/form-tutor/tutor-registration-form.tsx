@@ -13,8 +13,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { eventColumns } from "@/components/tables/event-table/event-columns";
-import { EventTable } from "@/components/tables/event-table/event-table";
+import { eventColumns } from "@/components/tables/events/event-columns";
+import { EventTable } from "@/components/tables/events/event-table";
 import React, { useEffect, useState } from "react";
 import { getClient } from "@/lib/graphql";
 import {

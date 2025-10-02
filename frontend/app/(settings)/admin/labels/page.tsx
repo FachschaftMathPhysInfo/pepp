@@ -8,7 +8,7 @@ import {useState} from "react";
 import {DeleteLabelDocument, DeleteLabelMutation, Label,} from "@/lib/gql/generated/graphql";
 import {toast} from "sonner";
 import {getClient} from "@/lib/graphql";
-import {LabelTable} from "@/components/tables/label-table/label-table";
+import {LabelTable} from "@/components/tables/labels/label-table";
 import {Skeleton} from "@/components/ui/skeleton";
 import {LabelDialog} from "@/components/dialog/labels/label-dialog";
 import {defaultLabel} from "@/types/defaults";

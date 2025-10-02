@@ -19,7 +19,7 @@ import React from "react";
 import {Input} from "@/components/ui/input";
 import {DataTablePagination} from "@/components/tables/data-table-pagination";
 import {Building, Room} from "@/lib/gql/generated/graphql";
-import {RoomColumn} from "@/components/tables/rooms-table/room-columns";
+import {RoomColumn} from "@/components/tables/rooms/room-columns";
 import {LocationDialogState} from "@/app/(settings)/admin/locations/page";
 
 interface DataTableProps {

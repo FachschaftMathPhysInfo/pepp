@@ -26,7 +26,7 @@ import {
   User,
 } from "@/lib/gql/generated/graphql";
 import { DataTablePagination } from "@/components/tables/data-table-pagination";
-import { UserColumns } from "@/components/tables/user-table/user-columns";
+import { UserColumns } from "@/components/tables/users/user-columns";
 import { GraphQLClient } from "graphql-request";
 import { getClient } from "@/lib/graphql";
 import ConfirmationDialog from "@/components/confirmation-dialog";

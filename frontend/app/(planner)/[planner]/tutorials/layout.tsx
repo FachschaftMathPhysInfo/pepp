@@ -1,7 +1,8 @@
 "use client";
 
 import { ManagementPageHeader } from "@/components/management-page-header";
-import { RefetchProvider, useUser } from "@/components/providers";
+import { RefetchProvider } from "@/components/provider/refetch-provider";
+import { useUser } from "@/components/provider/user-provider"
 import { SidebarNav } from "@/components/sidebar-nav";
 import {Event, PlannerEventsDocument} from "@/lib/gql/generated/graphql";
 import {extractId, slugify} from "@/lib/utils";
