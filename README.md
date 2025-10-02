@@ -96,6 +96,7 @@ services:
 | Key | Description | Example |
 | - | - | - |
 | `LOG_LEVEL` | Default is `Info`. Set to `Debug` for more information | `Debug` |
+| `LOCALE` | Default is `UTC`. This affects mainly the events exported as ICS which get converted. | `Europe/Berlin` |
 | `ENV` | Set to `Production` on deployment | `Production` |
 | `ENABLE_TRACING` | Application exports traces to an OpenTelemetry Collector | `true` |
 | `ADMIN_USER` | Default is `admin@pepp.local`. Generated on initial startup | `admin@example.com` |
