@@ -14,8 +14,8 @@ import {
 } from "@/lib/gql/generated/graphql";
 import {getClient} from "@/lib/graphql";
 import {Button} from "@/components/ui/button";
-import {EventTable} from "@/components/tables/event-table/event-table";
-import {eventColumns} from "@/components/tables/event-table/event-columns";
+import {EventTable} from "@/components/tables/events/event-table";
+import {eventColumns} from "@/components/tables/events/event-columns";
 import {RowSelectionState} from "@tanstack/react-table";
 import {defaultEvent} from "@/types/defaults";
 import {BadgeX, CalendarCheck2, RotateCcw, Save} from "lucide-react";

@@ -1,16 +1,14 @@
 "use client";
 
-import { useRefetch } from "@/components/provider/refetch-provider";
+import { useUser } from "@/components/provider/user-provider";
+
 import { TableSkeleton } from "@/components/table-skeleton";
 import {
   DeleteStudentRegistrationForTutorialDocument,
   DeleteStudentRegistrationForTutorialMutation,
   DeleteStudentRegistrationForTutorialMutationVariables,
-  Event,
-  Tutorial,
-  TutorialDetailDocument,
-  TutorialDetailQuery,
-  TutorialDetailQueryVariables,
+  Event, EventDescriptionDocument,
+  Tutorial, TutorialDetailDocument,
   User,
 } from "@/lib/gql/generated/graphql";
 import { getClient } from "@/lib/graphql";
@@ -22,16 +20,16 @@ import {
   defaultUser,
 } from "@/types/defaults";
 import { useEffect, useState } from "react";
-import { StudentsTable } from "../../../../../components/tables/students/students-table";
+import { StudentsTable } from "@/components/tables//students/students-table";
 import EventDescription from "@/components/event-description";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { RoomDetail } from "@/components/room-detail";
 import ConfirmationDialog from "@/components/confirmation-dialog";
-import {useUser} from "@/components/provider/user-provider";
+import {useRefetch} from "@/components/provider/refetch-provider";
 
 interface TutorialPageProps {
-  id: number;
+  eventID: number;
 }
 
 export interface StudentTableDialogState {
@@ -39,7 +37,7 @@ export interface StudentTableDialogState {
   isOpen: boolean;
 }
 
-export function TutorialPage({ id }: TutorialPageProps) {
+export function TutorialPage({ eventID }: TutorialPageProps) {
   const { sid, user } = useUser();
   const { refetchKey, triggerRefetch } = useRefetch();
 
@@ -61,15 +59,10 @@ export function TutorialPage({ id }: TutorialPageProps) {
 
       if(!user) return;
 
-      const vars: TutorialDetailQueryVariables = {
-        tutorID: user.ID,
-        eventID: id,
-      };
-
       try {
-        const tutorialsData = await client.request<TutorialDetailQuery>(
+        const tutorialsData = await client.request(
           TutorialDetailDocument,
-          vars
+          {eventID: eventID}
         );
 
         setTutorials(
@@ -84,7 +77,12 @@ export function TutorialPage({ id }: TutorialPageProps) {
             students: t.students?.map((s) => ({ ...defaultUser, ...s })),
           }))
         );
-        setEvent({ ...defaultEvent, ...tutorialsData.events[0] });
+
+        const eventData = await client.request(EventDescriptionDocument, {id: eventID})
+        setEvent({
+          ...defaultEvent,
+          ...eventData.events.find(e => e.ID === eventID)
+        })
       } catch (err) {
         toast.error("Beim Laden der Tutoriendaten ist ein Fehler aufgetreten.");
         console.log(err);
@@ -94,7 +92,7 @@ export function TutorialPage({ id }: TutorialPageProps) {
     };
 
     void fetchTutorial();
-  }, [id, sid, user, refetchKey]);
+  }, [eventID, sid, user, refetchKey]);
 
   async function handleRemoveUser() {
     const client = getClient(sid!);

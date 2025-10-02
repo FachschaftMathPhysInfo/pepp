@@ -52,7 +52,7 @@ import {
   defaultTutorial,
   defaultUser,
 } from "@/types/defaults";
-import { EditTutorialsTable } from "../../tables/tutorials-table/edit-tutorials-table";
+import { EditTutorialsTable } from "@/components/tables/tutorials/edit-tutorials-table";
 import { Switch } from "../../ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Markdown from "react-markdown";

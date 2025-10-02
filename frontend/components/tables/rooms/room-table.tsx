@@ -4,55 +4,53 @@ import {
   getCoreRowModel,
   getFilteredRowModel, getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow,} from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import React from "react";
 import {Input} from "@/components/ui/input";
 import {DataTablePagination} from "@/components/tables/data-table-pagination";
-import {DataTableViewOptions} from "@/components/tables/data-table-view-options";
-import {User} from "@/lib/gql/generated/graphql";
-import {StudentTableDialogState} from "@/app/(settings)/profile/tutorials/[tutorial]/tutorial-page";
-import StudentsColumns from "@/app/(settings)/profile/tutorials/[tutorial]/students-columns";
+import {Building, Room} from "@/lib/gql/generated/graphql";
+import {RoomColumn} from "@/components/tables/rooms/room-columns";
+import {LocationDialogState} from "@/app/(settings)/admin/locations/page";
 
-interface StudentTableProps {
-  data: User[];
-  setDialogState: React.Dispatch<React.SetStateAction<StudentTableDialogState>>;
+interface DataTableProps {
+  data: Room[];
+  setDialogState: React.Dispatch<React.SetStateAction<LocationDialogState>>;
+  currentBuilding: Building;
 }
 
-export function StudentsTable({
+export function RoomTable({
   data,
-  setDialogState
-}: StudentTableProps) {
-
-  const columns = StudentsColumns(setDialogState);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  setDialogState,
+  currentBuilding,
+}: DataTableProps) {
+  const columns = RoomColumn({ currentBuilding, setDialogState });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    onSortingChange: setSorting,
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    getPaginationRowModel: getPaginationRowModel(),
     state: {
-      sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
     },
   });
 
@@ -60,14 +58,13 @@ export function StudentsTable({
     <div className="space-y-4">
       <div className="flex items-center">
         <Input
-          placeholder="Studis suchen..."
+          placeholder="Name filtern..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
-        <DataTableViewOptions table={table} />
       </div>
       <div className="rounded-md border overflow-hidden">
         <Table>
@@ -76,7 +73,7 @@ export function StudentsTable({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead className={"text-left"} key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -97,7 +94,10 @@ export function StudentsTable({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      className={"[&:not(:first-child)]:ml-8"}
+                      key={cell.id}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -112,7 +112,7 @@ export function StudentsTable({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  Keine registrierten Studis gefunden.
+                  Keine Ergebnisse.
                 </TableCell>
               </TableRow>
             )}

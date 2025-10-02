@@ -13,7 +13,7 @@ import { Calendar, Clock, Edit2, Sprout } from "lucide-react";
 import { EventForm } from "@/components/dialog/events/event-form";
 import { Badge } from "@/components/ui/badge";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
-import { TutorialsTable } from "../../tables/tutorials-table/tutorials-table";
+import { TutorialsTable } from "@/components/tables/tutorials/tutorials-table";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {useUser} from "@/components/provider/user-provider";
 

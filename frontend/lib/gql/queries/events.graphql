@@ -90,6 +90,9 @@ query plannerEvents($umbrellaID: Int!, $type: [Int!], $topics: [Int!]) {
       color
       kind
     }
+    tutorials {
+      ID
+    }
   }
 }
 
@@ -222,5 +225,27 @@ query allEventsForEventDialog {
       color
       kind
     }
+  }
+}
+
+query eventDescription($id: Int!) {
+  events(id: [$id]) {
+    ID
+    title
+    description
+    topics {
+      ID
+      name
+      kind
+      color
+    }
+    type {
+      ID
+      name
+      kind
+      color
+    }
+    from
+    to
   }
 }
