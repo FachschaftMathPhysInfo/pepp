@@ -27,7 +27,7 @@ import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import {useUser} from "@/components/provider/user-provider";
+import { useUser } from "@/components/provider/user-provider";
 import AdaptiveHoverCardPopover from "@/components/adaptive-hovercard-popover";
 import Markdown from "react-markdown";
 
@@ -178,8 +178,6 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         vars
       );
     } catch (error) {
-      console.log(error);
-
       if (String(error).includes("capacity exceeded")) {
         toast.error(
           "Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein."
