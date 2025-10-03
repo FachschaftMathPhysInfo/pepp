@@ -55,7 +55,6 @@ export default function RoomForm({room, currentBuilding, closeDialog, refreshTab
 
   async function onValidSubmit(roomData: z.infer<typeof roomFormSchema>) {
     const client = getClient(String(sid));
-    console.log(roomData)
 
     if(createMode) {
       await client.request<AddRoomMutation>(AddRoomDocument, {room: roomData})

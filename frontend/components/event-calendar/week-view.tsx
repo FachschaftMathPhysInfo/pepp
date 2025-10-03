@@ -204,7 +204,9 @@ export function WeekView({
     <div data-slot="week-view" className="flex h-full flex-col">
       <div className="bg-background/80 border-border/70 sticky top-[80px] z-30 grid grid-cols-8 border-b backdrop-blur-md">
         <div className="text-muted-foreground/70 py-2 text-center text-sm">
-          <span className="max-[479px]:sr-only">{DateTime.now().setZone(TimeZone).toFormat("O")}</span>
+          <span className="max-[479px]:sr-only">
+            {DateTime.now().setZone(TimeZone).toFormat("O")}
+          </span>
         </div>
         {days.map((day) => (
           <div
@@ -230,8 +232,10 @@ export function WeekView({
             </div>
             {days.map((day, dayIndex) => {
               const dayAllDayEvents = allDayEvents.filter((event) => {
-                const eventStart = DateTime.fromISO(event.from).setZone(TimeZone)
-                const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone)
+                const eventStart = DateTime.fromISO(event.from).setZone(
+                  TimeZone
+                );
+                const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone);
                 return (
                   day.hasSame(eventStart, "day") ||
                   (day > eventStart && day < eventEnd) ||
@@ -246,14 +250,19 @@ export function WeekView({
                   data-today={day.hasSame(DateTime.local(), "day") || undefined}
                 >
                   {dayAllDayEvents.map((event) => {
-                const eventStart = DateTime.fromISO(event.from).setZone(TimeZone)
-                const eventEnd = DateTime.fromISO(event.to).setZone(TimeZone)
-                    const isFirstDay = day.hasSame(eventStart, "day")
-                    const isLastDay = day.hasSame(eventEnd, "day")
+                    const eventStart = DateTime.fromISO(event.from).setZone(
+                      TimeZone
+                    );
+                    const eventEnd = DateTime.fromISO(event.to).setZone(
+                      TimeZone
+                    );
+                    const isFirstDay = day.hasSame(eventStart, "day");
+                    const isLastDay = day.hasSame(eventEnd, "day");
 
                     // Check if this is the first day in the current week view
                     const isFirstVisibleDay =
-                      dayIndex === 0 && eventStart.toMillis() < weekStart.toMillis();
+                      dayIndex === 0 &&
+                      eventStart.toMillis() < weekStart.toMillis();
                     const shouldShowTitle = isFirstDay || isFirstVisibleDay;
 
                     return (
@@ -373,8 +382,8 @@ export function WeekView({
                         )}
                         onClick={() => {
                           const startTime = day.setZone(TimeZone);
-                          startTime.set({hour: hourValue})
-                          startTime.set({minute: quarter * 15})
+                          startTime.set({ hour: hourValue });
+                          startTime.set({ minute: quarter * 15 });
                           onEventCreateAction(startTime);
                         }}
                       />

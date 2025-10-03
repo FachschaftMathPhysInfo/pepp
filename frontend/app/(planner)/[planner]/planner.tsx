@@ -49,7 +49,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
-import {useUser} from "@/components/provider/user-provider";
+import { useUser } from "@/components/provider/user-provider";
+import { useUI } from "@/components/provider/ui-provider";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -62,6 +63,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
   const { user } = useUser();
   const { refetchKey } = useRefetch();
+  const { isMobile } = useUI();
 
   const [socials, setSocials] = useState<Setting[] | undefined>(undefined);
   const [events, setEvents] = useState<Event[]>([]);
@@ -353,7 +355,12 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       )}
 
       <section className="mt-5">
-        <EventCalendar events={events} initialView={"agenda"} />
+        {isMobile !== undefined && (
+          <EventCalendar
+            events={events}
+            initialView={isMobile ? "day" : "week"}
+          />
+        )}
       </section>
     </TooltipProvider>
   );

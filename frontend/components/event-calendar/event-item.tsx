@@ -99,8 +99,6 @@ export function EventItem({
     return displayEnd.diff(displayStart, "minutes").minutes
   }, [displayStart, displayEnd]);
 
-  console.log(durationMinutes)
-
   const getEventTime = () => {
     // For short events (less than 45 minutes), only show start time
     if (durationMinutes < 45) {
