@@ -28,7 +28,9 @@ type Tutorial {
   tutors: [User!]
   room: Room!
   registrationCount: Int!
-  students: [User!]
+  students: [User!] @auth(rule: IS_TUTOR)
+  capacity: Int!
+  description: String
 }
 
 type User {
@@ -65,7 +67,7 @@ type Event {
   needsTutors: Boolean!
   title: String!
   description: String
-  topic: Label!
+  topics: [Label!]!
   type: Label!
   from: Time!
   to: Time!
@@ -150,7 +152,7 @@ type Application {
 }
 
 type Query {
-  events(id: [Int!], umbrellaID: [Int!], topicID: [Int!], typeID: [Int!], needsTutors: Boolean, onlyFuture: Boolean, userID: [Int!], includeSupportingEvents: Boolean): [Event!]!
+  events(id: [Int!], umbrellaID: [Int!], topicIDs: [Int!], typeID: [Int!], needsTutors: Boolean, onlyFuture: Boolean, userID: [Int!], includeSupportingEvents: Boolean): [Event!]!
   umbrellas(id: [Int!], onlyFuture: Boolean): [Event!]!
   buildings(id: [Int!]): [Building!]!
   rooms(number: [String!], buildingID: [Int!]): [Room!]!
@@ -182,7 +184,7 @@ input UpdateUser {
 input NewEvent {
   title: String!
   description: String
-  topicID: Int
+  topicIDs: [Int!]
   typeID: Int
   needsTutors: Boolean!
   from: Time!
@@ -197,6 +199,8 @@ input NewTutorial {
   roomNumber: String!
   buildingID: Int!
   tutors: [Int!]
+  capacity: Int!
+  description: String
 }
 
 input NewBuilding {
@@ -286,6 +290,11 @@ input NewUserToEventApplication {
   answers: [NewQuestionResponsePair!]
 }
 
+input TopicToEventAssignment {
+  topicID: Int!
+  eventID: Int!
+}
+
 type Mutation {
   addUser(user: NewUser!): String!
   updateUser(user: UpdateUser!, id: Int!): Int! @auth(rule: IS_USER)
@@ -327,6 +336,8 @@ type Mutation {
   deleteStudentApplicationForEvent(studentID: Int!, eventID: Int!): User!
   linkSupportingEventToEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
   unlinkSupportingEventFromEvent(eventID: Int!, supportingEventID: [Int!]!): Int! @auth(role: ADMIN)
+  addTopicToEvent(eventID: Int!, topicID: [Int!]!): Int!
+  deleteTopicFromEvent(eventID: Int!, topicID: [Int!]!): Int!
 
   acceptTopApplicationsOnEvent(eventID: Int!, count: Int!): Int! @auth(role: ADMIN)
 }

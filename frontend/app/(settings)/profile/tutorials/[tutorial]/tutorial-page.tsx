@@ -1,6 +1,6 @@
 "use client";
 
-import { useRefetch, useUser } from "@/components/providers";
+import { useRefetch } from "@/components/provider/refetch-provider";
 import { TableSkeleton } from "@/components/table-skeleton";
 import {
   DeleteStudentRegistrationForTutorialDocument,
@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { RoomDetail } from "@/components/room-detail";
 import ConfirmationDialog from "@/components/confirmation-dialog";
+import { useUser } from "@/components/provider/user-provider";
 
 interface TutorialPageProps {
   id: number;
@@ -58,7 +59,7 @@ export function TutorialPage({ id }: TutorialPageProps) {
 
       const client = getClient(sid!);
 
-      if(!user) return;
+      if (!user) return;
 
       const vars: TutorialDetailQueryVariables = {
         tutorID: user.ID,
@@ -84,9 +85,8 @@ export function TutorialPage({ id }: TutorialPageProps) {
           }))
         );
         setEvent({ ...defaultEvent, ...tutorialsData.events[0] });
-      } catch (err) {
+      } catch {
         toast.error("Beim Laden der Tutoriendaten ist ein Fehler aufgetreten.");
-        console.log(err);
       }
 
       setLoading(false);

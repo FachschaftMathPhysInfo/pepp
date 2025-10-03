@@ -4,7 +4,7 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
     from
     to
     description
-    topic {
+    topics {
       ID
       name
       color
@@ -19,6 +19,8 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
   }
   tutorials(eventID: [$eventID], tutorID: [$tutorID]) {
     ID
+    capacity
+    description
     room {
       name
       number
@@ -44,6 +46,8 @@ query tutorialDetail($eventID: Int!, $tutorID: Int!) {
 query eventTutorials($id: Int!) {
   tutorials(eventID: [$id]) {
     ID
+    description
+    capacity
     tutors {
       ID
       fn

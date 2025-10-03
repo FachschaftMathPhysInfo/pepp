@@ -61,9 +61,11 @@ export const formatDateToDDMM = (date: Date): string => {
 };
 
 export const formatDateToHHMM = (date: Date): string => {
-  return date.toLocaleString([], {
+  return date.toLocaleString("de-DE", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC"
   });
 };
 
@@ -127,37 +129,11 @@ export const groupEventsByUmbrellaId = (events: Event[]) => {
   }, {} as { [key: string]: Event[] });
 };
 
-export const formatDate = (date: Date, locale: string = "en-us"): string => {
+export const formatDate = (date: Date, locale: string = "de-DE"): string => {
   return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: "numeric",
+    timeZone: "UTC",
   });
 };
-
-export const getDateAdjustedForTimezone = (dateInput: Date | string): Date => {
-  if (typeof dateInput === "string") {
-    // Split the date string to get year, month, and day parts
-    const parts = dateInput.split("-").map((part) => parseInt(part, 10));
-    // Create a new Date object using the local timezone
-    return new Date(parts[0], parts[1] - 1, parts[2]);
-  } else {
-    // If dateInput is already a Date object, return it directly
-    return dateInput;
-  }
-};
-
-export function getInitialCalendarDate(events: Event[]): Date {
-  const now = new Date();
-
-  if (events.length === 0) return now;
-
-  const sortedEvents = events
-    .map(event => new Date(event.from))
-    .sort((a, b) => a.getTime() - b.getTime());
-
-  const firstEventDate = sortedEvents[0];
-
-  if (firstEventDate > now) return firstEventDate;
-  return now;
-}

@@ -9,10 +9,12 @@ import (
 type Tutorial struct {
 	bun.BaseModel `bun:",alias:t"`
 
-	ID         int32  `bun:",pk,autoincrement"`
-	EventID    int32  `bun:",notnull"`
-	RoomNumber string `bun:",notnull"`
-	BuildingID int32  `bun:",notnull"`
+	ID          int32  `bun:",pk,autoincrement"`
+	EventID     int32  `bun:",notnull"`
+	RoomNumber  string `bun:",notnull"`
+	BuildingID  int32  `bun:",notnull"`
+	Capacity    int16  `bun:",default:0"`
+	Description string
 
 	Event  *Event `bun:"rel:belongs-to,join:event_id=id"`
 	Room   *Room  `bun:"rel:belongs-to,join:room_number=number,join:building_id=building_id"`

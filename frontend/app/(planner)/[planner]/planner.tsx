@@ -19,7 +19,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { getClient } from "@/lib/graphql";
 import { CopyTextArea } from "@/components/copy-text-area";
-import { useRefetch, useUser } from "@/components/providers";
+import { useRefetch } from "@/components/provider/refetch-provider";
 import {
   Alert,
   AlertAction,
@@ -33,7 +33,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { EventCalendar } from "@/components/event-calendar";
 import {
   createNewQueryString,
-  getFiltersFromQuery,
+  getEventFiltersFromQuery,
   TOPICFILTER_QUERY_KEY,
   TYPEFILTER_QUERY_KEY,
 } from "@/lib/query-urls";
@@ -49,6 +49,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
+import { useUser } from "@/components/provider/user-provider";
+import { useUI } from "@/components/provider/ui-provider";
 
 interface PlannerPageProps {
   umbrellaID: number;
@@ -61,6 +63,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
 
   const { user } = useUser();
   const { refetchKey } = useRefetch();
+  const { isMobile } = useUI();
 
   const [socials, setSocials] = useState<Setting[] | undefined>(undefined);
   const [events, setEvents] = useState<Event[]>([]);
@@ -106,7 +109,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     const fetchEventData = async () => {
       const vars: PlannerEventsQueryVariables = {
         umbrellaID: umbrellaID ?? 0,
-        topic: topicFilter.length ? topicFilter : undefined,
+        topics: topicFilter.length ? topicFilter : undefined,
         type: typesFilter.length ? typesFilter : undefined,
       };
 
@@ -179,7 +182,7 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
     // Awaits labels to load
     if (!topics.length && !types.length) return;
 
-    const filterNames = getFiltersFromQuery(searchParams);
+    const filterNames = getEventFiltersFromQuery(searchParams);
     const typeFilters = types
       .filter((t) => filterNames.types.includes(t.name))
       .map((t) => t.ID);
@@ -352,7 +355,12 @@ export function PlannerPage({ umbrellaID }: PlannerPageProps) {
       )}
 
       <section className="mt-5">
-        <EventCalendar events={events} initialView={"agenda"} />
+        {isMobile !== undefined && (
+          <EventCalendar
+            events={events}
+            initialView={isMobile ? "day" : "week"}
+          />
+        )}
       </section>
     </TooltipProvider>
   );

@@ -5,7 +5,6 @@ import {Button} from "@/components/ui/button";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import React, {useState} from "react";
-import {useUser} from "@/components/providers";
 import {getClient} from "@/lib/graphql";
 import {
   AddRoomDocument,
@@ -17,6 +16,7 @@ import {
 } from "@/lib/gql/generated/graphql";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
+import {useUser} from "@/components/provider/user-provider";
 
 
 interface RoomFormProps {
@@ -55,7 +55,6 @@ export default function RoomForm({room, currentBuilding, closeDialog, refreshTab
 
   async function onValidSubmit(roomData: z.infer<typeof roomFormSchema>) {
     const client = getClient(String(sid));
-    console.log(roomData)
 
     if(createMode) {
       await client.request<AddRoomMutation>(AddRoomDocument, {room: roomData})

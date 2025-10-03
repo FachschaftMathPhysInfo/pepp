@@ -13,7 +13,6 @@ type Event struct {
 	ID                 int32  `bun:",pk,autoincrement"`
 	Title              string `bun:",notnull,type:varchar(255)"`
 	Description        string
-	TopicID            int32
 	TypeID             int32
 	From               time.Time `bun:",notnull"`
 	To                 time.Time `bun:",notnull"`
@@ -23,7 +22,7 @@ type Event struct {
 	RegistrationNeeded *bool `bun:",notnull,default:true"`
 
 	Umbrella         *Event      `bun:"rel:belongs-to,join:umbrella_id=id"`
-	Topic            *Label      `bun:"rel:belongs-to,join:topic_id=id"`
+	Topics           []*Label    `bun:"m2m:topic_to_events,join:Event=Topic"`
 	Type             *Label      `bun:"rel:belongs-to,join:type_id=id"`
 	Tutorials        []*Tutorial `bun:"rel:has-many,join:id=event_id"`
 	TutorsAvailable  []*User     `bun:"m2m:user_to_event_availabilities,join:Event=User"`
@@ -35,6 +34,22 @@ var _ bun.BeforeCreateTableHook = (*Event)(nil)
 
 func (*Event) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
 	query.ForeignKey(`("umbrella_id") REFERENCES "events" ("id") ON DELETE CASCADE`)
+	return nil
+}
+
+type TopicToEvent struct {
+	bun.BaseModel `bun:"table:topic_to_events,alias:tte"`
+
+	EventID int32  `bun:",pk"`
+	Event   *Event `bun:"rel:belongs-to,join:event_id=id"`
+	TopicID int32  `bun:",pk"`
+	Topic   *Label `bun:"rel:belongs-to,join:topic_id=id"`
+}
+
+var _ bun.BeforeCreateTableHook = (*TopicToEvent)(nil)
+
+func (*TopicToEvent) BeforeCreateTable(ctx context.Context, query *bun.CreateTableQuery) error {
+	query.ForeignKey(`("topic_id") REFERENCES "labels" ("id") ON DELETE CASCADE`)
 	return nil
 }
 

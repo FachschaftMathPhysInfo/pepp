@@ -1,6 +1,6 @@
 "use client";
 
-import {useRefetch, useUser} from "@/components/providers";
+import {useRefetch} from "@/components/provider/refetch-provider";
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -35,11 +35,11 @@ import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import {Button} from "@/components/ui/button";
 import {ChevronsUpDown, PlusCircle, Save, Trash} from "lucide-react";
-import {BadgePicker} from "@/components/badge-picker";
+import {SingleBadgePicker} from "@/components/single-badge-picker";
 import {DatePicker} from "@/components/date-picker";
 import {Checkbox} from "@/components/ui/checkbox";
 import {DialogFooter} from "@/components/ui/dialog";
-import {extractId} from "@/lib/utils";
+import {extractId, formatDateToHHMM} from "@/lib/utils";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 import {usePathname} from "next/navigation";
 import {defaultBuilding, defaultTutorial, defaultUser,} from "@/types/defaults";
@@ -49,6 +49,8 @@ import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import Markdown from "react-markdown";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command";
+import {useUser} from "@/components/provider/user-provider";
+import {MultiBadgePicker} from "@/components/multi-badge-picker";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -56,9 +58,9 @@ const eventFormSchema = z.object({
   date: z.date(),
   from: z.string().nonempty("Bitte gib eine Startzeit an."),
   to: z.string().nonempty("Bitte gib eine Endzeit an."),
-  topicID: z.number({
-    required_error: "Bitte wähle das Thema der Veranstaltung",
-  }),
+  topicIDs: z
+    .array(z.number())
+    .nonempty("Bitte gib mindestens einen Studiengang an."),
   typeID: z.number({required_error: "Bitte wähle den Typ der Veranstaltung"}),
   needsTutors: z.boolean(),
   tutorialsOpen: z.boolean(),
@@ -118,7 +120,12 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
         })
       );
 
-      setTutorials(newTutorials);
+      setTutorials(
+        newTutorials.map((t) => ({
+          ...t,
+          capacity: t.capacity === 0 ? t.room.capacity ?? 0 : t.capacity,
+        }))
+      );
       setInitialTIDs(newTutorials.map((t) => t.ID));
     } catch {
       toast.error(`Fehler beim Laden der Tutorien des Events ${event.title}`);
@@ -130,10 +137,9 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     void fetchTutorials();
   }, [event]);
 
-  function formatToHHMM(date: Date): string {
-    const hours = date.getHours().toString().padStart(2, "0");
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
+  function addLocalTimezoneOffset(date: Date): Date {
+    const offsetMinutes = date.getTimezoneOffset();
+    return new Date(date.getTime() - offsetMinutes * 60 * 1000);
   }
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
@@ -142,11 +148,15 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       title: event?.title ?? "",
       description: event?.description ?? "",
       date: event ? new Date(event.from) : new Date(),
-      from: formatToHHMM(event ? new Date(event.from) : new Date()),
-      to: formatToHHMM(
-        event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
+      from: formatDateToHHMM(
+        event ? new Date(event.from) : new Date()
       ),
-      topicID: event?.topic.ID,
+      to: formatDateToHHMM(
+        event
+          ? new Date(event.to)
+          : new Date(Date.now() + 30 * 60 * 1000)
+      ),
+      topicIDs: event?.topics.map((t) => t.ID),
       typeID: event?.type.ID,
       needsTutors: event?.needsTutors ?? true,
       tutorialsOpen: event?.tutorialsOpen ?? false,
@@ -168,11 +178,11 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     const newEvent: NewEvent = {
       title: data.title,
       description: data.description,
-      topicID: data.topicID,
+      topicIDs: data.topicIDs,
       typeID: data.typeID,
       needsTutors: data.needsTutors,
-      from: mergeDateAndTime(data.date, data.from),
-      to: mergeDateAndTime(data.date, data.to),
+      from: addLocalTimezoneOffset(mergeDateAndTime(data.date, data.from)),
+      to: addLocalTimezoneOffset(mergeDateAndTime(data.date, data.to)),
       tutorialsOpen: data.tutorialsOpen,
       registrationNeeded: data.registrationNeeded,
       umbrellaID: data.umbrellaID,
@@ -221,6 +231,8 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
         roomNumber: t.room.number,
         buildingID: t.room.building.ID,
         tutors: t.tutors?.map((u) => u.ID),
+        capacity: t.capacity,
+        description: t.description,
       };
     }
 
@@ -283,321 +295,323 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
 
   return (
     <>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
-          className={"w-full flex flex-col gap-y-4"}
-        >
-          <div className="w-[300px]">
-            <FormField
-              control={form.control}
-              name="umbrellaID"
-              render={({field}) => {
-                const [open, setOpen] = useState(false);
-                return (
-                  <FormItem>
-                    <FormLabel>Programm</FormLabel>
-                    <Popover open={open} onOpenChange={setOpen} modal>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className="w-full justify-between"
-                        >
-                          {field.value
-                            ? umbrellas.find(u => u.id === field.value)?.title
-                            : "Programm wählen"}
-                          <ChevronsUpDown className="h-4 w-4 opacity-50"/>
-                        </Button>
-                      </PopoverTrigger>
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
+        className={"w-full flex flex-col overflow-y-scroll"}
+      >
 
-                      <PopoverContent className="p-0">
-                        <Command>
-                          <CommandInput placeholder="Suche Programm..."/>
-                          <CommandList>
-                            <CommandEmpty>Kein Programm gefunden</CommandEmpty>
-                            <CommandGroup>
-                              {umbrellas.map(u => (
-                                <CommandItem
-                                  key={u.id}
-                                  value={u.title}
-                                  onSelect={() => {
-                                    field.onChange(u.id);
-                                    setOpen(false);
-                                  }}
-                                >
-                                  {u.title}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage/>
-                  </FormItem>
-                )
-              }}
-            />
-          </div>
-
+        <div className="w-[300px]">
           <FormField
             control={form.control}
-            name="title"
+            name="umbrellaID"
+            render={({field}) => {
+              const [open, setOpen] = useState(false);
+              return (
+                <FormItem>
+                  <FormLabel>Programm</FormLabel>
+                  <Popover open={open} onOpenChange={setOpen} modal>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        {field.value
+                          ? umbrellas.find(u => u.id === field.value)?.title
+                          : "Programm wählen"}
+                        <ChevronsUpDown className="h-4 w-4 opacity-50"/>
+                      </Button>
+                    </PopoverTrigger>
+
+                    <PopoverContent className="p-0">
+                      <Command>
+                        <CommandInput placeholder="Suche Programm..."/>
+                        <CommandList>
+                          <CommandEmpty>Kein Programm gefunden</CommandEmpty>
+                          <CommandGroup>
+                            {umbrellas.map(u => (
+                              <CommandItem
+                                key={u.id}
+                                value={u.title}
+                                onSelect={() => {
+                                  field.onChange(u.id);
+                                  setOpen(false);
+                                }}
+                              >
+                                {u.title}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage/>
+                </FormItem>
+              )
+            }}
+          />
+        </div>
+
+        <FormField
+          control={form.control}
+          name="title"
+          render={({field}) => (
+            <FormItem>
+              <FormLabel>Titel</FormLabel>
+              <FormControl>
+                <Input placeholder="Veranstaltungstitel" {...field} />
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({field}) => (
+            <FormItem>
+              <FormLabel>Beschreibung</FormLabel>
+              <Tabs defaultValue="plain">
+                <TabsList>
+                  <TabsTrigger value="plain">Markdown</TabsTrigger>
+                  <TabsTrigger value="preview">Vorschau</TabsTrigger>
+                </TabsList>
+                <TabsContent value="plain">
+                  <FormControl>
+                    <Textarea
+                      placeholder="Beschreibung des Events"
+                      {...field}
+                    />
+                  </FormControl>
+                </TabsContent>
+                <TabsContent value="preview">
+                  <Markdown>{field.value}</Markdown>
+                </TabsContent>
+              </Tabs>
+              <FormMessage/>
+            </FormItem>
+          )}
+        />
+
+        {/* Time */}
+        <div className={"flex items-cente justify-between flex-wrap gap-2"}>
+          <FormField
+            control={form.control}
+            name="date"
             render={({field}) => (
               <FormItem>
-                <FormLabel>Titel</FormLabel>
+                <FormLabel className={"hidden"}>Datum</FormLabel>
                 <FormControl>
-                  <Input placeholder="Veranstaltungstitel" {...field} />
+                  <DatePicker
+                    selected={field.value}
+                    onChange={(date) => field.onChange(date)}
+                  />
                 </FormControl>
                 <FormMessage/>
               </FormItem>
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="description"
-            render={({field}) => (
-              <FormItem>
-                <FormLabel>Beschreibung</FormLabel>
-                <Tabs defaultValue="plain">
-                  <TabsList>
-                    <TabsTrigger value="plain">Markdown</TabsTrigger>
-                    <TabsTrigger value="preview">Vorschau</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="plain">
-                    <FormControl>
-                      <Textarea
-                        placeholder="Beschreibung des Events"
-                        {...field}
-                      />
-                    </FormControl>
-                  </TabsContent>
-                  <TabsContent value="preview">
-                    <Markdown>{field.value}</Markdown>
-                  </TabsContent>
-                </Tabs>
-                <FormMessage/>
-              </FormItem>
-            )}
-          />
-
-          {/* Time */}
-          <div className={"flex items-cente justify-between flex-wrap gap-2"}>
+          <div className="flex items-center space-x-2">
             <FormField
               control={form.control}
-              name="date"
+              name="from"
               render={({field}) => (
                 <FormItem>
-                  <FormLabel className={"hidden"}>Datum</FormLabel>
                   <FormControl>
-                    <DatePicker
-                      selected={field.value}
-                      onChange={(date) => field.onChange(date)}
+                    <Input aria-label="start time" type="time" {...field} />
+                  </FormControl>
+                  <FormMessage/>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="to"
+              render={({field}) => (
+                <FormItem className={"flex items-center gap-2"}>
+                  bis
+                  <FormControl>
+                    <Input
+                      aria-label="Time"
+                      type="time"
+                      placeholder={event?.to}
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage/>
                 </FormItem>
               )}
             />
-
-            <div className="flex items-center space-x-2">
-              <FormField
-                control={form.control}
-                name="from"
-                render={({field}) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input aria-label="start time" type="time" {...field} />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="to"
-                render={({field}) => (
-                  <FormItem className={"flex items-center gap-2"}>
-                    bis
-                    <FormControl>
-                      <Input
-                        aria-label="Time"
-                        type="time"
-                        placeholder={event?.to}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
           </div>
+        </div>
 
-          {/* Labels */}
-          <div className={"flex items-center justify-between flex-wrap gap-2"}>
-            <div className={"flex items-center gap-2"}>
-              <FormField
-                control={form.control}
-                name="topicID"
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel className={"hidden"}>Thema</FormLabel>
-                    <FormControl>
-                      <BadgePicker
-                        kind={LabelKind.Topic}
-                        selected={field.value}
-                        onChange={(label) => field.onChange(label)}
-                      />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
+        <div className="flex flex-row gap-x-4">
+          <FormField
+            control={form.control}
+            name="typeID"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel>Art des Events</FormLabel>
+                <FormControl>
+                  <div className="pt-[6px]">
+                    <SingleBadgePicker
+                      kind={LabelKind.EventType}
+                      selected={field.value}
+                      onChange={(label) => field.onChange(label)}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="topicIDs"
+            render={({field}) => (
+              <FormItem>
+                <FormLabel>Studiengänge</FormLabel>
+                <FormControl>
+                  <MultiBadgePicker
+                    kind={LabelKind.Topic}
+                    selectedLabelIDs={field.value as number[]}
+                    onChange={(label) =>
+                      field.onChange(label.map((l) => l.ID))
+                    }
+                  />
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}
+          />
+        </div>
 
-              <FormField
-                control={form.control}
-                name="typeID"
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel className={"hidden"}>Art des Events</FormLabel>
-                    <FormControl>
-                      <BadgePicker
-                        kind={LabelKind.EventType}
-                        selected={field.value}
-                        onChange={(label) => field.onChange(label)}
-                      />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="needsTutors"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel className={"hidden"}>
-                    Benötigt Tutor:innen
-                  </FormLabel>
-                  <FormControl>
+        <FormField
+          control={form.control}
+          name="needsTutors"
+          render={({field}) => (
+            <FormItem>
+              <FormLabel className={"hidden"}>
+                Benötigt Tutor/innen
+              </FormLabel>
+              <FormControl>
                     <span className={"flex items-center gap-2 min-w-fit"}>
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
                       />
-                      Benötigt Tutor:innen
+                      Benötigt Tutor/innen
                     </span>
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {event && (
-            <>
-              <EditTutorialsTable
-                id={event.ID}
-                tutorials={tutorials}
-                setTutorialsAction={setTutorials}
-              />
-
-              <FormField
-                control={form.control}
-                name="tutorialsOpen"
-                render={({field}) => (
-                  <FormItem>
-                    <FormLabel className={"hidden"}>
-                      Anmeldung zu Tutorien offen
-                    </FormLabel>
-                    <FormControl>
-                      <span className={"flex items-center gap-2 min-w-fit"}>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          disabled={!form.getValues("registrationNeeded")}
-                        />
-                        Anmeldung zu Tutorien offen
-                      </span>
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}
-              />
-            </>
+              </FormControl>
+              <FormMessage/>
+            </FormItem>
           )}
+        />
+
+      {event && (
+        <>
+          <EditTutorialsTable
+            id={event.ID}
+            tutorials={tutorials}
+            setTutorialsAction={setTutorials}
+          />
 
           <FormField
             control={form.control}
-            name="registrationNeeded"
+            name="tutorialsOpen"
             render={({field}) => (
               <FormItem>
                 <FormLabel className={"hidden"}>
-                  Veranstaltung benötigt Anmeldung
+                  Anmeldung zu Tutorien offen
                 </FormLabel>
                 <FormControl>
-                  <span className={"flex items-center gap-2 min-w-fit"}>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={(checked) => {
-                        if (!checked) form.setValue("tutorialsOpen", false);
-                        field.onChange(checked);
-                      }}
-                    />
-                    Veranstaltung benötigt Anmeldung
-                  </span>
+                        <span className={"flex items-center gap-2 min-w-fit"}>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={!form.getValues("registrationNeeded")}
+                          />
+                          Anmeldung zu Tutorien offen
+                        </span>
                 </FormControl>
                 <FormMessage/>
               </FormItem>
             )}
           />
+        </>
+      )}
 
-          {/* Footer */}
-          <div className="w-full flex justify-between items-center mt-8">
-            <Button
-              type={"button"}
-              variant={"outline"}
-              onClick={() => setConfirmationDialogOpen(true)}
-              className={"aspect-square"}
-            >
-              <Trash className={"stroke-red-600"}/>
-            </Button>
-
-            <DialogFooter className={"flex items-center gap-4"}>
-              <Button type="button" variant={"outline"} onClick={onCloseAction}>
-                Abbrechen
-              </Button>
-              <Button
-                type={"submit"}
-                disabled={!form.formState.isValid && submitted}
-              >
-                {edit ? (
-                  <>
-                    <Save/> Speichern
-                  </>
-                ) : (
-                  <>
-                    <PlusCircle/> Erstellen
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </div>
-        </form>
-      </Form>
-
-      <ConfirmationDialog
-        isOpen={confirmationDialogOpen}
-        mode={"confirmation"}
-        closeDialog={() => setConfirmationDialogOpen(false)}
-        onConfirm={handleDelete}
-        description={`Dies wird das Event ${event?.title} unwiderruflich löschen`}
+      <FormField
+        control={form.control}
+        name="registrationNeeded"
+        render={({field}) => (
+          <FormItem>
+            <FormLabel className={"hidden"}>
+              Veranstaltung benötigt Anmeldung
+            </FormLabel>
+            <FormControl>
+                    <span className={"flex items-center gap-2 min-w-fit"}>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          if (!checked) form.setValue("tutorialsOpen", false);
+                          field.onChange(checked);
+                        }}
+                      />
+                      Veranstaltung benötigt Anmeldung
+                    </span>
+            </FormControl>
+            <FormMessage/>
+          </FormItem>
+        )}
       />
-    </>
-  );
+
+      {/* Footer */}
+      <div className="w-full flex justify-between items-center mt-8">
+        <Button
+          type={"button"}
+          variant={"outline"}
+          onClick={() => setConfirmationDialogOpen(true)}
+          className={"aspect-square"}
+        >
+          <Trash className={"stroke-red-600"}/>
+        </Button>
+
+        <DialogFooter className={"flex items-center gap-4"}>
+          <Button type="button" variant={"outline"} onClick={onCloseAction}>
+            Abbrechen
+          </Button>
+          <Button
+            type={"submit"}
+            disabled={!form.formState.isValid && submitted}
+          >
+            {edit ? (
+              <>
+                <Save/> Speichern
+              </>
+            ) : (
+              <>
+                <PlusCircle/> Erstellen
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </div>
+    </form>
+    </Form>
+
+  <ConfirmationDialog
+    isOpen={confirmationDialogOpen}
+    mode={"confirmation"}
+    closeDialog={() => setConfirmationDialogOpen(false)}
+    onConfirm={handleDelete}
+    description={`Dies wird das Event ${event?.title} unwiderruflich löschen`}
+  />
+</>
+)
+  ;
 }

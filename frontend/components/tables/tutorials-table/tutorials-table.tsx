@@ -14,14 +14,8 @@ import {
   Role,
   Tutorial,
 } from "@/lib/gql/generated/graphql";
-import { Loader2, Lock } from "lucide-react";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "../../ui/hover-card";
+import { Info, Loader2, Lock } from "lucide-react";
 import { MailLinkWithLabel } from "@/components/email-link";
-import { useUser } from "../../providers";
 import { getClient } from "@/lib/graphql";
 import React, { useCallback, useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
@@ -33,6 +27,9 @@ import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuthenticationDialog } from "@/components/dialog/authentication/authentication-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useUser } from "@/components/provider/user-provider";
+import AdaptiveHoverCardPopover from "@/components/adaptive-hovercard-popover";
+import Markdown from "react-markdown";
 
 interface TutorialsTableProps {
   event: Event;
@@ -181,8 +178,6 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
         vars
       );
     } catch (error) {
-      console.log(error);
-
       if (String(error).includes("capacity exceeded")) {
         toast.error(
           "Dieses Tutorial ist leider schon voll, trage dich gerne in ein anderes ein."
@@ -270,7 +265,7 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                 {tutorials.map((rowTutorial) => {
                   const utilization =
                     (rowTutorial.registrationCount /
-                      (rowTutorial.room.capacity ?? 1)) *
+                      (rowTutorial.capacity ?? 1)) *
                     100;
                   const isRegisteredEvent =
                     rowTutorial.ID === currentRegistration?.ID;
@@ -303,29 +298,48 @@ export function TutorialsTable({ event }: TutorialsTableProps) {
                     >
                       <TableCell className="relative z-15">
                         {rowTutorial.tutors?.map((t) => (
-                          <HoverCard key={t.mail}>
-                            <HoverCardTrigger asChild>
-                              <p className="hover:underline">
-                                {t.fn + " " + t.sn[0] + "."}
+                          <AdaptiveHoverCardPopover
+                            trigger={
+                              <p className="hover:underline truncate sm:w-full xs:max-w-20">
+                                {`${t.fn} ${t.sn}`}
                               </p>
-                            </HoverCardTrigger>
-                            <HoverCardContent>
+                            }
+                            content={
                               <MailLinkWithLabel
                                 mail={t.mail}
                                 label={t.fn + " " + t.sn}
                               />
-                            </HoverCardContent>
-                          </HoverCard>
+                            }
+                          />
                         ))}
                       </TableCell>
                       <TableCell className="relative z-15">
                         <RoomHoverCard room={rowTutorial.room} />
                       </TableCell>
+                      <TableCell className="relative z-15">
+                        {rowTutorial.description && (
+                          <AdaptiveHoverCardPopover
+                            trigger={
+                              <p className="line-clamp-2 w-[150px]">
+                                <Markdown>{rowTutorial.description}</Markdown>
+                              </p>
+                            }
+                            content={
+                              <div className="flex flex-row gap-x-2 items-center">
+                                <Info className="size-4" />
+                                <div className="flex-1">
+                                  <Markdown>{rowTutorial.description}</Markdown>
+                                </div>
+                              </div>
+                            }
+                          />
+                        )}
+                      </TableCell>
                       {event.registrationNeeded ? (
                         <>
                           <TableCell className="relative z-10">
                             {rowTutorial.registrationCount}/
-                            {rowTutorial.room.capacity}
+                            {rowTutorial.capacity}
                           </TableCell>
                           <TableCell className="relative z-10">
                             <Button

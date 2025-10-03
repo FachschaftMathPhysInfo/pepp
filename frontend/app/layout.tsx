@@ -6,14 +6,14 @@ import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
 import { TailwindIndicator } from "@/components/tailwind-indicator";
-import {
-  UserProvider,
-  ThemeProvider,
-  RefetchProvider,
-} from "@/components/providers";
+import { RefetchProvider } from "@/components/provider/refetch-provider";
 import Header from "@/components/header";
 import React, { Suspense } from "react";
-import {Metadata} from "next";
+import { Metadata } from "next";
+import { UserProvider } from "@/components/provider/user-provider";
+import { ThemeProvider } from "@/components/provider/theme-provider";
+import { LabelsProvider } from "@/components/provider/labels-provider";
+import { UIProvider } from "@/components/provider/ui-provider";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -51,7 +51,9 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="de" suppressHydrationWarning>
-      <head><title>{siteConfig.name}</title></head>
+      <head>
+        <title>{siteConfig.name}</title>
+      </head>
       <body
         className={cn(
           "flex w-screen flex-col bg-background font-sans antialiased",
@@ -66,14 +68,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
           disableTransitionOnChange
         >
           <Suspense>
-            <RefetchProvider>
-              <UserProvider>
-                <Header />
-                {children}
-                <Toaster richColors />
-                <TailwindIndicator />
-              </UserProvider>
-            </RefetchProvider>
+            <UIProvider>
+              <RefetchProvider>
+                <LabelsProvider>
+                  <UserProvider>
+                    <Header />
+                    {children}
+                    <Toaster richColors />
+                    <TailwindIndicator />
+                  </UserProvider>
+                </LabelsProvider>
+              </RefetchProvider>
+            </UIProvider>
           </Suspense>
         </ThemeProvider>
       </body>

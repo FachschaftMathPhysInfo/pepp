@@ -1,19 +1,15 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { differenceInMinutes, format, getMinutes, isPast } from "date-fns";
 
 import { cn, hexToRGBA } from "@/lib/utils";
-import { getBorderRadiusClasses } from "@/components/event-calendar";
+import { TimeZone, getBorderRadiusClasses } from "@/components/event-calendar";
 import type { Event } from "@/lib/gql/generated/graphql";
 import Markdown from "react-markdown";
+import { DateTime } from "luxon";
 
-// Using date-fns format with custom formatting:
-// 'h' - hours (1-12)
-// 'a' - am/pm
-// ':mm' - minutes with leading zero (only if the token 'mm' is present)
-const formatTimeWithOptionalMinutes = (date: Date) => {
-  return format(date, getMinutes(date) === 0 ? "ha" : "h:mma").toLowerCase();
+const formatTimeWithOptionalMinutes = (date: DateTime) => {
+  return date.toFormat(date.minute === 0 ? "ha" : "h:mma").toLowerCase();
 };
 
 interface EventWrapperProps {
@@ -21,7 +17,7 @@ interface EventWrapperProps {
   onClick?: (e: React.MouseEvent) => void;
   className?: string;
   children: React.ReactNode;
-  currentTime?: Date;
+  currentTime?: DateTime;
 }
 
 // Shared wrapper component for event styling
@@ -34,13 +30,14 @@ function EventWrapper({
 }: EventWrapperProps) {
   // Always use the currentTime (if provided) to determine if the event is in the past
   const displayEnd = currentTime
-    ? new Date(
-        new Date(currentTime).getTime() +
-          (new Date(event.to).getTime() - new Date(event.from).getTime())
+    ? DateTime.fromMillis(
+        currentTime.toMillis() +
+          (DateTime.fromISO(event.to).setZone(TimeZone).toMillis() -
+          DateTime.fromISO(event.from).setZone(TimeZone).toMillis())
       )
-    : new Date(event.to);
+    : DateTime.fromISO(event.to).setZone(TimeZone);
 
-  const isEventInPast = isPast(displayEnd);
+  const isEventInPast = displayEnd.toMillis() < DateTime.now().toMillis();
 
   return (
     <button
@@ -66,7 +63,7 @@ interface EventItemProps {
   isDragging?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   showTime?: boolean;
-  currentTime?: Date; // For updating time during drag
+  currentTime?: DateTime; // For updating time during drag
   isFirstDay?: boolean;
   isLastDay?: boolean;
   children?: React.ReactNode;
@@ -84,21 +81,22 @@ export function EventItem({
 }: EventItemProps) {
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = useMemo(() => {
-    return currentTime || new Date(event.from);
+    return currentTime || DateTime.fromISO(event.from).setZone(TimeZone);
   }, [currentTime, event.from]);
 
   const displayEnd = useMemo(() => {
     return currentTime
-      ? new Date(
-          new Date(currentTime).getTime() +
-            (new Date(event.to).getTime() - new Date(event.from).getTime())
+      ? DateTime.fromMillis(
+          currentTime.toMillis() +
+            (DateTime.fromISO(event.to).setZone(TimeZone).toMillis() -
+            DateTime.fromISO(event.from).setZone(TimeZone).toMillis())
         )
-      : new Date(event.to);
+      : DateTime.fromISO(event.to).setZone(TimeZone);
   }, [currentTime, event.from, event.to]);
 
   // Calculate event duration in minutes
   const durationMinutes = useMemo(() => {
-    return differenceInMinutes(displayEnd, displayStart);
+    return displayEnd.diff(displayStart, "minutes").minutes
   }, [displayStart, displayEnd]);
 
   const getEventTime = () => {
@@ -182,7 +180,10 @@ export function EventItem({
         "focus-visible:border-ring focus-visible:ring-ring/50 flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:ring-[3px] data-past-event:line-through data-past-event:opacity-90",
         className
       )}
-      data-past-event={isPast(new Date(event.to)) || undefined}
+      data-past-event={
+        DateTime.fromISO(event.to).setZone(TimeZone).toMillis() <
+          DateTime.now().toMillis() || undefined
+      }
       onClick={onClick}
     >
       <div className="text-sm font-medium">{event.title}</div>

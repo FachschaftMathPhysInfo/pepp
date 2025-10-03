@@ -1,11 +1,12 @@
 "use client"
 
 import {cn} from "@/lib/utils"
+import {DateTime} from "luxon";
 import React from "react";
 
 interface CalendarCellProps {
   id: string
-  date: Date
+  date: DateTime
   time?: number // For week/day views, represents hours (e.g., 9.25 for 9:15)
   children?: React.ReactNode
   className?: string

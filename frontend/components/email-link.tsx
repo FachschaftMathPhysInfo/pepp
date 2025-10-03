@@ -13,7 +13,7 @@ export function MailLinkWithLabel({
       <p className="mb-1 text-xs text-muted-foreground">{label}</p>
       <div className="flex flex-row items-center">
         <Mail className="mr-2 h-4 w-4 opacity-70" />
-        <a href={"mailto:" + mail} className="hover:underline text-blue-500">
+        <a href={"mailto:" + mail} className="truncate">
           {mail}
         </a>
       </div>

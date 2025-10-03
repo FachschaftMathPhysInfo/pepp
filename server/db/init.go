@@ -35,7 +35,8 @@ var (
 		(*models.TutorialToUserAssignment)(nil),
 		(*models.EventToSupportingEvent)(nil),
 		(*models.UserToEventAvailability)(nil),
-		(*models.UserToTutorialRegistration)(nil)}
+		(*models.UserToTutorialRegistration)(nil),
+		(*models.TopicToEvent)(nil)}
 
 	tables = []interface{}{
 		(*models.Label)(nil),

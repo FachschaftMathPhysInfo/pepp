@@ -6,8 +6,8 @@ import {ColumnDef} from "@tanstack/react-table";
 import {MoreHorizontal, Shield,} from "lucide-react";
 import React, {SetStateAction} from "react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "@/components/ui/tooltip";
-import {useUser} from "@/components/providers";
 import {Badge} from "@/components/ui/badge";
+import {useUser} from "@/components/provider/user-provider";
 
 interface UserColumnProps {
   setDialogState: React.Dispatch<
@@ -65,9 +65,9 @@ export function UserColumns({setDialogState}: UserColumnProps): ColumnDef<User>[
     {
       id: "labels",
       cell: ({ row }) => (
-        <div className={"flex flex-wrap items-center w-full"}>
+        <div className={"flex flex-wrap items-center w-full gap-y-1 gap-x-4"}>
           {row.original.tutorials && (
-            <Badge color={"#031e39"} className={'border-blue-500 mr-4 mb-1'}>Tutor:in</Badge>
+            <Badge color={"#031e39"} className={'border-blue-500'}>Tutor:in</Badge>
           )}
           {row.original.confirmed && (
             <Badge color={'#022d16'} className={'border-green-500'}>Bestätigt</Badge>

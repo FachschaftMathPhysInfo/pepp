@@ -245,17 +245,41 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id []int) (int, error
 
 // AddEvent is the resolver for the addEvent field.
 func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) ([]int, error) {
+	if len(event) == 0 {
+		return nil, nil
+	}
+
 	if _, err := r.DB.NewInsert().
 		Model(&event).
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	var ids []int
+	var relations []models.TopicToEvent
+	for _, e := range event {
+		if len(e.Topics) == 0 {
+			continue
+		}
+		for _, t := range e.Topics {
+			relations = append(relations, models.TopicToEvent{
+				EventID: e.ID,
+				TopicID: t.ID,
+			})
+		}
+	}
+
+	if len(relations) > 0 {
+		if _, err := r.DB.NewInsert().
+			Model(&relations).
+			Exec(ctx); err != nil {
+			return nil, err
+		}
+	}
+
+	ids := make([]int, 0, len(event))
 	for _, e := range event {
 		ids = append(ids, int(e.ID))
 	}
-
 	return ids, nil
 }
 
@@ -268,6 +292,43 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 		WherePK().
 		Exec(ctx); err != nil {
 		return 0, err
+	}
+
+	var oldTopicIDs []int32
+	if err := r.DB.NewSelect().
+		Model((*models.TopicToEvent)(nil)).
+		Where("event_id = ?", id).
+		Column("topic_id").
+		Scan(ctx, &oldTopicIDs); err != nil {
+		return 0, err
+	}
+
+	for _, t := range event.Topics {
+		if !slices.Contains(oldTopicIDs, t.ID) {
+			if _, err := r.DB.NewInsert().
+				Model(&models.TopicToEvent{
+					EventID: int32(id),
+					TopicID: t.ID,
+				}).
+				Exec(ctx); err != nil {
+				return 0, err
+			}
+		}
+	}
+
+	newTopicIDs := make([]int32, len(event.Topics))
+	for i, t := range event.Topics {
+		newTopicIDs[i] = t.ID
+	}
+	for _, oldID := range oldTopicIDs {
+		if !slices.Contains(newTopicIDs, oldID) {
+			if _, err := r.DB.NewDelete().
+				Model(&models.TopicToEvent{}).
+				Where("event_id = ? AND topic_id = ?", id, oldID).
+				Exec(ctx); err != nil {
+				return 0, err
+			}
+		}
 	}
 
 	return id, nil
@@ -315,7 +376,14 @@ func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.Ne
 
 // UpdateTutorial is the resolver for the updateTutorial field.
 func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial model.NewTutorial) (int, error) {
-	t := models.Tutorial{EventID: int32(tutorial.EventID), RoomNumber: tutorial.RoomNumber, BuildingID: int32(tutorial.BuildingID), ID: int32(id)}
+	t := models.Tutorial{
+		EventID:     int32(tutorial.EventID),
+		RoomNumber:  tutorial.RoomNumber,
+		BuildingID:  int32(tutorial.BuildingID),
+		Capacity:    int16(tutorial.Capacity),
+		Description: *tutorial.Description,
+		ID:          int32(id)}
+
 	if _, err := r.DB.NewUpdate().
 		Model(&t).
 		WherePK().
@@ -823,7 +891,6 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 	if err := r.DB.NewSelect().
 		Model(tutorial).
 		Relation("Event").
-		Relation("Room").
 		Where("t.id = ?", registration.TutorialID).
 		Scan(ctx); err != nil {
 		return 0, err
@@ -833,7 +900,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 		return 0, fmt.Errorf("tutorial is not open for registrations, yet")
 	}
 
-	tutorialCapacity := tutorial.Room.Capacity
+	tutorialCapacity := tutorial.Capacity
 	registrationCount, err := r.DB.NewSelect().
 		Model((*models.UserToTutorialRegistration)(nil)).
 		Relation("Tutorial").
@@ -1050,6 +1117,45 @@ func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, e
 	return eventID, nil
 }
 
+// AddTopicToEvent is the resolver for the addTopicToEvent field.
+func (r *mutationResolver) AddTopicToEvent(ctx context.Context, eventID int, topicID []int) (int, error) {
+	var relations []models.TopicToEvent
+
+	for _, tid := range topicID {
+		relations = append(relations, models.TopicToEvent{
+			EventID: int32(eventID),
+			TopicID: int32(tid),
+		})
+	}
+
+	_, err := r.DB.NewInsert().
+		Model(&relations).
+		Exec(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
+// DeleteTopicFromEvent is the resolver for the deleteTopicFromEvent field.
+func (r *mutationResolver) DeleteTopicFromEvent(ctx context.Context, eventID int, topicID []int) (int, error) {
+	var ids []int32
+	for _, id := range topicID {
+		ids = append(ids, int32(id))
+	}
+
+	if _, err := r.DB.NewDelete().
+		Model((*models.TopicToEvent)(nil)).
+		Where("event_id = ?", eventID).
+		Where("topic_id IN (?)", bun.In(ids)).
+		Exec(ctx); err != nil {
+		return 0, err
+	}
+
+	return eventID, nil
+}
+
 // AcceptTopApplicationsOnEvent is the resolver for the acceptTopApplicationsOnEvent field.
 func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eventID int, count int) (int, error) {
 	var applications []models.Application
@@ -1096,12 +1202,12 @@ func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eve
 }
 
 // Events is the resolver for the events field.
-func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topicID []int, typeID []int, needsTutors *bool, onlyFuture *bool, userID []int, includeSupportingEvents *bool) ([]*models.Event, error) {
+func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topicIDs []int, typeID []int, needsTutors *bool, onlyFuture *bool, userID []int, includeSupportingEvents *bool) ([]*models.Event, error) {
 	var events []*models.Event
 
 	query := r.DB.NewSelect().
 		Model(&events).
-		Relation("Topic").
+		Relation("Topics").
 		Relation("Type").
 		Relation("TutorsAvailable").
 		Relation("Umbrella").
@@ -1117,12 +1223,15 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 		query = query.Where(`"e"."umbrella_id" IN (?)`, bun.In(umbrellaID))
 	}
 
-	if typeID != nil {
-		query = query.Where(`"e"."type_id" IN (?)`, bun.In(typeID))
+	if topicIDs != nil {
+		query = query.
+			Distinct().
+			Join("JOIN topic_to_events AS tte ON tte.event_id = e.id").
+			Where("tte.topic_id IN (?)", bun.In(topicIDs))
 	}
 
-	if topicID != nil {
-		query = query.Where(`"e"."topic_id" IN (?)`, bun.In(topicID))
+	if typeID != nil {
+		query = query.Where(`"e"."type_id" IN (?)`, bun.In(typeID))
 	}
 
 	if needsTutors != nil {
@@ -1166,7 +1275,7 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 	var umbrellas []*models.Event
 	query := r.DB.NewSelect().
 		Model(&umbrellas).
-		Relation("Topic").
+		Relation("Topics").
 		Relation("RegistrationForm").
 		Relation("SupportingEvents").
 		Where("umbrella_id IS NULL").
@@ -1250,9 +1359,20 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 	}
 
 	if umbrellaID != nil {
-		query = query.
-			Where("EXISTS (SELECT 1 FROM events e WHERE e.umbrella_id IN (?) AND (e.topic_id = l.id OR e.type_id = l.id))",
-				bun.In(umbrellaID))
+		query = query.Where(`
+        EXISTS (
+            SELECT 1 
+            FROM events e 
+            JOIN topic_to_events tte ON tte.event_id = e.id 
+            WHERE e.umbrella_id IN (?) AND tte.topic_id = l.id
+        )
+        OR
+        EXISTS (
+            SELECT 1 
+            FROM events e 
+            WHERE e.umbrella_id IN (?) AND e.type_id = l.id
+        )
+    `, bun.In(umbrellaID), bun.In(umbrellaID))
 	}
 
 	if err := query.Scan(ctx); err != nil {
@@ -1509,6 +1629,11 @@ func (r *tutorialResolver) Students(ctx context.Context, obj *models.Tutorial) (
 	return users, nil
 }
 
+// Capacity is the resolver for the capacity field.
+func (r *tutorialResolver) Capacity(ctx context.Context, obj *models.Tutorial) (int, error) {
+	return int(obj.Capacity), nil
+}
+
 // Role is the resolver for the role field.
 func (r *userResolver) Role(ctx context.Context, obj *models.User) (model.Role, error) {
 	return model.Role(obj.Role), nil
@@ -1517,6 +1642,16 @@ func (r *userResolver) Role(ctx context.Context, obj *models.User) (model.Role, 
 // Points is the resolver for the points field.
 func (r *newAnswerResolver) Points(ctx context.Context, obj *models.Answer, data int) error {
 	obj.Points = int8(data)
+	return nil
+}
+
+// TopicIDs is the resolver for the topicIDs field.
+func (r *newEventResolver) TopicIDs(ctx context.Context, obj *models.Event, data []int) error {
+	topics := make([]*models.Label, len(data))
+	for i, id := range data {
+		topics[i] = &models.Label{ID: int32(id)}
+	}
+	obj.Topics = topics
 	return nil
 }
 
@@ -1586,6 +1721,9 @@ func (r *Resolver) User() UserResolver { return &userResolver{r} }
 // NewAnswer returns NewAnswerResolver implementation.
 func (r *Resolver) NewAnswer() NewAnswerResolver { return &newAnswerResolver{r} }
 
+// NewEvent returns NewEventResolver implementation.
+func (r *Resolver) NewEvent() NewEventResolver { return &newEventResolver{r} }
+
 // NewLabel returns NewLabelResolver implementation.
 func (r *Resolver) NewLabel() NewLabelResolver { return &newLabelResolver{r} }
 
@@ -1610,6 +1748,7 @@ type settingResolver struct{ *Resolver }
 type tutorialResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
 type newAnswerResolver struct{ *Resolver }
+type newEventResolver struct{ *Resolver }
 type newLabelResolver struct{ *Resolver }
 type newQuestionResolver struct{ *Resolver }
 type newRoomResolver struct{ *Resolver }

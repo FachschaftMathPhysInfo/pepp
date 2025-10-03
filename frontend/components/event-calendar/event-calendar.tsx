@@ -3,25 +3,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { RiCalendarCheckLine } from "@remixicon/react";
 import {
-  addDays,
-  addHours,
-  addMonths,
-  addWeeks,
-  endOfWeek,
-  format,
-  isSameMonth,
-  startOfWeek,
-  subMonths,
-  subWeeks,
-} from "date-fns";
-import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   PlusIcon,
 } from "lucide-react";
 
-import { cn, getInitialCalendarDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,10 +27,11 @@ import {
   EventGap,
   EventHeight,
   MonthView,
+  TimeZone,
   WeekCellsHeight,
   WeekView,
+  getInitialCalendarDate,
 } from "@/components/event-calendar";
-import { useUser } from "@/components/providers";
 import type { Event } from "@/lib/gql/generated/graphql";
 import { LabelKind, Role } from "@/lib/gql/generated/graphql";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -51,6 +40,8 @@ import {
   mergeQueryString,
   VIEWMODE_QUERY_KEY,
 } from "@/lib/query-urls";
+import { useUser } from "@/components/provider/user-provider";
+import { DateTime } from "luxon";
 
 export interface EventCalendarProps {
   events?: Event[];
@@ -126,7 +117,7 @@ export function EventCalendar({
 
     const viewmode = getViewModeFromQuery(searchParams);
     if (viewmode) setView(viewmode as CalendarView);
-    else setView("agenda");
+    else setView(initialView);
 
     setHasInitializedFromQuery(true);
   }, []);
@@ -143,32 +134,32 @@ export function EventCalendar({
 
   const handlePrevious = () => {
     if (view === "month") {
-      setInitialDate(subMonths(initialDate, 1));
+      setInitialDate(initialDate.minus({ months: 1 }));
     } else if (view === "week") {
-      setInitialDate(subWeeks(initialDate, 1));
+      setInitialDate(initialDate.minus({ weeks: 1 }));
     } else if (view === "day") {
-      setInitialDate(addDays(initialDate, -1));
+      setInitialDate(initialDate.minus({ days: 1 }));
     } else if (view === "agenda") {
       // For agenda view, go back 30 days (a full month)
-      setInitialDate(addDays(initialDate, -AgendaDaysToShow));
+      setInitialDate(initialDate.minus({ days: AgendaDaysToShow }));
     }
   };
 
   const handleNext = () => {
     if (view === "month") {
-      setInitialDate(addMonths(initialDate, 1));
+      setInitialDate(initialDate.plus({ months: 1 }));
     } else if (view === "week") {
-      setInitialDate(addWeeks(initialDate, 1));
+      setInitialDate(initialDate.plus({ weeks: 1 }));
     } else if (view === "day") {
-      setInitialDate(addDays(initialDate, 1));
+      setInitialDate(initialDate.plus({ days: 1 }));
     } else if (view === "agenda") {
       // For agenda view, go forward 30 days (a full month)
-      setInitialDate(addDays(initialDate, AgendaDaysToShow));
+      setInitialDate(initialDate.plus({ days: AgendaDaysToShow }));
     }
   };
 
   const handleToday = () => {
-    setInitialDate(new Date());
+    setInitialDate(DateTime.now().setZone(TimeZone));
   };
 
   const handleEventSelect = (event: Event) => {
@@ -176,31 +167,31 @@ export function EventCalendar({
     setIsEventDialogOpen(true);
   };
 
-  const handleEventCreate = (startTime: Date) => {
+  const handleEventCreate = (startTime: DateTime) => {
     // Snap to 15-minute intervals
-    const minutes = startTime.getMinutes();
+    const minutes = startTime.minute;
     const remainder = minutes % 15;
     if (remainder !== 0) {
       if (remainder < 7.5) {
         // Round down to nearest 15 min
-        startTime.setMinutes(minutes - remainder);
+        startTime.set({minute: minutes - remainder})
       } else {
         // Round up to nearest 15 min
-        startTime.setMinutes(minutes + (15 - remainder));
+        startTime.set({minute: minutes + 15- remainder})
       }
-      startTime.setSeconds(0);
-      startTime.setMilliseconds(0);
+      startTime.set({second: 0})
+              startTime.set({millisecond: 0})
     }
 
     const newEvent: Event = {
       ID: 0,
       title: "",
       from: startTime,
-      to: addHours(startTime, 1),
+      to: startTime.plus({hours: 1}),
       tutorialsOpen: false,
       registrationNeeded: true,
       needsTutors: false,
-      topic: { ID: 0, name: "", kind: LabelKind.Topic, color: "" },
+      topics: [{ ID: 0, name: "", kind: LabelKind.Topic, color: "" }],
       type: { ID: 0, name: "", kind: LabelKind.EventType, color: "" },
     };
     setSelectedEvent(newEvent);
@@ -209,41 +200,41 @@ export function EventCalendar({
 
   const viewTitle = useMemo(() => {
     if (view === "month") {
-      return format(initialDate, "MMMM yyyy");
+      return initialDate.toFormat("MMMM yyyy");
     } else if (view === "week") {
-      const start = startOfWeek(initialDate, { weekStartsOn: 0 });
-      const end = endOfWeek(initialDate, { weekStartsOn: 0 });
-      if (isSameMonth(start, end)) {
-        return format(start, "MMMM yyyy");
+      const start = initialDate.startOf("week");
+      const end = initialDate.endOf("week");
+      if (start.hasSame(end, "month")) {
+        return start.toFormat("MMMM yyyy");
       } else {
-        return `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`;
+        return `${start.toFormat("MMM")} - ${end.toFormat("MMM yyyy")}`;
       }
     } else if (view === "day") {
       return (
         <>
           <span className="sm:hidden" aria-hidden="true">
-            {format(initialDate, "MMM d, yyyy")}
+            {initialDate.toFormat("MMM d, yyyy")}
           </span>
           <span className="hidden sm:inline md:hidden" aria-hidden="true">
-            {format(initialDate, "MMMM d, yyyy")}
+            {initialDate.toFormat("MMMM d, yyyy")}
           </span>
           <span className="hidden md:inline">
-            {format(initialDate, "EEE MMMM d, yyyy")}
+            {initialDate.toFormat("EEE MMMM d, yyyy")}
           </span>
         </>
       );
     } else if (view === "agenda") {
       // Show the month range for agenda view
       const start = initialDate;
-      const end = addDays(initialDate, AgendaDaysToShow - 1);
+      const end = initialDate.plus({ days: AgendaDaysToShow - 1 });
 
-      if (isSameMonth(start, end)) {
-        return format(start, "MMMM yyyy");
+      if (start.hasSame(end, "month")) {
+        return start.toFormat("MMMM yyyy");
       } else {
-        return `${format(start, "MMM")} - ${format(end, "MMM yyyy")}`;
+        return `${start.toFormat("MMM")} - ${end.toFormat("MMM yyyy")}`;
       }
     } else {
-      return format(initialDate, "MMMM yyyy");
+      return initialDate.toFormat("MMMM yyyy");
     }
   }, [initialDate, view]);
 

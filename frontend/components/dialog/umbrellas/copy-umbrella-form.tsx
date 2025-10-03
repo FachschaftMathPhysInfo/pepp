@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import React, { useEffect, useState } from "react";
-import { useRefetch, useUser } from "@/components/providers";
+import { useRefetch } from "@/components/provider/refetch-provider";
 import { getClient } from "@/lib/graphql";
 import {
   AddEventDocument,
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { GraphQLClient } from "graphql-request";
 import { DatePicker } from "@/components/date-picker";
+import {useUser} from "@/components/provider/user-provider";
 
 function returnDateWithOffset(sourceDate: string, offset: number) {
   return new Date(new Date(sourceDate).getTime() + offset);
@@ -107,7 +108,7 @@ export default function CopyUmbrellaForm({
     const newUmbrella: NewEvent = {
       title: umbrellaData.title,
       description: umbrellaData.description,
-      topicID: sourceUmbrella.topic.ID,
+      topicIDs: sourceUmbrella.topics.map((t) => t.ID),
       typeID: sourceUmbrella.type.ID,
       needsTutors: false,
       from: returnDateWithOffset(sourceUmbrella.from, startingOffset),
@@ -131,7 +132,7 @@ export default function CopyUmbrellaForm({
     const eventsToAdd: NewEvent[] = sourceEvents.map((event) => ({
       title: event.title,
       description: event.description,
-      topicID: event.topic.ID,
+      topicID: event.topics.map((t) => t.ID),
       typeID: event.type.ID,
       needsTutors: event.needsTutors,
       from: returnDateWithOffset(event.from, startingOffset),

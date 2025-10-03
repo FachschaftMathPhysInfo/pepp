@@ -24,7 +24,7 @@ export default function PlannerItem({
       key={event.ID}
       className={`rounded-lg p-2 cursor-pointer hover:outline hover:outline-offset-2 hover:outline-gray-300 hover:outline-1 transition-opacity flex flex-row justify-between`}
       style={{
-        backgroundColor: hexToRGBA(event.topic.color ?? "#FFF", 0.3),
+        backgroundColor: hexToRGBA(event.type.color ?? "#FFF", 0.3),
         height: `${height}px`,
       }}
       role="button"
@@ -38,7 +38,7 @@ export default function PlannerItem({
         <div
           className="h-full w-1 rounded-lg mr-2"
           style={{
-            backgroundColor: event.topic.color ?? "#FFF",
+            backgroundColor: event.type.color ?? "#FFF",
           }}
         />
 
