@@ -1,10 +1,10 @@
 "use client";
 
-import {useRefetch} from "@/components/provider/refetch-provider";
-import {useForm} from "react-hook-form";
-import {z} from "zod";
-import {zodResolver} from "@hookform/resolvers/zod";
-import React, {useCallback, useEffect, useState} from "react";
+import { useRefetch } from "@/components/provider/refetch-provider";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   AddEventDocument,
   AddEventMutation,
@@ -28,29 +28,52 @@ import {
   UpdateTutorialDocument,
   UpdateTutorialMutation,
 } from "@/lib/gql/generated/graphql";
-import {getClient} from "@/lib/graphql";
-import {toast} from "sonner";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
-import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/textarea";
-import {Button} from "@/components/ui/button";
-import {ChevronsUpDown, PlusCircle, Save, Trash} from "lucide-react";
-import {SingleBadgePicker} from "@/components/single-badge-picker";
-import {DatePicker} from "@/components/date-picker";
-import {Checkbox} from "@/components/ui/checkbox";
-import {DialogFooter} from "@/components/ui/dialog";
-import {extractId, formatDateToHHMM} from "@/lib/utils";
+import { getClient } from "@/lib/graphql";
+import { toast } from "sonner";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { ChevronsUpDown, PlusCircle, Save, Trash } from "lucide-react";
+import { SingleBadgePicker } from "@/components/single-badge-picker";
+import { DatePicker } from "@/components/date-picker";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DialogFooter } from "@/components/ui/dialog";
+import { extractId, formatDateToHHMM } from "@/lib/utils";
 import ConfirmationDialog from "@/components/confirmation-dialog";
-import {usePathname} from "next/navigation";
-import {defaultBuilding, defaultTutorial, defaultUser,} from "@/types/defaults";
-import {EditTutorialsTable} from "../../tables/tutorials-table/edit-tutorials-table";
-import {Switch} from "../../ui/switch";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import { usePathname } from "next/navigation";
+import {
+  defaultBuilding,
+  defaultTutorial,
+  defaultUser,
+} from "@/types/defaults";
+import { EditTutorialsTable } from "../../tables/tutorials-table/edit-tutorials-table";
+import { Switch } from "../../ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Markdown from "react-markdown";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command";
-import {useUser} from "@/components/provider/user-provider";
-import {MultiBadgePicker} from "@/components/multi-badge-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { useUser } from "@/components/provider/user-provider";
+import { MultiBadgePicker } from "@/components/multi-badge-picker";
+import { Spinner } from "@/components/ui/spinner";
 
 const eventFormSchema = z.object({
   title: z.string().nonempty("Bitte gib einen Titel für die Veranstaltung an"),
@@ -61,11 +84,11 @@ const eventFormSchema = z.object({
   topicIDs: z
     .array(z.number())
     .nonempty("Bitte gib mindestens einen Studiengang an."),
-  typeID: z.number({required_error: "Bitte wähle den Typ der Veranstaltung"}),
+  typeID: z.number({ required_error: "Bitte wähle den Typ der Veranstaltung" }),
   needsTutors: z.boolean(),
   tutorialsOpen: z.boolean(),
   registrationNeeded: z.boolean(),
-  umbrellaID: z.number({required_error: "Bitte wähle ein Programm"}),
+  umbrellaID: z.number({ required_error: "Bitte wähle ein Programm" }),
 });
 
 interface EventFormProps {
@@ -74,22 +97,24 @@ interface EventFormProps {
   onCloseAction: () => void;
 }
 
-export function EventForm({event, edit, onCloseAction}: EventFormProps) {
+export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
   const pathname = usePathname();
   const umbrellaIDPath = extractId(pathname);
-  const {sid} = useUser();
-  const {triggerRefetch} = useRefetch();
+  const { sid } = useUser();
+  const { triggerRefetch } = useRefetch();
   const [submitted, setSubmitted] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [initialTIDs, setInitialTIDs] = useState<number[]>([]);
-  const [umbrellas, setUmbrellas] = useState<{ id: number; title: string }[]>([]);
-
+  const [loading, setLoading] = useState(false);
+  const [umbrellas, setUmbrellas] = useState<{ id: number; title: string }[]>(
+    []
+  );
   useEffect(() => {
     const fetchUmbrellas = async () => {
       const client = getClient(String(sid));
       const result = await client.request<UmbrellasQuery>(UmbrellasDocument);
-      setUmbrellas(result.umbrellas.map(u => ({id: u.ID, title: u.title})));
+      setUmbrellas(result.umbrellas.map((u) => ({ id: u.ID, title: u.title })));
     };
 
     void fetchUmbrellas();
@@ -102,7 +127,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     try {
       const tutorialData = await client.request<EventTutorialsQuery>(
         EventTutorialsDocument,
-        {id: event.ID}
+        { id: event.ID }
       );
       const newTutorials: Tutorial[] = tutorialData.tutorials.map(
         (tutorial) => ({
@@ -111,7 +136,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           event: event,
           room: {
             ...tutorial.room,
-            building: {...defaultBuilding, ...tutorial.room.building},
+            building: { ...defaultBuilding, ...tutorial.room.building },
           },
           tutors: tutorial.tutors?.map((tutor) => ({
             ...defaultUser,
@@ -148,13 +173,9 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
       title: event?.title ?? "",
       description: event?.description ?? "",
       date: event ? new Date(event.from) : new Date(),
-      from: formatDateToHHMM(
-        event ? new Date(event.from) : new Date()
-      ),
+      from: formatDateToHHMM(event ? new Date(event.from) : new Date()),
       to: formatDateToHHMM(
-        event
-          ? new Date(event.to)
-          : new Date(Date.now() + 30 * 60 * 1000)
+        event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
       ),
       topicIDs: event?.topics.map((t) => t.ID),
       typeID: event?.type.ID,
@@ -205,11 +226,12 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     data: z.infer<typeof eventFormSchema>,
     newEvent: NewEvent
   ) {
+    setLoading(true);
     const client = getClient(String(sid));
 
     try {
       await client.request<AddEventMutation>(AddEventDocument, {
-        event: {...newEvent, umbrellaID: umbrellaIDPath},
+        event: { ...newEvent, umbrellaID: umbrellaIDPath },
       });
       toast.success(`Event ${data.title} wurde erstellt`);
       triggerRefetch();
@@ -217,12 +239,14 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
     } catch {
       toast.error("Beim erstellen des Events ist ein Fehler aufgetreten");
     }
+    setLoading(false);
   }
 
   async function handleUpdate(
     data: z.infer<typeof eventFormSchema>,
     newEvent: NewEvent
   ) {
+    setLoading(true);
     const client = getClient(String(sid));
 
     function mapTutorialToNewTutorial(t: Tutorial): NewTutorial {
@@ -230,9 +254,10 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
         eventID: event?.ID ?? 0,
         roomNumber: t.room.number,
         buildingID: t.room.building.ID,
-        tutors: t.tutors?.map((u) => u.ID),
+        // ensure tutors is always an array (not undefined)
+        tutors: t.tutors?.map((u) => u.ID) ?? [],
         capacity: t.capacity,
-        description: t.description,
+        description: t.description ?? "",
       };
     }
 
@@ -242,25 +267,19 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
 
     const updateTutorials: Tutorial[] = tutorials.filter((t) => t.ID > 0);
 
-    const deleteTutorialIDs: number[] = initialTIDs?.filter((id) => {
-      if (!tutorials.find((t) => id === t.ID)) return id;
-    });
+    // clearer deletion list computation
+    const deleteTutorialIDs: number[] = (initialTIDs ?? []).filter(
+      (id) => !tutorials.some((t) => t.ID === id)
+    );
 
     try {
+      // update event
       await client.request<UpdateEventMutation>(UpdateEventDocument, {
         id: event?.ID,
         event: newEvent,
       });
-      if (newTutorials.length) {
-        await client.request<AddTutorialsMutation>(AddTutorialsDocument, {
-          tutorials: newTutorials,
-        });
-      }
-      if (deleteTutorialIDs.length) {
-        await client.request<DeleteTutorialsMutation>(DeleteTutorialsDocument, {
-          tutorialIDs: deleteTutorialIDs,
-        });
-      }
+
+      // update existing tutorials
       if (updateTutorials.length) {
         for (const t of updateTutorials) {
           await client.request<UpdateTutorialMutation>(UpdateTutorialDocument, {
@@ -269,12 +288,30 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           });
         }
       }
+
+      // add new tutorials
+      if (newTutorials.length) {
+        await client.request<AddTutorialsMutation>(AddTutorialsDocument, {
+          tutorials: newTutorials,
+        });
+      }
+
+      // delete removed tutorials
+      if (deleteTutorialIDs.length) {
+        await client.request<DeleteTutorialsMutation>(DeleteTutorialsDocument, {
+          tutorialIDs: deleteTutorialIDs,
+        });
+      }
+
       toast.success(`Event ${data.title} wurde aktualisiert`);
       triggerRefetch();
       onCloseAction();
-    } catch {
+    } catch (err) {
+      console.log(err);
       toast.error("Beim aktualisieren des Events ist ein Fehler aufgetreten");
     }
+
+    setLoading(false);
   }
 
   async function handleDelete() {
@@ -300,13 +337,12 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
           onSubmit={form.handleSubmit(handleSave, () => setSubmitted(true))}
           className={"w-full flex overflow-y-auto flex-col"}
         >
-          <div className={'w-full h-full overflow-y-auto'}>
-
+          <div className={"space-y-2 w-full h-full overflow-y-auto"}>
             <div className="w-[300px]">
               <FormField
                 control={form.control}
                 name="umbrellaID"
-                render={({field}) => {
+                render={({ field }) => {
                   const [open, setOpen] = useState(false);
                   return (
                     <FormItem>
@@ -319,19 +355,22 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                             className="w-full justify-between"
                           >
                             {field.value
-                              ? umbrellas.find(u => u.id === field.value)?.title
+                              ? umbrellas.find((u) => u.id === field.value)
+                                  ?.title
                               : "Programm wählen"}
-                            <ChevronsUpDown className="h-4 w-4 opacity-50"/>
+                            <ChevronsUpDown className="h-4 w-4 opacity-50" />
                           </Button>
                         </PopoverTrigger>
 
                         <PopoverContent className="p-0">
                           <Command>
-                            <CommandInput placeholder="Suche Programm..."/>
+                            <CommandInput placeholder="Suche Programm..." />
                             <CommandList>
-                              <CommandEmpty>Kein Programm gefunden</CommandEmpty>
+                              <CommandEmpty>
+                                Kein Programm gefunden
+                              </CommandEmpty>
                               <CommandGroup>
-                                {umbrellas.map(u => (
+                                {umbrellas.map((u) => (
                                   <CommandItem
                                     key={u.id}
                                     value={u.title}
@@ -348,9 +387,9 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                           </Command>
                         </PopoverContent>
                       </Popover>
-                      <FormMessage/>
+                      <FormMessage />
                     </FormItem>
-                  )
+                  );
                 }}
               />
             </div>
@@ -358,13 +397,13 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
             <FormField
               control={form.control}
               name="title"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Titel</FormLabel>
                   <FormControl>
                     <Input placeholder="Veranstaltungstitel" {...field} />
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -372,7 +411,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
             <FormField
               control={form.control}
               name="description"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Beschreibung</FormLabel>
                   <Tabs defaultValue="plain">
@@ -392,7 +431,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                       <Markdown>{field.value}</Markdown>
                     </TabsContent>
                   </Tabs>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -402,7 +441,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               <FormField
                 control={form.control}
                 name="date"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel className={"hidden"}>Datum</FormLabel>
                     <FormControl>
@@ -411,7 +450,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                         onChange={(date) => field.onChange(date)}
                       />
                     </FormControl>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -420,19 +459,19 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                 <FormField
                   control={form.control}
                   name="from"
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <Input aria-label="start time" type="time" {...field} />
                       </FormControl>
-                      <FormMessage/>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
                   name="to"
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem className={"flex items-center gap-2"}>
                       bis
                       <FormControl>
@@ -443,7 +482,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                           {...field}
                         />
                       </FormControl>
-                      <FormMessage/>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -454,7 +493,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               <FormField
                 control={form.control}
                 name="typeID"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Art des Events</FormLabel>
                     <FormControl>
@@ -466,14 +505,14 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                         />
                       </div>
                     </FormControl>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
                 name="topicIDs"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Studiengänge</FormLabel>
                     <FormControl>
@@ -485,7 +524,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                         }
                       />
                     </FormControl>
-                    <FormMessage/>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -494,7 +533,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
             <FormField
               control={form.control}
               name="needsTutors"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className={"hidden"}>
                     Benötigt Tutor/innen
@@ -508,7 +547,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                       Benötigt Tutor/innen
                     </span>
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -524,7 +563,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                 <FormField
                   control={form.control}
                   name="tutorialsOpen"
-                  render={({field}) => (
+                  render={({ field }) => (
                     <FormItem>
                       <FormLabel className={"hidden"}>
                         Anmeldung zu Tutorien offen
@@ -539,7 +578,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                           Anmeldung zu Tutorien offen
                         </span>
                       </FormControl>
-                      <FormMessage/>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -549,7 +588,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
             <FormField
               control={form.control}
               name="registrationNeeded"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel className={"hidden"}>
                     Veranstaltung benötigt Anmeldung
@@ -566,7 +605,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
                       Veranstaltung benötigt Anmeldung
                     </span>
                   </FormControl>
-                  <FormMessage/>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -580,7 +619,7 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               onClick={() => setConfirmationDialogOpen(true)}
               className={"aspect-square"}
             >
-              <Trash className={"stroke-red-600"}/>
+              <Trash className={"stroke-red-600"} />
             </Button>
 
             <DialogFooter className={"flex items-center gap-4"}>
@@ -589,15 +628,16 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
               </Button>
               <Button
                 type={"submit"}
-                disabled={!form.formState.isValid && submitted}
+                disabled={(!form.formState.isValid && submitted) || loading}
               >
+                {loading && <Spinner />}
                 {edit ? (
                   <>
-                    <Save/> Speichern
+                    <Save /> Speichern
                   </>
                 ) : (
                   <>
-                    <PlusCircle/> Erstellen
+                    <PlusCircle /> Erstellen
                   </>
                 )}
               </Button>
@@ -614,5 +654,5 @@ export function EventForm({event, edit, onCloseAction}: EventFormProps) {
         description={`Dies wird das Event ${event?.title} unwiderruflich löschen`}
       />
     </>
-  )
+  );
 }
