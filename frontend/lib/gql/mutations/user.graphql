@@ -1,3 +1,7 @@
+mutation logout($sid: String!) {
+  logout(sid: $sid)
+}
+
 mutation registration($fn: String!, $sn: String!, $mail: String!, $password: String!) {
   addUser(user: {fn: $fn, sn: $sn, mail: $mail, password: $password})
 }

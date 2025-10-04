@@ -1,7 +1,13 @@
 "use client";
 
 import {createContext, ReactNode, useContext, useEffect, useState} from "react";
-import {LoginUserDocument, LoginUserQuery, LoginUserQueryVariables, User} from "@/lib/gql/generated/graphql";
+import {
+  LoginUserDocument,
+  LoginUserQuery,
+  LoginUserQueryVariables,
+  LogoutDocument,
+  User
+} from "@/lib/gql/generated/graphql";
 import {useRouter, useSearchParams} from "next/navigation";
 import {deleteCookie, getCookie, setCookie} from "@/lib/cookie";
 import {getClient} from "@/lib/graphql";
@@ -95,7 +101,12 @@ export const UserProvider = ({children}: { children: ReactNode }) => {
     setCookie("sid", sid, 10);
   }, [sid]);
 
-  const logout = () => {
+  const logout = async () => {
+    const client = getClient()
+    try {
+      if(sid) await client.request(LogoutDocument, {sid})
+    } catch {/* if sid was not present, this will fail but has no consequences */ }
+
     deleteCookie("sid");
     setSid(null);
     setUser(null);

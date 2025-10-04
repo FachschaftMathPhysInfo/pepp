@@ -299,6 +299,7 @@ type Mutation {
   addUser(user: NewUser!): String!
   updateUser(user: UpdateUser!, id: Int!): Int! @auth(rule: IS_USER)
   deleteUser(id: [Int!]!): Int! @auth(rule: IS_USER)
+  logout(sid: String!): Boolean!
   addEvent(event: [NewEvent!]!): [Int!]! @auth(role: ADMIN)
   updateEvent(id: Int!, event: NewEvent!): Int! @auth(role: ADMIN)
   deleteEvent(id: [Int!]!): Int! @auth(role: ADMIN)
