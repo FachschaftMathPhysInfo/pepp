@@ -243,6 +243,19 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id []int) (int, error
 	return int(rowsAffected), nil
 }
 
+// Logout is the resolver for the logout field.
+func (r *mutationResolver) Logout(ctx context.Context, sid string) (bool, error) {
+	if _, err := r.DB.NewUpdate().Model((*models.User)(nil)).
+		Where("session_id = ?", sid).
+		Set("session_id = ?", nil).
+		Exec(ctx); err != nil {
+		log.Printf("failed to logout sid: %s", sid)
+		return false, ErrInternal
+	}
+
+	return true, nil
+}
+
 // AddEvent is the resolver for the addEvent field.
 func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) ([]int, error) {
 	if len(event) == 0 {
