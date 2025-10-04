@@ -19,7 +19,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/gosimple/slug"
-	hermes "github.com/matcornic/hermes/v2"
+	"github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
@@ -41,7 +41,7 @@ func (r *applicationResolver) Responses(ctx context.Context, obj *models.Applica
 		return nil, err
 	}
 
-	qas := []*model.QuestionAnswersPair{}
+	var qas []*model.QuestionAnswersPair
 
 	for _, question := range form[0].Questions {
 		var aqs []*models.ApplicationToQuestion
@@ -53,7 +53,7 @@ func (r *applicationResolver) Responses(ctx context.Context, obj *models.Applica
 			return nil, err
 		}
 
-		avs := []*model.AnswerValuePair{}
+		var avs []*model.AnswerValuePair
 		for _, answer := range aqs {
 			av := &model.AnswerValuePair{
 				Answer: answer.Answer,
@@ -166,12 +166,6 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 	}
 
 	m := r.MailConfig.Confirmation
-
-	if err != nil {
-		log.Errorf("failed to generate confirmation link on user with mail: %s. ", user.Mail)
-		log.Error(err)
-		return "", fmt.Errorf("error while generating confirmation link on user creation")
-	}
 
 	m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
 		os.Getenv("PUBLIC_URL"), token)
@@ -705,7 +699,7 @@ func (r *mutationResolver) DeleteQuestion(ctx context.Context, id []int) (int, e
 
 // AddAnswer is the resolver for the addAnswer field.
 func (r *mutationResolver) AddAnswer(ctx context.Context, questionID int, answer []*models.Answer) (int, error) {
-	for i, _ := range answer {
+	for i := range answer {
 		answer[i].QuestionID = int32(questionID)
 	}
 
@@ -819,7 +813,7 @@ func (r *mutationResolver) DeleteTutorAssignmentForTutorial(ctx context.Context,
 
 // AddTutorAvailabilityForEvent is the resolver for the addTutorAvailabilityForEvent field.
 func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, availability model.NewUserToEventAvailability) (*models.User, error) {
-	availabilitys := []models.UserToEventAvailability{}
+	var availabilitys []models.UserToEventAvailability
 	for _, eID := range availability.EventID {
 		a := models.UserToEventAvailability{
 			UserID:  int32(availability.UserID),
@@ -855,7 +849,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 		m.Table.Data = append(m.Table.Data, e)
 	}
 
-	user, err := r.Query().Users(ctx, []int{int(availability.UserID)}, nil)
+	user, err := r.Query().Users(ctx, []int{availability.UserID}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -987,7 +981,7 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 
 	score := 0
 
-	aqs := []models.ApplicationToQuestion{}
+	var aqs []models.ApplicationToQuestion
 	for _, a := range application.Answers {
 		var points int
 
@@ -1039,7 +1033,7 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 		return nil, err
 	}
 
-	user, err := r.Query().Users(ctx, []int{int(application.UserID)}, nil)
+	user, err := r.Query().Users(ctx, []int{application.UserID}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1175,7 +1169,7 @@ func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eve
 		return 0, err
 	}
 
-	for i, _ := range applications {
+	for i := range applications {
 		applications[i].Accepted = utils.BoolPtr(true)
 	}
 	if _, err := r.DB.NewUpdate().
@@ -1188,7 +1182,7 @@ func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eve
 
 	m := r.MailConfig.ApplicationAccepted
 
-	m.Actions[0].Button.Link = fmt.Sprintf("%s/%s-%s",
+	m.Actions[0].Button.Link = fmt.Sprintf("%s/%s-%v",
 		os.Getenv("PUBLIC_URL"), slug.Make(event.Title), eventID)
 	m.Actions[0].Button.Text = event.Title
 
