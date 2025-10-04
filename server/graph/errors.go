@@ -1,3 +1,6 @@
 package graph
 
-const ErrInternal = "internal server error"
+import "fmt"
+
+var ErrInternal = fmt.Errorf("internal server error")
+var ErrWrongCredentials = fmt.Errorf("incorrect credentials provided")
