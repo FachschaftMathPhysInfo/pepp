@@ -24,10 +24,11 @@ import { Textarea } from "@/components/ui/textarea";
 import {useUser} from "@/components/provider/user-provider";
 
 interface SettingFormProps {
+  description: string;
   settings: Setting[];
 }
 
-export default function EditMailForm({ settings }: SettingFormProps) {
+export default function EditMailForm({ description, settings }: SettingFormProps) {
   const { sid } = useUser();
   const mailFormSchema = z.object({
     values: z.array(
@@ -74,7 +75,8 @@ export default function EditMailForm({ settings }: SettingFormProps) {
   }
 
   return (
-    <div className=" rounded-lg p-4 border-gray-800">
+    <div className=" rounded-lg gap-y-8 flex flex-col">
+      <p className={'text-muted-foreground'}>{description}</p>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onValidSubmit)}
