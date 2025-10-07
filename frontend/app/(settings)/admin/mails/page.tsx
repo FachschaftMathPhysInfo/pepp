@@ -58,8 +58,6 @@ export default function Settings() {
       );
 
       setMailSettings(allMailSettings);
-      console.log(allMailSettings);
-      console.log(newAcceptedMailSettings)
       setGeneralMailSettings(newGeneralMailSettings);
       setConfirmMailSettings(newConfirmationMailSettings);
       setAvailabilityMailSettings(newAvailabilityMailSettings);
