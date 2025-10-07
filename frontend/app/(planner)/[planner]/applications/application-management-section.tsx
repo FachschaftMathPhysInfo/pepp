@@ -70,7 +70,7 @@ export default function ApplicationManagementSection(props: ApplicationManagemen
     const client = getClient(String(sid));
 
     try {
-      await client.request(DenyRemainingApplicationsDocument, {eventID: props.umbrellaID});
+      await client.request(DenyRemainingApplicationsDocument, {umbrellaID: props.umbrellaID});
       props.triggerRefetch()
       toast.success("Die restlichen Studis wurden erfolgreich abgelehnt")
     } catch {
