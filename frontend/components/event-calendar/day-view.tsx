@@ -12,13 +12,15 @@ import {
   WeekCellsHeight,
   eachHourOfInterval,
 } from "@/components/event-calendar";
-import type { Event } from "@/lib/gql/generated/graphql";
+import {Event, Role} from "@/lib/gql/generated/graphql";
 import {
   EndHour,
   StartHour,
   TimeZone,
 } from "@/components/event-calendar/constants";
 import { DateTime, Interval } from "luxon";
+import {useUser} from "@/components/provider/user-provider";
+import {UserRound} from "lucide-react";
 
 interface DayViewProps {
   currentDate: DateTime;
@@ -42,6 +44,7 @@ export function DayView({
   onEventSelectAction,
   onEventCreateAction,
 }: DayViewProps) {
+  const { user } = useUser()
   const hours = useMemo(() => {
     const dayStart = currentDate.startOf("day");
     return eachHourOfInterval(
@@ -302,6 +305,7 @@ export function DayView({
                           "top-[calc(var(--week-cells-height)/4*3)]"
                       )}
                       onClick={() => {
+                        if (user?.role !== Role.Admin) return
                         const startTime = currentDate;
                         startTime.set({ hour: hourValue });
                         startTime.set({ minute: quarter * 15 });

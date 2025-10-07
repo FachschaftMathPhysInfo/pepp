@@ -13,13 +13,14 @@ import {
   eachDayOfInterval,
   eachHourOfInterval,
 } from "@/components/event-calendar";
-import type { Event } from "@/lib/gql/generated/graphql";
+import {Event, Role} from "@/lib/gql/generated/graphql";
 import {
   EndHour,
   StartHour,
   TimeZone,
 } from "@/components/event-calendar/constants";
 import { DateTime, Interval } from "luxon";
+import {useUser} from "@/components/provider/user-provider";
 
 interface WeekViewProps {
   currentDate: DateTime;
@@ -43,6 +44,7 @@ export function WeekView({
   onEventSelectAction,
   onEventCreateAction,
 }: WeekViewProps) {
+  const { user } = useUser();
   const days = useMemo(() => {
     const weekStart = currentDate.startOf("week");
     const weekEnd = currentDate.endOf("week");
@@ -381,6 +383,7 @@ export function WeekView({
                             "top-[calc(var(--week-cells-height)/4*3)]"
                         )}
                         onClick={() => {
+                          if (user?.role !== Role.Admin) return
                           const startTime = day.setZone(TimeZone);
                           startTime.set({ hour: hourValue });
                           startTime.set({ minute: quarter * 15 });
