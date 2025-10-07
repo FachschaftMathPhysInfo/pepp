@@ -1201,6 +1201,36 @@ func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eve
 	return len(applications), nil
 }
 
+// DenyRemainingAplicationsOnEvent is the resolver for the denyRemainingAplicationsOnEvent field.
+func (r *mutationResolver) DenyRemainingAplicationsOnEvent(ctx context.Context, eventID int) (bool, error) {
+	var applications []models.Application
+	if err := r.DB.NewSelect().
+		Model(&applications).
+		Relation("Student").
+		Where("event_id = ?", eventID).
+		Where("accepted = false").
+		Scan(ctx); err != nil {
+		log.Error("failed to scan applications for event: ", err)
+		return false, ErrInternal
+	}
+
+	event := new(models.Event)
+	if err := r.DB.NewSelect().Model(event).Where("id = ?", eventID).Scan(ctx); err != nil {
+		log.Error("failed to scan event: ", err)
+		return false, ErrInternal
+	}
+
+	m := r.MailConfig.ApplicationDenied
+
+	for _, a := range applications {
+		if err := email.Send(*a.Student, m, r.MailConfig); err != nil {
+			log.Error("failed to send email: ", err)
+		}
+	}
+
+	return true, nil
+}
+
 // Events is the resolver for the events field.
 func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, topicIDs []int, typeID []int, needsTutors *bool, onlyFuture *bool, userID []int, includeSupportingEvents *bool) ([]*models.Event, error) {
 	var events []*models.Event
