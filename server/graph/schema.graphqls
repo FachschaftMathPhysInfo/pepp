@@ -340,4 +340,5 @@ type Mutation {
   deleteTopicFromEvent(eventID: Int!, topicID: [Int!]!): Int!
 
   acceptTopApplicationsOnEvent(eventID: Int!, count: Int!): Int! @auth(role: ADMIN)
+  denyRemainingAplicationsOnEvent(eventID: Int!): Boolean! @auth(role: ADMIN)
 }

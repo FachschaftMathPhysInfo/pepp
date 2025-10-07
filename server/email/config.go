@@ -14,6 +14,7 @@ type Config struct {
 	Assignment          Email
 	Availability        Email
 	ApplicationAccepted Email
+	ApplicationDenied   Email
 }
 
 func (c *Config) ApplySettings(s map[string]string) {
@@ -58,4 +59,8 @@ func (c *Config) ApplySettings(s map[string]string) {
 			Color: s["primary-color"],
 		},
 	}}
+
+	c.ApplicationDenied.Subject = s["email-application-subject"]
+	c.ApplicationDenied.Intros = []string{s["email-application-denied-intro"]}
+	c.ApplicationAccepted.Outros = []string{s["email-application-accepted-outro"]}
 }
