@@ -1,31 +1,25 @@
 "use client";
 
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
-import {
-  Event,
-  Role,
-  UmbrellasDocument,
-  UmbrellasQuery,
-  UmbrellasQueryVariables,
-} from "@/lib/gql/generated/graphql";
-import { getClient } from "@/lib/graphql";
-import { slugify } from "@/lib/utils";
-import { defaultEvent } from "@/types/defaults";
-import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { AdminSidebar } from "./sidebar";
-import { Footer } from "@/components/footer";
+import {SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
+import {UmbrellaPopoverSelection} from "@/components/umbrella-popover-selection";
+import {Event, Role, UmbrellasDocument, UmbrellasQuery, UmbrellasQueryVariables,} from "@/lib/gql/generated/graphql";
+import {getClient} from "@/lib/graphql";
+import {slugify} from "@/lib/utils";
+import {defaultEvent} from "@/types/defaults";
+import {usePathname, useRouter} from "next/navigation";
+import React, {useEffect, useState} from "react";
+import {AdminSidebar} from "./sidebar";
+import {Footer} from "@/components/footer";
 import {useUser} from "@/components/provider/user-provider";
 
 interface PlannerLayoutProps {
   children: React.ReactNode;
 }
 
-export default function PlannerLayout({ children }: PlannerLayoutProps) {
+export default function PlannerLayout({children}: PlannerLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useUser();
+  const {user} = useUser();
   const [umbrellas, setUmbrellas] = useState<Event[]>([]);
 
   const basePath = "/" + pathname.split("/")[1];
@@ -49,7 +43,7 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
           router.push("/" + slugify(umbrella.title) + "-" + umbrella.ID);
         }
         setUmbrellas(
-          umbrellaData.umbrellas.map((u) => ({ ...defaultEvent, ...u, supportingEvents: [] }))
+          umbrellaData.umbrellas.map((u) => ({...defaultEvent, ...u, supportingEvents: []}))
         );
       }
     };
@@ -61,16 +55,20 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
     <div className="flex flex-col min-h-[calc(100vh-80px)] mt-[81px] w-full">
       {user?.role === Role.Admin ? (
         <SidebarProvider>
-          <AdminSidebar umbrellas={umbrellas} />
-          <main className="flex-1">
-            <div className="p-5">
-              <SidebarTrigger className="mb-2 block" />
-              {children}
-            </div>
-          </main>
+          <AdminSidebar umbrellas={umbrellas}/>
+          <div className={'flex-1 flex flex-col'}>
+            <main className="flex-1">
+              <div className="p-5">
+                <SidebarTrigger className="mb-2 block"/>
+                {children}
+              </div>
+            </main>
+            <Footer/>
+          </div>
         </SidebarProvider>
       ) : (
-        <main className="flex-1 flex flex-col gap-y-5 p-5">
+        <>
+          <main className="flex-1 flex flex-col gap-y-5 p-5">
             {umbrellas.length > 0 && (
               <UmbrellaPopoverSelection
                 umbrellas={umbrellas}
@@ -78,10 +76,10 @@ export default function PlannerLayout({ children }: PlannerLayoutProps) {
               />
             )}
             {children}
-        </main>
+          </main>
+          <Footer/>
+        </>
       )}
-
-      <Footer />
     </div>
   );
 }
