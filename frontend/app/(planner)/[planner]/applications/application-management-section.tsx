@@ -11,7 +11,11 @@ import {Form, FormControl, FormField, FormItem, FormMessage} from "@/components/
 import {LoaderCircle, MailCheck, MailX} from "lucide-react";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {getClient} from "@/lib/graphql";
-import {AcceptNewApplicationsDocument, AcceptNewApplicationsMutation} from "@/lib/gql/generated/graphql";
+import {
+  AcceptNewApplicationsDocument,
+  AcceptNewApplicationsMutation,
+  DenyRemainingApplicationsDocument
+} from "@/lib/gql/generated/graphql";
 import {toast} from "sonner";
 import {useUser} from "@/components/provider/user-provider";
 
@@ -57,13 +61,23 @@ export default function ApplicationManagementSection(props: ApplicationManagemen
       props.triggerRefetch()
       toast.success("Weitere Studis wurden erfolgreich angenommen")
     } catch {
-      toast.error("Fehler beim akzeptieren der Sutdis")
+      toast.error("Fehler beim akzeptieren der Studis")
     }
     setLoading(false)
   }
 
   async function handleDeny() {
-    toast.info('Not yet implemented')
+    const client = getClient(String(sid));
+
+    try {
+      await client.request(DenyRemainingApplicationsDocument, {eventID: props.umbrellaID});
+      props.triggerRefetch()
+      toast.success("Die restlichen Studis wurden erfolgreich abgelehnt")
+    } catch {
+      toast.error("Ein Fehler beim Senden der Mails ist aufgetreten.")
+    } finally {
+      setDialogOpen(null)
+    }
   }
 
   return (

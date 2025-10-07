@@ -7,3 +7,7 @@ mutation addStudentApplicationForEvent($application:NewUserToEventApplication!) 
 mutation acceptNewApplications($eventID: Int!, $count: Int!) {
   acceptTopApplicationsOnEvent(eventID: $eventID, count: $count)
 }
+
+mutation denyRemainingApplications($umbrellaID: Int!) {
+  denyRemainingAplicationsOnEvent(eventID: $umbrellaID)
+}
