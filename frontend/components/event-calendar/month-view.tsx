@@ -24,8 +24,9 @@ import {
   DefaultStartHour,
   TimeZone,
 } from "@/components/event-calendar/constants";
-import type { Event } from "@/lib/gql/generated/graphql";
+import {Role, type Event } from "@/lib/gql/generated/graphql";
 import { DateTime } from "luxon";
+import {useUser} from "@/components/provider/user-provider";
 
 interface MonthViewProps {
   currentDate: DateTime;
@@ -40,6 +41,7 @@ export function MonthView({
   onEventSelectAction,
   onEventCreateAction,
 }: MonthViewProps) {
+  const {user} = useUser();
   const days = useMemo(() => {
     const monthStart = currentDate.startOf("month");
     const monthEnd = monthStart.endOf("month");
@@ -136,6 +138,7 @@ export function MonthView({
                     id={cellId}
                     date={day}
                     onClick={() => {
+                      if (user?.role !== Role.Admin) return
                       const startTime = day;
                       startTime.set({ hour: DefaultStartHour });
                       onEventCreateAction(startTime);
