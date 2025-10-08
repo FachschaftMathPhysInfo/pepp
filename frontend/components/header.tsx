@@ -39,6 +39,7 @@ import { AuthenticationDialog } from "./dialog/authentication/authentication-dia
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DialogTitle } from "@/components/ui/dialog";
 import {useUser} from "@/components/provider/user-provider";
+import {TooltipProvider} from "@/components/ui/tooltip";
 
 export default function Header() {
   const router = useRouter();
@@ -145,6 +146,7 @@ export default function Header() {
           />
         </div>
       </div>
+      <TooltipProvider>
       <div className="flex flex-row ml-8">
         <Button
           variant="secondary"
@@ -283,6 +285,7 @@ export default function Header() {
           </Button>
         )}
       </div>
+      </TooltipProvider>
 
       <AuthenticationDialog
         open={dialogState === "authentication"}
