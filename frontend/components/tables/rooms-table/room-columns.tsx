@@ -19,22 +19,22 @@ export function RoomColumn({currentBuilding, setDialogState}: RoomColumnProps): 
     {
       accessorKey: "floor",
       header: "Stockwerk",
-      cell: ({row}) => row.original.floor
+      cell: ({row}) => <div className={'w-full text-center'}>{row.original.floor}</div>
     },
     {
       accessorKey: "number",
       header: "Nummer",
-      cell: ({row}) => row.original.number
+      cell: ({row}) => <div className={'w-full text-center'}>{row.original.number}</div>
     },
     {
       accessorKey: "name",
       header: "Name",
-      cell: ({row}) => row.original.name,
+      cell: ({row}) => <div className={'w-full text-center'}>{row.original.name}</div>,
     },
     {
       accessorKey: "capacity",
       header: "Kapazität",
-      cell: ({row}) => row.original.capacity
+      cell: ({row}) => <div className={'w-full text-center'}>{row.original.capacity}</div>
     },
     {
       id: "actions",
