@@ -224,8 +224,26 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User, id 
 	if oldMail != user.Mail {
 		m := r.MailConfig.Confirmation
 
+		token, err := utils.RandomURLSafeString(32)
+		if err != nil {
+			log.Errorf("failed to generate token for mail change of %s: %v: ", oldMail, err)
+			return 0, ErrInternal
+		}
+
+		confirmToken := &models.ConfirmationToken{
+			UserID:    user.ID,
+			Token:     token,
+			ExpiresAt: time.Now().Add(12 * time.Hour)}
+
+		if _, err := r.DB.NewInsert().
+			Model(confirmToken).
+			Exec(ctx); err != nil {
+			log.Errorf("failed to insert new token for %s: %v", oldMail, err)
+			return 0, ErrInternal
+		}
+
 		m.Actions[0].Button.Link = fmt.Sprintf("%s/confirm/%s",
-			os.Getenv("PUBLIC_URL"), user.SessionID)
+			os.Getenv("PUBLIC_URL"), token)
 
 		if err := email.Send(user, m, r.MailConfig); err != nil {
 			log.Errorf("failed to send email to %s: %v", user.Mail, err)
