@@ -7,7 +7,7 @@ WORKDIR /app
 
 COPY frontend/package*.json ./
 COPY frontend/tsconfig.json ./
-COPY frontend/next.config.mjs ./
+COPY frontend/next.config.ts ./
 
 RUN npm install
 COPY frontend/ .
