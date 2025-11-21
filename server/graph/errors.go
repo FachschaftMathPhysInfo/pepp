@@ -2,4 +2,5 @@ package graph
 
 import "fmt"
 
-var ErrInternal = fmt.Errorf("internal system error")
+var ErrInternal = fmt.Errorf("internal server error")
+var ErrWrongCredentials = fmt.Errorf("incorrect credentials provided")

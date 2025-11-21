@@ -165,6 +165,14 @@ query eventCloseup($id: Int!) {
 
 query tutorialAvailabilitys($id: Int!) {
   events(id: [$id]) {
+    tutorials {
+      tutors {
+        ID
+        fn
+        sn
+        mail
+      }
+    }
     tutorsAvailable {
       ID
       mail
