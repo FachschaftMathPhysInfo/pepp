@@ -38,6 +38,7 @@ func (r *applicationResolver) Score(ctx context.Context, obj *models.Application
 func (r *applicationResolver) Responses(ctx context.Context, obj *models.Application) ([]*model.QuestionAnswersPair, error) {
 	form, err := r.Query().Forms(ctx, []int{int(obj.EventID)})
 	if err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -50,6 +51,7 @@ func (r *applicationResolver) Responses(ctx context.Context, obj *models.Applica
 			Relation("Answer").
 			Where(`"aq"."question_id" = ?`, question.ID).
 			Scan(ctx); err != nil {
+			log.Error(err)
 			return nil, ErrInternal
 		}
 
@@ -97,6 +99,7 @@ func (r *eventResolver) RoomsAvailable(ctx context.Context, obj *models.Event) (
 		Relation("Building").
 		Where("NOT EXISTS (?)", subq).
 		Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -112,6 +115,7 @@ func (r *labelResolver) Kind(ctx context.Context, obj *models.Label) (model.Labe
 func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (string, error) {
 	sessionID, err := auth.GenerateSessionID()
 	if err != nil {
+		log.Error(err)
 		return "", ErrInternal
 	}
 
@@ -120,6 +124,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 	if user.Password != "" {
 		passwordHash, err := auth.Hash(user.Password)
 		if err != nil {
+			log.Error(err)
 			return "", ErrInternal
 		}
 
@@ -138,12 +143,14 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 			Column("password").
 			Where("mail = ?", user.Mail).
 			Scan(ctx, &password); err != nil {
+			log.Error(err)
 			return "", ErrInternal
 		}
 		if password == "" {
 			// user needs to reconfirm
 			user.Confirmed = utils.BoolPtr(true)
 			if _, err := r.UpdateUser(ctx, user, int(user.ID)); err != nil {
+				log.Error(err)
 				return "", ErrInternal
 			}
 		}
@@ -151,6 +158,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 
 	token, err := utils.RandomURLSafeString(32)
 	if err != nil {
+		log.Error(err)
 		return "", ErrInternal
 	}
 
@@ -162,6 +170,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, user models.User) (strin
 	if _, err := r.DB.NewInsert().
 		Model(confirmToken).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return "", ErrInternal
 	}
 
@@ -182,6 +191,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User, id 
 	if user.Password != "" {
 		passwordHash, err := auth.Hash(user.Password)
 		if err != nil {
+			log.Error(err)
 			return 0, ErrInternal
 		}
 
@@ -194,6 +204,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User, id 
 		Where("id = ?", id).
 		Column("mail").
 		Scan(ctx, &oldMail); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -206,6 +217,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, user models.User, id 
 		OmitZero().
 		Where("id = ?", id).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -230,6 +242,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id []int) (int, error
 		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -246,6 +259,7 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) 
 	if _, err := r.DB.NewInsert().
 		Model(&event).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -266,6 +280,7 @@ func (r *mutationResolver) AddEvent(ctx context.Context, event []*models.Event) 
 		if _, err := r.DB.NewInsert().
 			Model(&relations).
 			Exec(ctx); err != nil {
+			log.Error(err)
 			return nil, ErrInternal
 		}
 	}
@@ -285,6 +300,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -294,6 +310,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 		Where("event_id = ?", id).
 		Column("topic_id").
 		Scan(ctx, &oldTopicIDs); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -305,6 +322,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 					TopicID: t.ID,
 				}).
 				Exec(ctx); err != nil {
+				log.Error(err)
 				return 0, ErrInternal
 			}
 		}
@@ -320,6 +338,7 @@ func (r *mutationResolver) UpdateEvent(ctx context.Context, id int, event models
 				Model(&models.TopicToEvent{}).
 				Where("event_id = ? AND topic_id = ?", id, oldID).
 				Exec(ctx); err != nil {
+				log.Error(err)
 				return 0, ErrInternal
 			}
 		}
@@ -335,6 +354,7 @@ func (r *mutationResolver) DeleteEvent(ctx context.Context, id []int) (int, erro
 		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -352,6 +372,7 @@ func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.Ne
 	if _, err := r.DB.NewInsert().
 		Model(&tutorials).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -360,6 +381,7 @@ func (r *mutationResolver) AddTutorial(ctx context.Context, tutorial []*model.Ne
 		ids = append(ids, int(t.ID))
 		for _, userID := range tutorial[i].Tutors {
 			if _, err := r.Mutation().AddTutorAssignmentForTutorial(ctx, models.TutorialToUserAssignment{TutorialID: t.ID, UserID: int32(userID)}); err != nil {
+				log.Error(err)
 				return nil, ErrInternal
 			}
 		}
@@ -382,6 +404,7 @@ func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial 
 		Model(&t).
 		WherePK().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -391,6 +414,7 @@ func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial 
 		Where("tutorial_id = ?", id).
 		Column("user_id").
 		Scan(ctx, &oldTutorIDs); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -404,6 +428,7 @@ func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial 
 					},
 				)
 			if err != nil {
+				log.Error(err)
 				return 0, ErrInternal
 			}
 		}
@@ -419,6 +444,7 @@ func (r *mutationResolver) UpdateTutorial(ctx context.Context, id int, tutorial 
 					},
 				)
 			if err != nil {
+				log.Error(err)
 				return 0, ErrInternal
 			}
 		}
@@ -434,6 +460,7 @@ func (r *mutationResolver) DeleteTutorial(ctx context.Context, id []int) (int, e
 		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -446,6 +473,7 @@ func (r *mutationResolver) AddBuilding(ctx context.Context, building models.Buil
 	if _, err := r.DB.NewInsert().
 		Model(&building).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -459,11 +487,13 @@ func (r *mutationResolver) UpdateBuilding(ctx context.Context, id int, building 
 		OmitZero().
 		Where("id = ?", id).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
 	updatedBuilding, err := r.Query().Buildings(ctx, []int{id})
 	if err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -477,11 +507,12 @@ func (r *mutationResolver) DeleteBuilding(ctx context.Context, id []int) (int, e
 		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
 	rowsAffected, _ := res.RowsAffected()
-	return int(rowsAffected), ErrInternal
+	return int(rowsAffected), nil
 }
 
 // AddRoom is the resolver for the addRoom field.
@@ -489,6 +520,7 @@ func (r *mutationResolver) AddRoom(ctx context.Context, room models.Room) (*mode
 	if _, err := r.DB.NewInsert().
 		Model(&room).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -502,11 +534,13 @@ func (r *mutationResolver) UpdateRoom(ctx context.Context, room models.Room) (*m
 		OmitZero().
 		WherePK().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
 	updatedRoom, err := r.Query().Rooms(ctx, []string{room.Number}, []int{int(room.BuildingID)})
 	if err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -521,6 +555,7 @@ func (r *mutationResolver) DeleteRoom(ctx context.Context, number []string, buil
 		Where("building_id = ?", buildingID).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -539,6 +574,7 @@ func (r *mutationResolver) AddLabel(ctx context.Context, label []*models.Label) 
 	if _, err := r.DB.NewInsert().
 		Model(&label).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -557,6 +593,7 @@ func (r *mutationResolver) UpdateLabel(ctx context.Context, id int, label models
 		Where("id = ?", id).
 		OmitZero().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -570,11 +607,12 @@ func (r *mutationResolver) DeleteLabel(ctx context.Context, id []int) (int, erro
 		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
 	rowsAffected, _ := res.RowsAffected()
-	return int(rowsAffected), ErrInternal
+	return int(rowsAffected), nil
 }
 
 // UpsertSetting is the resolver for the upsertSetting field.
@@ -590,10 +628,12 @@ func (r *mutationResolver) UpsertSetting(ctx context.Context, setting models.Set
 		Model(&setting).
 		On("CONFLICT (key) DO UPDATE").
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return "", ErrInternal
 	}
 
 	if err := r.FetchSettings(ctx); err != nil {
+		log.Error(err)
 		return "", ErrInternal
 	}
 
@@ -607,6 +647,7 @@ func (r *mutationResolver) DeleteSetting(ctx context.Context, key []string) (int
 		Where("key = ?", key).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -619,6 +660,7 @@ func (r *mutationResolver) AddForm(ctx context.Context, form models.Form) (*mode
 	if _, err := r.DB.NewInsert().
 		Model(&form).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -630,11 +672,13 @@ func (r *mutationResolver) UpdateForm(ctx context.Context, id int, form models.F
 	if _, err := r.DB.NewUpdate().
 		Model(&form).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
 	updatedForm, err := r.Query().Forms(ctx, []int{id})
 	if err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -648,6 +692,7 @@ func (r *mutationResolver) DeleteForm(ctx context.Context, id []int) (int, error
 		Where("id IN (?)", bun.In(id)).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -660,10 +705,12 @@ func (r *mutationResolver) AddQuestion(ctx context.Context, question models.Ques
 	if _, err := r.DB.NewInsert().
 		Model(&question).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
 	if _, err := r.Mutation().AddAnswer(ctx, int(question.ID), answer); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -677,6 +724,7 @@ func (r *mutationResolver) UpdateQuestion(ctx context.Context, id int, question 
 		Where("id = ?", id).
 		OmitZero().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -690,6 +738,7 @@ func (r *mutationResolver) DeleteQuestion(ctx context.Context, id []int) (int, e
 		Where("id IN (?)", id).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -706,6 +755,7 @@ func (r *mutationResolver) AddAnswer(ctx context.Context, questionID int, answer
 	if _, err := r.DB.NewInsert().
 		Model(&answer).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -719,6 +769,7 @@ func (r *mutationResolver) UpdateAnswer(ctx context.Context, id int, answer mode
 		Where("id = ?", id).
 		OmitZero().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -732,6 +783,7 @@ func (r *mutationResolver) DeleteAnswer(ctx context.Context, id []int) (int, err
 		Where("id IN (?)", id).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -744,11 +796,13 @@ func (r *mutationResolver) AddTutorAssignmentForTutorial(ctx context.Context, as
 	if _, err := r.DB.NewInsert().
 		Model(&assignment).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
 	tutorials, err := r.Query().Tutorials(ctx, []int{int(assignment.TutorialID)}, nil, nil, nil, nil)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 	tutorial := tutorials[0]
@@ -782,6 +836,7 @@ func (r *mutationResolver) AddTutorAssignmentForTutorial(ctx context.Context, as
 
 	users, err := r.Query().Users(ctx, []int{int(assignment.UserID)}, nil)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 	user := users[0]
@@ -800,6 +855,7 @@ func (r *mutationResolver) DeleteTutorAssignmentForTutorial(ctx context.Context,
 		WherePK().
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -826,6 +882,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 	if _, err := r.DB.NewInsert().
 		Model(&availabilitys).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -835,6 +892,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 		Relation("Event.Type").
 		WherePK().
 		Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -851,6 +909,7 @@ func (r *mutationResolver) AddTutorAvailabilityForEvent(ctx context.Context, ava
 
 	user, err := r.Query().Users(ctx, []int{availability.UserID}, nil)
 	if err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -868,11 +927,13 @@ func (r *mutationResolver) DeleteTutorAvailabilityForEvent(ctx context.Context, 
 		Where("user_id = ?", availability.UserID).
 		Where("event_id IN (?)", bun.In(availability.EventID)).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
 	user, err := r.Query().Users(ctx, []int{availability.UserID}, nil)
 	if err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -887,6 +948,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 		Relation("Event").
 		Where("t.id = ?", registration.TutorialID).
 		Scan(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -901,6 +963,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 		Where("tutorial_id = ?", tutorial.ID).
 		Count(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -913,6 +976,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 		Where("event_id = ?", tutorial.Event.UmbrellaID).
 		Exists(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -923,6 +987,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 			Where("student_id = ?", registration.UserID).
 			Column("accepted").
 			Scan(ctx, &accepted); err != nil {
+			log.Error(err)
 			return 0, ErrInternal
 		}
 
@@ -938,6 +1003,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 		Where("tutorial.event_id = ?", tutorial.EventID).
 		Count(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -948,6 +1014,7 @@ func (r *mutationResolver) AddStudentRegistrationForTutorial(ctx context.Context
 	if _, err := r.DB.NewInsert().
 		Model(&registration).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -960,6 +1027,7 @@ func (r *mutationResolver) DeleteStudentRegistrationForTutorial(ctx context.Cont
 		Model(&registration).
 		WherePK().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1024,17 +1092,20 @@ func (r *mutationResolver) AddStudentApplicationForEvent(ctx context.Context, ap
 	if _, err := r.DB.NewInsert().
 		Model(a).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
 	if _, err := r.DB.NewInsert().
 		Model(&aqs).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
 	user, err := r.Query().Users(ctx, []int{application.UserID}, nil)
 	if err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1048,11 +1119,13 @@ func (r *mutationResolver) DeleteStudentApplicationForEvent(ctx context.Context,
 		Where("student_id = ?", studentID).
 		Where("event_id = ?", eventID).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
 	user, err := r.Query().Users(ctx, []int{studentID}, nil)
 	if err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1072,6 +1145,7 @@ func (r *mutationResolver) LinkSupportingEventToEvent(ctx context.Context, event
 		Where("umbrella_id IS NOT NULL").
 		Where("id IN (?)", bun.In(append(supportingEventID, eventID))).
 		Scan(ctx, &umbrelleIDs); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1087,6 +1161,7 @@ func (r *mutationResolver) LinkSupportingEventToEvent(ctx context.Context, event
 	if _, err := r.DB.NewInsert().
 		Model(&links).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1105,6 +1180,7 @@ func (r *mutationResolver) UnlinkSupportingEventFromEvent(ctx context.Context, e
 		Where("event_id = ?", eventID).
 		Where("supporting_event_id IN (?)", bun.In(links)).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1126,6 +1202,7 @@ func (r *mutationResolver) AddTopicToEvent(ctx context.Context, eventID int, top
 		Model(&relations).
 		Exec(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1144,6 +1221,7 @@ func (r *mutationResolver) DeleteTopicFromEvent(ctx context.Context, eventID int
 		Where("event_id = ?", eventID).
 		Where("topic_id IN (?)", bun.In(ids)).
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1161,11 +1239,13 @@ func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eve
 		Order("score ASC").
 		Limit(count).
 		Scan(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
 	event := new(models.Event)
 	if err := r.DB.NewSelect().Model(event).Where("id = ?", eventID).Scan(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1177,6 +1257,7 @@ func (r *mutationResolver) AcceptTopApplicationsOnEvent(ctx context.Context, eve
 		Column("accepted").
 		Bulk().
 		Exec(ctx); err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1258,6 +1339,7 @@ func (r *queryResolver) Events(ctx context.Context, id []int, umbrellaID []int, 
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1284,6 +1366,7 @@ func (r *queryResolver) Umbrellas(ctx context.Context, id []int, onlyFuture *boo
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1303,6 +1386,7 @@ func (r *queryResolver) Buildings(ctx context.Context, id []int) ([]*models.Buil
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1326,6 +1410,7 @@ func (r *queryResolver) Rooms(ctx context.Context, number []string, buildingID [
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1370,6 +1455,7 @@ func (r *queryResolver) Labels(ctx context.Context, name []string, kind []model.
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1397,6 +1483,7 @@ func (r *queryResolver) Settings(ctx context.Context, key []string, typeArg []mo
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1434,6 +1521,7 @@ func (r *queryResolver) Users(ctx context.Context, id []int, mail []string) ([]*
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1454,6 +1542,7 @@ func (r *queryResolver) Forms(ctx context.Context, id []int) ([]*models.Form, er
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1479,6 +1568,7 @@ func (r *queryResolver) Applications(ctx context.Context, eventID *int, mail []s
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1516,6 +1606,7 @@ func (r *queryResolver) Tutorials(ctx context.Context, id []int, eventID []int, 
 	}
 
 	if err := query.Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
@@ -1598,6 +1689,7 @@ func (r *tutorialResolver) RegistrationCount(ctx context.Context, obj *models.Tu
 		Where("tutorial_id = ?", obj.ID).
 		Count(ctx)
 	if err != nil {
+		log.Error(err)
 		return 0, ErrInternal
 	}
 
@@ -1612,6 +1704,7 @@ func (r *tutorialResolver) Students(ctx context.Context, obj *models.Tutorial) (
 		Relation("User").
 		Where("tutorial_id = ?", obj.ID).
 		Scan(ctx); err != nil {
+		log.Error(err)
 		return nil, ErrInternal
 	}
 
