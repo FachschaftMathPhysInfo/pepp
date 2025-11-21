@@ -1,23 +1,29 @@
 "use client";
 
-import {createContext, ReactNode, useContext, useEffect, useState} from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   LoginUserDocument,
   LoginUserQuery,
   LoginUserQueryVariables,
   LogoutDocument,
-  User
+  User,
 } from "@/lib/gql/generated/graphql";
-import {useRouter, useSearchParams} from "next/navigation";
-import {deleteCookie, getCookie, setCookie} from "@/lib/cookie";
-import {getClient} from "@/lib/graphql";
+import { useRouter, useSearchParams } from "next/navigation";
+import { deleteCookie, getCookie, setCookie } from "@/lib/cookie";
+import { getClient } from "@/lib/graphql";
 import {
   defaultApplication,
   defaultBuilding,
   defaultEvent,
   defaultRoom,
   defaultTutorial,
-  defaultUser
+  defaultUser,
 } from "@/types/defaults";
 
 type UserContextType = {
@@ -35,7 +41,7 @@ export const useUser = () => {
   }
   return context;
 };
-export const UserProvider = ({children}: { children: ReactNode }) => {
+export const UserProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [sid, setSid] = useState<string | null>(null);
@@ -76,23 +82,23 @@ export const UserProvider = ({children}: { children: ReactNode }) => {
         registrations: user.registrations?.map((r) => ({
           ...defaultTutorial,
           ...r,
-          event: {...defaultEvent, ...r.event},
+          event: { ...defaultEvent, ...r.event },
         })),
         tutorials: user.tutorials?.map((t) => ({
           ...defaultTutorial,
           ...t,
-          event: {...defaultEvent, ...t.event},
+          event: { ...defaultEvent, ...t.event },
           room: {
             ...defaultRoom,
             ...t.room,
-            building: {...defaultBuilding, ...t.room.building},
+            building: { ...defaultBuilding, ...t.room.building },
           },
         })),
         applications:
           user.applications?.map((a) => ({
             ...defaultApplication,
             ...a,
-            event: {...defaultEvent, ...a.event},
+            event: { ...defaultEvent, ...a.event },
           })) || [],
       });
     };
@@ -102,10 +108,17 @@ export const UserProvider = ({children}: { children: ReactNode }) => {
   }, [sid]);
 
   const logout = async () => {
-    const client = getClient()
+    const client = getClient();
     try {
-      if(sid) await client.request(LogoutDocument, {sid})
-    } catch {/* if sid was not present, this will fail but has no consequences */ }
+      if (sid) {
+        const vars: LoginUserQueryVariables = {
+          sid: sid,
+        };
+        await client.request(LogoutDocument, vars);
+      }
+    } catch {
+      /* if sid was not present, this will fail but has no consequences */
+    }
 
     deleteCookie("sid");
     setSid(null);
@@ -118,7 +131,7 @@ export const UserProvider = ({children}: { children: ReactNode }) => {
   };
 
   return (
-    <UserContext.Provider value={{user, setUser, sid, logout, login}}>
+    <UserContext.Provider value={{ user, setUser, sid, logout, login }}>
       {children}
     </UserContext.Provider>
   );

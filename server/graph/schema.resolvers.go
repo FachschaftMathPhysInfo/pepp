@@ -19,7 +19,7 @@ import (
 	"github.com/FachschaftMathPhysInfo/pepp/server/models"
 	"github.com/FachschaftMathPhysInfo/pepp/server/utils"
 	"github.com/gosimple/slug"
-	"github.com/matcornic/hermes/v2"
+	hermes "github.com/matcornic/hermes/v2"
 	log "github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 )
@@ -252,11 +252,12 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id []int) (int, error
 
 // Logout is the resolver for the logout field.
 func (r *mutationResolver) Logout(ctx context.Context, sid string) (bool, error) {
-	if _, err := r.DB.NewUpdate().Model((*models.User)(nil)).
+	if _, err := r.DB.NewUpdate().
+		Model((*models.User)(nil)).
 		Where("session_id = ?", sid).
 		Set("session_id = ?", nil).
 		Exec(ctx); err != nil {
-		log.Printf("failed to logout sid: %s", sid)
+		log.Error("failed to logout sid: %s, %s", sid, err)
 		return false, ErrInternal
 	}
 
