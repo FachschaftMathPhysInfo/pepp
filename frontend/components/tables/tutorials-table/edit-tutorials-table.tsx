@@ -10,13 +10,19 @@ import {
   TutorialAvailabilitysQueryVariables,
   User,
 } from "@/lib/gql/generated/graphql";
-import {Info, MessageCircleQuestionMark, Plus, Save, SquareMinus} from "lucide-react";
+import {
+  Info,
+  MessageCircleQuestionMark,
+  Plus,
+  Save,
+  SquareMinus,
+} from "lucide-react";
 import { getClient } from "@/lib/graphql";
 import React, { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableRow } from "../../ui/table";
 import { TutorSelection } from "./tutor-selection";
 import { RoomSelection } from "./room-selection";
-import {useUser} from "@/components/provider/user-provider";
+import { useUser } from "@/components/provider/user-provider";
 import {
   Tooltip,
   TooltipContent,
@@ -75,12 +81,26 @@ export function EditTutorialsTable({
         vars
       );
 
-      setAvailableTutors(
-        eventData.events[0].tutorsAvailable?.map((t) => ({
+      const newAvailableTutors: User[] = [
+        ...(eventData.events[0].tutorsAvailable?.map((t) => ({
           ...defaultUser,
           ...t,
-        })) ?? []
+        })) ?? []),
+
+        ...(eventData.events[0].tutorials?.flatMap(
+          (tutorial) =>
+            tutorial.tutors?.map((tutor) => ({
+              ...defaultUser,
+              ...tutor,
+            })) ?? []
+        ) ?? []),
+      ];
+
+      const uniqueTutors = Array.from(
+        new Map(newAvailableTutors.map((tutor) => [tutor.ID, tutor])).values()
       );
+
+      setAvailableTutors(uniqueTutors);
 
       setAvailableRooms(
         eventData.events[0].roomsAvailable?.map((r) => ({
