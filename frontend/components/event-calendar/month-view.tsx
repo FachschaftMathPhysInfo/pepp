@@ -139,8 +139,7 @@ export function MonthView({
                     date={day}
                     onClick={() => {
                       if (user?.role !== Role.Admin) return
-                      const startTime = day;
-                      startTime.set({ hour: DefaultStartHour });
+			const startTime = day.set({hour: DefaultStartHour});
                       onEventCreateAction(startTime);
                     }}
                   >

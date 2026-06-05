@@ -306,9 +306,7 @@ export function DayView({
                       )}
                       onClick={() => {
                         if (user?.role !== Role.Admin) return
-                        const startTime = currentDate;
-                        startTime.set({ hour: hourValue });
-                        startTime.set({ minute: quarter * 15 });
+                          const startTime = currentDate.set({hour: hourValue}).set({minute: quarter * 15});
                         onEventCreateAction(startTime);
                       }}
                     />

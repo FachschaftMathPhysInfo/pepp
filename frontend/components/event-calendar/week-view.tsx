@@ -384,10 +384,8 @@ export function WeekView({
                         )}
                         onClick={() => {
                           if (user?.role !== Role.Admin) return
-                          const startTime = day.setZone(TimeZone);
-                          startTime.set({ hour: hourValue });
-                          startTime.set({ minute: quarter * 15 });
-                          onEventCreateAction(startTime);
+			    const startTime = day.setZone(TimeZone).set({hour: hourValue}).set({minute: quarter * 15})
+                           onEventCreateAction(startTime);
                         }}
                       />
                     );

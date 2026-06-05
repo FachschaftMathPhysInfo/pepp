@@ -167,7 +167,7 @@ export function EventCalendar({
     setIsEventDialogOpen(true);
   };
 
-  const handleEventCreate = (startTime: DateTime) => {
+    const handleEventCreate = (startTime: DateTime) => {
     // Snap to 15-minute intervals
     const minutes = startTime.minute;
     const remainder = minutes % 15;
@@ -328,8 +328,9 @@ export function EventCalendar({
             <Button
               className="max-[479px]:aspect-square max-[479px]:p-0!"
               onClick={() => {
-                setSelectedEvent(null); // Ensure we're creating a new event
-                setIsEventDialogOpen(true);
+		  //                  setSelectedEvent(null); // Ensure we're creating a new event
+		  		  handleEventCreate(DateTime.now())
+		  //              setIsEventDialogOpen(true);
               }}
             >
               <PlusIcon
