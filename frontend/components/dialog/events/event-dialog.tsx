@@ -8,7 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Event, Role } from "@/lib/gql/generated/graphql";
+import {  Role } from "@/lib/gql/generated/graphql";
+import { Event } from "@/lib/gql/generated/schema-types";
 import { Calendar, Clock, Edit2, Sprout } from "lucide-react";
 import { EventForm } from "@/components/dialog/events/event-form";
 import { Badge } from "@/components/ui/badge";

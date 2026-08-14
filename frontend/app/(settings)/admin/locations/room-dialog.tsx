@@ -1,4 +1,4 @@
-import {Building, Room} from "@/lib/gql/generated/graphql";
+import {Building, Room} from "@/lib/gql/generated/schema-types";
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import RoomForm from "@/app/(settings)/admin/locations/room-form";
 import React from "react";

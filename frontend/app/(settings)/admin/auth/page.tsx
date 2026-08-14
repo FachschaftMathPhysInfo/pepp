@@ -19,12 +19,12 @@ import { Fingerprint, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   ScalarType,
-  Setting,
   SettingsDocument,
   SettingsQuery,
   UpsertSettingDocument,
   UpsertSettingMutation,
 } from "@/lib/gql/generated/graphql";
+import { Setting} from "@/lib/gql/generated/schema-types";
 import { getClient } from "@/lib/graphql";
 import { useEffect, useState } from "react";
 import { ManagementPageHeader } from "@/components/management-page-header";

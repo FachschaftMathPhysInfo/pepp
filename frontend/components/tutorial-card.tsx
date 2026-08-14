@@ -3,7 +3,7 @@ import TutorialElement from "@/components/tutorial-element";
 import {Button} from "@/components/ui/button";
 import {CirclePlus} from "lucide-react";
 import {toast} from "sonner";
-import {Tutorial} from "@/lib/gql/generated/graphql";
+import {Tutorial} from "@/lib/gql/generated/schema-types";
 
 interface TutorialCardProps {
   tutorials: Tutorial[];

@@ -2,7 +2,8 @@
 
 import {SidebarProvider, SidebarTrigger} from "@/components/ui/sidebar";
 import {UmbrellaPopoverSelection} from "@/components/umbrella-popover-selection";
-import {Event, Role, UmbrellasDocument, UmbrellasQuery, UmbrellasQueryVariables,} from "@/lib/gql/generated/graphql";
+import { Role, UmbrellasDocument, UmbrellasQuery, UmbrellasQueryVariables,} from "@/lib/gql/generated/graphql";
+import {Event} from "@/lib/gql/generated/schema-types"
 import {getClient} from "@/lib/graphql";
 import {slugify} from "@/lib/utils";
 import {defaultEvent} from "@/types/defaults";

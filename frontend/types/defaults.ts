@@ -9,7 +9,7 @@ import {
   Room,
   Tutorial,
   User,
-} from "@/lib/gql/generated/graphql";
+} from "@/lib/gql/generated/schema-types";
 
 export const defaultEvent: Event = {
   ID: 0,

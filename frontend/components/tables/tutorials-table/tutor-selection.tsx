@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { User } from "@/lib/gql/generated/graphql";
+import { User } from "@/lib/gql/generated/schema-types";
 import { ChevronsUpDown } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";

@@ -21,7 +21,6 @@ import {
   AddEventAvailabilityOfTutorDocument,
   AddEventAvailabilityOfTutorMutation,
   AddEventAvailabilityOfTutorMutationVariables,
-  Event,
   TableEventsDocument,
   TableEventsQuery,
   TableEventsQueryVariables,
@@ -32,6 +31,7 @@ import {
   UserIdQuery,
   UserIdQueryVariables,
 } from "@/lib/gql/generated/graphql";
+import {Event } from "@/lib/gql/generated/schema-types";
 import { RowSelectionState } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";

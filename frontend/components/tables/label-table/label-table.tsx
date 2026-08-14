@@ -12,7 +12,7 @@ import {
 import {Table, TableBody, TableCell, TableRow,} from "@/components/ui/table";
 import React from "react";
 import {Input} from "@/components/ui/input";
-import {Label} from "@/lib/gql/generated/graphql";
+import {Label} from "@/lib/gql/generated/schema-types";
 import {DataTablePagination} from "@/components/tables/data-table-pagination";
 import {LabelColumn} from "@/components/tables/label-table/label-columns";
 import {LabelDialogState} from "@/app/(settings)/admin/labels/page";

@@ -13,7 +13,8 @@ import {
   eachDayOfInterval,
   eachHourOfInterval,
 } from "@/components/event-calendar";
-import {Event, Role} from "@/lib/gql/generated/graphql";
+import { Role} from "@/lib/gql/generated/graphql";
+import {Event} from "@/lib/gql/generated/schema-types";
 import {
   EndHour,
   StartHour,

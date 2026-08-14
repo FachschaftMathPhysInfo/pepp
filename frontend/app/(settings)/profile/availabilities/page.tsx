@@ -8,10 +8,11 @@ import {
   AvailableEventIdsOfUserQuery,
   DeleteEventAvailabilityOfTutorDocument,
   DeleteEventAvailabilityOfTutorMutation,
-  Event,
   TableEventsDocument,
   TableEventsQuery,
 } from "@/lib/gql/generated/graphql";
+import { Event,
+} from "@/lib/gql/generated/schema-types";
 import {getClient} from "@/lib/graphql";
 import {Button} from "@/components/ui/button";
 import {EventTable} from "@/components/tables/event-table/event-table";

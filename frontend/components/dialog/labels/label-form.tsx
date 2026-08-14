@@ -9,11 +9,11 @@ import {getClient} from "@/lib/graphql";
 import {
   AddLabelDocument,
   AddLabelMutation,
-  Label as Labeltype,
   LabelKind,
   UpdateLabelDocument,
   UpdateLabelMutation,
 } from "@/lib/gql/generated/graphql";
+import {Label as Labeltype} from "@/lib/gql/generated/schema-types";
 import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";

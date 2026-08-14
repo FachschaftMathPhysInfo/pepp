@@ -1,4 +1,4 @@
-import { Room } from "@/lib/gql/generated/graphql";
+import { Room } from "@/lib/gql/generated/schema-types";
 import { cn } from "@/lib/utils";
 import { ArrowDownToDot, Building2 } from "lucide-react";
 import React from "react";

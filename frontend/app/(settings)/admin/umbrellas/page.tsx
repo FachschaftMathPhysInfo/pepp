@@ -3,10 +3,10 @@
 import {
   DeleteEventDocument,
   DeleteEventMutation,
-  Event,
   UmbrellasDocument,
   UmbrellasQuery,
 } from "@/lib/gql/generated/graphql";
+import {Event  } from "@/lib/gql/generated/schema-types"; 
 import React, { useCallback, useEffect, useState } from "react";
 import { getClient } from "@/lib/graphql";
 import { defaultEvent } from "@/types/defaults";

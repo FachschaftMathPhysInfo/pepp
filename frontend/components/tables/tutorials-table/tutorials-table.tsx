@@ -8,12 +8,11 @@ import {
   DeleteStudentRegistrationForTutorialDocument,
   DeleteStudentRegistrationForTutorialMutation,
   DeleteStudentRegistrationForTutorialMutationVariables,
-  Event,
   EventTutorialsDocument,
   EventTutorialsQuery,
   Role,
-  Tutorial,
 } from "@/lib/gql/generated/graphql";
+import {Event ,Tutorial} from "@/lib/gql/generated/schema-types";
 import { Info, Loader2, Lock } from "lucide-react";
 import { MailLinkWithLabel } from "@/components/email-link";
 import { getClient } from "@/lib/graphql";

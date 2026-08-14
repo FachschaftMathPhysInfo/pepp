@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import React from "react";
 import { Input } from "@/components/ui/input";
-import { Event } from "@/lib/gql/generated/graphql";
+import { Event } from "@/lib/gql/generated/schema-types";
 import { DataTablePagination } from "@/components/tables/data-table-pagination";
 
 interface DataTableProps {

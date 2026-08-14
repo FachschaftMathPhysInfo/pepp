@@ -1,4 +1,4 @@
-import {Setting} from "@/lib/gql/generated/graphql";
+import {Setting} from "@/lib/gql/generated/schema-types";
 import {cn} from "@/lib/utils";
 import {Separator} from "@radix-ui/react-dropdown-menu";
 

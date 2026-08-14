@@ -5,7 +5,7 @@ import { format, isSameDay } from "date-fns"
 import { XIcon } from "lucide-react"
 
 import { EventItem} from "@/components/event-calendar"
-import type { Event } from "@/lib/gql/generated/graphql"
+import type { Event } from "@/lib/gql/generated/schema-types"
 
 
 interface EventsPopupProps {

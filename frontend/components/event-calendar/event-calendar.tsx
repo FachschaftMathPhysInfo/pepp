@@ -32,7 +32,7 @@ import {
   WeekView,
   getInitialCalendarDate,
 } from "@/components/event-calendar";
-import type { Event } from "@/lib/gql/generated/graphql";
+import type { Event } from "@/lib/gql/generated/schema-types";
 import { LabelKind, Role } from "@/lib/gql/generated/graphql";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -186,8 +186,8 @@ export function EventCalendar({
     const newEvent: Event = {
       ID: 0,
       title: "",
-      from: startTime,
-      to: startTime.plus({hours: 1}),
+	from: startTime.toISODate()?.toString() ?? Date.now().toString(),
+	to: startTime.plus({hours: 1}).toISODate()?.toString() ?? Date.now().toString(),
       tutorialsOpen: false,
       registrationNeeded: true,
       needsTutors: false,

@@ -12,7 +12,8 @@ import {
   WeekCellsHeight,
   eachHourOfInterval,
 } from "@/components/event-calendar";
-import {Event, Role} from "@/lib/gql/generated/graphql";
+import {Event, } from "@/lib/gql/generated/schema-types";
+import { Role} from "@/lib/gql/generated/graphql";
 import {
   EndHour,
   StartHour,

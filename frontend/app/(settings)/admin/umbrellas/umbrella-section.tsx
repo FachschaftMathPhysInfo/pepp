@@ -1,4 +1,4 @@
-import {Event} from "@/lib/gql/generated/graphql";
+import {Event} from "@/lib/gql/generated/schema-types";
 import {Calendar, Pencil, Trash} from "lucide-react";
 import React from "react";
 import {UmbrellaDialogState} from "@/app/(settings)/admin/umbrellas/page";

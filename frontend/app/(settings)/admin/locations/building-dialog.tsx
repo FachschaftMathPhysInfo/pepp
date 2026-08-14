@@ -1,4 +1,4 @@
-import {Building} from "@/lib/gql/generated/graphql";
+import {Building} from "@/lib/gql/generated/schema-types";
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import React from "react";
 import {Sprout} from "lucide-react";

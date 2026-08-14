@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 
 import { cn, hexToRGBA } from "@/lib/utils";
 import { TimeZone, getBorderRadiusClasses } from "@/components/event-calendar";
-import type { Event } from "@/lib/gql/generated/graphql";
+import type { Event } from "@/lib/gql/generated/schema-types";
 import Markdown from "react-markdown";
 import { DateTime } from "luxon";
 

@@ -1,4 +1,5 @@
-import {Label, LabelKind,} from "@/lib/gql/generated/graphql";
+import { LabelKind,} from "@/lib/gql/generated/graphql";
+import {Label} from "@/lib/gql/generated/schema-types";
 import React, {useEffect, useState} from "react";
 import {Check, ChevronDown, Edit} from "lucide-react";
 import {Badge} from "@/components/ui/badge";

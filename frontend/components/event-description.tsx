@@ -1,4 +1,4 @@
-import { Event } from "@/lib/gql/generated/graphql";
+import { Event } from "@/lib/gql/generated/schema-types";
 import { Badge } from "./ui/badge";
 import { FullDateDescription } from "./full-date-description";
 

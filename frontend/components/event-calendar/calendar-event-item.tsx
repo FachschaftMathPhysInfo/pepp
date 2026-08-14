@@ -3,7 +3,7 @@
 import React from "react"
 
 import {EventItem,} from "@/components/event-calendar"
-import type {Event} from "@/lib/gql/generated/graphql"
+import type {Event} from "@/lib/gql/generated/schema-types"
 
 
 interface CalendarEventItemProps {

@@ -1,6 +1,6 @@
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,} from "@/components/ui/command";
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
-import {Event} from "@/lib/gql/generated/graphql";
+import {Event} from "@/lib/gql/generated/schema-types";
 import {cn, extractId, slugify} from "@/lib/utils";
 import {Check, ChevronsUpDown} from "lucide-react";
 import React, {useState} from "react";

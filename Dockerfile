@@ -19,7 +19,7 @@ RUN npm run build
 ############################################
 # Build the Go GraphQL server
 ############################################
-FROM golang:1.23.0-bullseye AS server-build
+FROM golang:1.26-trixie AS server-build
 
 WORKDIR /go/src
 
@@ -35,7 +35,7 @@ RUN CGO_ENABLED=0 go build -a -o pepp ./cli
 ############################################
 # Final image
 ############################################
-FROM node:20-alpine AS final
+FROM node:24-alpine AS final
 
 WORKDIR /app
 

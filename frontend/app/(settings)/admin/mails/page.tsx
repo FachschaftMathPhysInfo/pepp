@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  Setting,
   SettingsDocument,
   SettingsQuery,
 } from "@/lib/gql/generated/graphql";
+import {Setting } from "@/lib/gql/generated/schema-types";
 import {
   Accordion,
   AccordionContent,

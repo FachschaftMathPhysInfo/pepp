@@ -1,7 +1,7 @@
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import React from "react";
 import {Sprout} from "lucide-react";
-import {Event} from "@/lib/gql/generated/graphql"
+import {Event} from "@/lib/gql/generated/schema-types"
 import EditUmbrellaForm from "@/components/dialog/umbrellas/edit-umbrella-form";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import CopyUmbrellaForm from "@/components/dialog/umbrellas/copy-umbrella-form";

@@ -12,8 +12,8 @@ import {
   LoginUserQuery,
   LoginUserQueryVariables,
   LogoutDocument,
-  User,
 } from "@/lib/gql/generated/graphql";
+import {User } from "@/lib/gql/generated/schema-types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { deleteCookie, getCookie, setCookie } from "@/lib/cookie";
 import { getClient } from "@/lib/graphql";

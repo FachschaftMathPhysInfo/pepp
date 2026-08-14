@@ -23,11 +23,11 @@ import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import {
   AllEventsForEventDialogDocument,
-  Event,
   FutureEventsDocument,
   FutureEventsQuery,
   Role,
 } from "@/lib/gql/generated/graphql";
+import {Event} from "@/lib/gql/generated/schema-types";
 import { getClient } from "@/lib/graphql";
 import { usePathname, useRouter } from "next/navigation";
 import { EventDialog } from "@/components/dialog/events/event-dialog";
