@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
-  Setting,
   SettingsDocument,
   SettingsQuery,
 } from "@/lib/gql/generated/graphql";
+import {Setting} from "@/lib/gql/generated/schema-types";
 import { useEffect, useState } from "react";
 import { LogIn } from "lucide-react";
 import { toast } from "sonner";

@@ -1,6 +1,7 @@
 "use client"
 
-import {Event, PlannerEventsDocument, PlannerEventsQuery} from "@/lib/gql/generated/graphql";
+import { PlannerEventsDocument, PlannerEventsQuery} from "@/lib/gql/generated/graphql";
+import {Event, } from "@/lib/gql/generated/schema-types";
 import {getClient} from "@/lib/graphql";
 import React, {useCallback, useEffect, useState} from "react";
 import {defaultEvent} from "@/types/defaults";

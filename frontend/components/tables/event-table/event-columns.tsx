@@ -1,7 +1,7 @@
 import { DataTableColumnHeader } from "@/components/tables/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Event } from "@/lib/gql/generated/graphql";
+import { Event } from "@/lib/gql/generated/schema-types";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 

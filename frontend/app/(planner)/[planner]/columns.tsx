@@ -11,8 +11,8 @@ import {
 import {
   DeleteEventDocument,
   DeleteEventMutation,
-  Event,
 } from "@/lib/gql/generated/graphql";
+import {Event}  from "@/lib/gql/generated/schema-types";
 import { formatDateToDDMM, formatDateToHHMM } from "@/lib/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";

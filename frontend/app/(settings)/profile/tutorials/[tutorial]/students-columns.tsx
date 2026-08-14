@@ -1,6 +1,6 @@
 import { DataTableColumnHeader } from "@/components/tables/data-table-column-header";
 import { Button } from "@/components/ui/button";
-import { User } from "@/lib/gql/generated/graphql";
+import { User } from "@/lib/gql/generated/schema-types";
 import { ColumnDef } from "@tanstack/react-table";
 import { SquareMinus } from "lucide-react";
 import React from "react";

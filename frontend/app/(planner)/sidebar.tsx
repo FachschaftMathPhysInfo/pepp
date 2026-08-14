@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { UmbrellaPopoverSelection } from "@/components/umbrella-popover-selection";
-import { Event } from "@/lib/gql/generated/graphql";
+import { Event } from "@/lib/gql/generated/schema-types";
 import { usePathname, useRouter } from "next/navigation";
 
 interface AdminSidebarProps {

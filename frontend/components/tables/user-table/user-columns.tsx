@@ -1,7 +1,7 @@
 import {DataTableColumnHeader} from "@/components/tables/data-table-column-header";
 import {Button} from "@/components/ui/button";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {Role, User} from "@/lib/gql/generated/graphql";
+import {Role, User} from "@/lib/gql/generated/schema-types";
 import {ColumnDef} from "@tanstack/react-table";
 import {MoreHorizontal, Shield,} from "lucide-react";
 import React, {SetStateAction} from "react";

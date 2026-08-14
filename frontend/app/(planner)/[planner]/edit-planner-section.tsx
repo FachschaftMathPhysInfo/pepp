@@ -1,5 +1,5 @@
 import {Button} from "@/components/ui/button";
-import {Event,} from "@/lib/gql/generated/graphql";
+import {Event,} from "@/lib/gql/generated/schema-types";
 import {Edit2} from "lucide-react";
 import {useState} from "react";
 import {UmbrellaDialog} from "@/components/dialog/umbrellas/umbrella-dialog";

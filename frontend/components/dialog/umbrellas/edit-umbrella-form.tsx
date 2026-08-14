@@ -17,7 +17,6 @@ import { getClient } from "@/lib/graphql";
 import {
   AddEventDocument,
   AddEventMutation,
-  Event,
   NewEvent,
   SubscribeToEventDocument,
   SubscribeToEventMutation,
@@ -28,6 +27,8 @@ import {
   UpdateEventDocument,
   UpdateEventMutation,
 } from "@/lib/gql/generated/graphql";
+import {Event } from "@/lib/gql/generated/schema-types";
+
 import { ChevronsUpDown, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -126,8 +127,8 @@ export default function EditUmbrellaForm({
     const newEvent: NewEvent = {
       title: umbrellaData.title,
       description: umbrellaData.description,
-      from: duration.from,
-      to: duration.to,
+	from: duration.from.toString(),
+	to: duration.to.toString(),
       needsTutors: false,
       tutorialsOpen: false,
       registrationNeeded: true,

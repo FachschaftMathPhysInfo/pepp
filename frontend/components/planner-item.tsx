@@ -1,4 +1,4 @@
-import { Event, Tutorial } from "@/lib/gql/generated/graphql";
+import { Event, Tutorial } from "@/lib/gql/generated/schema-types";
 import { formatDateToHHMM, hexToRGBA } from "@/lib/utils";
 import React from "react";
 import { Clock, SquareCheckBig } from "lucide-react";

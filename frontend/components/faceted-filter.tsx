@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/command";
 import {Popover, PopoverContent, PopoverTrigger,} from "@/components/ui/popover";
 import {Separator} from "@/components/ui/separator";
-import {Label} from "@/lib/gql/generated/graphql";
+import {Label} from "@/lib/gql/generated/schema-types";
 
 interface FacetedFilterProps {
   title?: string;

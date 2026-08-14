@@ -9,11 +9,10 @@ import {getClient} from "@/lib/graphql";
 import {
   AddRoomDocument,
   AddRoomMutation,
-  Building,
-  Room,
   UpdateRoomDocument,
   UpdateRoomMutation
 } from "@/lib/gql/generated/graphql";
+import { Room, Building } from "@/lib/gql/generated/schema-types" 
 import {Save} from "lucide-react";
 import {toast} from "sonner";
 import {useUser} from "@/components/provider/user-provider";

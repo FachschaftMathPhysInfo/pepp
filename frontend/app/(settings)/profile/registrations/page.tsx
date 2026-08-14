@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  Event,
   GetTutorialIdsOfEventDocument,
   GetTutorialIdsOfEventQuery,
   PlannerEventsDocument,
 } from "@/lib/gql/generated/graphql";
+import {Event} from "@/lib/gql/generated/schema-types";
 
 import {Card, CardContent} from "@/components/ui/card";
 

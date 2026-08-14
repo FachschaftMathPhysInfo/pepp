@@ -1,5 +1,5 @@
 import { TimeZone, type EventColor } from "@/components/event-calendar";
-import type { Event } from "@/lib/gql/generated/graphql";
+import type { Event } from "@/lib/gql/generated/schema-types";
 
 import { DateTime } from "luxon";
 

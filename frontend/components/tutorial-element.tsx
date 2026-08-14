@@ -1,4 +1,4 @@
-import {Tutorial} from "@/lib/gql/generated/graphql";
+import {Tutorial} from "@/lib/gql/generated/schema-types";
 import {Building, DoorClosed} from "lucide-react";
 
 interface TutorialElementProps {

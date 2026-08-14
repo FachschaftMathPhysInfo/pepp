@@ -14,13 +14,11 @@ import {
   DeleteEventMutation,
   DeleteTutorialsDocument,
   DeleteTutorialsMutation,
-  Event,
   EventTutorialsDocument,
   EventTutorialsQuery,
   LabelKind,
   NewEvent,
   NewTutorial,
-  Tutorial,
   UmbrellasDocument,
   UmbrellasQuery,
   UpdateEventDocument,
@@ -28,6 +26,7 @@ import {
   UpdateTutorialDocument,
   UpdateTutorialMutation,
 } from "@/lib/gql/generated/graphql";
+import {Tutorial, Event} from "@/lib/gql/generated/schema-types";
 import { getClient } from "@/lib/graphql";
 import { toast } from "sonner";
 import {
@@ -202,8 +201,8 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       topicIDs: data.topicIDs,
       typeID: data.typeID,
       needsTutors: data.needsTutors,
-      from: addLocalTimezoneOffset(mergeDateAndTime(data.date, data.from)),
-      to: addLocalTimezoneOffset(mergeDateAndTime(data.date, data.to)),
+	from: addLocalTimezoneOffset(mergeDateAndTime(data.date, data.from)).toISOString(),
+	to: addLocalTimezoneOffset(mergeDateAndTime(data.date, data.to)).toISOString(),
       tutorialsOpen: data.tutorialsOpen,
       registrationNeeded: data.registrationNeeded,
       umbrellaID: data.umbrellaID,

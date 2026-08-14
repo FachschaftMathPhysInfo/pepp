@@ -24,7 +24,8 @@ import {
   DefaultStartHour,
   TimeZone,
 } from "@/components/event-calendar/constants";
-import {Role, type Event } from "@/lib/gql/generated/graphql";
+import {Role } from "@/lib/gql/generated/graphql";
+import {type Event } from "@/lib/gql/generated/schema-types";
 import { DateTime } from "luxon";
 import {useUser} from "@/components/provider/user-provider";
 

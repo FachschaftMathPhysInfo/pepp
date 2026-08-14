@@ -1,4 +1,4 @@
-import {Building} from "@/lib/gql/generated/graphql";
+import {Building} from "@/lib/gql/generated/schema-types";
 import {CirclePlus, Map as MapIcon, Pencil, Trash} from "lucide-react";
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from "@/components/ui/accordion";
 import {RoomTable} from "@/components/tables/rooms-table/room-table";

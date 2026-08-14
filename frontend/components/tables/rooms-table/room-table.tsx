@@ -18,7 +18,7 @@ import {
 import React from "react";
 import {Input} from "@/components/ui/input";
 import {DataTablePagination} from "@/components/tables/data-table-pagination";
-import {Building, Room} from "@/lib/gql/generated/graphql";
+import {Building, Room} from "@/lib/gql/generated/schema-types";
 import {RoomColumn} from "@/components/tables/rooms-table/room-columns";
 import {LocationDialogState} from "@/app/(settings)/admin/locations/page";
 

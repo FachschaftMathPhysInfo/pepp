@@ -1,4 +1,4 @@
-import { Room } from "@/lib/gql/generated/graphql";
+import { Room } from "@/lib/gql/generated/schema-types";
 import React from "react";
 import { RoomDetail } from "./room-detail";
 import MapPreview from "./map-preview";

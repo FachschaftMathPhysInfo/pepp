@@ -1,6 +1,6 @@
 import {Button} from "@/components/ui/button";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
-import {Building, Room} from "@/lib/gql/generated/graphql";
+import {Building, Room} from "@/lib/gql/generated/schema-types";
 import {ColumnDef} from "@tanstack/react-table";
 import {MoreHorizontal} from "lucide-react";
 import React, {SetStateAction} from "react";

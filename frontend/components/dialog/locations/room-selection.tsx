@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Room } from "@/lib/gql/generated/graphql";
+import { Room } from "@/lib/gql/generated/schema-types";
 import {
   ArrowDownToDot,
   Check,

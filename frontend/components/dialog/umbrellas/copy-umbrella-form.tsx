@@ -17,11 +17,12 @@ import { getClient } from "@/lib/graphql";
 import {
   AddEventDocument,
   AddEventMutation,
-  Event,
   NewEvent,
   TableEventsDocument,
   TableEventsQuery,
 } from "@/lib/gql/generated/graphql";
+import {Event } from "@/lib/gql/generated/schema-types";
+
 import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
@@ -111,8 +112,8 @@ export default function CopyUmbrellaForm({
       topicIDs: sourceUmbrella.topics.map((t) => t.ID),
       typeID: sourceUmbrella.type.ID,
       needsTutors: false,
-      from: returnDateWithOffset(sourceUmbrella.from, startingOffset),
-      to: returnDateWithOffset(sourceUmbrella.to, startingOffset),
+	from: returnDateWithOffset(sourceUmbrella.from, startingOffset).toISOString(),
+	to: returnDateWithOffset(sourceUmbrella.to, startingOffset).toISOString(),
       tutorialsOpen: false,
       registrationNeeded: true,
     };
@@ -135,8 +136,8 @@ export default function CopyUmbrellaForm({
       topicID: event.topics.map((t) => t.ID),
       typeID: event.type.ID,
       needsTutors: event.needsTutors,
-      from: returnDateWithOffset(event.from, startingOffset),
-      to: returnDateWithOffset(event.to, startingOffset),
+	from: returnDateWithOffset(event.from, startingOffset).toISOString(),
+	to: returnDateWithOffset(event.to, startingOffset).toISOString(),
       umbrellaID: umbrellaID,
       tutorialsOpen: false,
       registrationNeeded: event.registrationNeeded,

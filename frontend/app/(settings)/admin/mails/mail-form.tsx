@@ -13,10 +13,10 @@ import {
 import React, { useState } from "react";
 import { getClient } from "@/lib/graphql";
 import {
-  Setting,
   UpsertSettingDocument,
   UpsertSettingMutation,
 } from "@/lib/gql/generated/graphql";
+import {Setting} from "@/lib/gql/generated/schema-types";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { ResetIcon } from "@radix-ui/react-icons";

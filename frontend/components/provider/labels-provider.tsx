@@ -1,7 +1,8 @@
 "use client";
 
 import {createContext, ReactNode, useContext, useEffect, useState,} from "react";
-import {Label, LabelKind, LabelsDocument} from "@/lib/gql/generated/graphql";
+import { LabelKind, LabelsDocument} from "@/lib/gql/generated/graphql";
+import {Label } from "@/lib/gql/generated/schema-types";
 import {getClient} from "@/lib/graphql";
 
 type LabelsContextType = {

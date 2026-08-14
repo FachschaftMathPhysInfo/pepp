@@ -1,7 +1,7 @@
 import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import React from "react";
 import {Sprout} from "lucide-react";
-import {Label} from "@/lib/gql/generated/graphql"
+import {Label} from "@/lib/gql/generated/schema-types"
 import LabelForm from "@/components/dialog/labels/label-form";
 
 interface LabelDialogProps {

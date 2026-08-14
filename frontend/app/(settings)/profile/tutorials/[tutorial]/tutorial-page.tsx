@@ -6,13 +6,13 @@ import {
   DeleteStudentRegistrationForTutorialDocument,
   DeleteStudentRegistrationForTutorialMutation,
   DeleteStudentRegistrationForTutorialMutationVariables,
-  Event,
-  Tutorial,
   TutorialDetailDocument,
   TutorialDetailQuery,
   TutorialDetailQueryVariables,
-  User,
 } from "@/lib/gql/generated/graphql";
+import {Event, User, Tutorial} from "@/lib/gql/generated/schema-types";
+
+
 import { getClient } from "@/lib/graphql";
 import {
   defaultBuilding,

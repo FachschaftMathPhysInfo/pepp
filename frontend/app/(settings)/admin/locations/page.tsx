@@ -5,12 +5,14 @@ import {
   AllBuildingsQuery,
   AllTutorialsBuildingsIdDocument,
   AllTutorialsBuildingsIdQuery,
-  Building,
   DeleteBuildingDocument,
   DeleteBuildingMutation,
   DeleteRoomDocument,
   DeleteRoomMutation,
 } from "@/lib/gql/generated/graphql";
+import {
+    Building
+} from "@/lib/gql/generated/schema-types";
 import React, {useCallback, useEffect, useState} from "react";
 import {getClient} from "@/lib/graphql";
 import {defaultBuilding, defaultRoom} from "@/types/defaults";

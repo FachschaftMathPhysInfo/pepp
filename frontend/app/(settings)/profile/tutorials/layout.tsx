@@ -3,7 +3,7 @@
 import { ManagementPageHeader } from "@/components/management-page-header";
 import { RefetchProvider } from "@/components/provider/refetch-provider";
 import { SidebarNav } from "@/components/sidebar-nav";
-import { Tutorial } from "@/lib/gql/generated/graphql";
+import { Tutorial } from "@/lib/gql/generated/schema-types";
 import { slugify } from "@/lib/utils";
 import { GraduationCap } from "lucide-react";
 import React from "react";

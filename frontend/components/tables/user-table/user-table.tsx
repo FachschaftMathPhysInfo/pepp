@@ -23,8 +23,9 @@ import {
   Role, UpdateUser,
   UpdateUserDocument,
   UpdateUserMutation,
-  User,
 } from "@/lib/gql/generated/graphql";
+
+import { User} from "@/lib/gql/generated/schema-types"
 import { DataTablePagination } from "@/components/tables/data-table-pagination";
 import { UserColumns } from "@/components/tables/user-table/user-columns";
 import { GraphQLClient } from "graphql-request";

@@ -2,18 +2,19 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import {
-  Event,
-  Label,
+
+
   PlannerEventsDocument,
   PlannerEventsQuery,
   PlannerEventsQueryVariables,
   Role,
-  Setting,
+
   SettingsDocument,
   SettingsQuery,
   UmbrellaDetailDocument,
   UmbrellaDetailQuery,
 } from "@/lib/gql/generated/graphql";
+import {Event, Label, Setting } from "@/lib/gql/generated/schema-types";
 import { FacetedFilter } from "@/components/faceted-filter";
 import React, { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";

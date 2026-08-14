@@ -1,6 +1,6 @@
 import {type ClassValue, clsx} from "clsx";
 import {twMerge} from "tailwind-merge";
-import {Event} from "./gql/generated/graphql";
+import {Event} from "./gql/generated/schema-types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

@@ -3,13 +3,12 @@
 import { defaultRoom, defaultTutorial, defaultUser } from "@/types/defaults";
 import { Button } from "@/components/ui/button";
 import {
-  Room,
-  Tutorial,
   TutorialAvailabilitysDocument,
   TutorialAvailabilitysQuery,
   TutorialAvailabilitysQueryVariables,
-  User,
 } from "@/lib/gql/generated/graphql";
+
+import {Room, User, Tutorial} from "@/lib/gql/generated/schema-types";
 import {
   Info,
   MessageCircleQuestionMark,

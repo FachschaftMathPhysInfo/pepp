@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import {
   AllUsersDocument,
   AllUsersQuery,
-  User,
 } from "@/lib/gql/generated/graphql";
+import {User } from "@/lib/gql/generated/schema-types";
 import { UserTable } from "@/components/tables/user-table/user-table";
 import { defaultEvent, defaultTutorial, defaultUser } from "@/types/defaults";
 import { ManagementPageHeader } from "@/components/management-page-header";
