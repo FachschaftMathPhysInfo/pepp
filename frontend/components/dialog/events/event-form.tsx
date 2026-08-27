@@ -175,7 +175,7 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       from: formatDateToHHMM(event ? new Date(event.from) : new Date()),
       to: formatDateToHHMM(
         event ? new Date(event.to) : new Date(Date.now() + 30 * 60 * 1000)
-      ),
+	),
       topicIDs: event?.topics.map((t) => t.ID),
       typeID: event?.type.ID,
       needsTutors: event?.needsTutors ?? true,
@@ -207,8 +207,8 @@ export function EventForm({ event, edit, onCloseAction }: EventFormProps) {
       registrationNeeded: data.registrationNeeded,
       umbrellaID: data.umbrellaID,
     };
-
-    if (event) await handleUpdate(data, newEvent);
+      
+    if (event?.title) await handleUpdate(data, newEvent);
     else await handleCreation(data, newEvent);
   }
 

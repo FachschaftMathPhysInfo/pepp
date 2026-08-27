@@ -44,7 +44,7 @@ export function EventDialog({
             <DialogHeader>
               <DialogTitle className={"flex justify-between items-center"}>
                 <span className={"flex items-center"}>
-                  {event ? (
+                  {event?.title  ? (
                     <>
                       <Edit2 size={18} className={"inline mr-2"} /> Event
                       bearbeiten
